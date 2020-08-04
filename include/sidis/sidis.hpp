@@ -1,11 +1,15 @@
 #ifndef __SIDIS_SIDIS_HPP__
 #define __SIDIS_SIDIS_HPP__
 
-namespace sidis {
-
-double cross_section(double x, double y, double z, double pt2, double phih, double phi);
-
-}
+#include "sidis/constant.hpp"
+#include "sidis/cross_section.hpp"
+#include "sidis/hadronic_coeff.hpp"
+#include "sidis/kinematics.hpp"
+#include "sidis/leptonic_coeff.hpp"
+#include "sidis/math.hpp"
+#include "sidis/numeric.hpp"
+#include "sidis/structure_function.hpp"
+#include "sidis/vector.hpp"
 
 #endif
 
