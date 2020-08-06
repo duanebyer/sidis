@@ -17,7 +17,10 @@ Real Vec3::norm_sq() const {
 
 Real Vec3::norm() const {
 	// This approach ensures that we don't overflow/underflow for large vectors.
-	Real max = std::max({ this->x, this->y, this->z });
+	Real max = std::max({
+		std::abs(this->x),
+		std::abs(this->y),
+		std::abs(this->z) });
 	Real x_r = this->x / max;
 	Real y_r = this->y / max;
 	Real z_r = this->z / max;
@@ -73,7 +76,11 @@ Real Vec4::norm_sq() const {
 }
 
 Real Vec4::norm() const {
-	Real max = std::max({ this->t, this->r.x, this->r.y, this->r.z });
+	Real max = std::max({
+		std::abs(this->t),
+		std::abs(this->r.x),
+		std::abs(this->r.y),
+		std::abs(this->r.z) });
 	Real t_r = this->t / max;
 	Real x_r = this->r.x / max;
 	Real y_r = this->r.y / max;
