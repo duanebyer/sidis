@@ -1,11 +1,22 @@
 #ifndef SIDIS_HADRONIC_COEFF_HPP
 #define SIDIS_HADRONIC_COEFF_HPP
 
-#include "sidis/kinematics.hpp"
 #include "sidis/numeric.hpp"
-#include "sidis/structure_function.hpp"
 
 namespace sidis {
+
+namespace kin {
+	struct Kinematics;
+}
+namespace sf {
+	struct SfUU;
+	struct SfUL;
+	struct SfUT;
+	struct SfLU;
+	struct SfLL;
+	struct SfLT;
+}
+
 namespace had {
 
 struct HadUU {

@@ -2,7 +2,9 @@
 
 #include <cmath>
 
+#include "sidis/kinematics.hpp"
 #include "sidis/math.hpp"
+#include "sidis/structure_function.hpp"
 
 using namespace sidis;
 using namespace sidis::had;

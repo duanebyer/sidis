@@ -1,10 +1,14 @@
 #ifndef SIDIS_LEPTONIC_COEFF_HPP
 #define SIDIS_LEPTONIC_COEFF_HPP
 
-#include "sidis/kinematics.hpp"
 #include "sidis/numeric.hpp"
 
 namespace sidis {
+
+namespace kin {
+	struct Kinematics;
+}
+
 namespace lep {
 
 struct LepBornUU {

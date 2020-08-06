@@ -1,14 +1,49 @@
 #ifndef SIDIS_CROSS_SECTION_HPP
 #define SIDIS_CROSS_SECTION_HPP
 
-#include "sidis/hadronic_coeff.hpp"
-#include "sidis/kinematics.hpp"
-#include "sidis/leptonic_coeff.hpp"
 #include "sidis/numeric.hpp"
-#include "sidis/structure_function.hpp"
-#include "sidis/vector.hpp"
 
 namespace sidis {
+
+namespace math {
+	struct Vec3;
+}
+namespace kin {
+	struct Kinematics;
+	struct KinematicsRad;
+	struct KinematicsEx;
+}
+namespace lep {
+	struct LepBornUU;
+	struct LepBornUP;
+	struct LepBornLU;
+	struct LepBornLP;
+}
+namespace had {
+	struct HadUU;
+	struct HadUL;
+	struct HadUT1;
+	struct HadUT2;
+	struct HadLU;
+	struct HadLL;
+	struct HadLT1;
+	struct HadLT2;
+}
+namespace sf {
+	struct SfUU;
+	struct SfUL;
+	struct SfUT;
+	struct SfLU;
+	struct SfLL;
+	struct SfLT;
+	struct SfXU;
+	struct SfXL;
+	struct SfXT;
+	struct SfUX;
+	struct SfLX;
+	struct Sf;
+}
+
 namespace xs {
 
 struct Born {
