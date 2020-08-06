@@ -14,13 +14,13 @@ using namespace sidis::sf;
 
 HadUU::HadUU(Kinematics kin, SfUU sf) {
 	Real H_00 = sf.F_UUL;
-	Real H_01 = sf.F_UU_cos_phih;
+	Real H_01 = -sf.F_UU_cos_phih;
 	Real H_11 = sf.F_UU_cos_2phih + sf.F_UUT;
 	Real H_22 = sf.F_UUT - sf.F_UU_cos_2phih;
 	H_1 = H_22;
 	H_2 = 4./(sq(kin.lambda_Y)*kin.ph_t_sq)*(
 		kin.lambda_Y*kin.ph_t_sq*kin.Q_sq*H_00
-		+ sq(kin.lambda_Y)*sq(kin.S_x)*H_11
+		+ sq(kin.lambda_3)*sq(kin.S_x)*H_11
 		- kin.lambda_2*kin.lambda_Y*H_22
 		-2.*kin.S_x*kin.lambda_3*kin.ph_t*kin.Q*kin.lambda_Y_sqrt*H_01);
 	H_3 = 1./kin.ph_t_sq*(H_11 - H_22);
