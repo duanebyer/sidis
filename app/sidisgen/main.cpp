@@ -1,7 +1,8 @@
 #include <cmath>
 #include <iostream>
 
-#include "sidis/sidis.hpp"
+#include <sidis/sidis.hpp>
+#include <sidis/sf_model/ww.hpp>
 
 using namespace sidis;
 
@@ -29,8 +30,9 @@ int main(int argc, char** argv) {
 	};
 	// Do the kinematic calculations.
 	kin::Kinematics kin(initial, phase_space, mh, M_th);
-	// Choose structure functions. For now, just use constants.
-	sf::Sf sf(sf::SfUU { 0., 1., 0., 0. }, {}, {}, {}, {}, {});
+	// Choose structure functions. For now, use the WW approximation.
+	sf::model::WW ww;
+	sf::Sf sf = ww.sf(kin.x, kin.z, kin.Q_sq, kin.ph_t);
 	// Compute the cross-section.
 	Real born_cross_section = xs::born(0., math::Vec3::ZERO, kin, sf);
 

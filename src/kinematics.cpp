@@ -76,7 +76,7 @@ Final::Final(Initial init, Kinematics kin) {
 	Real ph_l = kin.ph_l;
 	Real ph_t = kin.ph_t;
 
-	// Equations [2.1], [2.2].
+	// Equations [A.1], [A.2].
 	Real q_0 = S_x/(2.*M);
 	Real q_l = (2.*sq(M)*Q_sq + S*S_x)/(2.*M*kin.lambda_S_sqrt);
 	Real q_t = q_0*std::sqrt(1. - sq(q_l/q_0) + Q_sq/sq(q_0));

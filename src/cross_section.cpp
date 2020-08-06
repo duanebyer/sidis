@@ -194,9 +194,6 @@ Real xs::delta_vr(Kinematics kin) {
 Real xs::delta_vac_lep(kin::Kinematics kin) {
 	// Equation [1.50].
 	Real ms[3] = { MASS_E, MASS_MU, MASS_TAU };
-	Real L_e = L(std::sqrt(lambda(MASS_E, kin.Q_sq)), kin.Q_sq);
-	Real L_mu = L(std::sqrt(lambda(MASS_MU, kin.Q_sq)), kin.Q_sq);
-	Real L_tau = L(std::sqrt(lambda(MASS_TAU, kin.Q_sq)), kin.Q_sq);
 	Real delta = 0.;
 	for (unsigned idx = 0; idx < 3; ++idx) {
 		Real m = ms[idx];

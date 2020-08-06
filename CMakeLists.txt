@@ -10,6 +10,11 @@ project(
 	HOMEPAGE_URL "https://github.com/duanebyer/sidis"
 	LANGUAGES CXX)
 
+set(
+	CMAKE_MODULE_PATH
+	${CMAKE_MODULE_PATH}
+	"${Sidis_SOURCE_DIR}/cmake/Mathematica")
+
 add_subdirectory(src)
 add_subdirectory(app/sidisgen)
 
