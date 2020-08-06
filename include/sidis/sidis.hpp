@@ -1,5 +1,5 @@
-#ifndef __SIDIS_SIDIS_HPP__
-#define __SIDIS_SIDIS_HPP__
+#ifndef SIDIS_SIDIS_HPP
+#define SIDIS_SIDIS_HPP
 
 #include "sidis/constant.hpp"
 #include "sidis/cross_section.hpp"

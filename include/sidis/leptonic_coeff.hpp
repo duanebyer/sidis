@@ -1,5 +1,5 @@
-#ifndef __SIDIS_LEPTONIC_COEFF_HPP__
-#define __SIDIS_LEPTONIC_COEFF_HPP__
+#ifndef SIDIS_LEPTONIC_COEFF_HPP
+#define SIDIS_LEPTONIC_COEFF_HPP
 
 #include "sidis/kinematics.hpp"
 #include "sidis/numeric.hpp"

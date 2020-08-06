@@ -1,5 +1,5 @@
-#ifndef __SIDIS_CONSTANT_HPP__
-#define __SIDIS_CONSTANT_HPP__
+#ifndef SIDIS_CONSTANT_HPP
+#define SIDIS_CONSTANT_HPP
 
 #include "sidis/numeric.hpp"
 

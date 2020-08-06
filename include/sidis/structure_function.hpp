@@ -1,5 +1,5 @@
-#ifndef __SIDIS_STRUCTURE_FUNCTION_HPP__
-#define __SIDIS_STRUCTURE_FUNCTION_HPP__
+#ifndef SIDIS_STRUCTURE_FUNCTION_HPP
+#define SIDIS_STRUCTURE_FUNCTION_HPP
 
 #include "sidis/numeric.hpp"
 

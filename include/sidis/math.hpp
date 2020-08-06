@@ -1,5 +1,5 @@
-#ifndef __SIDIS_MATH_HPP__
-#define __SIDIS_MATH_HPP__
+#ifndef SIDIS_MATH_HPP
+#define SIDIS_MATH_HPP
 
 namespace sidis {
 namespace math {

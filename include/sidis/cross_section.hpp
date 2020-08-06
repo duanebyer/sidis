@@ -1,5 +1,5 @@
-#ifndef __SIDIS_CROSS_SECTION_HPP__
-#define __SIDIS_CROSS_SECTION_HPP__
+#ifndef SIDIS_CROSS_SECTION_HPP
+#define SIDIS_CROSS_SECTION_HPP
 
 #include "sidis/hadronic_coeff.hpp"
 #include "sidis/kinematics.hpp"

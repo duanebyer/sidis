@@ -1,5 +1,5 @@
-#ifndef __SIDIS_HADRONIC_COEFF_HPP__
-#define __SIDIS_HADRONIC_COEFF_HPP__
+#ifndef SIDIS_HADRONIC_COEFF_HPP
+#define SIDIS_HADRONIC_COEFF_HPP
 
 #include "sidis/kinematics.hpp"
 #include "sidis/numeric.hpp"

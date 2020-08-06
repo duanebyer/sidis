@@ -1,5 +1,5 @@
-#ifndef __SIDIS_NUMERIC_HPP__
-#define __SIDIS_NUMERIC_HPP__
+#ifndef SIDIS_NUMERIC_HPP
+#define SIDIS_NUMERIC_HPP
 
 namespace sidis {
 

@@ -1,5 +1,5 @@
-#ifndef __SIDIS_KINEMATICS_HPP__
-#define __SIDIS_KINEMATICS_HPP__
+#ifndef SIDIS_KINEMATICS_HPP
+#define SIDIS_KINEMATICS_HPP
 
 #include "sidis/numeric.hpp"
 #include "sidis/vector.hpp"

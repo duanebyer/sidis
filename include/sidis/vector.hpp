@@ -1,5 +1,5 @@
-#ifndef __SIDIS_VECTOR_HPP__
-#define __SIDIS_VECTOR_HPP__
+#ifndef SIDIS_VECTOR_HPP
+#define SIDIS_VECTOR_HPP
 
 #include "sidis/numeric.hpp"
 

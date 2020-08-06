@@ -1,5 +1,5 @@
-#ifndef __SIDIS_SF_MODEL_WW_HPP__
-#define __SIDIS_SF_MODEL_WW_HPP__
+#ifndef SIDIS_SF_MODEL_WW_HPP
+#define SIDIS_SF_MODEL_WW_HPP
 
 #include <stdexcept>
 
