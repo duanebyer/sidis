@@ -84,7 +84,7 @@ HadLT1::HadLT1(Kinematics kin, SfLT sf) {
 	H_7 = 4./(std::pow(kin.lambda_Y_sqrt, 3)*kin.ph_t_sq)*(
 		kin.Q*kin.ph_t*kin.lambda_Y_sqrt*H_021
 		- kin.lambda_3*kin.S_x*H_121);
-	H_9 = 2./(kin.lambda_Y*kin.ph_t_sq)*H_121;
+	H_9 = 2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_121;
 }
 
 HadLT2::HadLT2(Kinematics kin, SfLT sf) {
