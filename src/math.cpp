@@ -6,9 +6,11 @@
 using namespace sidis;
 using namespace sidis::math;
 
+namespace {
+
 // Compute `log(|x|) log(|1 - x|)`
 template<typename T>
-static T log_log1m(T x) {
+T log_log1m(T x) {
 	if (!std::isfinite(x)) {
 		if (std::isinf(x)) {
 			return std::numeric_limits<T>::infinity();
@@ -29,7 +31,7 @@ static T log_log1m(T x) {
 }
 
 template<typename T>
-static T dilog_impl(T x) {
+T dilog_impl(T x) {
 	// Ensure we have as many digits of pi as can fit the `T` type.
 	T pi = 3.141592653589793238462643383279502797479068098137295573004504331874296718662975536062731407582759857177734375;
 
@@ -89,7 +91,7 @@ static T dilog_impl(T x) {
 }
 
 template<typename T>
-static T trapezoid_impl(T (*f)(T), T a, T b, unsigned n) {
+T trapezoid_impl(T (*f)(T), T a, T b, unsigned n) {
 	T delta = (b - a) / n;
 	T result = 0.5 * (f(a) + f(b));
 	for (unsigned i = 1; i <= n - 1; ++i) {
@@ -97,6 +99,8 @@ static T trapezoid_impl(T (*f)(T), T a, T b, unsigned n) {
 		result += f(x);
 	}
 	return result * delta;
+}
+
 }
 
 float math::dilog(float x) {

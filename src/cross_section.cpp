@@ -19,6 +19,51 @@ using namespace sidis::lep;
 using namespace sidis::math;
 using namespace sidis::sf;
 
+namespace {
+
+Real L(Real lambda_sqrt, Real Q_sq) {
+	// Equation [1.D3].
+	return 1./lambda_sqrt*std::log((lambda_sqrt + Q_sq)/(lambda_sqrt - Q_sq));
+}
+
+Real lambda(Real m, Real Q_sq) {
+	// Equation [1.D3].
+	return Q_sq*(Q_sq + 4.*sq(m));
+}
+
+Real S_phi(Real z, Real z_1, Real z_2, Real z_3, Real z_4, Real a, Real b) {
+	// Equation [1.40].
+	return -a*(
+		b*std::log(((z - z_1)*(z - z_3))/((z - z_2)*(z - z_4)))
+		+ 0.5*(
+			sq(std::log(std::abs(z - z_1)))
+			- sq(std::log(std::abs(z - z_2)))
+			- sq(std::log(std::abs(z - z_3)))
+			+ sq(std::log(std::abs(z - z_4))))
+		+ (
+			std::log(std::abs(z - z_1))*std::log(std::abs(z_1 - z_2))
+			- std::log(std::abs(z - z_1))*std::log(std::abs(z_1 - z_3))
+			- std::log(std::abs(z - z_1))*std::log(std::abs(z_1 - z_4))
+			- std::log(std::abs(z - z_2))*std::log(std::abs(z_2 - z_1))
+			+ std::log(std::abs(z - z_2))*std::log(std::abs(z_2 - z_3))
+			+ std::log(std::abs(z - z_2))*std::log(std::abs(z_2 - z_4))
+			+ std::log(std::abs(z - z_3))*std::log(std::abs(z_3 - z_1))
+			+ std::log(std::abs(z - z_3))*std::log(std::abs(z_3 - z_2))
+			- std::log(std::abs(z - z_3))*std::log(std::abs(z_3 - z_4)))
+		- (
+			dilog((z - z_1)/(z_2 - z_1))
+			- dilog((z - z_1)/(z_3 - z_1))
+			- dilog((z - z_1)/(z_4 - z_1))
+			- dilog((z - z_2)/(z_1 - z_2))
+			+ dilog((z - z_2)/(z_3 - z_2))
+			+ dilog((z - z_2)/(z_4 - z_2))
+			+ dilog((z - z_3)/(z_1 - z_3))
+			+ dilog((z - z_3)/(z_2 - z_3))
+			- dilog((z - z_3)/(z_4 - z_3))));
+}
+
+}
+
 Born::Born(Kinematics kin) {
 	// Equation [1.15].
 	coeff = (sq(ALPHA)*kin.S*sq(kin.S_x))
@@ -98,47 +143,6 @@ Real xs::born_lt1(Born b, LepBornLP lep, HadLT1 had) {
 
 Real xs::born_lt2(Born b, LepBornLU lep, HadLT2 had) {
 	return b.coeff*b.c_1*lep.theta_5*had.H_5;
-}
-
-static Real L(Real lambda_sqrt, Real Q_sq) {
-	// Equation [1.D3].
-	return 1./lambda_sqrt*std::log((lambda_sqrt + Q_sq)/(lambda_sqrt - Q_sq));
-}
-
-static Real lambda(Real m, Real Q_sq) {
-	// Equation [1.D3].
-	return Q_sq*(Q_sq + 4.*sq(m));
-}
-
-static Real S_phi(Real z, Real z_1, Real z_2, Real z_3, Real z_4, Real a, Real b) {
-	// Equation [1.40].
-	return -a*(
-		b*std::log(((z - z_1)*(z - z_3))/((z - z_2)*(z - z_4)))
-		+ 0.5*(
-			sq(std::log(std::abs(z - z_1)))
-			- sq(std::log(std::abs(z - z_2)))
-			- sq(std::log(std::abs(z - z_3)))
-			+ sq(std::log(std::abs(z - z_4))))
-		+ (
-			std::log(std::abs(z - z_1))*std::log(std::abs(z_1 - z_2))
-			- std::log(std::abs(z - z_1))*std::log(std::abs(z_1 - z_3))
-			- std::log(std::abs(z - z_1))*std::log(std::abs(z_1 - z_4))
-			- std::log(std::abs(z - z_2))*std::log(std::abs(z_2 - z_1))
-			+ std::log(std::abs(z - z_2))*std::log(std::abs(z_2 - z_3))
-			+ std::log(std::abs(z - z_2))*std::log(std::abs(z_2 - z_4))
-			+ std::log(std::abs(z - z_3))*std::log(std::abs(z_3 - z_1))
-			+ std::log(std::abs(z - z_3))*std::log(std::abs(z_3 - z_2))
-			- std::log(std::abs(z - z_3))*std::log(std::abs(z_3 - z_4)))
-		- (
-			dilog((z - z_1)/(z_2 - z_1))
-			- dilog((z - z_1)/(z_3 - z_1))
-			- dilog((z - z_1)/(z_4 - z_1))
-			- dilog((z - z_2)/(z_1 - z_2))
-			+ dilog((z - z_2)/(z_3 - z_2))
-			+ dilog((z - z_2)/(z_4 - z_2))
-			+ dilog((z - z_3)/(z_1 - z_3))
-			+ dilog((z - z_3)/(z_2 - z_3))
-			- dilog((z - z_3)/(z_4 - z_3))));
 }
 
 Real xs::delta_vr(Kinematics kin) {
