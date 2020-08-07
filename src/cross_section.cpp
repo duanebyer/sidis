@@ -72,6 +72,14 @@ Born::Born(Kinematics kin) {
 	c_1 = (4.*kin.M*kin.ph_l*(kin.Q_sq + 2.*kin.x*sq(kin.M)))/sq(kin.Q_sq);
 }
 
+Amm::Amm(Kinematics kin) {
+	// Equation [1.53].
+	coeff = (std::pow(ALPHA, 3)*sq(kin.m)*kin.S*sq(kin.S_x))
+		/(16.*PI*kin.M*kin.Q_sq*kin.ph_l*kin.lambda_S);
+	// Equation [1.18].
+	c_1 = (4.*kin.M*kin.ph_l*(kin.Q_sq + 2.*kin.x*sq(kin.M)))/sq(kin.Q_sq);
+}
+
 Real xs::born(Real lambda_e, Vec3 eta, Kinematics kin, Sf sf) {
 	// Calculate the complete Born cross-section by interpolating all of the
 	// individual pieces together.
@@ -105,6 +113,38 @@ Real xs::born(Real lambda_e, Vec3 eta, Kinematics kin, Sf sf) {
 	return uu + up + lambda_e * (lu + lp);
 }
 
+Real xs::amm(Real lambda_e, Vec3 eta, Kinematics kin, Sf sf) {
+	Amm b(kin);
+
+	LepAmmUU lep_uu(kin);
+	LepAmmUP lep_up(kin);
+	HadUU had_uu(kin, sf);
+	HadUL had_ul(kin, sf);
+	HadUT1 had_ut1(kin, sf);
+	HadUT2 had_ut2(kin, sf);
+
+	LepAmmLU lep_lu(kin);
+	LepAmmLP lep_lp(kin);
+	HadLU had_lu(kin, sf);
+	HadLL had_ll(kin, sf);
+	HadLT1 had_lt1(kin, sf);
+	HadLT2 had_lt2(kin, sf);
+
+	Real uu = amm_uu(b, lep_uu, had_uu);
+	Real ul = amm_ul(b, lep_up, had_ul);
+	Real ut1 = amm_ut1(b, lep_up, had_ut1);
+	Real ut2 = amm_ut2(b, lep_uu, had_ut2);
+	Real lu = amm_lu(b, lep_lu, had_lu);
+	Real ll = amm_ll(b, lep_lp, had_ll);
+	Real lt1 = amm_lt1(b, lep_lp, had_lt1);
+	Real lt2 = amm_lt2(b, lep_lu, had_lt2);
+
+	Real up = dot(eta, Vec3(ut1, ut2, ul));
+	Real lp = dot(eta, Vec3(lt1, lt2, ll));
+	return uu + up + lambda_e * (lu + lp);
+}
+
+// Born base functions.
 Real xs::born_uu(Born b, LepBornUU lep, HadUU had) {
 	return b.coeff*b.c_1*(
 		lep.theta_1*had.H_1
@@ -112,15 +152,12 @@ Real xs::born_uu(Born b, LepBornUU lep, HadUU had) {
 		+ lep.theta_3*had.H_3
 		+ lep.theta_4*had.H_4);
 }
-
 Real xs::born_ul(Born b, LepBornUP lep, HadUL had) {
 	return b.coeff*b.c_1*(lep.theta_6*had.H_6 + lep.theta_8*had.H_8);
 }
-
 Real xs::born_ut1(Born b, LepBornUP lep, HadUT1 had) {
 	return b.coeff*b.c_1*(lep.theta_6*had.H_6 + lep.theta_8*had.H_8);
 }
-
 Real xs::born_ut2(Born b, LepBornUU lep, HadUT2 had) {
 	return b.coeff*b.c_1*(
 		lep.theta_1*had.H_1
@@ -128,20 +165,50 @@ Real xs::born_ut2(Born b, LepBornUU lep, HadUT2 had) {
 		+ lep.theta_3*had.H_3
 		+ lep.theta_4*had.H_4);
 }
-
 Real xs::born_lu(Born b, LepBornLU lep, HadLU had) {
 	return b.coeff*b.c_1*lep.theta_5*had.H_5;
 }
-
 Real xs::born_ll(Born b, LepBornLP lep, HadLL had) {
 	return b.coeff*b.c_1*(lep.theta_7*had.H_7 + lep.theta_9*had.H_9);
 }
-
 Real xs::born_lt1(Born b, LepBornLP lep, HadLT1 had) {
 	return b.coeff*b.c_1*(lep.theta_7*had.H_7 + lep.theta_9*had.H_9);
 }
-
 Real xs::born_lt2(Born b, LepBornLU lep, HadLT2 had) {
+	return b.coeff*b.c_1*lep.theta_5*had.H_5;
+}
+
+// AMM base functions.
+Real xs::amm_uu(Amm b, LepAmmUU lep, HadUU had) {
+	return b.coeff*b.c_1*(
+		lep.theta_1*had.H_1
+		+ lep.theta_2*had.H_2
+		+ lep.theta_3*had.H_3
+		+ lep.theta_4*had.H_4);
+}
+Real xs::amm_ul(Amm b, LepAmmUP lep, HadUL had) {
+	return b.coeff*b.c_1*(lep.theta_6*had.H_6 + lep.theta_8*had.H_8);
+}
+Real xs::amm_ut1(Amm b, LepAmmUP lep, HadUT1 had) {
+	return b.coeff*b.c_1*(lep.theta_6*had.H_6 + lep.theta_8*had.H_8);
+}
+Real xs::amm_ut2(Amm b, LepAmmUU lep, HadUT2 had) {
+	return b.coeff*b.c_1*(
+		lep.theta_1*had.H_1
+		+ lep.theta_2*had.H_2
+		+ lep.theta_3*had.H_3
+		+ lep.theta_4*had.H_4);
+}
+Real xs::amm_lu(Amm b, LepAmmLU lep, HadLU had) {
+	return b.coeff*b.c_1*lep.theta_5*had.H_5;
+}
+Real xs::amm_ll(Amm b, LepAmmLP lep, HadLL had) {
+	return b.coeff*b.c_1*(lep.theta_7*had.H_7 + lep.theta_9*had.H_9);
+}
+Real xs::amm_lt1(Amm b, LepAmmLP lep, HadLT1 had) {
+	return b.coeff*b.c_1*(lep.theta_7*had.H_7 + lep.theta_9*had.H_9);
+}
+Real xs::amm_lt2(Amm b, LepAmmLU lep, HadLT2 had) {
 	return b.coeff*b.c_1*lep.theta_5*had.H_5;
 }
 

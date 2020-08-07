@@ -46,9 +46,11 @@ int main(int argc, char** argv) {
 	// Choose structure functions. For now, use the WW approximation.
 	sf::model::WW ww;
 	sf::Sf sf = ww.sf(kin.x, kin.z, kin.Q_sq, kin.ph_t);
-	// Compute the cross-section.
+	// Compute the cross-sections.
 	Real born_cross_section = xs::born(beam_pol, eta, kin, sf);
+	Real amm_cross_section = xs::amm(beam_pol, eta, kin, sf);
 	std::cout << "Born cross-section is: " << born_cross_section << std::endl;
+	std::cout << "AMM cross-section is:  " << amm_cross_section << std::endl;
 	return 0;
 }
 
