@@ -32,8 +32,8 @@ T log_log1m(T x) {
 
 template<typename T>
 T dilog_impl(T x) {
-	// Ensure we have as many digits of pi as can fit the `T` type.
-	T pi = 3.141592653589793238462643383279502797479068098137295573004504331874296718662975536062731407582759857177734375;
+	// Ensure we have as many digits of `π^2/6` as can fit the `T` type.
+	T c = 1.644934066848226436472415166646025189219;
 
 	// To compute the dilogarithm, first bring the argument into the range
 	// (-0.5, 0.5).
@@ -47,15 +47,15 @@ T dilog_impl(T x) {
 		}
 	} else if (x > 2.) {
 		a = -1.;
-		b = sq(pi) / 3. - 0.5 * sq(std::log(x));
+		b = 2. * c - 0.5 * sq(std::log(x));
 		x = 1. / x;
 	} else if (x > 1.) {
 		a = 1.;
-		b = sq(pi) / 6. + 0.5 * sq(std::log(x)) - log_log1m(x);
+		b = c + 0.5 * sq(std::log(x)) - log_log1m(x);
 		x = (x - 1.) / x;
 	} else if (x > 0.5) {
 		a = -1.;
-		b = sq(pi) / 6. - log_log1m(x);
+		b = c - log_log1m(x);
 		x = 1. - x;
 	} else if (x > -0.5) {
 		a = 1.;
@@ -67,7 +67,7 @@ T dilog_impl(T x) {
 		x = x / (x - 1.);
 	} else {
 		a = 1.;
-		b = -sq(pi) / 6. + 0.5 * sq(std::log1p(-x)) - log_log1m(x);
+		b = -c + 0.5 * sq(std::log1p(-x)) - log_log1m(x);
 		x = 1. / (1. - x);
 	}
 
