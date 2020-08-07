@@ -51,12 +51,10 @@ T dilog_impl(T x) {
 		x = 1. / x;
 	} else if (x > 1.) {
 		a = 1.;
-		//b = sq(pi) / 6. + 0.5 * std::log(x) * (std::log(x / sq(1. - x));
 		b = sq(pi) / 6. + 0.5 * sq(std::log(x)) - log_log1m(x);
 		x = (x - 1.) / x;
 	} else if (x > 0.5) {
 		a = -1.;
-		//b = sq(pi) / 6. - std::log(x) * std::log(1. - x);
 		b = sq(pi) / 6. - log_log1m(x);
 		x = 1. - x;
 	} else if (x > -0.5) {
@@ -69,7 +67,6 @@ T dilog_impl(T x) {
 		x = x / (x - 1.);
 	} else {
 		a = 1.;
-		//b = -sq(pi) / 6. + 0.5 * std::log(1. - x) * std::log((1. - x) / sq(x));
 		b = -sq(pi) / 6. + 0.5 * sq(std::log1p(-x)) - log_log1m(x);
 		x = 1. / (1. - x);
 	}
@@ -77,7 +74,9 @@ T dilog_impl(T x) {
 	// Size of the mantissa in base 2.
 	double d = std::numeric_limits<T>::digits
 		* std::log2(std::numeric_limits<T>::radix);
-	// Number of terms needed to reach desired precision.
+	// Number of terms needed to reach desired precision. This bound was
+	// experimentally determined to satisfy this condition for `d` greater than
+	// 10 and `x` in range (-0.5, 0.5).
 	unsigned n_max = (unsigned) std::ceil(
 		(1.4 * d + 6. * (1. - std::log(d))) * std::abs(x) + 0.3 * d) + 1;
 	T result = 0.;
