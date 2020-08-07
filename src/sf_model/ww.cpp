@@ -129,12 +129,12 @@ WW::WW(unsigned timeout_packet, unsigned timeout_init) {
 	}
 
 	// Load the library. Try several possible paths.
-	char const* library_path_1 = DATADIR SF_MODEL_DIR WWSIDIS_FILE;
+	char const* library_path_1 = DATADIR "/" SF_MODEL_DIR WWSIDIS_FILE;
 	char const* library_path_2 = "../share/" SF_MODEL_DIR WWSIDIS_FILE;
 	char const* library_path_4 = SF_MODEL_DIR WWSIDIS_FILE;
 	char const* library_path_3 = WWSIDIS_FILE;
 	char const* library_path_all =
-		DATADIR SF_MODEL_DIR WWSIDIS_FILE ":"
+		DATADIR "/" SF_MODEL_DIR WWSIDIS_FILE ":"
 		"../share/" SF_MODEL_DIR WWSIDIS_FILE ":"
 		SF_MODEL_DIR WWSIDIS_FILE ":"
 		WWSIDIS_FILE;

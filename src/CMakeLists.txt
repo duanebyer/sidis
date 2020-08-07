@@ -1,5 +1,5 @@
 source_group(
-	TREE "${Sidis_SOURCE_DIR}/include/"
+	TREE "${Sidis_SOURCE_DIR}/include"
 	PREFIX "Header files"
 	FILES ${HEADER_LIST})
 
@@ -23,7 +23,7 @@ add_library(
 	math.cpp
 	vector.cpp
 	${HEADER_LIST})
-target_include_directories(sidis PUBLIC "${Sidis_SOURCE_DIR}/include/")
+target_include_directories(sidis PUBLIC "${Sidis_SOURCE_DIR}/include")
 target_compile_features(sidis PUBLIC cxx_std_11)
 set_target_properties(sidis PROPERTIES CXX_EXTENSIONS OFF)
 target_compile_options(
@@ -80,7 +80,7 @@ set_target_properties(
 	INSTALL_RPATH_USE_LINK_PATH TRUE)
 target_compile_definitions(
 	sfww PRIVATE
-	DATADIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/")
+	DATADIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}")
 install(
 	DIRECTORY "${Sidis_SOURCE_DIR}/share/sidis/sf_model/wwsidis"
 	DESTINATION "${CMAKE_INSTALL_DATADIR}/sidis/sf_model"
