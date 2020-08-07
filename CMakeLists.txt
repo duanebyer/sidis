@@ -20,7 +20,6 @@ add_subdirectory(app/sidisgen)
 
 # Do testing only if this is the main project.
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-	include(CTest)
 	add_subdirectory(test)
 endif()
 
