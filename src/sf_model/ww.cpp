@@ -15,6 +15,9 @@
 #define WS_YIELD_CALLING_CONVENTION
 #endif
 
+#define SF_MODEL_DIR "./sidis/sf_model/"
+#define WWSIDIS_FILE "./wwsidis/wwsidis.m"
+
 using namespace sidis;
 using namespace sidis::sf;
 using namespace sidis::sf::model;
@@ -125,10 +128,33 @@ WW::WW(unsigned timeout_packet, unsigned timeout_init) {
 		throw WW::NextPacketFailureException(error);
 	}
 
-	// Load the library.
-	char const* library_path =
-		SIDIS_SF_MODEL_WW_DATADIR "/sidis/sf_model/wwsidis/wwsidis.m";
-	_impl->load_library(library_path);
+	// Load the library. Try several possible paths.
+	char const* library_path_1 = DATADIR SF_MODEL_DIR WWSIDIS_FILE;
+	char const* library_path_2 = "../share/" SF_MODEL_DIR WWSIDIS_FILE;
+	char const* library_path_4 = SF_MODEL_DIR WWSIDIS_FILE;
+	char const* library_path_3 = WWSIDIS_FILE;
+	char const* library_path_all =
+		DATADIR SF_MODEL_DIR WWSIDIS_FILE ":"
+		"../share/" SF_MODEL_DIR WWSIDIS_FILE ":"
+		SF_MODEL_DIR WWSIDIS_FILE ":"
+		WWSIDIS_FILE;
+	try {
+		_impl->load_library(library_path_1);
+	} catch (WW::LibraryLoadException const&) {
+		try {
+			_impl->load_library(library_path_2);
+		} catch (WW::LibraryLoadException const&) {
+			try {
+				_impl->load_library(library_path_3);
+			} catch(WW::LibraryLoadException const&) {
+				try {
+					_impl->load_library(library_path_4);
+				} catch(WW::LibraryLoadException const&) {
+					throw WW::LibraryLoadException(library_path_all);
+				}
+			}
+		}
+	}
 }
 
 WW::~WW() {

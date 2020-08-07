@@ -80,7 +80,7 @@ set_target_properties(
 	INSTALL_RPATH_USE_LINK_PATH TRUE)
 target_compile_definitions(
 	sfww PRIVATE
-	SIDIS_SF_MODEL_WW_DATADIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}")
+	DATADIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/")
 install(
 	DIRECTORY "${Sidis_SOURCE_DIR}/share/sidis/sf_model/wwsidis"
 	DESTINATION "${CMAKE_INSTALL_DATADIR}/sidis/sf_model"
