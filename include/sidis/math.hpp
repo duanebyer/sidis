@@ -28,6 +28,14 @@ float dilog(float x);
 double dilog(double x);
 long double dilog(long double x);
 
+float trapezoid(float (*f)(float), float a, float b, unsigned n);
+double trapezoid(double (*f)(double), double a, double b, unsigned n);
+long double trapezoid(
+	long double (*f)(long double),
+	long double a,
+	long double b,
+	unsigned n);
+
 }
 }
 
