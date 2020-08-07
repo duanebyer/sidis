@@ -85,12 +85,12 @@ Final::Final(Initial init, Kinematics kin) {
 	k2 = init.k1 - q;
 
 	// Form a basis for the reconstruction of ph.
-	Vec3 eq_1 = q.r.unit();
-	Vec3 eq_2 = cross(init.k1.r, q.r).unit();
-	Vec3 eq_3 = cross(eq_1, eq_2);
+	Vec3 eq_y = cross(q.r, init.k1.r).unit();
+	Vec3 eq_z = q.r.unit();
+	Vec3 eq_x = cross(eq_y, eq_z);
 
 	ph = Vec4(
 		ph_0,
-		ph_l*eq_1 + ph_t*std::sin(phi_h)*eq_2 + ph_t*std::cos(phi_h)*eq_3);
+		ph_l*eq_z + ph_t*std::cos(phi_h)*eq_x + ph_t*std::sin(phi_h)*eq_y);
 }
 
