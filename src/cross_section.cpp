@@ -22,18 +22,14 @@ using namespace sidis::sf;
 namespace {
 
 // Computes `1/√λ log((S + √λ)/(S - √λ))`. For numerical reasons, this also
-// takes `λ/S² - 1` as an argument.
+// takes `λ/S² - 1` as an argument. `S` is required to be greater than 1.
 Real L_1(Real lambda_sqrt, Real S, Real ratio_m1) {
 	// Similar to equation [1.D3].
 	// Rewrite the equation to avoid the catastrophic loss in numerical
 	// precision that comes with the naive approach.
 	//   a = 1 - √λ/|S|
 	Real a = std::expm1(0.5*std::log1p(ratio_m1));
-	if (S > 0.) {
-		return 1./lambda_sqrt*std::log((2. - a)/a);
-	} else {
-		return 1./lambda_sqrt*std::log(a/(2. - a));
-	}
+	return 1./lambda_sqrt*std::log((2. - a)/a);
 }
 
 // Computes `1/√λ log((√λ + S)/(√λ - S))`.
@@ -41,11 +37,7 @@ Real L_2(Real lambda_sqrt, Real S, Real ratio_m1) {
 	// Equation [1.D3].
 	//   a = 1 - √λ/|S|
 	Real a = std::expm1(0.5*std::log1p(ratio_m1));
-	if (S > 0.) {
-		return 1./lambda_sqrt*std::log(-(2. - a)/a);
-	} else {
-		return 1./lambda_sqrt*std::log(-a/(2. - a));
-	}
+	return 1./lambda_sqrt*std::log(-(2. - a)/a);
 }
 
 Real lambda(Real m, Real Q_sq) {
