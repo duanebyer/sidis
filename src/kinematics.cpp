@@ -39,8 +39,15 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 	// `ph_t_sq`.
 	ph_0 = (z*S_x)/(2.*M);
 	ph_t = std::sqrt(ph_t_sq);
-	ph_l = ph_0*std::sqrt(1. - ph_t_sq/sq(ph_0) - sq(mh/ph_0));
-	t = (2.*M*ph_l*lambda_Y_sqrt - z*sq(S_x)) / (2.*sq(M)) - Q_sq + sq(mh);
+	Real ph_ratio_sq = ph_t_sq/sq(ph_0) + sq(mh/ph_0);
+	ph_l = ph_0*std::sqrt(1. - ph_ratio_sq);
+	// In the low `ph_t` case (where the cross-section is the highest), the
+	// computation for `t` has a catastrophic cancellation between the terms
+	// `2 M ph_l √λ_Y - z S_x²`. So, it's better to compute `t` in the following
+	// way:
+	Real lambda_Y_ratio = (4.*sq(M)*Q_sq)/sq(S_x);
+	t = -Q_sq + sq(mh) + (ph_0*S_x)/M*sqrt1p_1m(
+		lambda_Y_ratio - ph_ratio_sq - lambda_Y_ratio*ph_ratio_sq);
 	mx_sq = sq(M) + t + (1. - z)*S_x;
 	mx = std::sqrt(mx_sq);
 	k_t = lambda_1_sqrt/lambda_Y_sqrt;
