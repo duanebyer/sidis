@@ -26,8 +26,8 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 	Q_sq = S*x*y;
 	Q = std::sqrt(Q_sq);
 	X = S*(1. - y);
-	S_x = S - X;
-	S_p = S + X;
+	S_x = S*y;
+	S_p = S*(2. - y);
 	lambda_S = sq(S) - 4.*sq(M)*sq(m);
 	lambda_Y = sq(S_x) + 4.*sq(M)*Q_sq;
 	lambda_1 = Q_sq*(S*X - sq(M)*Q_sq) - sq(m)*lambda_Y;
