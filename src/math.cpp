@@ -8,6 +8,11 @@ using namespace sidis::math;
 
 namespace {
 
+template<typename T>
+T sqrt1p_1m_impl(T x) {
+	return std::expm1(0.5*std::log1p(x));
+}
+
 // Compute `log(|x|) log(|1 - x|)`
 template<typename T>
 T log_log1m(T x) {
@@ -100,6 +105,16 @@ T trapezoid_impl(T (*f)(T), T a, T b, unsigned n) {
 	return result * delta;
 }
 
+}
+
+float math::sqrt1p_1m(float x) {
+	return sqrt1p_1m_impl<float>(x);
+}
+double math::sqrt1p_1m(double x) {
+	return sqrt1p_1m_impl<double>(x);
+}
+long double math::sqrt1p_1m(long double x) {
+	return sqrt1p_1m_impl<long double>(x);
 }
 
 float math::dilog(float x) {
