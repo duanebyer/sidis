@@ -283,8 +283,7 @@ Real xs::delta_vr(Kinematics kin) {
 
 	// Equation [1.40].
 	Real S_phi_a = -Q_m_sq/(2.*lambda_m_sqrt);
-	Real S_phi_b = std::log(
-		(X_prime - lambda_X_prime_sqrt)/(X_prime + lambda_X_prime_sqrt));
+	Real S_phi_b = std::log(-diff_X_prime/sum_X_prime);
 	Real S_phi_diff = S_phi(z_iu, z_ij, S_phi_a, S_phi_b)
 		- S_phi(z_id, z_ij, S_phi_a, S_phi_b);
 
