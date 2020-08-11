@@ -37,8 +37,9 @@ T log_log1m(T x) {
 
 template<typename T>
 T dilog_impl(T x) {
-	// Ensure we have as many digits of `π^2/6` as can fit the `T` type.
-	T c = 1.644934066848226436472415166646025189219;
+	// Ensure we have as many digits of `π^2/6` as can fit the `T` type, up to
+	// `long double`.
+	T c = 1.644934066848226436472415166646025189219L;
 
 	// To compute the dilogarithm, first bring the argument into the range
 	// (-0.5, 0.5).
