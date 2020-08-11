@@ -35,7 +35,7 @@ target_compile_options(
 find_package(Mathematica REQUIRED COMPONENTS WSTP)
 set(
 	MODEL_WW_HEADER_LIST
-	"${Sidis_SOURCE_DIR}/include/sidis/cross_section.hpp"
+	"${Sidis_SOURCE_DIR}/include/sidis/structure_function.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/sf_model/ww.hpp")
 add_library(
 	sfww
@@ -52,7 +52,9 @@ target_link_libraries(
 	PUBLIC
 	"${Mathematica_WSTP_LIBRARIES}")
 if(Mathematica_WSTP_LINKER_FLAGS)
-	set_target_properties(sfww PROPERTIES LINK_FLAGS "${Mathematica_WSTP_LINKER_FLAGS}")
+	set_target_properties(
+		sfww PROPERTIES
+		LINK_FLAGS "${Mathematica_WSTP_LINKER_FLAGS}")
 endif()
 add_custom_command(
 	TARGET sfww POST_BUILD
@@ -89,6 +91,12 @@ install(
 		PATTERN "*.m"
 		PATTERN "*.nb"
 		PATTERN "*.dat")
+install(
+	DIRECTORY "${Sidis_SOURCE_DIR}/include/sidis"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+	FILES_MATCHING
+		PATTERN "*.hpp"
+		PATTERN "*.h")
 install(
 	TARGETS sidis sfww
 	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
