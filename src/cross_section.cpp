@@ -21,22 +21,6 @@ using namespace sidis::sf;
 
 namespace {
 
-// Computes `1/√λ log(|(S + √λ)/(S - √λ)|)`. For numerical reasons, this also
-// takes `λ/S² - 1` as an argument. `S` is required to be greater than 1.
-Real L(Real lambda_sqrt, Real S, Real ratio_m1) {
-	// Similar to equation [1.D3].
-	// Rewrite the equation to avoid the catastrophic loss in numerical
-	// precision that comes with the naive approach.
-	//   a = √λ/|S| - 1
-	Real a = sqrt1p_1m(ratio_m1);
-	return 1./lambda_sqrt*std::log(std::abs((a + 2.)/a));
-}
-
-Real lambda(Real m, Real Q_sq) {
-	// Equation [1.D3].
-	return Q_sq*(Q_sq + 4.*sq(m));
-}
-
 Real S_phi(Real z_il[4], Real z_ij[4][4], Real a, Real b) {
 	// Equation [1.40].
 	return -a*(
@@ -229,7 +213,7 @@ Real xs::delta_vr(Kinematics kin) {
 	Real Q_m_sq = kin.Q_sq + 2.*sq(kin.m);
 	Real S_prime = kin.S - kin.Q_sq - kin.V_1;
 	Real X_prime = kin.X + kin.Q_sq - kin.V_2;
-	Real lambda_m = lambda(kin.m, kin.Q_sq);
+	Real lambda_m = kin.Q_sq*(kin.Q_sq + 4.*sq(kin.m));
 	Real lambda_S_prime = sq(S_prime) - 4.*sq(kin.m)*kin.mx_sq;
 	Real lambda_X_prime = sq(X_prime) - 4.*sq(kin.m)*kin.mx_sq;
 	Real lambda_m_sqrt = std::sqrt(lambda_m);
@@ -325,8 +309,10 @@ Real xs::delta_vac_lep(kin::Kinematics kin) {
 	Real delta = 0.;
 	for (unsigned idx = 0; idx < 3; ++idx) {
 		Real m = ms[idx];
-		Real lambda_sqrt = std::sqrt(lambda(m, kin.Q_sq));
-		Real L_m = L(lambda_sqrt, kin.Q_sq, (4.*sq(m))/kin.Q_sq);
+		Real lambda_sqrt = std::sqrt(kin.Q_sq*(kin.Q_sq + 4.*sq(m)));
+		Real diff_m = sqrt1p_1m((4.*sq(m))/kin.Q_sq);
+		Real sum_m = 2. + diff_m;
+		Real L_m = 1/lambda_sqrt*std::log(sum_m/diff_m);
 		delta += 2./3.*(kin.Q_sq
 			+ 2.*sq(m))*L_m
 			- 10./9.
