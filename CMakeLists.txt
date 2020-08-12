@@ -10,6 +10,10 @@ project(
 	HOMEPAGE_URL "https://github.com/duanebyer/sidis"
 	LANGUAGES CXX)
 
+if(NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+	message(FATAL_ERROR "SIDIS does not support subproject build")
+endif()
+
 set(
 	CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}
@@ -18,9 +22,6 @@ set(
 add_subdirectory(src)
 add_subdirectory(app/sidisgen)
 
-# Do testing only if this is the main project.
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-	enable_testing()
-	add_subdirectory(test)
-endif()
+enable_testing()
+add_subdirectory(test)
 
