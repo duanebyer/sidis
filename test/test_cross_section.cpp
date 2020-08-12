@@ -27,16 +27,16 @@ struct Output {
 	RelMatcher<Real> delta_vac_had;
 };
 
+// Load the structure function data once for all tests.
+sf::model::WW ww;
+
 }
 
 TEST_CASE(
 		"Non-radiative cross-section values",
 		"[xs]") {
-	// Load the structure function data ahead of time.
-	sf::model::WW ww;
-
 	using Tuple = std::tuple<Input, Output>;
-	// Randomly generated cross-sections points for comparison.
+	// Cross-sections at various points in phase space for comparison.
 	auto target = GENERATE(
 		Tuple {
 			{
@@ -96,6 +96,51 @@ TEST_CASE(
 				RelMatcher<Real>(-21.071819341, 4.4e-11),
 				RelMatcher<Real>(15.4783970324341, 3.3e-15),
 				RelMatcher<Real>(9.24731032694575, 1.0e-15),
+			},
+		},
+		Tuple {
+			{
+				11.26611544621076,
+				-0.8248526160234814,
+				{ -0.1566803703255583, -0.2238102649944861, -0.3177024565274981 },
+				{ 0.3210370217093640, 0.2683122957225696, 0.7376490823365074, 0.05785108159867799, 0.2607700622868250, -1.650334013568188 },
+			},
+			{
+				RelMatcher<Real>(0.00002592755201117, 8.9e-13),
+				RelMatcher<Real>(3.40385849510e-14, 1.2e-12),
+				RelMatcher<Real>(-76.1758980793, 1.0e-12),
+				RelMatcher<Real>(11.7754755202603, 5.1e-15),
+				RelMatcher<Real>(4.14178160657081, 1.3e-15),
+			},
+		},
+		Tuple {
+			{
+				2.952046229791970,
+				0.8564732758252912,
+				{ 0.1166324347533164, 0.5946236701509230, 0.3644660810116944 },
+				{ 0.2840406764453999, 0.8772994504077987, 0.6835110669454204, 0.1977319971610353, 2.584133568209691, -2.137387280644977 },
+			},
+			{
+				RelMatcher<Real>(0.000020105621179190, 1.0e-13),
+				RelMatcher<Real>(2.0067854495437e-13, 1.1e-13),
+				RelMatcher<Real>(-19.2858075311, 6.2e-12),
+				RelMatcher<Real>(11.3965753423079, 5.9e-15),
+				RelMatcher<Real>(3.69843131759198, 1.3e-15),
+			},
+		},
+		Tuple {
+			{
+				9.394117759698681,
+				0.4174317133071170,
+				{ -0.1274337347398176, -0.08049001448496795, -0.1450619270937427 },
+				{ 0.3240738357093073, 0.7658408849134388, 0.3619190812477059, 0.2961986606278098, -3.039759470476975, 2.483859827701803 },
+			},
+			{
+				RelMatcher<Real>(0.000011445362624504, 1.4e-13),
+				RelMatcher<Real>(2.5301970072672e-14, 8.5e-14),
+				RelMatcher<Real>(7.8884160227, 1.2e-11),
+				RelMatcher<Real>(13.0199063874171, 3.8e-15),
+				RelMatcher<Real>(5.78519799986749, 1.2e-15),
 			},
 		});
 	Input input = std::get<0>(target);
