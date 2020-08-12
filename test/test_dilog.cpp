@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <limits>
+#include <sstream>
 #include <tuple>
 
 #include <sidis/math.hpp>
@@ -36,7 +37,9 @@ TEMPLATE_TEST_CASE(
 	TestType x = std::get<0>(target);
 	TestType y = std::get<1>(target);
 	TestType y_test = math::dilog(x);
-	INFO("x = " + std::to_string(x));
+	std::stringstream ss;
+	ss << "x = " << x;
+	INFO(ss.str());
 	CHECK_THAT(
 		y_test,
 		RelMatcher<TestType>(y, 10. * std::numeric_limits<TestType>::epsilon()));
