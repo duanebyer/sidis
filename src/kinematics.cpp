@@ -19,8 +19,8 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 	phi = ph_space.phi;
 
 	S = 2. * dot(init.p, init.k1);
-	M = init.p.norm();
-	m = init.k1.norm();
+	M = init.M;
+	m = init.m;
 
 	// Equation [1.3].
 	Q_sq = S*x*y;

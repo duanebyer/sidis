@@ -110,6 +110,9 @@ struct Vec4 {
 	Vec4(Real t, Real x, Real y, Real z) : t(t), r(x, y, z) { }
 	Vec4(Real t, Vec3 r) : t(t), r(r) { }
 
+	static Vec4 from_length_and_r(Real m, Vec3 p);
+	static Vec4 from_length_and_t(Real m, Real t, Vec3 dir);
+
 	// Arithmentic operations.
 	Vec4& operator+=(Vec4 const& rhs) {
 		t += rhs.t;

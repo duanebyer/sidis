@@ -8,8 +8,22 @@ namespace sidis {
 namespace kin {
 
 struct Initial {
+	Real M;
+	Real m;
 	math::Vec4 p;
 	math::Vec4 k1;
+
+	Initial(Real M, math::Vec3 p, Real m, math::Vec3 k1) :
+		M(M),
+		m(m),
+		p(math::Vec4::from_length_and_r(M, p)),
+		k1(math::Vec4::from_length_and_r(m, k1)) { }
+
+	Initial(Real M, Real m, Real beam_energy) :
+		M(M),
+		m(m),
+		p(math::Vec4(M, 0., 0., 0.)),
+		k1(math::Vec4::from_length_and_t(m, beam_energy, math::Vec3::Z)) { }
 };
 
 struct PhaseSpace {

@@ -59,6 +59,28 @@ Vec4 const Vec4::X = Vec4(0., 1., 0., 0.);
 Vec4 const Vec4::Y = Vec4(0., 0., 1., 0.);
 Vec4 const Vec4::Z = Vec4(0., 0., 0., 1.);
 
+Vec4 Vec4::from_length_and_r(Real m, Vec3 p) {
+	Real max = std::max({
+		std::abs(m),
+		std::abs(p.x),
+		std::abs(p.y),
+		std::abs(p.z) });
+	Real m_r = m / max;
+	Real x_r = p.x / max;
+	Real y_r = p.y / max;
+	Real z_r = p.z / max;
+	Real energy = max * std::sqrt(m_r * m_r + x_r * x_r + y_r * y_r + z_r * z_r);
+	return Vec4(energy, p);
+}
+
+Vec4 Vec4::from_length_and_t(Real m, Real t, Vec3 dir) {
+	Real max = std::max({ std::abs(m), std::abs(t) });
+	Real m_r = m / max;
+	Real t_r = t / max;
+	Real p = max * std::sqrt(t_r * t_r - m_r * m_r);
+	return Vec4(t, p * dir.unit());
+}
+
 Vec4 math::cross(Vec4 const& a, Vec4 const& b, Vec4 const& c) {
 	return Vec4(
 		+a.r.x * b.r.y * c.r.z + a.r.y * b.r.z * c.r.x + a.r.z * b.r.x * c.r.y

@@ -63,10 +63,7 @@ TEST_CASE(
 	Real mh = constant::MASS_PI;
 	Real M_th = constant::MASS_P + constant::MASS_PI_0;
 	Real pi = constant::PI;
-	kin::Initial initial_state {
-		math::Vec4(M, 0., 0., 0.),
-		math::Vec4(E_b, std::sqrt(E_b * E_b - m * m) * math::Vec3::Z),
-	};
+	kin::Initial initial_state(M, m, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
 	kin::Kinematics kin(initial_state, phase_space, mh, M_th);
 	// Get the final state particles.

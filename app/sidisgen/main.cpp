@@ -15,10 +15,7 @@ int main(int argc, char** argv) {
 	Real mh = constant::MASS_PI;
 	Real M_th = constant::MASS_P + constant::MASS_PI;
 	Real pi = constant::PI;
-	kin::Initial initial_state {
-		math::Vec4(M, 0., 0., 0.),
-		math::Vec4(E_b, std::sqrt(E_b * E_b - m * m) * math::Vec3::Z),
-	};
+	kin::Initial initial_state(M, m, E_b);
 	// Choose the region of phase space to look at.
 	kin::PhaseSpace phase_space {
 		0.2,
