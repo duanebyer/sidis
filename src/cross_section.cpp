@@ -70,7 +70,12 @@ Born::Born(Kinematics kin) {
 
 Amm::Amm(Kinematics kin) {
 	// Equation [1.53].
-	coeff = (std::pow(ALPHA, 3)*sq(kin.m)*kin.S*sq(kin.S_x))
+	Real lambda_m = kin.Q_sq*(kin.Q_sq + 4.*sq(kin.m));
+	Real lambda_m_sqrt = std::sqrt(lambda_m);
+	Real diff_m = sqrt1p_1m((4.*sq(kin.m))/kin.Q_sq);
+	Real sum_m = 2. + diff_m;
+	Real L_m = 1./lambda_m_sqrt*std::log(sum_m/diff_m);
+	coeff = L_m*(std::pow(ALPHA, 3)*sq(kin.m)*kin.S*sq(kin.S_x))
 		/(16.*PI*kin.M*kin.Q_sq*kin.ph_l*kin.lambda_S);
 	// Equation [1.18].
 	c_1 = (4.*kin.M*kin.ph_l*(kin.Q_sq + 2.*kin.x*sq(kin.M)))/sq(kin.Q_sq);
