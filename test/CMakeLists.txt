@@ -7,7 +7,7 @@ include(Catch)
 add_executable(
 	sidistest
 	main.cpp
-	test_dilog.cpp
+	test_math.cpp
 	test_cross_section.cpp)
 target_include_directories(sidistest PRIVATE ${Sidis_SOURCE_DIR}/test)
 target_link_libraries(sidistest PRIVATE sidis sfww Catch2::Catch2)
