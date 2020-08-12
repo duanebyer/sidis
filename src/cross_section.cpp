@@ -243,7 +243,7 @@ Real xs::delta_vr(Kinematics kin) {
 	Real c = (2.*kin.mx_sq*kin.Q_sq)/X_prime;
 	Real c_diff = c/diff_X_prime;
 	Real c_sum = c/sum_X_prime;
-	Real d = lambda_X_prime*diff_m;
+	Real d = lambda_X_prime_sqrt*diff_m;
 	Real d_diff = X_prime*diff_X_prime;
 	Real d_sum = X_prime*sum_X_prime;
 
@@ -255,13 +255,13 @@ Real xs::delta_vr(Kinematics kin) {
 		S_prime*diff_S_prime - X_prime*diff_X_prime + c_sum*sum_m);
 	Real z_4u = 1./lambda_X_prime_sqrt*(
 		S_prime*diff_S_prime - X_prime*diff_X_prime - c_sum*diff_m);
-	Real z_1d = 1./lambda_X_prime_sqrt*(
+	Real z_1d = 1./lambda_X_prime*(
 		X_prime*sum_X_prime*(S_prime - X_prime) - c_diff*(d + d_diff));
-	Real z_2d = 1./lambda_X_prime_sqrt*(
+	Real z_2d = 1./lambda_X_prime*(
 		X_prime*sum_X_prime*(S_prime - X_prime) + c_diff*(d + d_sum));
-	Real z_3d = 1./lambda_X_prime_sqrt*(
+	Real z_3d = 1./lambda_X_prime*(
 		-X_prime*diff_X_prime*(S_prime - X_prime) + c_sum*(d + d_diff));
-	Real z_4d = 1./lambda_X_prime_sqrt*(
+	Real z_4d = 1./lambda_X_prime*(
 		-X_prime*diff_X_prime*(S_prime - X_prime) - c_sum*(d + d_sum));
 
 	Real z_12 = -lambda_m_sqrt/lambda_X_prime_sqrt
@@ -287,7 +287,7 @@ Real xs::delta_vr(Kinematics kin) {
 	};
 
 	// Equation [1.40].
-	Real S_phi_a = -Q_m_sq/(2.*lambda_m_sqrt);
+	Real S_phi_a = Q_m_sq/(2.*lambda_m_sqrt);
 	Real S_phi_b = std::log(-diff_X_prime/sum_X_prime);
 	Real S_phi_diff = S_phi(z_iu, z_ij, S_phi_a, S_phi_b)
 		- S_phi(z_id, z_ij, S_phi_a, S_phi_b);
