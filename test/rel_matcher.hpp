@@ -21,7 +21,7 @@ struct RelMatcher : public Catch::MatcherBase<T> {
 		// Using this cache variable is a very bad idea, but it's necessary to
 		// work around how `Catch2` deals with printing floating point numbers.
 		cache = x;
-		return std::abs(value - x) < std::abs(rel_error * value);
+		return std::abs(value - x) <= std::abs(rel_error * value);
 	}
 
 	virtual std::string describe() const override {
