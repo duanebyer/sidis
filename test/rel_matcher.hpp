@@ -10,29 +10,31 @@
 #include <sstream>
 
 template<typename T>
-struct RelMatcher : public Catch::MatcherBase<T> {
-	T value;
-	T rel_error;
-	mutable T cache;
+class RelMatcher : public Catch::MatcherBase<T> {
+	T _value;
+	T _rel_error;
+	mutable T _cache;
 
-	RelMatcher(T value, T rel_error) : value(value), rel_error(rel_error) { }
+public:
+	RelMatcher(T value, T rel_error) : _value(value), _rel_error(rel_error) { }
 
 	bool match(T const& x) const override {
 		// Using this cache variable is a very bad idea, but it's necessary to
 		// work around how `Catch2` deals with printing floating point numbers.
-		cache = x;
-		return std::abs(value - x) <= std::abs(rel_error * value);
+		_cache = x;
+		return std::abs(_value - x) <= std::abs(_rel_error * _value);
 	}
 
 	virtual std::string describe() const override {
-		int precision = (int) std::ceil(std::fmax(-std::log10(rel_error), 0)) + 2;
+		int precision =
+			(int) std::ceil(std::fmax(-std::log10(_rel_error), 0)) + 2;
 		std::ostringstream ss;
 		ss << std::scientific << std::setprecision(precision);
-		ss << "(" << cache << ")";
+		ss << "(" << _cache << ")";
 		ss << std::defaultfloat << std::setprecision(3);
-		ss << " is within " << rel_error;
+		ss << " is within " << _rel_error;
 		ss << std::scientific << std::setprecision(precision);
-		ss << " of " << value;
+		ss << " of " << _value;
 		return ss.str();
 	}
 };
