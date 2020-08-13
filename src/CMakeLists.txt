@@ -1,8 +1,3 @@
-source_group(
-	TREE "${Sidis_SOURCE_DIR}/include"
-	PREFIX "Header files"
-	FILES ${HEADER_LIST})
-
 set(
 	HEADER_LIST
 	"${Sidis_SOURCE_DIR}/include/sidis/sidis.hpp"
@@ -14,6 +9,10 @@ set(
 	"${Sidis_SOURCE_DIR}/include/sidis/math.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/vector.hpp")
+source_group(
+	TREE "${Sidis_SOURCE_DIR}/include"
+	PREFIX "Header files"
+	FILES ${HEADER_LIST})
 add_library(
 	sidis
 	cross_section.cpp
