@@ -33,6 +33,7 @@ struct TimeoutData {
 int WS_YIELD_CALLING_CONVENTION link_yield(
 		WSLINK link,
 		WSYieldParameters param) {
+	static_cast<void>(param);
 	WSUserFunction f;
 	TimeoutData* data = reinterpret_cast<TimeoutData*>(WSUserData(link, &f));
 	unsigned duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -46,6 +47,7 @@ int WS_YIELD_CALLING_CONVENTION link_yield(
 
 // Mandatory cleanup function for WSTP user data.
 void link_data_cleanup(WSLINK link) {
+	static_cast<void>(link);
 }
 
 }
@@ -217,6 +219,10 @@ SfUT WW::sf_ut(Real x, Real z, Real Q_sq, Real ph_t) const {
 }
 
 SfLU WW::sf_lu(Real x, Real z, Real Q_sq, Real ph_t) const {
+	static_cast<void>(x);
+	static_cast<void>(z);
+	static_cast<void>(Q_sq);
+	static_cast<void>(ph_t);
 	return {
 		0.,
 	};

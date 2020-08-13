@@ -44,6 +44,7 @@ LepAmmUU::LepAmmUU(kin::Kinematics kin) {
 	theta_4 = -2.*kin.S_x*(kin.z + kin.V_m/kin.Q_sq);
 }
 LepAmmUP::LepAmmUP(kin::Kinematics kin) {
+	static_cast<void>(kin);
 	theta_6 = 0.;
 	theta_8 = 0.;
 }
