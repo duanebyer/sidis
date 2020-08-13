@@ -11,10 +11,6 @@ project(
 	LANGUAGES CXX)
 
 set(
-	Sidis_BUILD_TESTS ON
-	CACHE BOOL
-	"should the tests be built")
-set(
 	Sidis_REAL_TYPE "double"
 	CACHE STRING
 	"what default floating point type should be used for real numbers")
@@ -27,17 +23,26 @@ if(NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	message(FATAL_ERROR "Sidis does not support subproject build")
 endif()
 
+include(CTest)
 set(
 	CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}
 	"${Sidis_SOURCE_DIR}/cmake/Mathematica")
 
+# Configure the project with user settings.
+configure_file(
+	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp.in"
+	"${Sidis_BINARY_DIR}/include/sidis/numeric.hpp")
+
+# Check the configuration.
 add_subdirectory(check)
 
+# Set up the library/app builds.
 add_subdirectory(src)
 add_subdirectory(app/sidisgen)
 
-if($CACHE{Sidis_BUILD_TESTS})
+# Set up the test builds.
+if(${BUILD_TESTING})
 	enable_testing()
 	add_subdirectory(test)
 endif()

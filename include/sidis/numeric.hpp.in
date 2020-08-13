@@ -3,7 +3,7 @@
 
 namespace sidis {
 
-using Real = double;
+using Real = $CACHE{Sidis_REAL_TYPE};
 
 }
 

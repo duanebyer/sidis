@@ -1,5 +1,5 @@
 set(
-	HEADER_LIST
+	HEADER_LIST_COMMON
 	"${Sidis_SOURCE_DIR}/include/sidis/sidis.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/constant.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/cross_section.hpp"
@@ -7,12 +7,15 @@ set(
 	"${Sidis_SOURCE_DIR}/include/sidis/kinematics.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/leptonic_coeff.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/math.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/vector.hpp")
-source_group(
-	TREE "${Sidis_SOURCE_DIR}/include"
-	PREFIX "Header files"
-	FILES ${HEADER_LIST})
+set(HEADER_LIST_SOURCE ${HEADER_LIST_COMMON})
+set(HEADER_LIST ${HEADER_LIST_COMMON})
+list(
+	APPEND HEADER_LIST_SOURCE
+	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp.in")
+list(
+	APPEND HEADER_LIST
+	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp")
 add_library(
 	sidis
 	cross_section.cpp
@@ -22,7 +25,10 @@ add_library(
 	math.cpp
 	vector.cpp
 	${HEADER_LIST})
-target_include_directories(sidis PUBLIC "${Sidis_SOURCE_DIR}/include")
+target_include_directories(
+	sidis PUBLIC
+	"${Sidis_SOURCE_DIR}/include"
+	"${Sidis_BINARY_DIR}/include")
 target_compile_features(sidis PUBLIC cxx_std_11)
 set_target_properties(sidis PROPERTIES CXX_EXTENSIONS OFF)
 target_compile_options(
@@ -33,9 +39,17 @@ target_compile_options(
 
 find_package(Mathematica REQUIRED COMPONENTS WSTP)
 set(
-	MODEL_WW_HEADER_LIST
+	MODEL_WW_HEADER_LIST_COMMON
 	"${Sidis_SOURCE_DIR}/include/sidis/structure_function.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/sf_model/ww.hpp")
+set(MODEL_WW_HEADER_LIST ${MODEL_WW_HEADER_LIST_COMMON})
+set(MODEL_WW_HEADER_LIST_SOURCE ${MODEL_WW_HEADER_LIST_COMMON})
+list(
+	APPEND MODEL_WW_HEADER_LIST_SOURCE
+	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp.in")
+list(
+	APPEND MODEL_WW_HEADER_LIST
+	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp")
 add_library(
 	sfww
 	sf_model/ww.cpp
@@ -44,6 +58,7 @@ target_include_directories(
 	sfww
 	PUBLIC
 	"${Sidis_SOURCE_DIR}/include"
+	"${Sidis_BINARY_DIR}/include"
 	PRIVATE
 	"${Mathematica_WSTP_INCLUDE_DIR}")
 target_link_libraries(
@@ -70,6 +85,11 @@ target_compile_options(
 	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
 	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
 
+source_group(
+	TREE "${Sidis_SOURCE_DIR}/include"
+	PREFIX "Header files"
+	FILES ${HEADER_LIST_SOURCE} ${MODEL_WW_HEADER_LIST_SOURCE})
+
 include(GNUInstallDirs)
 set_target_properties(
 	sidis PROPERTIES
@@ -92,6 +112,12 @@ install(
 		PATTERN "*.dat")
 install(
 	DIRECTORY "${Sidis_SOURCE_DIR}/include/sidis"
+	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+	FILES_MATCHING
+		PATTERN "*.hpp"
+		PATTERN "*.h")
+install(
+	DIRECTORY "${Sidis_BINARY_DIR}/include/sidis"
 	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 	FILES_MATCHING
 		PATTERN "*.hpp"
