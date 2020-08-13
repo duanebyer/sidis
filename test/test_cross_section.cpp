@@ -1,11 +1,14 @@
 #include <catch2/catch.hpp>
 
+#include <fstream>
+#include <istream>
 #include <sstream>
-#include <tuple>
+#include <utility>
 
 #include <sidis/sidis.hpp>
 #include <sidis/sf_model/ww.hpp>
 
+#include "file_generator.hpp"
 #include "rel_matcher.hpp"
 
 using namespace sidis;
@@ -20,131 +23,63 @@ struct Input {
 };
 
 struct Output {
-	RelMatcher<Real> born;
-	RelMatcher<Real> amm;
-	RelMatcher<Real> delta_vr;
-	RelMatcher<Real> delta_vac_lep;
-	RelMatcher<Real> delta_vac_had;
+	Real born;
+	Real amm;
+	Real delta_vr;
+	Real delta_vac_lep;
+	Real delta_vac_had;
+	Real err_born;
+	Real err_amm;
+	Real err_delta_vr;
+	Real err_delta_vac_lep;
+	Real err_delta_vac_had;
 };
 
-// Load the structure function data once for all tests.
-sf::model::WW ww;
+struct TestPair {
+	Input input;
+	Output output;
+};
+
+std::istream& operator>>(std::istream& in, TestPair& pair) {
+	Input& input = pair.input;
+	Output& output = pair.output;
+	in >> input.beam_energy;
+	in >> input.beam_pol;
+	in >> input.target_pol.x;
+	in >> input.target_pol.y;
+	in >> input.target_pol.z;
+	in >> input.phase_space.x;
+	in >> input.phase_space.y;
+	in >> input.phase_space.z;
+	in >> input.phase_space.ph_t_sq;
+	in >> input.phase_space.phi_h;
+	in >> input.phase_space.phi;
+	in >> output.born;
+	in >> output.err_born;
+	in >> output.amm;
+	in >> output.err_amm;
+	in >> output.delta_vr;
+	in >> output.err_delta_vr;
+	in >> output.delta_vac_lep;
+	in >> output.err_delta_vac_lep;
+	in >> output.delta_vac_had;
+	in >> output.err_delta_vac_had;
+	return in;
+}
 
 }
 
 TEST_CASE(
 		"Non-radiative cross-section values",
 		"[xs]") {
-	using Tuple = std::tuple<Input, Output>;
-	// Cross-sections at various points in phase space for comparison.
-	auto target = GENERATE(
-		Tuple {
-			{
-				244.3994717676956,
-				-0.6164827543415216,
-				{ -0.4557051628146152, 0.09688945772348936, -0.4280942449984859 },
-				{ 0.2195446560618665, 0.03029886835408146, 0.2387660175848276, 0.5575045307531898, -2.344259584082282, 0.1116601857460971 },
-			},
-			{
-				RelMatcher<Real>(1.2860080823885e-3, 2.1e-13),
-				RelMatcher<Real>(1.97833608719e-14, 3.1e-12),
-				RelMatcher<Real>(-99.4643915906, 1.0e-12),
-				RelMatcher<Real>(12.4986683926813, 4.2e-15),
-				RelMatcher<Real>(5.07031143940847, 1.2e-15),
-			},
-		},
-		Tuple {
-			{
-				195.3294172569680,
-				0.9100140348590521,
-				{ -0.08802730180322475, -0.2533988547013961, 0.1187555736304225 },
-				{ 0.4306540661961004, 0.1158543745257551, 0.9686469439861846, 0.02139603856591088, 2.192299006199159, -0.4261416174684685 },
-			},
-			{
-				RelMatcher<Real>(3.5179877343e-9, 3.3e-11),
-				RelMatcher<Real>(4.520130460e-20, 5.0e-10),
-				RelMatcher<Real>(-195.716972083, 6.3e-12),
-				RelMatcher<Real>(15.2623319875021, 3.3e-15),
-				RelMatcher<Real>(8.94937158518684, 1.0e-15),
-			},
-		},
-		Tuple {
-			{
-				62.59175892888381,
-				-0.3275983794705739,
-				{ -0.2047597459728121, -0.4040812880364820, -0.8626351840758933 },
-				{ 0.4389898502347507, 0.4124597479558581, 0.5361865050334323, 0.7449474723556813, -0.1842149526004252, -0.4698043138784573 },
-			},
-			{
-				RelMatcher<Real>(6.92450895176e-8, 1.6e-12),
-				RelMatcher<Real>(1.734752835519e-17, 1.5e-12),
-				RelMatcher<Real>(-45.033908839, 9.2e-12),
-				RelMatcher<Real>(15.5177996600907, 3.3e-15),
-				RelMatcher<Real>(9.30141401789073, 1.0e-15),
-			},
-		},
-		Tuple {
-			{
-				91.64036306921523,
-				-0.8489411406153405,
-				{ -0.1594604964413398, -0.02044235379020882, 0.02103776788066295 },
-				{ 0.2276654751955528, 0.5307882077424426, 0.5860674210347391, 0.8834491416986462, -1.480372340506740, 2.564777606223223 },
-			},
-			{
-				RelMatcher<Real>(2.32005737013e-7, 3.8e-12),
-				RelMatcher<Real>(5.58280288634e-17, 6.8e-13),
-				RelMatcher<Real>(-21.071819341, 4.4e-11),
-				RelMatcher<Real>(15.4783970324341, 3.3e-15),
-				RelMatcher<Real>(9.24731032694575, 1.0e-15),
-			},
-		},
-		Tuple {
-			{
-				11.26611544621076,
-				-0.8248526160234814,
-				{ -0.1566803703255583, -0.2238102649944861, -0.3177024565274981 },
-				{ 0.3210370217093640, 0.2683122957225696, 0.7376490823365074, 0.05785108159867799, 0.2607700622868250, -1.650334013568188 },
-			},
-			{
-				RelMatcher<Real>(0.00002592755201117, 8.9e-13),
-				RelMatcher<Real>(3.40385849510e-14, 1.2e-12),
-				RelMatcher<Real>(-76.1758980793, 1.0e-12),
-				RelMatcher<Real>(11.7754755202603, 5.1e-15),
-				RelMatcher<Real>(4.14178160657081, 1.3e-15),
-			},
-		},
-		Tuple {
-			{
-				2.952046229791970,
-				0.8564732758252912,
-				{ 0.1166324347533164, 0.5946236701509230, 0.3644660810116944 },
-				{ 0.2840406764453999, 0.8772994504077987, 0.6835110669454204, 0.1977319971610353, 2.584133568209691, -2.137387280644977 },
-			},
-			{
-				RelMatcher<Real>(0.000020105621179190, 1.0e-13),
-				RelMatcher<Real>(2.0067854495437e-13, 1.1e-13),
-				RelMatcher<Real>(-19.2858075311, 6.2e-12),
-				RelMatcher<Real>(11.3965753423079, 5.9e-15),
-				RelMatcher<Real>(3.69843131759198, 1.3e-15),
-			},
-		},
-		Tuple {
-			{
-				9.394117759698681,
-				0.4174317133071170,
-				{ -0.1274337347398176, -0.08049001448496795, -0.1450619270937427 },
-				{ 0.3240738357093073, 0.7658408849134388, 0.3619190812477059, 0.2961986606278098, -3.039759470476975, 2.483859827701803 },
-			},
-			{
-				RelMatcher<Real>(0.000011445362624504, 1.4e-13),
-				RelMatcher<Real>(2.5301970072672e-14, 8.5e-14),
-				RelMatcher<Real>(7.8884160227, 1.2e-11),
-				RelMatcher<Real>(13.0199063874171, 3.8e-15),
-				RelMatcher<Real>(5.78519799986749, 1.2e-15),
-			},
-		});
-	Input input = std::get<0>(target);
-	Output output = std::get<1>(target);
+	// Load the structure function data once for all tests.
+	static sf::model::WW ww;
+
+	// Load pre-computed data to use for cross-section verifications.
+	TestPair test_pair = GENERATE(from_stream<TestPair>(std::move(
+		std::ifstream("data/nrad_xs_vals.dat")), true));
+	Input input = test_pair.input;
+	Output output = test_pair.output;
 
 	// Set up the input to the cross-section calculation.
 	Real E_b = input.beam_energy;
@@ -172,24 +107,34 @@ TEST_CASE(
 
 	// Print state information.
 	std::stringstream ss;
-	ss << "x     = " << std::to_string(phase_space.x)       << std::endl;
-	ss << "y     = " << std::to_string(phase_space.y)       << std::endl;
-	ss << "z     = " << std::to_string(phase_space.z)       << std::endl;
-	ss << "ph_t² = " << std::to_string(phase_space.ph_t_sq) << std::endl;
-	ss << "φ_h   = " << std::to_string(phase_space.phi_h)   << std::endl;
-	ss << "φ     = " << std::to_string(phase_space.phi)     << std::endl;
-	ss << "λ_e   = " << std::to_string(beam_pol)            << std::endl;
-	ss << "η_1   = " << std::to_string(target_pol.x)        << std::endl;
-	ss << "η_2   = " << std::to_string(target_pol.y)        << std::endl;
-	ss << "η_3   = " << std::to_string(target_pol.z);
+	ss << "x     = " << phase_space.x       << std::endl;
+	ss << "y     = " << phase_space.y       << std::endl;
+	ss << "z     = " << phase_space.z       << std::endl;
+	ss << "ph_t² = " << phase_space.ph_t_sq << std::endl;
+	ss << "φ_h   = " << phase_space.phi_h   << std::endl;
+	ss << "φ     = " << phase_space.phi     << std::endl;
+	ss << "λ_e   = " << beam_pol            << std::endl;
+	ss << "η_1   = " << target_pol.x        << std::endl;
+	ss << "η_2   = " << target_pol.y        << std::endl;
+	ss << "η_3   = " << target_pol.z;
 	INFO(ss.str());
 
 	// Do comparisons.
-	CHECK_THAT(born, output.born);
-	CHECK_THAT(amm, output.amm);
-	CHECK_THAT(delta_vr, output.delta_vr);
-	CHECK_THAT(delta_vac_lep, output.delta_vac_lep);
-	CHECK_THAT(delta_vac_had, output.delta_vac_had);
+	CHECK_THAT(
+		born,
+		RelMatcher<Real>(output.born, output.err_born));
+	CHECK_THAT(
+		amm,
+		RelMatcher<Real>(output.amm, output.err_amm));
+	CHECK_THAT(
+		delta_vr,
+		RelMatcher<Real>(output.delta_vr, output.err_delta_vr));
+	CHECK_THAT(
+		delta_vac_lep,
+		RelMatcher<Real>(output.delta_vac_lep, output.err_delta_vac_lep));
+	CHECK_THAT(
+		delta_vac_had,
+		RelMatcher<Real>(output.delta_vac_had, output.err_delta_vac_had));
 }
 
 TEST_CASE(
