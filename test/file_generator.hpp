@@ -29,6 +29,10 @@ public:
 
 	bool next() override {
 		_stream >> _value;
+		if (!_stream.eof() && _stream.fail()) {
+			throw std::runtime_error(
+				"StreamGenerator was unable to parse data from stream");
+		}
 		return (bool) _stream;
 	}
 
