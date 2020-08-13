@@ -16,6 +16,7 @@ using namespace sidis;
 namespace {
 
 struct Input {
+	char particle_id;
 	Real beam_energy;
 	Real beam_pol;
 	math::Vec3 target_pol;
@@ -43,6 +44,12 @@ struct TestPair {
 std::istream& operator>>(std::istream& in, TestPair& pair) {
 	Input& input = pair.input;
 	Output& output = pair.output;
+	in >> input.particle_id;
+	if (!(input.particle_id == 'e'
+			|| input.particle_id == 'm'
+			|| input.particle_id == 't')) {
+		in.setstate(std::ios_base::failbit);
+	}
 	in >> input.beam_energy;
 	in >> input.beam_pol;
 	in >> input.target_pol.x;
@@ -84,7 +91,14 @@ TEST_CASE(
 	// Set up the input to the cross-section calculation.
 	Real E_b = input.beam_energy;
 	Real M = constant::MASS_P;
-	Real m = constant::MASS_E;
+	Real m = 0.;
+	if (input.particle_id == 'e') {
+		m = constant::MASS_E;
+	} else if (input.particle_id == 'm') {
+		m = constant::MASS_MU;
+	} else if (input.particle_id == 't') {
+		m = constant::MASS_TAU;
+	}
 	Real mh = constant::MASS_PI;
 	Real M_th = constant::MASS_P + constant::MASS_PI_0;
 	Real pi = constant::PI;
@@ -107,16 +121,18 @@ TEST_CASE(
 
 	// Print state information.
 	std::stringstream ss;
-	ss << "x     = " << phase_space.x       << std::endl;
-	ss << "y     = " << phase_space.y       << std::endl;
-	ss << "z     = " << phase_space.z       << std::endl;
-	ss << "ph_t² = " << phase_space.ph_t_sq << std::endl;
-	ss << "φ_h   = " << phase_space.phi_h   << std::endl;
-	ss << "φ     = " << phase_space.phi     << std::endl;
-	ss << "λ_e   = " << beam_pol            << std::endl;
-	ss << "η_1   = " << target_pol.x        << std::endl;
-	ss << "η_2   = " << target_pol.y        << std::endl;
-	ss << "η_3   = " << target_pol.z;
+	ss
+		<< "pid   = " << input.particle_id   << std::endl
+		<< "x     = " << phase_space.x       << std::endl
+		<< "y     = " << phase_space.y       << std::endl
+		<< "z     = " << phase_space.z       << std::endl
+		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
+		<< "φ_h   = " << phase_space.phi_h   << std::endl
+		<< "φ     = " << phase_space.phi     << std::endl
+		<< "λ_e   = " << beam_pol            << std::endl
+		<< "η_1   = " << target_pol.x        << std::endl
+		<< "η_2   = " << target_pol.y        << std::endl
+		<< "η_3   = " << target_pol.z;
 	INFO(ss.str());
 
 	// Do comparisons.
@@ -135,11 +151,5 @@ TEST_CASE(
 	CHECK_THAT(
 		delta_vac_had,
 		RelMatcher<Real>(output.delta_vac_had, output.err_delta_vac_had));
-}
-
-TEST_CASE(
-		"Non-radiative cross-section values with muon",
-		"[xs]") {
-	// Test in the regime where `m` is comparable to `M`.
 }
 
