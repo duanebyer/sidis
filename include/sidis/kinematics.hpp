@@ -84,6 +84,7 @@ struct Kinematics {
 	Real V_2;
 	Real V_m;
 	Real V_p;
+
 	Real lambda_S;
 	Real lambda_Y;
 	Real lambda_1;
@@ -94,6 +95,7 @@ struct Kinematics {
 	Real lambda_1_sqrt;
 	Real lambda_2_sqrt;
 	Real lambda_3_sqrt;
+
 	Real ph_0;
 	Real ph_t;
 	Real ph_l;
@@ -102,10 +104,125 @@ struct Kinematics {
 	Real mx;
 	Real vol_phi_h;
 
+	Kinematics() { }
 	Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th);
 };
 
 struct KinematicsRad {
+	// Unshifted kinematic variables.
+	Real S;
+	Real M;
+	Real m;
+	Real mh;
+	Real M_th;
+
+	Real x;
+	Real y;
+	Real z;
+	Real ph_t_sq;
+	Real phi_h;
+	Real phi;
+	Real tau;
+	Real phi_k;
+	Real R;
+
+	Real tau_min;
+	Real tau_max;
+
+	Real Q_sq;
+	Real Q;
+	Real t;
+	Real X;
+	Real S_x;
+	Real S_p;
+	Real V_1;
+	Real V_2;
+	Real V_m;
+	Real V_p;
+
+	Real lambda_S;
+	Real lambda_Y;
+	Real lambda_z;
+	Real lambda_H;
+	Real lambda_1;
+	Real lambda_2;
+	Real lambda_3;
+	Real lambda_V;
+	Real lambda_RV;
+	Real lambda_RY;
+	Real lambda_S_sqrt;
+	Real lambda_Y_sqrt;
+	Real lambda_z_sqrt;
+	Real lambda_1_sqrt;
+	Real lambda_2_sqrt;
+	Real lambda_3_sqrt;
+
+	Real ph_0;
+	Real ph_t;
+	Real ph_l;
+	Real k_t;
+	Real mx_sq;
+	Real mx;
+	Real vol_phi_h;
+	Real vol_phi_k;
+	Real vol_phi_hk;
+
+	Real mu;
+	Real z_1;
+	Real z_2;
+
+	// Shifted kinematic variables.
+	Real shift_x;
+	Real shift_z;
+	Real shift_ph_t_sq;
+	Real shift_phi_h;
+
+	Real shift_Q_sq;
+	Real shift_Q;
+	Real shift_t;
+	Real shift_S_x;
+	Real shift_V_m;
+
+	Real shift_lambda_Y;
+	Real shift_lambda_1;
+	Real shift_lambda_2;
+	Real shift_lambda_3;
+	Real shift_lambda_Y_sqrt;
+	Real shift_lambda_1_sqrt;
+	Real shift_lambda_2_sqrt;
+	Real shift_lambda_3_sqrt;
+
+	Real shift_ph_t;
+	Real shift_ph_l;
+	Real shift_k_t;
+	Real shift_mx_sq;
+	Real shift_mx;
+	Real shift_vol_phi_h;
+
+	Kinematics project() const;
+	Kinematics project_shift() const;
+
+	KinematicsRad() { }
+	KinematicsRad(
+		Initial init,
+		PhaseSpaceRad ph_space,
+		Real mh, Real M_th) :
+		KinematicsRad(
+			Kinematics(
+				init,
+				{
+					ph_space.x,
+					ph_space.y,
+					ph_space.z,
+					ph_space.ph_t_sq,
+					ph_space.phi_h,
+					ph_space.phi,
+				},
+				mh, M_th),
+			ph_space.tau,
+			ph_space.phi_k,
+			ph_space.R) { }
+	KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R);
 };
 
 struct KinematicsEx {
@@ -115,7 +232,6 @@ struct Final {
 	math::Vec4 q;
 	math::Vec4 k2;
 	math::Vec4 ph;
-	math::Vec4 px;
 
 	Final(Initial init, Kinematics kin);
 };
@@ -124,7 +240,6 @@ struct FinalRad {
 	math::Vec4 q;
 	math::Vec4 k2;
 	math::Vec4 ph;
-	math::Vec4 px;
 	math::Vec4 k;
 
 	FinalRad(Initial init, KinematicsRad kin);
