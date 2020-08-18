@@ -188,6 +188,7 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		+ ((sq(R) - 2.*lambda_RY)*sq(ph_l))
 		+ (lambda_Y_sqrt*lambda_RV*ph_l)/M
 		- sq(lambda_RV)/(4.*sq(M)));
+	shift_ph_t = std::sqrt(shift_ph_t_sq);
 	shift_ph_l = 1./shift_lambda_Y_sqrt*(lambda_Y_sqrt*ph_l - lambda_RV/(2.*M));
 	shift_k_t = shift_lambda_1_sqrt / shift_lambda_Y_sqrt;
 	shift_mx_sq = mx_sq - R*(1. + tau) + (z*R*S_x - lambda_RV)/(2.*sq(M));
