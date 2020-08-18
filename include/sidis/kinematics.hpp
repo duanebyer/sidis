@@ -175,6 +175,7 @@ struct KinematicsRad {
 	Real F_21;
 	Real F_2p;
 	Real F_2m;
+	Real F_d;
 	Real F_1p;
 	Real F_IR;
 
