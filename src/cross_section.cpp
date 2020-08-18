@@ -81,6 +81,19 @@ Amm::Amm(Kinematics kin) {
 	c_1 = (4.*kin.M*kin.ph_l*(kin.Q_sq + 2.*kin.x*sq(kin.M)))/sq(kin.Q_sq);
 }
 
+Rad::Rad(KinematicsRad kin) {
+	// Equation [1.43].
+	coeff = (std::pow(ALPHA, 3)*kin.S*sq(kin.S_x))
+		/(64.*sq(PI)*kin.M*kin.ph_l*kin.lambda_S*kin.lambda_Y_sqrt);
+	// Equation [1.18].
+	c_1 = (4.*kin.M*kin.ph_l*(kin.Q_sq + 2.*kin.x*sq(kin.M)))/sq(kin.Q_sq);
+	// Provide some required kinematic variables.
+	Q_sq = kin.Q_sq;
+	R = kin.R;
+	shift_c_1 = (4.*kin.M*kin.shift_ph_l*(kin.shift_Q_sq + 2.*kin.shift_x*sq(kin.M)))/sq(kin.shift_Q_sq);
+	shift_Q_sq = kin.shift_Q_sq;
+}
+
 Real xs::born(Real lambda_e, Vec3 eta, Kinematics kin, Sf sf) {
 	// Calculate the complete Born cross-section by interpolating all of the
 	// individual pieces together.
@@ -143,6 +156,94 @@ Real xs::amm(Real lambda_e, Vec3 eta, Kinematics kin, Sf sf) {
 	Real up = dot(eta, Vec3(ut1, ut2, ul));
 	Real lp = dot(eta, Vec3(lt1, lt2, ll));
 	return uu + up + lambda_e * (lu + lp);
+}
+
+Real xs::rad(Real lambda_e, Vec3 eta, KinematicsRad kin, Sf sf, Sf shift_sf) {
+	// A shifted version of `eta` is needed to properly combine the unshifted
+	// and shifted cross-sections.
+	Vec3 r(
+		kin.lambda_Y*kin.ph_t,
+		kin.lambda_Y_sqrt*kin.ph_t,
+		kin.lambda_Y_sqrt);
+	Vec3 s(
+		kin.shift_lambda_Y*kin.shift_ph_t,
+		kin.shift_lambda_Y_sqrt*kin.shift_ph_t,
+		kin.shift_lambda_Y_sqrt);
+	Vec3 a_x(
+		r.x/s.x - 1./(4.*sq(kin.M)*s.x*r.x)*(
+			(sq(kin.R) - 2.*kin.lambda_RY)
+				*(sq(kin.lambda_V) - kin.lambda_H*kin.lambda_Y)
+			+ (kin.lambda_V - kin.lambda_RV)
+				*(kin.lambda_RY*kin.lambda_V - kin.lambda_RV*kin.lambda_Y)),
+		1./(s.x*r.y)*(2.*(kin.lambda_V - kin.lambda_RV)*kin.vol_phi_hk),
+		1./(2.*kin.M*s.x*r.z)*(
+			(sq(kin.R) - kin.lambda_RY)*kin.lambda_V
+			+ (kin.lambda_Y - kin.lambda_RY)*kin.lambda_RV));
+	Vec3 a_y(
+		-1./(s.y*r.x)*(2.*kin.vol_phi_hk*kin.lambda_V),
+		r.y/s.y + 1./(4.*sq(kin.M)*s.y*r.y)*(
+			kin.lambda_V*kin.lambda_RV
+			- kin.lambda_H*kin.lambda_RY),
+		1./(s.y*r.z)*(4.*kin.M*kin.vol_phi_hk));
+	Vec3 a_z(
+		1./(2.*kin.M*s.z*r.x)*(
+			kin.lambda_RY*kin.lambda_V
+			- kin.lambda_RV*kin.lambda_Y),
+		-1./(s.z*r.y)*(4.*kin.M*kin.vol_phi_hk),
+		r.z/s.z - 1./(s.z*r.z)*kin.lambda_RY);
+	Vec3 shift_eta(dot(a_x, eta), dot(a_y, eta), dot(a_z, eta));
+
+	// Now do the standard mixing of the base functions to get the total cross-
+	// section.
+	Rad b(kin);
+
+	LepRadUU lep_uu(kin);
+	LepRadUP lep_up(kin);
+	HadUU had_uu(kin.project(), sf);
+	HadUL had_ul(kin.project(), sf);
+	HadUT1 had_ut1(kin.project(), sf);
+	HadUT2 had_ut2(kin.project(), sf);
+	HadUU had_uu_shift(kin.project_shift(), shift_sf);
+	HadUL had_ul_shift(kin.project_shift(), shift_sf);
+	HadUT1 had_ut1_shift(kin.project_shift(), shift_sf);
+	HadUT2 had_ut2_shift(kin.project_shift(), shift_sf);
+
+	LepRadLU lep_lu(kin);
+	LepRadLP lep_lp(kin);
+	HadLU had_lu(kin.project(), sf);
+	HadLL had_ll(kin.project(), sf);
+	HadLT1 had_lt1(kin.project(), sf);
+	HadLT2 had_lt2(kin.project(), sf);
+	HadLU had_lu_shift(kin.project_shift(), shift_sf);
+	HadLL had_ll_shift(kin.project_shift(), shift_sf);
+	HadLT1 had_lt1_shift(kin.project_shift(), shift_sf);
+	HadLT2 had_lt2_shift(kin.project_shift(), shift_sf);
+
+	Real uu = rad_uu(b, lep_uu, had_uu);
+	Real ul = rad_ul(b, lep_up, had_ul);
+	Real ut1 = rad_ut1(b, lep_up, had_ut1);
+	Real ut2 = rad_ut2(b, lep_uu, had_ut2);
+	Real lu = rad_lu(b, lep_lu, had_lu);
+	Real ll = rad_ll(b, lep_lp, had_ll);
+	Real lt1 = rad_lt1(b, lep_lp, had_lt1);
+	Real lt2 = rad_lt2(b, lep_lu, had_lt2);
+
+	Real uu_shift = rad_uu_shift(b, lep_uu, had_uu_shift);
+	Real ul_shift = rad_ul_shift(b, lep_up, had_ul_shift);
+	Real ut1_shift = rad_ut1_shift(b, lep_up, had_ut1_shift);
+	Real ut2_shift = rad_ut2_shift(b, lep_uu, had_ut2_shift);
+	Real lu_shift = rad_lu_shift(b, lep_lu, had_lu_shift);
+	Real ll_shift = rad_ll_shift(b, lep_lp, had_ll_shift);
+	Real lt1_shift = rad_lt1_shift(b, lep_lp, had_lt1_shift);
+	Real lt2_shift = rad_lt2_shift(b, lep_lu, had_lt2_shift);
+
+	Real up = dot(eta, Vec3(ut1, ut2, ul));
+	Real lp = dot(eta, Vec3(lt1, lt2, ll));
+	Real up_shift = dot(shift_eta, Vec3(ut1_shift, ut2_shift, ul_shift));
+	Real lp_shift = dot(shift_eta, Vec3(lt1_shift, lt2_shift, ll_shift));
+	Real xs = uu + up + lambda_e * (lu + lp);
+	Real xs_shift = uu_shift + up_shift + lambda_e * (lu_shift + lp_shift);
+	return xs + xs_shift;
 }
 
 // Born base functions.
@@ -211,6 +312,156 @@ Real xs::amm_lt1(Amm b, LepAmmLP lep, HadLT1 had) {
 }
 Real xs::amm_lt2(Amm b, LepAmmLU lep, HadLT2 had) {
 	return b.coeff*b.c_1*lep.theta_5*had.H_5;
+}
+
+// Radiative base functions.
+Real xs::rad_uu(Rad b, LepRadUU lep, HadUU had) {
+	return b.coeff*b.c_1/(b.R*sq(b.Q_sq))*(
+			lep.theta_011*had.H_1
+			+ lep.theta_021*had.H_2
+			+ lep.theta_031*had.H_3
+			+ lep.theta_041*had.H_4);
+}
+Real xs::rad_ul(Rad b, LepRadUP lep, HadUL had) {
+	return b.coeff*b.c_1/(b.R*sq(b.Q_sq))*(
+			lep.theta_061*had.H_6
+			+ lep.theta_081*had.H_8);
+}
+Real xs::rad_ut1(Rad b, LepRadUP lep, HadUT1 had) {
+	return b.coeff*b.c_1/(b.R*sq(b.Q_sq))*(
+			lep.theta_061*had.H_6
+			+ lep.theta_081*had.H_8);
+}
+Real xs::rad_ut2(Rad b, LepRadUU lep, HadUT2 had) {
+	return b.coeff*b.c_1/(b.R*sq(b.Q_sq))*(
+			lep.theta_011*had.H_1
+			+ lep.theta_021*had.H_2
+			+ lep.theta_031*had.H_3
+			+ lep.theta_041*had.H_4);
+}
+Real xs::rad_lu(Rad b, LepRadLU lep, HadLU had) {
+	return b.coeff*b.c_1/(b.R*sq(b.Q_sq))
+		*(lep.theta_051 + lep.theta_151)*had.H_5;
+}
+Real xs::rad_ll(Rad b, LepRadLP lep, HadLL had) {
+	return b.coeff*b.c_1/(b.R*sq(b.Q_sq))*(
+			(lep.theta_071 + lep.theta_171)*had.H_7
+			+ (lep.theta_091 + lep.theta_191)*had.H_9);
+}
+Real xs::rad_lt1(Rad b, LepRadLP lep, HadLT1 had) {
+	return b.coeff*b.c_1/(b.R*sq(b.Q_sq))*(
+			(lep.theta_071 + lep.theta_171)*had.H_7
+			+ (lep.theta_091 + lep.theta_191)*had.H_9);
+}
+Real xs::rad_lt2(Rad b, LepRadLU lep, HadLT2 had) {
+	return b.coeff*b.c_1/(b.R*sq(b.Q_sq))
+		*(lep.theta_051 + lep.theta_151)*had.H_5;
+}
+
+// Shifted radiative base functions.
+Real xs::rad_uu_shift(Rad b, LepRadUU lep, HadUU shift_had) {
+	return -b.coeff*b.shift_c_1/sq(b.shift_Q_sq)*(
+			shift_had.H_1*(
+				lep.theta_011/b.R
+				+ lep.theta_012
+				+ lep.theta_013*b.R)
+			+ shift_had.H_2*(
+				lep.theta_021/b.R
+				+ lep.theta_022
+				+ lep.theta_023*b.R)
+			+ shift_had.H_3*(
+				lep.theta_031/b.R
+				+ lep.theta_032
+				+ lep.theta_033*b.R)
+			+ shift_had.H_4*(
+				lep.theta_041/b.R
+				+ lep.theta_042
+				+ lep.theta_043*b.R));
+}
+Real xs::rad_ul_shift(Rad b, LepRadUP lep, HadUL shift_had) {
+	return -b.coeff*b.shift_c_1/sq(b.shift_Q_sq)*(
+			shift_had.H_6*(
+				lep.theta_061/b.R
+				+ lep.theta_062
+				+ lep.theta_063*b.R
+				+ lep.theta_064*sq(b.R))
+			+ shift_had.H_8*(
+				lep.theta_081/b.R
+				+ lep.theta_082
+				+ lep.theta_083*b.R
+				+ lep.theta_084*sq(b.R)));
+}
+Real xs::rad_ut1_shift(Rad b, LepRadUP lep, HadUT1 shift_had) {
+	return -b.coeff*b.shift_c_1/sq(b.shift_Q_sq)*(
+			shift_had.H_6*(
+				lep.theta_061/b.R
+				+ lep.theta_062
+				+ lep.theta_063*b.R
+				+ lep.theta_064*sq(b.R))
+			+ shift_had.H_8*(
+				lep.theta_081/b.R
+				+ lep.theta_082
+				+ lep.theta_083*b.R
+				+ lep.theta_084*sq(b.R)));
+}
+Real xs::rad_ut2_shift(Rad b, LepRadUU lep, HadUT2 shift_had) {
+	return -b.coeff*b.shift_c_1/sq(b.shift_Q_sq)*(
+			shift_had.H_1*(
+				lep.theta_011/b.R
+				+ lep.theta_012
+				+ lep.theta_013*b.R)
+			+ shift_had.H_2*(
+				lep.theta_021/b.R
+				+ lep.theta_022
+				+ lep.theta_023*b.R)
+			+ shift_had.H_3*(
+				lep.theta_031/b.R
+				+ lep.theta_032
+				+ lep.theta_033*b.R)
+			+ shift_had.H_4*(
+				lep.theta_041/b.R
+				+ lep.theta_042
+				+ lep.theta_043*b.R));
+}
+Real xs::rad_lu_shift(Rad b, LepRadLU lep, HadLU shift_had) {
+	return -b.coeff*b.shift_c_1/sq(b.shift_Q_sq)*(
+			shift_had.H_5*(
+				(lep.theta_051 + lep.theta_151)/b.R
+				+ (lep.theta_052 + lep.theta_152)
+				+ (lep.theta_053 + lep.theta_153)*b.R));
+}
+Real xs::rad_ll_shift(Rad b, LepRadLP lep, HadLL shift_had) {
+	return -b.coeff*b.shift_c_1/sq(b.shift_Q_sq)*(
+			shift_had.H_7*(
+				((lep.theta_071 + lep.theta_171)/b.R
+				+ (lep.theta_072 + lep.theta_172)
+				+ (lep.theta_073 + lep.theta_173)*b.R
+				+ (lep.theta_074 + lep.theta_174)*sq(b.R)))
+			+ shift_had.H_9*(
+				(lep.theta_091 + lep.theta_191)/b.R
+				+ (lep.theta_092 + lep.theta_192)
+				+ (lep.theta_093 + lep.theta_193)*b.R
+				+ (lep.theta_094 + lep.theta_194)*sq(b.R)));
+}
+Real xs::rad_lt1_shift(Rad b, LepRadLP lep, HadLT1 shift_had) {
+	return -b.coeff*b.shift_c_1/sq(b.shift_Q_sq)*(
+			shift_had.H_7*(
+				((lep.theta_071 + lep.theta_171)/b.R
+				+ (lep.theta_072 + lep.theta_172)
+				+ (lep.theta_073 + lep.theta_173)*b.R
+				+ (lep.theta_074 + lep.theta_174)*sq(b.R)))
+			+ shift_had.H_9*(
+				(lep.theta_091 + lep.theta_191)/b.R
+				+ (lep.theta_092 + lep.theta_192)
+				+ (lep.theta_093 + lep.theta_193)*b.R
+				+ (lep.theta_094 + lep.theta_194)*sq(b.R)));
+}
+Real xs::rad_lt2_shift(Rad b, LepRadLU lep, HadLT2 shift_had) {
+	return -b.coeff*b.shift_c_1/sq(b.shift_Q_sq)*(
+			shift_had.H_5*(
+				(lep.theta_051 + lep.theta_151)/b.R
+				+ (lep.theta_052 + lep.theta_152)
+				+ (lep.theta_053 + lep.theta_153)*b.R));
 }
 
 Real xs::delta_vr(Kinematics kin) {
@@ -307,7 +558,7 @@ Real xs::delta_vr(Kinematics kin) {
 	return delta;
 }
 
-Real xs::delta_vac_lep(kin::Kinematics kin) {
+Real xs::delta_vac_lep(Kinematics kin) {
 	// Equation [1.50].
 	Real ms[3] = { MASS_E, MASS_MU, MASS_TAU };
 	Real delta = 0.;
@@ -325,7 +576,7 @@ Real xs::delta_vac_lep(kin::Kinematics kin) {
 	return delta;
 }
 
-Real xs::delta_vac_had(kin::Kinematics kin) {
+Real xs::delta_vac_had(Kinematics kin) {
 	if (kin.Q_sq < 1.) {
 		return -(2.*PI)/ALPHA*(-1.345e-9 - 2.302e-3*std::log(1. + 4.091*kin.Q_sq));
 	} else if (kin.Q_sq < 64.) {

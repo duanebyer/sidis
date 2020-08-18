@@ -22,6 +22,10 @@ namespace lep {
 	struct LepAmmUP;
 	struct LepAmmLU;
 	struct LepAmmLP;
+	struct LepRadUU;
+	struct LepRadUP;
+	struct LepRadLU;
+	struct LepRadLP;
 }
 namespace had {
 	struct HadUU;
@@ -64,13 +68,27 @@ struct Amm {
 	explicit Amm(kin::Kinematics kin);
 };
 
+struct Rad {
+	Real coeff;
+	Real c_1;
+	Real Q_sq;
+	Real R;
+	Real shift_c_1;
+	Real shift_Q_sq;
+
+	explicit Rad(kin::KinematicsRad kin);
+};
+
 Real born(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Sf sf);
 Real delta_vr(kin::Kinematics kin);
 Real delta_vac_lep(kin::Kinematics kin);
 Real delta_vac_had(kin::Kinematics kin);
 
 Real amm(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Sf sf);
-Real rad(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Sf sf);
+Real rad(
+	Real lambda_e, math::Vec3 eta,
+	kin::KinematicsRad kin,
+	sf::Sf sf, sf::Sf shift_sf);
 Real ex(Real lambda_e, math::Vec3 eta, kin::KinematicsEx kin, sf::Sf sf);
 
 Real born_xu(Real lambda_e, kin::Kinematics kin, sf::SfXU sf);
@@ -103,6 +121,7 @@ Real amm_lt(Real phi_s, kin::Kinematics kin, sf::SfLT sf);
 Real amm_lt1(kin::Kinematics kin, sf::SfLT sf);
 Real amm_lt2(kin::Kinematics kin, sf::SfLT sf);
 
+// Base sets for cross-section calculations.
 Real born_uu(Born b, lep::LepBornUU lep, had::HadUU had);
 Real born_ul(Born b, lep::LepBornUP lep, had::HadUL had);
 Real born_ut1(Born b, lep::LepBornUP lep, had::HadUT1 had);
@@ -120,6 +139,24 @@ Real amm_lu(Amm b, lep::LepAmmLU lep, had::HadLU had);
 Real amm_ll(Amm b, lep::LepAmmLP lep, had::HadLL had);
 Real amm_lt1(Amm b, lep::LepAmmLP lep, had::HadLT1 had);
 Real amm_lt2(Amm b, lep::LepAmmLU lep, had::HadLT2 had);
+
+Real rad_uu(Rad b, lep::LepRadUU lep, had::HadUU had);
+Real rad_ul(Rad b, lep::LepRadUP lep, had::HadUL had);
+Real rad_ut1(Rad b, lep::LepRadUP lep, had::HadUT1 had);
+Real rad_ut2(Rad b, lep::LepRadUU lep, had::HadUT2 had);
+Real rad_lu(Rad b, lep::LepRadLU lep, had::HadLU had);
+Real rad_ll(Rad b, lep::LepRadLP lep, had::HadLL had);
+Real rad_lt1(Rad b, lep::LepRadLP lep, had::HadLT1 had);
+Real rad_lt2(Rad b, lep::LepRadLU lep, had::HadLT2 had);
+
+Real rad_uu_shift(Rad b, lep::LepRadUU lep, had::HadUU shift_had);
+Real rad_ul_shift(Rad b, lep::LepRadUP lep, had::HadUL shift_had);
+Real rad_ut1_shift(Rad b, lep::LepRadUP lep, had::HadUT1 shift_had);
+Real rad_ut2_shift(Rad b, lep::LepRadUU lep, had::HadUT2 shift_had);
+Real rad_lu_shift(Rad b, lep::LepRadLU lep, had::HadLU shift_had);
+Real rad_ll_shift(Rad b, lep::LepRadLP lep, had::HadLL shift_had);
+Real rad_lt1_shift(Rad b, lep::LepRadLP lep, had::HadLT1 shift_had);
+Real rad_lt2_shift(Rad b, lep::LepRadLU lep, had::HadLT2 shift_had);
 
 }
 }
