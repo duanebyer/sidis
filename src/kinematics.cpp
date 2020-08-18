@@ -141,6 +141,13 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		+ tau*(X*S_x - 2.*sq(M)*Q_sq)
 		- 2.*M*lambda_z_sqrt*std::cos(phi_k));
 
+	// Equation [1.B5].
+	F_22 = 1./sq(z_2);
+	F_21 = 1./sq(z_1);
+	F_d = 1./(z_1*z_2);
+	F_1p = 1./z_1 + 1./z_2;
+	F_IR = sq(m)*F_2p - (Q_sq + 2.*sq(m))*F_d;
+
 	ph_0 = kin.ph_0;
 	ph_t = kin.ph_t;
 	ph_l = kin.ph_l;

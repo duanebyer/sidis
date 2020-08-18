@@ -171,6 +171,13 @@ struct KinematicsRad {
 	Real z_1;
 	Real z_2;
 
+	Real F_22;
+	Real F_21;
+	Real F_2p;
+	Real F_2m;
+	Real F_1p;
+	Real F_IR;
+
 	// Shifted kinematic variables.
 	Real shift_x;
 	Real shift_z;
