@@ -95,17 +95,6 @@ T dilog_impl(T x) {
 	return a * result + b;
 }
 
-template<typename T>
-T trapezoid_impl(T (*f)(T), T a, T b, unsigned n) {
-	T delta = (b - a) / n;
-	T result = 0.5 * (f(a) + f(b));
-	for (unsigned i = 1; i <= n - 1; ++i) {
-		T x = i / n * (b - a) + a;
-		result += f(x);
-	}
-	return result * delta;
-}
-
 }
 
 float math::sqrt1p_1m(float x) {
@@ -126,19 +115,5 @@ double math::dilog(double x) {
 }
 long double math::dilog(long double x) {
 	return dilog_impl<long double>(x);
-}
-
-float math::trapezoid(float (*f)(float), float a, float b, unsigned n) {
-	return trapezoid_impl<float>(f, a, b, n);
-}
-double math::trapezoid(double (*f)(double), double a, double b, unsigned n) {
-	return trapezoid_impl<double>(f, a, b, n);
-}
-long double math::trapezoid(
-		long double (*f)(long double),
-		long double a,
-		long double b,
-		unsigned n) {
-	return trapezoid_impl<long double>(f, a, b, n);
 }
 
