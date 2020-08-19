@@ -71,53 +71,56 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 }
 
 KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
+		S(kin.S),
+		M(kin.M),
+		m(kin.m),
+		mh(kin.mh),
+		M_th(kin.M_th),
+		x(kin.x),
+		y(kin.y),
+		z(kin.z),
+		ph_t_sq(kin.ph_t_sq),
+		phi_h(kin.phi_h),
+		phi(kin.phi),
+		Q_sq(kin.Q_sq),
+		Q(kin.Q),
+		t(kin.t),
+		X(kin.X),
+		S_x(kin.S_x),
+		S_p(kin.S_p),
+		V_1(kin.V_1),
+		V_2(kin.V_2),
+		V_m(kin.V_m),
+		V_p(kin.V_p),
+		lambda_S(kin.lambda_S),
+		lambda_Y(kin.lambda_Y),
+		lambda_1(kin.lambda_1),
+		lambda_2(kin.lambda_2),
+		lambda_3(kin.lambda_3),
+		lambda_S_sqrt(kin.lambda_S_sqrt),
+		lambda_Y_sqrt(kin.lambda_Y_sqrt),
+		lambda_1_sqrt(kin.lambda_1_sqrt),
+		lambda_2_sqrt(kin.lambda_2_sqrt),
+		lambda_3_sqrt(kin.lambda_3_sqrt),
+		ph_0(kin.ph_0),
+		ph_t(kin.ph_t),
+		ph_l(kin.ph_l),
+		k_t(kin.k_t),
+		mx_sq(kin.mx_sq),
+		mx(kin.mx),
+		vol_phi_h(kin.vol_phi_h),
 		tau(tau),
 		phi_k(phi_k),
 		R(R) {
-	S = kin.S;
-	M = kin.M;
-	m = kin.m;
-	mh = kin.mh;
-	M_th = kin.M_th;
-
-	x = kin.x;
-	y = kin.y;
-	z = kin.z;
-	ph_t_sq = kin.ph_t_sq;
-	phi_h = kin.phi_h;
-	phi = kin.phi;
-
-	Q_sq = kin.Q_sq;
-	Q = kin.Q;
-	t = kin.t;
-	X = kin.X;
-	S_x = kin.S_x;
-	S_p = kin.S_p;
-	V_1 = kin.V_1;
-	V_2 = kin.V_2;
-	V_m = kin.V_m;
-	V_p = kin.V_p;
-
-	lambda_S = kin.lambda_S;
-	lambda_Y = kin.lambda_Y;
 	// TODO: Fill in equation number from derivations.
 	lambda_H = sq(z*S_x) - 4.*sq(M)*sq(mh);
-	lambda_1 = kin.lambda_1;
-	lambda_2 = kin.lambda_2;
-	lambda_3 = kin.lambda_3;
 	// TODO: Fill in equation number from derivations.
 	lambda_V = z*sq(S_x) - 4.*sq(M)*V_m;
-	lambda_S_sqrt = kin.lambda_S_sqrt;
-	lambda_Y_sqrt = kin.lambda_Y_sqrt;
-	lambda_1_sqrt = kin.lambda_1_sqrt;
-	lambda_2_sqrt = kin.lambda_2_sqrt;
-	lambda_3_sqrt = kin.lambda_3_sqrt;
-	// TODO: Fill in equation numbers from derivations.
 	lambda_RY = R*(S_x - 2.*sq(M)*tau);
-	lambda_RV = 1./lambda_Y_sqrt*(
-		std::sqrt(((sq(R)*lambda_Y - sq(lambda_RY))*ph_t_sq))
+	lambda_RV = (2.*M)/lambda_Y_sqrt*(
+		std::sqrt((sq(R)*lambda_Y - sq(lambda_RY))*ph_t_sq)
 			*std::cos(phi_h - phi_k)
-		+ (2.*M*lambda_RY*ph_l));
+		+ lambda_RY*ph_l);
 
 	// Equation [1.44].
 	tau_min = (S_x - lambda_Y_sqrt)/(2.*sq(M));
@@ -148,14 +151,6 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 	F_1p = 1./z_1 + 1./z_2;
 	F_IR = sq(m)*F_2p - (Q_sq + 2.*sq(m))*F_d;
 
-	ph_0 = kin.ph_0;
-	ph_t = kin.ph_t;
-	ph_l = kin.ph_l;
-	k_t = kin.k_t;
-	mx_sq = kin.mx_sq;
-	mx = kin.mx;
-
-	vol_phi_h = kin.vol_phi_h;
 	// Equation [1.30].
 	vol_phi_k = (std::sin(phi_k)*R*std::sqrt(
 			lambda_1*(Q_sq + tau*(S_x - tau*sq(M)))))
@@ -185,7 +180,7 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 
 	shift_V_m = V_m - lambda_RV/(4.*sq(M));
 	shift_ph_t_sq = ph_t_sq + 1./(shift_lambda_Y)*(
-		+ ((sq(R) - 2.*lambda_RY)*sq(ph_l))
+		+ (sq(R) - 2.*lambda_RY)*sq(ph_l)
 		+ (lambda_Y_sqrt*lambda_RV*ph_l)/M
 		- sq(lambda_RV)/(4.*sq(M)));
 	shift_ph_t = std::sqrt(shift_ph_t_sq);
@@ -352,9 +347,9 @@ FinalRad::FinalRad(Initial init, KinematicsRad kin) {
 			+ kin.ph_t*(std::cos(kin.phi_h)*eq_x + std::sin(kin.phi_h)*eq_y));
 
 	Real k_0 = kin.R/(2.*kin.M);
-	Real k_l = kin.lambda_RV/(kin.R*kin.lambda_Y_sqrt);
-	Real k_t = kin.R/kin.lambda_Y_sqrt
-		*std::sqrt(kin.Q_sq + kin.tau*(kin.S_x - sq(kin.M)*kin.tau));
+	Real k_l = kin.lambda_RY/(2.*kin.M*kin.lambda_Y_sqrt);
+	Real k_t = 1./(2.*kin.M)
+		*std::sqrt((sq(kin.R)*kin.lambda_Y - sq(kin.lambda_RY))/kin.lambda_Y);
 	k = Vec4(
 		k_0,
 		k_l*eq_z + k_t*(std::cos(kin.phi_k)*eq_x + std::sin(kin.phi_k)*eq_y));

@@ -109,7 +109,7 @@ struct Kinematics {
 };
 
 struct KinematicsRad {
-	// Unshifted kinematic variables.
+	// Base set of kinematic variables.
 	Real S;
 	Real M;
 	Real m;
@@ -122,12 +122,6 @@ struct KinematicsRad {
 	Real ph_t_sq;
 	Real phi_h;
 	Real phi;
-	Real tau;
-	Real phi_k;
-	Real R;
-
-	Real tau_min;
-	Real tau_max;
 
 	Real Q_sq;
 	Real Q;
@@ -142,8 +136,6 @@ struct KinematicsRad {
 
 	Real lambda_S;
 	Real lambda_Y;
-	Real lambda_z;
-	Real lambda_H;
 	Real lambda_1;
 	Real lambda_2;
 	Real lambda_3;
@@ -152,7 +144,6 @@ struct KinematicsRad {
 	Real lambda_RY;
 	Real lambda_S_sqrt;
 	Real lambda_Y_sqrt;
-	Real lambda_z_sqrt;
 	Real lambda_1_sqrt;
 	Real lambda_2_sqrt;
 	Real lambda_3_sqrt;
@@ -164,12 +155,24 @@ struct KinematicsRad {
 	Real mx_sq;
 	Real mx;
 	Real vol_phi_h;
-	Real vol_phi_k;
-	Real vol_phi_hk;
 
+	// Additional radiative kinematic variables.
+	Real tau;
+	Real phi_k;
+	Real R;
+
+	Real tau_min;
+	Real tau_max;
 	Real mu;
 	Real z_1;
 	Real z_2;
+
+	Real lambda_z;
+	Real lambda_H;
+	Real lambda_z_sqrt;
+
+	Real vol_phi_k;
+	Real vol_phi_hk;
 
 	Real F_22;
 	Real F_21;
