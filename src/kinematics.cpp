@@ -147,6 +147,8 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 	// Equation [1.B5].
 	F_22 = 1./sq(z_2);
 	F_21 = 1./sq(z_1);
+	F_2p = F_22 + F_21;
+	F_2m = F_22 - F_21;
 	F_d = 1./(z_1*z_2);
 	F_1p = 1./z_1 + 1./z_2;
 	F_IR = sq(m)*F_2p - (Q_sq + 2.*sq(m))*F_d;
