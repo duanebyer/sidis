@@ -81,7 +81,7 @@ LepRadUU::LepRadUU(KinematicsRad kin) {
 		+ 2.*kin.F_IR*(kin.S_x - 2.*kin.tau*sq(kin.M))
 		- kin.F_d*kin.tau*sq(kin.S_p));
 	theta_023 = 0.5*(
-		kin.F_d*(4.*sq(kin.m) + kin.tau*(2.*kin.tau*sq(kin.M)) - kin.S_x)
+		kin.F_d*(4.*sq(kin.m) + kin.tau*(2.*kin.tau*sq(kin.M) - kin.S_x))
 		- kin.F_1p*kin.S_p
 		+ 4.*sq(kin.M));
 	theta_031 = 4.*kin.F_IR*lep_born.theta_3;
@@ -102,7 +102,8 @@ LepRadUU::LepRadUU(KinematicsRad kin) {
 		+ kin.F_IR*((kin.mu - 2.*kin.tau*kin.z)*kin.S_x + 2.*kin.V_m);
 	theta_043 = 0.5*(
 		kin.F_d*(
-			8.*kin.mu*sq(kin.m) + kin.tau*(
+			8.*kin.mu*sq(kin.m)
+			+ kin.tau*(
 				(2.*kin.tau*kin.z - kin.mu)*kin.S_x
 				- 2.*kin.V_m))
 		- kin.F_1p*(kin.mu*kin.S_p + 2.*kin.V_p)
