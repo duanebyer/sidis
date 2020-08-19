@@ -175,21 +175,21 @@ Real xs::rad(Real lambda_e, Vec3 eta, KinematicsRad kin, Sf sf, Sf shift_sf) {
 				*(sq(kin.lambda_V) - kin.lambda_H*kin.lambda_Y)
 			+ (kin.lambda_V - kin.lambda_RV)
 				*(kin.lambda_RY*kin.lambda_V - kin.lambda_RV*kin.lambda_Y)),
-		1./(s.x*r.y)*(2.*(kin.lambda_V - kin.lambda_RV)*kin.vol_phi_hk),
+		-1./(s.x*r.y)*(2.*(kin.lambda_V - kin.lambda_RV)*kin.vol_phi_hk),
 		1./(2.*kin.M*s.x*r.z)*(
 			(sq(kin.R) - kin.lambda_RY)*kin.lambda_V
 			+ (kin.lambda_Y - kin.lambda_RY)*kin.lambda_RV));
 	Vec3 a_y(
-		-1./(s.y*r.x)*(2.*kin.vol_phi_hk*kin.lambda_V),
+		1./(s.y*r.x)*(2.*kin.vol_phi_hk*kin.lambda_V),
 		r.y/s.y + 1./(4.*sq(kin.M)*s.y*r.y)*(
 			kin.lambda_V*kin.lambda_RV
 			- kin.lambda_H*kin.lambda_RY),
-		1./(s.y*r.z)*(4.*kin.M*kin.vol_phi_hk));
+		-1./(s.y*r.z)*(4.*kin.M*kin.vol_phi_hk));
 	Vec3 a_z(
 		1./(2.*kin.M*s.z*r.x)*(
 			kin.lambda_RY*kin.lambda_V
 			- kin.lambda_RV*kin.lambda_Y),
-		-1./(s.z*r.y)*(4.*kin.M*kin.vol_phi_hk),
+		1./(s.z*r.y)*(4.*kin.M*kin.vol_phi_hk),
 		r.z/s.z - 1./(s.z*r.z)*kin.lambda_RY);
 	Vec3 shift_eta(dot(a_x, eta), dot(a_y, eta), dot(a_z, eta));
 
