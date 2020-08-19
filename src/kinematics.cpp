@@ -154,7 +154,9 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 	F_IR = sq(m)*F_2p - (Q_sq + 2.*sq(m))*F_d;
 
 	// Equation [1.30].
-	vol_phi_k = (std::sin(phi_k)*R*std::sqrt(
+	// TODO: Why does this equation require a negative sign compared to what is
+	// given in [1]?
+	vol_phi_k = -(std::sin(phi_k)*R*std::sqrt(
 			lambda_1*(Q_sq + tau*(S_x - tau*sq(M)))))
 		/(2.*lambda_Y_sqrt);
 	// Equation [1.A9].
