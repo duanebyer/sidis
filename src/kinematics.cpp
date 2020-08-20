@@ -132,6 +132,9 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		- 2.*M*ph_t*std::cos(phi_h + phi_k)
 			*std::sqrt((tau_max - tau)*(tau - tau_min))/lambda_Y_sqrt;
 
+	// Equation [1.44].
+	R_max = (mx_sq - sq(M_th))/(1. + tau - mu);
+
 	// Equation [1.B4].
 	lambda_z = (tau_max - tau)*(tau - tau_min)*lambda_1;
 	lambda_z_sqrt = std::sqrt(lambda_z);

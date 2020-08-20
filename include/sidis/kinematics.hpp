@@ -163,6 +163,7 @@ struct KinematicsRad {
 
 	Real tau_min;
 	Real tau_max;
+	Real R_max;
 	Real mu;
 	Real z_1;
 	Real z_2;
