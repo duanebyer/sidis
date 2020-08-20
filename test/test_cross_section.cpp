@@ -83,8 +83,10 @@ TEST_CASE(
 	static sf::model::WW ww;
 
 	// Load pre-computed data to use for cross-section verifications.
-	TestPair test_pair = GENERATE(from_stream<TestPair>(std::move(
-		std::ifstream("data/nrad_xs_vals.dat")), true));
+	TestPair test_pair = GENERATE(
+		from_stream<TestPair>(
+			std::move(std::ifstream("data/nrad_xs_vals.dat")),
+			true));
 	Input input = test_pair.input;
 	Output output = test_pair.output;
 
@@ -101,7 +103,6 @@ TEST_CASE(
 	}
 	Real mh = constant::MASS_PI;
 	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	Real pi = constant::PI;
 	kin::Initial initial_state(M, m, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
 	kin::Kinematics kin(initial_state, phase_space, mh, M_th);
@@ -123,6 +124,7 @@ TEST_CASE(
 	std::stringstream ss;
 	ss
 		<< "pid   = " << input.particle_id   << std::endl
+		<< "E_b   = " << E_b                 << std::endl
 		<< "x     = " << phase_space.x       << std::endl
 		<< "y     = " << phase_space.y       << std::endl
 		<< "z     = " << phase_space.z       << std::endl
