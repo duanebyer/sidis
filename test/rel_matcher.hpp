@@ -16,7 +16,9 @@ class RelMatcher : public Catch::MatcherBase<T> {
 	mutable T _cache;
 
 public:
-	RelMatcher(T value, T rel_error) : _value(value), _rel_error(rel_error) { }
+	RelMatcher(T value, T rel_error) :
+		_value(value),
+		_rel_error(std::abs(rel_error)) { }
 
 	bool match(T const& x) const override {
 		// Using this cache variable is a very bad idea, but it's necessary to
