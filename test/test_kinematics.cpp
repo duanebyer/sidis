@@ -164,7 +164,7 @@ TEST_CASE(
 		RelMatcher<Real>(kin.phi, prec));
 
 	// Particle masses.
-	Real prec_base = 100. * std::numeric_limits<Real>::epsilon();
+	Real prec_base = 1e4 * std::numeric_limits<Real>::epsilon();
 	// The precisions for the comparisons are calculated in this way because
 	// often there is a lot of precision lost when calculating the mass of a
 	// particle with high energy.
