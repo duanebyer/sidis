@@ -7,16 +7,15 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <utility>
 
 template<typename S, typename T>
 class StreamGenerator : public Catch::Generators::IGenerator<T> {
-	S _stream;
+	S& _stream;
 	T _value;
 
 public:
-	StreamGenerator(S&& stream, bool skip_header = false) :
-			_stream(std::move(stream)) {
+	StreamGenerator(S& stream, bool skip_header = false) :
+			_stream(stream) {
 		if (skip_header) {
 			std::string header;
 			std::getline(_stream, header);
@@ -43,11 +42,11 @@ public:
 
 template<typename T, typename S>
 Catch::Generators::GeneratorWrapper<T> from_stream(
-		S&& stream,
+		S& stream,
 		bool skip_header = false) {
 	return Catch::Generators::GeneratorWrapper<T>(
 		std::unique_ptr<Catch::Generators::IGenerator<T> >(
-			new StreamGenerator<S, T>(std::move(stream), skip_header)));
+			new StreamGenerator<S, T>(stream, skip_header)));
 }
 
 #endif
