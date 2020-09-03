@@ -3,6 +3,7 @@
 #include <fstream>
 #include <istream>
 #include <sstream>
+#include <utility>
 
 #include <sidis/sidis.hpp>
 #include <sidis/sf_model/ww.hpp>
@@ -82,9 +83,10 @@ TEST_CASE(
 	static sf::model::WW ww;
 
 	// Load pre-computed data to use for cross-section verifications.
-	std::ifstream data("data/nrad_xs_vals.dat");
 	TestPair test_pair = GENERATE(
-		from_stream<TestPair>(data, true));
+		from_stream<TestPair>(
+			std::move(std::ifstream("data/nrad_xs_vals.dat")),
+			true));
 	Input input = test_pair.input;
 	Output output = test_pair.output;
 

@@ -4,6 +4,7 @@
 #include <istream>
 #include <limits>
 #include <sstream>
+#include <utility>
 
 #include <sidis/constant.hpp>
 #include <sidis/kinematics.hpp>
@@ -45,9 +46,10 @@ std::istream& operator>>(std::istream& in, Input& input) {
 TEST_CASE(
 		"Non-radiative kinematics checks",
 		"[kin]") {
-	std::ifstream data("data/phase_space_vals.dat");
 	Input input = GENERATE(
-		from_stream<Input>(data, true));
+		from_stream<Input>(
+			std::move(std::ifstream("data/phase_space_vals.dat")),
+			true));
 	Real E_b = input.beam_energy;
 	Real M = constant::MASS_P;
 	Real m = 0.;

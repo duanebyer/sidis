@@ -5,6 +5,7 @@
 #include <istream>
 #include <limits>
 #include <sstream>
+#include <utility>
 
 #include <sidis/math.hpp>
 
@@ -33,9 +34,10 @@ std::istream& operator>>(std::istream& in, TestPair<T>& pair) {
 TEMPLATE_TEST_CASE(
 		"√(1+x)-1 test values", "[math]",
 		float, double, long double) {
-	std::ifstream data("data/sqrt1p_1m_vals.dat");
 	TestPair<TestType> test_pair = GENERATE(
-		from_stream<TestPair<TestType>>(data, true));
+		from_stream<TestPair<TestType>>(
+			std::move(std::ifstream("data/sqrt1p_1m_vals.dat")),
+			true));
 	TestType x = test_pair.input;
 	TestType y = test_pair.output;
 	TestType y_test = math::sqrt1p_1m(x);
@@ -50,9 +52,10 @@ TEMPLATE_TEST_CASE(
 TEMPLATE_TEST_CASE(
 		"Dilog test values", "[math]",
 		float, double, long double) {
-	std::ifstream data("data/dilog_vals.dat");
 	TestPair<TestType> test_pair = GENERATE(
-		from_stream<TestPair<TestType>>(data, true));
+		from_stream<TestPair<TestType>>(
+			std::move(std::ifstream("data/dilog_vals.dat")),
+			true));
 	TestType x = test_pair.input;
 	TestType y = test_pair.output;
 	TestType y_test = math::dilog(x);
