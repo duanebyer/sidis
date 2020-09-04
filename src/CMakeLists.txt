@@ -4,6 +4,8 @@ set(
 	"${Sidis_SOURCE_DIR}/include/sidis/constant.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/cross_section.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/hadronic_coeff.hpp"
+	"${Sidis_SOURCE_DIR}/include/sidis/interpolate.hpp"
+	"${Sidis_SOURCE_DIR}/include/sidis/interpolate.ipp"
 	"${Sidis_SOURCE_DIR}/include/sidis/kinematics.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/leptonic_coeff.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/math.hpp"
