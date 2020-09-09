@@ -79,8 +79,8 @@ Real const BM_ALPHA[6] = {
 };
 Real const BM_BETA = 3.46;
 Real const BM_A[6] = {
-	0.35, 0.90, 0.24,
-	-0.04, 0.40, -1.,
+	0.35, -0.90, 0.24,
+	0.04, -0.40, -1.,
 };
 Real const BM_LAMBDA[6] = {
 	2.1, -1.111, 0.,
@@ -92,7 +92,7 @@ Real const BM_MEAN_K_PERP_SQ = (F1_MEAN_K_PERP_SQ * BM_M_1_SQ)
 // Parameters for pretzelosity.
 Real const PRETZ_M_TT_SQ = 0.18;
 Real const PRETZ_M_TT = std::sqrt(PRETZ_M_TT_SQ);
-Real const PRETZ_ALPHA = 0.25;
+Real const PRETZ_ALPHA = 2.5;
 Real const PRETZ_BETA = 2.;
 Real const PRETZ_N[6] = {
 	1., -1., 0.,
@@ -211,7 +211,7 @@ struct WW::Impl {
 	// Load data files from WWSIDIS repository for the TMDs and FFs.
 	std::array<Grid<Real, 2>, 6> data_D1_pi_plus;
 	std::array<Grid<Real, 2>, 6> data_D1_pi_minus;
-	std::array<Grid<Real, 2>, 6> data_xg1;
+	std::array<Grid<Real, 2>, 6> data_g1;
 	std::array<Grid<Real, 2>, 6> data_xgT;
 	std::array<Grid<Real, 2>, 2> data_xh1LperpM1;
 	// Soffer bound.
@@ -222,7 +222,7 @@ struct WW::Impl {
 	CubicView<Real, 2> interp_D1_pi_minus[6];
 
 	// Transverse momentum distributions.
-	CubicView<Real, 2> interp_xg1[6];
+	CubicView<Real, 2> interp_g1[6];
 	CubicView<Real, 2> interp_xgT[6];
 	CubicView<Real, 2> interp_xh1LperpM1[2];
 	CubicView<Real, 2> interp_sb[6];
@@ -236,7 +236,7 @@ struct WW::Impl {
 				load_grids<Real, 2, 6>("fragmentationpiplus.dat")),
 			data_D1_pi_minus(
 				load_grids<Real, 2, 6>("fragmentationpiminus.dat")),
-			data_xg1(load_grids<Real, 2, 6>("g1.dat")),
+			data_g1(load_grids<Real, 2, 6>("g1.dat")),
 			data_xgT(load_grids<Real, 2, 6>("gT_u_d_ubar_dbar_s_sbar.dat")),
 			data_xh1LperpM1(load_grids<Real, 2, 2>("xh1Lperp_u_d.dat")),
 			data_sb(load_grids<Real, 2, 6>("SofferBound.dat")),
@@ -256,13 +256,13 @@ struct WW::Impl {
 				CubicView<Real, 2>(data_D1_pi_minus[4]),
 				CubicView<Real, 2>(data_D1_pi_minus[5]),
 			},
-			interp_xg1{
-				CubicView<Real, 2>(data_xg1[0]),
-				CubicView<Real, 2>(data_xg1[1]),
-				CubicView<Real, 2>(data_xg1[2]),
-				CubicView<Real, 2>(data_xg1[3]),
-				CubicView<Real, 2>(data_xg1[4]),
-				CubicView<Real, 2>(data_xg1[5]),
+			interp_g1{
+				CubicView<Real, 2>(data_g1[0]),
+				CubicView<Real, 2>(data_g1[1]),
+				CubicView<Real, 2>(data_g1[2]),
+				CubicView<Real, 2>(data_g1[3]),
+				CubicView<Real, 2>(data_g1[4]),
+				CubicView<Real, 2>(data_g1[5]),
 			},
 			interp_xgT{
 				CubicView<Real, 2>(data_xgT[0]),
@@ -407,7 +407,7 @@ Real WW::Impl::F_UUT(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	for (QuarkFlavor fl : QUARK_FLAVORS) {
 		result += sq(charge(fl))
 			* xf1(fl, x, Q_sq)
-			* D1(Particle::PI_PLUS, fl, x, Q_sq);
+			* D1(Particle::PI_PLUS, fl, z, Q_sq);
 	}
 	Real l = lambda(z, F1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return G(ph_t_sq, l) * result;
@@ -451,7 +451,7 @@ Real WW::Impl::F_UL_sin_phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	}
 	// Approximate width with `H1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
-	return -8. * M * mh * z * ph_t / (Q * l * x) * G(ph_t_sq, l) * result;
+	return -8. * M * mh * z * ph_t / (Q * l) * G(ph_t_sq, l) * result;
 }
 Real WW::Impl::F_UL_sin_2phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.6.2a].
@@ -692,7 +692,7 @@ Real WW::Impl::xf1TperpM1(QuarkFlavor fl, Real x, Real Q_sq) const {
 	return -std::sqrt(E / 2.) / (M * SIVERS_M_1)
 		* sq(SIVERS_MEAN_K_PERP_SQ) / F1_MEAN_K_PERP_SQ
 		* SIVERS_N[fl_int]
-		* std::pow(x, SIVERS_ALPHA[fl_int]) * std::pow(1. - x, SIVERS_ALPHA[fl_int])
+		* std::pow(x, SIVERS_ALPHA[fl_int]) * std::pow(1. - x, SIVERS_BETA[fl_int])
 		* std::pow(SIVERS_ALPHA[fl_int] + SIVERS_BETA[fl_int],
 			SIVERS_ALPHA[fl_int] + SIVERS_BETA[fl_int])
 		* std::pow(SIVERS_ALPHA[fl_int], -SIVERS_ALPHA[fl_int])
@@ -700,7 +700,7 @@ Real WW::Impl::xf1TperpM1(QuarkFlavor fl, Real x, Real Q_sq) const {
 		* xf1(fl, x, Q_sq);
 }
 Real WW::Impl::xg1(QuarkFlavor fl, Real x, Real Q_sq) const {
-	return interp_xg1[static_cast<int>(fl)]({ x, Q_sq });
+	return x * interp_g1[static_cast<int>(fl)]({ x, Q_sq });
 }
 Real WW::Impl::xgT(QuarkFlavor fl, Real x, Real Q_sq) const {
 	return interp_xgT[static_cast<int>(fl)]({ x, Q_sq });
@@ -709,7 +709,7 @@ Real WW::Impl::xh1(QuarkFlavor fl, Real x, Real Q_sq) const {
 	// Use the Soffer bound to get an upper limit on transversity (Equation
 	// [2.A.7]).
 	int fl_int = static_cast<int>(fl);
-	return H1_N[fl_int]
+	return x * H1_N[fl_int]
 		* std::pow(x, H1_ALPHA) * std::pow(1. - x, H1_BETA)
 		* std::pow(H1_ALPHA + H1_BETA, H1_ALPHA + H1_BETA)
 		* std::pow(H1_ALPHA, -H1_ALPHA)
@@ -732,7 +732,7 @@ Real WW::Impl::xh1TperpM2(QuarkFlavor fl, Real x, Real Q_sq) const {
 	return E / (2. * sq(M) * PRETZ_M_TT_SQ)
 		* std::pow(PRETZ_MEAN_K_PERP_SQ, 3) / F1_MEAN_K_PERP_SQ
 		* PRETZ_N[fl_int]
-		* std::pow(x, PRETZ_ALPHA) * std::pow(1. - x, PRETZ_ALPHA)
+		* std::pow(x, PRETZ_ALPHA) * std::pow(1. - x, PRETZ_BETA)
 		* std::pow(PRETZ_ALPHA + PRETZ_BETA, PRETZ_ALPHA + PRETZ_BETA)
 		* std::pow(PRETZ_ALPHA, -PRETZ_ALPHA)
 		* std::pow(PRETZ_BETA, -PRETZ_BETA)
