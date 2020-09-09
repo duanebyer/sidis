@@ -11,7 +11,7 @@ add_executable(
 	test_kinematics.cpp
 	test_math.cpp)
 target_include_directories(sidistest PRIVATE ${Sidis_SOURCE_DIR}/test)
-target_link_libraries(sidistest PRIVATE sidis sfww Catch2::Catch2)
+target_link_libraries(sidistest PRIVATE sidis Catch2::Catch2)
 add_custom_command(
 	TARGET sidistest POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E create_symlink

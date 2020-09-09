@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstddef>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -88,7 +89,11 @@ private:
 public:
 	explicit GridView(T const* data) : _data(data) { }
 	GridView(T const* data, CellIndex count, Point lower, Point upper) :
-		_data(data) { }
+			_data(data) {
+		static_cast<void>(count);
+		static_cast<void>(lower);
+		static_cast<void>(upper);
+	}
 
 	CellIndex count() const {
 		return CellIndex();
@@ -183,7 +188,7 @@ class LinearView {
 	GridView<T, N> _grid;
 
 public:
-	LinearView(GridView<T, N> grid) : _grid(grid) { }
+	explicit LinearView(GridView<T, N> grid) : _grid(grid) { }
 	T operator()(typename GridView<T, N>::Point x) const;
 };
 
@@ -196,7 +201,7 @@ class LinearView<T, 0> {
 	GridView<T, 0> _grid;
 
 public:
-	LinearView(GridView<T, 0> grid) : _grid(grid) { }
+	explicit LinearView(GridView<T, 0> grid) : _grid(grid) { }
 	T operator()(typename GridView<T, 0>::Point x) const {
 		return _grid;
 	}
@@ -215,7 +220,7 @@ class CubicView {
 	GridView<T, N> _grid;
 
 public:
-	CubicView(GridView<T, N> grid) : _grid(grid) { }
+	explicit CubicView(GridView<T, N> grid) : _grid(grid) { }
 	T operator()(typename GridView<T, N>::Point x) const;
 };
 
@@ -228,8 +233,9 @@ class CubicView<T, 0> {
 	GridView<T, 0> _grid;
 
 public:
-	CubicView(GridView<T, 0> grid) : _grid(grid) { }
+	explicit CubicView(GridView<T, 0> grid) : _grid(grid) { }
 	T operator()(typename GridView<T, 0>::Point x) const {
+		static_cast<void>(x);
 		return _grid;
 	}
 };
@@ -240,7 +246,7 @@ public:
 template<typename T, std::size_t N, std::size_t K = 1>
 std::array<Grid<T, N>, K> read_grids(
 	std::vector<std::array<T, N + K> > const& raw_data,
-	T tolerance = 1.e2);
+	T tolerance = 1.e2 * std::numeric_limits<T>::epsilon());
 
 struct NotEnoughPointsException : public std::runtime_error {
 	std::size_t points;

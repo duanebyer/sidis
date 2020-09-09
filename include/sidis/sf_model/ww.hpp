@@ -2,6 +2,7 @@
 #define SIDIS_SF_MODEL_WW_HPP
 
 #include <stdexcept>
+#include <string>
 
 #include "sidis/numeric.hpp"
 #include "sidis/structure_function.hpp"
@@ -18,43 +19,7 @@ class WW final {
 	Impl* _impl;
 
 public:
-	struct EnvironmentInitException : public std::runtime_error {
-		EnvironmentInitException();
-	};
-	struct LinkInitException : public std::runtime_error {
-		int code;
-		LinkInitException(int code);
-	};
-	struct TimeoutInitException : public std::runtime_error {
-		int code;
-		TimeoutInitException(int code);
-	};
-	struct LibraryLoadException : public std::runtime_error {
-		char const* filepath;
-		LibraryLoadException(char const* filepath);
-	};
-	struct SendPacketException : public std::runtime_error {
-		int code;
-		SendPacketException(int code);
-	};
-	struct ReceivePacketException : public std::runtime_error {
-		int code;
-		ReceivePacketException(int code);
-	};
-	struct UnexpectedPacketException : public std::runtime_error {
-		int code;
-		UnexpectedPacketException(int code);
-	};
-	struct UnexpectedPacketContentsException : public std::runtime_error {
-		int code;
-		UnexpectedPacketContentsException(int code);
-	};
-	struct NextPacketFailureException : public std::runtime_error {
-		int code;
-		NextPacketFailureException(int code);
-	};
-
-	WW(unsigned timeout_packet = 1000, unsigned timeout_init = 60000);
+	WW();
 	~WW();
 
 	WW(WW const& other) = delete;
@@ -96,6 +61,20 @@ public:
 	Sf sf(Real x, Real z, Real Q_sq, Real ph_t) const {
 		return { sf_ux(x, z, Q_sq, ph_t), sf_lx(x, z, Q_sq, ph_t) };
 	}
+};
+
+struct DataFileNotFoundException : std::runtime_error {
+	std::string file_name;
+	DataFileNotFoundException(std::string file_name) :
+		std::runtime_error("Couldn't find data file " + file_name),
+		file_name(file_name) { }
+};
+
+struct DataFileFormatException : std::runtime_error {
+	std::string file_name;
+	DataFileFormatException(std::string file_name) :
+		std::runtime_error("Invalid format for data file " + file_name),
+		file_name(file_name) { }
 };
 
 }

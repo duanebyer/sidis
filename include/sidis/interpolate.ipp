@@ -240,7 +240,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 		for (std::size_t pl_idx = 0; pl_idx < next_count; ++pl_idx) {
 			T plane = grid_planes[pl_idx];
 			T uniform_plane = next_lower + pl_idx * spacing;
-			T rel_tol = tolerance * std::numeric_limits<T>::epsilon();
+			T rel_tol = tolerance;
 			if (std::abs(plane - uniform_plane) > std::abs(rel_tol * spacing)) {
 				throw InvalidSpacingException();
 			}
@@ -284,7 +284,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 	return grids;
 }
 
-NotEnoughPointsException::NotEnoughPointsException(
+inline NotEnoughPointsException::NotEnoughPointsException(
 	std::size_t points,
 	std::size_t expected_points) :
 	std::runtime_error(
@@ -294,17 +294,17 @@ NotEnoughPointsException::NotEnoughPointsException(
 	points(points),
 	expected_points(expected_points) { }
 
-SingularDimensionException::SingularDimensionException(std::size_t dim) :
+inline SingularDimensionException::SingularDimensionException(std::size_t dim) :
 	std::runtime_error("Grid is singular in dimension " + std::to_string(dim)),
 	dim(dim) { }
 
-InvalidBoundsException::InvalidBoundsException() :
+inline InvalidBoundsException::InvalidBoundsException() :
 	std::runtime_error("Lower grid bound must be smaller than upper bound") { }
 
-InvalidSpacingException::InvalidSpacingException() :
+inline InvalidSpacingException::InvalidSpacingException() :
 	std::runtime_error("Grid must be spaced uniformly") { }
 
-UnexpectedGridPointException::UnexpectedGridPointException(
+inline UnexpectedGridPointException::UnexpectedGridPointException(
 	std::size_t line_number) :
 	std::runtime_error(
 		"Unexpected grid point at line " + std::to_string(line_number)),

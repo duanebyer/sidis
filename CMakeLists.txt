@@ -24,10 +24,6 @@ if(NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif()
 
 include(CTest)
-set(
-	CMAKE_MODULE_PATH
-	${CMAKE_MODULE_PATH}
-	"${Sidis_SOURCE_DIR}/cmake/Mathematica")
 
 # Configure the project with user settings.
 configure_file(
@@ -36,6 +32,9 @@ configure_file(
 
 # Check the configuration.
 add_subdirectory(check)
+
+# Add external libraries.
+add_subdirectory(external/mstwpdf)
 
 # Set up the library/app builds.
 add_subdirectory(src)

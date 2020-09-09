@@ -9,7 +9,8 @@ set(
 	"${Sidis_SOURCE_DIR}/include/sidis/kinematics.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/leptonic_coeff.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/math.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/vector.hpp")
+	"${Sidis_SOURCE_DIR}/include/sidis/vector.hpp"
+	"${Sidis_SOURCE_DIR}/include/sidis/sf_model/ww.hpp")
 set(HEADER_LIST_SOURCE ${HEADER_LIST_COMMON})
 set(HEADER_LIST ${HEADER_LIST_COMMON})
 list(
@@ -26,7 +27,9 @@ add_library(
 	leptonic_coeff.cpp
 	math.cpp
 	vector.cpp
+	sf_model/ww.cpp
 	${HEADER_LIST})
+target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf)
 target_include_directories(
 	sidis PUBLIC
 	"${Sidis_SOURCE_DIR}/include"
@@ -38,54 +41,13 @@ target_compile_options(
 	PRIVATE
 	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
 	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
-
-find_package(Mathematica REQUIRED COMPONENTS WSTP)
-set(
-	MODEL_WW_HEADER_LIST_COMMON
-	"${Sidis_SOURCE_DIR}/include/sidis/structure_function.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/sf_model/ww.hpp")
-set(MODEL_WW_HEADER_LIST ${MODEL_WW_HEADER_LIST_COMMON})
-set(MODEL_WW_HEADER_LIST_SOURCE ${MODEL_WW_HEADER_LIST_COMMON})
-list(
-	APPEND MODEL_WW_HEADER_LIST_SOURCE
-	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp.in")
-list(
-	APPEND MODEL_WW_HEADER_LIST
-	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp")
-add_library(
-	sfww
-	sf_model/ww.cpp
-	${MODEL_WW_HEADER_LIST})
-target_include_directories(
-	sfww
-	PUBLIC
-	"${Sidis_SOURCE_DIR}/include"
-	"${Sidis_BINARY_DIR}/include"
-	PRIVATE
-	"${Mathematica_WSTP_INCLUDE_DIR}")
-target_link_libraries(
-	sfww
-	PUBLIC
-	"${Mathematica_WSTP_LIBRARIES}")
-if(Mathematica_WSTP_LINKER_FLAGS)
-	set_target_properties(
-		sfww PROPERTIES
-		LINK_FLAGS "${Mathematica_WSTP_LINKER_FLAGS}")
-endif()
 add_custom_command(
-	TARGET sfww POST_BUILD
+	TARGET sidis POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E make_directory
 		"${Sidis_BINARY_DIR}/share/sidis/sf_model"
 	COMMAND ${CMAKE_COMMAND} -E create_symlink
-		"${Sidis_SOURCE_DIR}/share/sidis/sf_model/wwsidis"
-		"${Sidis_BINARY_DIR}/share/sidis/sf_model/wwsidis")
-target_compile_features(sfww PUBLIC cxx_std_11)
-set_target_properties(sfww PROPERTIES CXX_EXTENSIONS OFF)
-target_compile_options(
-	sfww
-	PRIVATE
-	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
-	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+		"${Sidis_SOURCE_DIR}/share/sidis/sf_model/ww"
+		"${Sidis_BINARY_DIR}/share/sidis/sf_model/ww")
 
 source_group(
 	TREE "${Sidis_SOURCE_DIR}/include"
@@ -97,15 +59,11 @@ set_target_properties(
 	sidis PROPERTIES
 	INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
 	INSTALL_RPATH_USE_LINK_PATH TRUE)
-set_target_properties(
-	sfww PROPERTIES
-	INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
-	INSTALL_RPATH_USE_LINK_PATH TRUE)
 target_compile_definitions(
-	sfww PRIVATE
+	sidis PRIVATE
 	DATADIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}")
 install(
-	DIRECTORY "${Sidis_SOURCE_DIR}/share/sidis/sf_model/wwsidis"
+	DIRECTORY "${Sidis_SOURCE_DIR}/share/sidis/sf_model/ww"
 	DESTINATION "${CMAKE_INSTALL_DATADIR}/sidis/sf_model"
 	FILES_MATCHING
 		PATTERN ".git" EXCLUDE
@@ -125,7 +83,7 @@ install(
 		PATTERN "*.hpp"
 		PATTERN "*.h")
 install(
-	TARGETS sidis sfww
+	TARGETS sidis
 	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 	ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 	INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
