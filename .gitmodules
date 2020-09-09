@@ -1,0 +1,3 @@
+[submodule "external/mstwpdf"]
+	path = external/mstwpdf
+	url = https://github.com/duanebyer/mstwpdf.git
