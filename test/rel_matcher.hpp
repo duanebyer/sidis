@@ -24,7 +24,9 @@ public:
 		// Using this cache variable is a very bad idea, but it's necessary to
 		// work around how `Catch2` deals with printing floating point numbers.
 		_cache = x;
-		return std::abs(_value - x) <= std::abs(_rel_error * _value);
+		return std::abs(_value - x) <= std::fmax(
+			std::abs(_rel_error * _value),
+			std::abs(_rel_error * x));
 	}
 
 	virtual std::string describe() const override {
