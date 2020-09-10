@@ -99,7 +99,7 @@ struct Kinematics {
 	Real ph_0;
 	Real ph_t;
 	Real ph_l;
-	Real k_t;
+	Real k1_t;
 	Real mx_sq;
 	Real mx;
 	Real vol_phi_h;
@@ -151,7 +151,7 @@ struct KinematicsRad {
 	Real ph_0;
 	Real ph_t;
 	Real ph_l;
-	Real k_t;
+	Real k1_t;
 	Real mx_sq;
 	Real mx;
 	Real vol_phi_h;
@@ -185,6 +185,7 @@ struct KinematicsRad {
 
 	// Shifted kinematic variables.
 	Real shift_x;
+	Real shift_y;
 	Real shift_z;
 	Real shift_ph_t_sq;
 	Real shift_phi_h;
@@ -206,7 +207,7 @@ struct KinematicsRad {
 
 	Real shift_ph_t;
 	Real shift_ph_l;
-	Real shift_k_t;
+	Real shift_k1_t;
 	Real shift_mx_sq;
 	Real shift_mx;
 	Real shift_vol_phi_h;
