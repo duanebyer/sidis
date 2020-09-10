@@ -24,6 +24,12 @@ struct Input {
 	kin::PhaseSpace phase_space;
 };
 
+struct InputRad {
+	char particle_id;
+	Real beam_energy;
+	kin::PhaseSpaceRad phase_space;
+};
+
 std::istream& operator>>(std::istream& in, Input& input) {
 	in >> input.particle_id;
 	if (!(input.particle_id == 'e'
@@ -38,6 +44,26 @@ std::istream& operator>>(std::istream& in, Input& input) {
 	in >> input.phase_space.ph_t_sq;
 	in >> input.phase_space.phi_h;
 	in >> input.phase_space.phi;
+	return in;
+}
+
+std::istream& operator>>(std::istream& in, InputRad& input) {
+	in >> input.particle_id;
+	if (!(input.particle_id == 'e'
+			|| input.particle_id == 'm'
+			|| input.particle_id == 't')) {
+		in.setstate(std::ios_base::failbit);
+	}
+	in >> input.beam_energy;
+	in >> input.phase_space.x;
+	in >> input.phase_space.y;
+	in >> input.phase_space.z;
+	in >> input.phase_space.ph_t_sq;
+	in >> input.phase_space.phi_h;
+	in >> input.phase_space.phi;
+	in >> input.phase_space.tau;
+	in >> input.phase_space.R;
+	in >> input.phase_space.phi_k;
 	return in;
 }
 
@@ -145,12 +171,12 @@ TEST_CASE(
 		RelMatcher<Real>(kin.ph_t, prec));
 	CHECK_THAT(
 		cross(k1.r, q.r.unit()).norm(),
-		RelMatcher<Real>(kin.k_t, prec));
+		RelMatcher<Real>(kin.k1_t, prec));
 	CHECK_THAT(
 		cross(k2.r, q.r.unit()).norm(),
-		RelMatcher<Real>(kin.k_t, prec));
+		RelMatcher<Real>(kin.k1_t, prec));
 
-	// Volume part.
+	// Volume parts.
 	CHECK_THAT(
 		dot(cross(k1.r, q.r), ph.r),
 		RelMatcher<Real>(kin.vol_phi_h/M, prec));
@@ -183,5 +209,160 @@ TEST_CASE(
 	CHECK_THAT(
 		px.norm(),
 		RelMatcher<Real>(kin.mx, prec_base / (1. - px.r.norm_sq()/math::sq(px.t))));
+}
+
+TEST_CASE(
+		"Radiative kinematics checks",
+		"[kin]") {
+	InputRad input = GENERATE(
+		from_stream<InputRad>(
+			std::move(std::ifstream("data/phase_space_rad_vals.dat")),
+			true));
+	Real E_b = input.beam_energy;
+	Real M = constant::MASS_P;
+	Real m = 0.;
+	if (input.particle_id == 'e') {
+		m = constant::MASS_E;
+	} else if (input.particle_id == 'm') {
+		m = constant::MASS_MU;
+	} else if (input.particle_id == 't') {
+		m = constant::MASS_TAU;
+	}
+	Real mh = constant::MASS_PI;
+	Real M_th = constant::MASS_P + constant::MASS_PI_0;
+	kin::Initial initial_state(M, m, E_b);
+	kin::PhaseSpaceRad phase_space = input.phase_space;
+	kin::KinematicsRad kin(initial_state, phase_space, mh, M_th);
+	kin::FinalRad final_state(initial_state, kin);
+	// Get 4-momenta of particles.
+	math::Vec4 p = initial_state.p;
+	math::Vec4 k1 = initial_state.k1;
+	math::Vec4 q = final_state.q;
+	math::Vec4 k2 = final_state.k2;
+	math::Vec4 k = final_state.k;
+	math::Vec4 ph = final_state.ph;
+	math::Vec4 px = (p + k1) - (k2 + ph);
+	// Basis vectors for angle checks.
+	math::Vec3 e_y = cross(k1.r, k2.r).unit();
+	math::Vec3 e_x = cross(e_y, q.r).unit();
+	math::Vec3 shift_e_y = cross(k1.r, (k2 + k).r).unit();
+	math::Vec3 shift_e_x = cross(shift_e_y, (q - k).r).unit();
+
+	// Print state information.
+	std::stringstream ss;
+	ss
+		<< "pid   = " << input.particle_id   << std::endl
+		<< "E_b   = " << E_b                 << std::endl
+		<< "x     = " << phase_space.x       << std::endl
+		<< "y     = " << phase_space.y       << std::endl
+		<< "z     = " << phase_space.z       << std::endl
+		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
+		<< "φ_h   = " << phase_space.phi_h   << std::endl
+		<< "φ     = " << phase_space.phi     << std::endl
+		<< "τ     = " << phase_space.tau     << std::endl
+		<< "R     = " << phase_space.R       << std::endl
+		<< "φ_k   = " << phase_space.phi_k   << std::endl;
+	INFO(ss.str());
+
+	// Do comparisons.
+	Real prec = 1e4 * std::numeric_limits<Real>::epsilon();
+
+	// Kinematic variables.
+	CHECK_THAT(
+		dot(k, q) / dot(k, p),
+		RelMatcher<Real>(kin.tau, prec));
+	CHECK_THAT(
+		2. * dot(k, p),
+		RelMatcher<Real>(kin.R, prec));
+	CHECK_THAT(
+		dot(k1, k) / dot(p, k),
+		RelMatcher<Real>(kin.z_1, prec));
+	CHECK_THAT(
+		dot(k2, k) / dot(p, k),
+		RelMatcher<Real>(kin.z_2, prec));
+	CHECK_THAT(
+		dot(k, ph) / dot(k, p),
+		RelMatcher<Real>(kin.mu, prec));
+
+	// 3-momenta dot products.
+	CHECK_THAT(
+		dot(k.r, ph.r),
+		RelMatcher<Real>(kin.lambda_RV/(4.*M*M), prec));
+	CHECK_THAT(
+		dot(k.r, q.r),
+		RelMatcher<Real>(kin.lambda_RY/(4.*M*M), prec));
+	CHECK_THAT(
+		dot(q.r, ph.r),
+		RelMatcher<Real>(kin.lambda_V/(4.*M*M), prec));
+	CHECK_THAT(
+		ph.r.norm_sq(),
+		RelMatcher<Real>(kin.lambda_H/(4.*M*M), prec));
+
+	// Volume parts.
+	CHECK_THAT(
+		dot(cross(k1.r, q.r), k.r),
+		RelMatcher<Real>(kin.vol_phi_k/M, prec));
+	CHECK_THAT(
+		dot(cross(k.r, ph.r), q.r),
+		RelMatcher<Real>(kin.vol_phi_hk/M, prec));
+
+	// Angles.
+	CHECK_THAT(
+		std::atan2(dot(e_y, k.r), dot(e_x, k.r)),
+		RelMatcher<Real>(kin.phi_k, prec));
+
+	// Particle masses.
+	CHECK(
+		std::abs(k.norm_sq()) <=
+		std::abs(prec * k.t * k.t));
+
+	// Shifted kinematic variables.
+	CHECK_THAT(
+		-dot(q - k, q - k)/(2.*dot(q - k, p)),
+		RelMatcher<Real>(kin.shift_x, prec));
+	CHECK_THAT(
+		dot(ph, p)/dot(p, q - k),
+		RelMatcher<Real>(kin.shift_z, prec));
+	CHECK_THAT(
+		(q - k - ph).norm_sq(),
+		RelMatcher<Real>(kin.shift_t, prec));
+	CHECK_THAT(
+		-(q - k).norm_sq(),
+		RelMatcher<Real>(kin.shift_Q_sq, prec));
+	CHECK_THAT(
+		2.*dot(p, q - k),
+		RelMatcher<Real>(kin.shift_S_x, prec));
+	CHECK_THAT(
+		dot(q - k, ph),
+		RelMatcher<Real>(kin.shift_V_m, prec));
+
+	// Shifted 3-momenta magnitudes.
+	CHECK_THAT(
+		(q - k).r.norm(),
+		RelMatcher<Real>(kin.shift_lambda_Y_sqrt/(2.*M), prec));
+
+	// Shifted 3-momenta components.
+	CHECK_THAT(
+		dot(ph.r, (q - k).r.unit()),
+		RelMatcher<Real>(kin.shift_ph_l, prec));
+	CHECK_THAT(
+		cross(ph.r, (q - k).r.unit()).norm(),
+		RelMatcher<Real>(kin.shift_ph_t, prec));
+	CHECK_THAT(
+		cross(k1.r, (q - k).r.unit()).norm(),
+		RelMatcher<Real>(kin.shift_k1_t, prec));
+
+	// Shifted volume parts.
+	CHECK_THAT(
+		dot(cross(k1.r, (q - k).r), ph.r),
+		RelMatcher<Real>(kin.shift_vol_phi_h/M, prec));
+
+	// Shifted angles.
+	CHECK_THAT(
+		std::atan2(dot(shift_e_y, ph.r), dot(shift_e_x, ph.r)),
+		RelMatcher<Real>(kin.shift_phi_h, prec));
+	CHECK_THAT(
+		std::atan2(k2.r.y, k2.r.x),
+		RelMatcher<Real>(kin.phi, prec));
 }
 
