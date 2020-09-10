@@ -8,7 +8,7 @@
 #include <sidis/sidis.hpp>
 #include <sidis/sf_model/ww.hpp>
 
-#include "file_generator.hpp"
+#include "stream_generator.hpp"
 #include "rel_matcher.hpp"
 
 using namespace sidis;

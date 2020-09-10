@@ -13,13 +13,16 @@ template<typename S, typename T>
 class StreamGenerator : public Catch::Generators::IGenerator<T> {
 	S _stream;
 	T _value;
+	std::size_t _elem_count;
 
 public:
 	StreamGenerator(S&& stream, bool skip_header = false) :
-			_stream(std::move(stream)) {
+			_stream(std::move(stream)),
+			_elem_count(0) {
 		if (skip_header) {
 			std::string header;
 			std::getline(_stream, header);
+			_elem_count += 1;
 		}
 		if (!next()) {
 			throw std::runtime_error(
@@ -29,9 +32,11 @@ public:
 
 	bool next() override {
 		_stream >> _value;
+		_elem_count += 1;
 		if (!_stream.eof() && _stream.fail()) {
 			throw std::runtime_error(
-				"StreamGenerator was unable to parse data from stream");
+				"StreamGenerator was unable to parse element "
+				+ std::to_string(_elem_count) + " from stream");
 		}
 		return (bool) _stream;
 	}

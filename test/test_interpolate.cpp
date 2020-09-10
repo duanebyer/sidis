@@ -10,7 +10,6 @@
 #include <sidis/numeric.hpp>
 #include <sidis/interpolate.hpp>
 
-#include "file_generator.hpp"
 #include "rel_matcher.hpp"
 
 using namespace sidis;
