@@ -112,26 +112,23 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		tau(tau),
 		phi_k(phi_k),
 		R(R) {
+	// Equation [1.44].
+	tau_min = (S_x - lambda_Y_sqrt)/(2.*sq(M));
+	tau_max = (S_x + lambda_Y_sqrt)/(2.*sq(M));
+
 	// TODO: Fill in equation number from derivations.
 	lambda_H = sq(z*S_x) - 4.*sq(M)*sq(mh);
 	// TODO: Fill in equation number from derivations.
 	lambda_V = z*sq(S_x) - 4.*sq(M)*V_m;
 	lambda_RY = R*(S_x - 2.*sq(M)*tau);
 	lambda_RV = (2.*M)/lambda_Y_sqrt*(
-		std::sqrt((sq(R)*lambda_Y - sq(lambda_RY))*ph_t_sq)
+		2.*sq(M)*R*ph_t*std::sqrt((tau - tau_min)*(tau_max - tau))
 			*std::cos(phi_h - phi_k)
 		+ lambda_RY*ph_l);
 
-	// Equation [1.44].
-	tau_min = (S_x - lambda_Y_sqrt)/(2.*sq(M));
-	tau_max = (S_x + lambda_Y_sqrt)/(2.*sq(M));
-
 	// Equation [1.B3]. The equation has been modified to account for our sign
 	// conventions on the angles `phi_h` and `phi_k`.
-	mu = ph_0/M
-		+ (ph_l*(2.*tau*sq(M) - S_x))/(M*lambda_Y_sqrt)
-		- 2.*M*ph_t*std::cos(phi_h - phi_k)
-			*std::sqrt((tau_max - tau)*(tau - tau_min))/lambda_Y_sqrt;
+	mu = (z*R*S_x - lambda_RV)/(2.*sq(M)*R);
 
 	// Equation [1.44].
 	R_max = (mx_sq - sq(M_th))/(1. + tau - mu);
