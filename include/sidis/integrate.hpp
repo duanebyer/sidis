@@ -2,7 +2,7 @@
 #define SIDIS_INTEGRATE_HPP
 
 namespace sidis {
-namespace math {
+namespace integ {
 
 template<typename R, typename F>
 R reimann(F f, R a, R b, unsigned n) {
