@@ -36,6 +36,10 @@ struct Transform3 {
 		x(xx, xy, xz),
 		y(yx, yy, yz),
 		z(zx, zy, zz) { }
+	explicit Transform3(Real s) : Transform3(
+		s, 0., 0.,
+		0., s, 0.,
+		0., 0., s) { };
 
 	Transform4 transform4() const;
 
@@ -180,6 +184,11 @@ struct Transform4 {
 		x(xt, -xx, -xy, -xz),
 		y(yt, -yx, -yy, -yz),
 		z(zt, -zx, -zy, -zz) { }
+	explicit Transform4(Real s) : Transform4(
+		s, 0., 0., 0.,
+		0., s, 0., 0.,
+		0., 0., s, 0.,
+		0., 0., 0., s) { };
 
 	Transform4 transpose() const;
 	Real trace() const;
