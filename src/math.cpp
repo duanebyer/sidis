@@ -1,4 +1,4 @@
-#include "sidis/math.hpp"
+#include "sidis/extra/math.hpp"
 
 #include <cmath>
 #include <limits>

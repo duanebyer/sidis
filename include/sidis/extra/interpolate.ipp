@@ -1,6 +1,8 @@
 #ifndef SIDIS_INTERPOLATE_IPP
 #define SIDIS_INTERPOLATE_IPP
 
+#include "sidis/extra/interpolate.hpp"
+
 #include <cmath>
 #include <cstddef>
 #include <limits>

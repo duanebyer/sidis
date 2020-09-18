@@ -8,8 +8,8 @@
 
 #include <sidis/constant.hpp>
 #include <sidis/kinematics.hpp>
-#include <sidis/math.hpp>
-#include <sidis/vector.hpp>
+#include <sidis/extra/math.hpp>
+#include <sidis/extra/vector.hpp>
 
 #include "rel_matcher.hpp"
 #include "stream_generator.hpp"

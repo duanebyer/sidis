@@ -7,8 +7,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "sidis/math.hpp"
-
 namespace sidis {
 namespace interp {
 
@@ -275,7 +273,7 @@ struct UnexpectedGridPointException : public std::runtime_error {
 }
 }
 
-#include "sidis/interpolate.ipp"
+#include "sidis/extra/interpolate.ipp"
 
 #endif
 

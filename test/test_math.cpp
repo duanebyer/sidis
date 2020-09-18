@@ -7,7 +7,7 @@
 #include <sstream>
 #include <utility>
 
-#include <sidis/math.hpp>
+#include <sidis/extra/math.hpp>
 
 #include "rel_matcher.hpp"
 #include "stream_generator.hpp"

@@ -2,7 +2,7 @@
 #define SIDIS_KINEMATICS_HPP
 
 #include "sidis/numeric.hpp"
-#include "sidis/vector.hpp"
+#include "sidis/extra/vector.hpp"
 
 namespace sidis {
 namespace kin {

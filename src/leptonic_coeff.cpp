@@ -1,7 +1,7 @@
 #include "sidis/leptonic_coeff.hpp"
 
 #include "sidis/kinematics.hpp"
-#include "sidis/math.hpp"
+#include "sidis/extra/math.hpp"
 
 using namespace sidis;
 using namespace sidis::lep;

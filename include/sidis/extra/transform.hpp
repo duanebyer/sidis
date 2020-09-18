@@ -2,7 +2,7 @@
 #define SIDIS_TRANSFORM_HPP
 
 #include "sidis/numeric.hpp"
-#include "sidis/vector.hpp"
+#include "sidis/extra/vector.hpp"
 
 namespace sidis {
 namespace math {

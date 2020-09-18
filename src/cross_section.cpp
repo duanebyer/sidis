@@ -6,9 +6,9 @@
 #include "sidis/hadronic_coeff.hpp"
 #include "sidis/kinematics.hpp"
 #include "sidis/leptonic_coeff.hpp"
-#include "sidis/math.hpp"
 #include "sidis/structure_function.hpp"
-#include "sidis/vector.hpp"
+#include "sidis/extra/math.hpp"
+#include "sidis/extra/vector.hpp"
 
 using namespace sidis;
 using namespace sidis::xs;

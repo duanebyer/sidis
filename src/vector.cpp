@@ -1,4 +1,4 @@
-#include "sidis/vector.hpp"
+#include "sidis/extra/vector.hpp"
 
 #include <algorithm>
 #include <cmath>

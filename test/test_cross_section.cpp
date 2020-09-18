@@ -7,6 +7,7 @@
 
 #include <sidis/sidis.hpp>
 #include <sidis/sf_model/ww.hpp>
+#include <sidis/extra/vector.hpp>
 
 #include "rel_matcher.hpp"
 #include "stream_generator.hpp"

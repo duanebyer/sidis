@@ -11,8 +11,8 @@
 #include <mstwpdf.h>
 
 #include "sidis/constant.hpp"
-#include "sidis/interpolate.hpp"
-#include "sidis/math.hpp"
+#include "sidis/extra/interpolate.hpp"
+#include "sidis/extra/math.hpp"
 
 #define SF_MODEL_DIR "sidis/sf_model"
 #define WW_DIR "ww"

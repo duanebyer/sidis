@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "sidis/math.hpp"
+#include "sidis/extra/math.hpp"
 
 using namespace sidis;
 using namespace sidis::kin;

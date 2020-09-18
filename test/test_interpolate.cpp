@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <sidis/numeric.hpp>
-#include <sidis/interpolate.hpp>
+#include <sidis/extra/interpolate.hpp>
 
 #include "rel_matcher.hpp"
 
