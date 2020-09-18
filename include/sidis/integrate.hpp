@@ -7,7 +7,7 @@ namespace integ {
 template<typename R, typename F>
 R reimann(F f, R a, R b, unsigned n) {
 	R delta = (b - a) / n;
-	R result = 0.;
+	R result = R(0.);
 	for (unsigned i = 0; i < n; ++i) {
 		R x = (i * b + (n - i) * a + 0.5 * (b - a)) / n;
 		result += f(x);
