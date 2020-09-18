@@ -56,10 +56,10 @@ int main() {
 ## Build
 
 The `sidis` library uses CMake for building. To get started quickly, run the
-following commands (using bash):
+following commands (on Linux):
 
-```
-# First, clone the project including submodules.
+```bash
+# Clone the project including submodules.
 git clone https://github.com/duanebyer/sidis.git
 cd sidis
 git submodule init
