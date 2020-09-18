@@ -4,6 +4,55 @@ This is an event generator for polarized semi-inclusive deep inelastic
 scattering (SIDIS) with QED radiative corrections, following closely work done
 in [1]. Currently under construction.
 
+## Quick start
+
+Many demonstrations of the different features of the `sidis` library can be
+found in the `examples` folder. To get started quickly:
+
+```cpp
+#include <iostream>
+#include <sidis/sidis.hpp>
+#include <sidis/extra/vector.hpp>
+
+#define PI (3.14159)
+
+int main() {
+	sidis::kin::Initial initial_state(
+		sidis::constant::MASS_P, // Target mass.
+		sidis::constant::MASS_E, // Lepton mass.
+		10.6                     // Beam energy.
+	);
+	sidis::kin::PhaseSpace phase_space {
+		0.2,      // Bjorken x.
+		0.9,      // Bjorken y.
+		0.3,      // Bjorken z.
+		2.,       // Transverse momentum of hadron, squared.
+		0.5 * PI, // Azimuthal angle of hadron.
+		0.,       // Azimuthal angle of transverse target polarization.
+	};
+	kin::Kinematics kin(
+		initial_state,
+		phase_space,
+		sidis::constant::MASS_PI,                          // Hadron mass.
+		sidis::constant::MASS_P + sidis::constant::MASS_PI // Threshold mass.
+	);
+	sidis::kin::Final final_state(initial_state, kin);
+	sidis::Real beam_pol = 0.;
+	sidis::math::Vec3 target_pol(0., 0., 0.);
+	// Compute structure functions with WW-type approximation.
+	sidis::sf::model::WW ww;
+	sidis::sf::Sf structure_functions = ww.sf(
+		kin.x, kin.z, kin.Q_sq, kin.ph_t_sq);
+	sidis::Real born_xs = sidis::xs::born(
+		beam_pol,
+		target_pol,
+		kin,
+		structure_functions);
+	std::cout << "Born unpolarized cross-section is " << born_xs << std::endl;
+	return 0;
+}
+```
+
 ## Build
 
 The `sidis` library uses CMake for building. To get started quickly, run the
