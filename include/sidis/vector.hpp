@@ -6,6 +6,8 @@
 namespace sidis {
 namespace math {
 
+struct Vec4;
+
 /**
  * A spatial 3-vector.
  */
@@ -22,7 +24,9 @@ struct Vec3 {
 	Vec3() : x(0.), y(0.), z(0.) { }
 	Vec3(Real x, Real y, Real z) : x(x), y(y), z(z) { }
 
-	// Arithmentic operations.
+	Vec4 vec4() const;
+
+	// Arithmetic operations.
 	Vec3& operator+=(Vec3 const& rhs) {
 		x += rhs.x;
 		y += rhs.y;
@@ -91,7 +95,7 @@ inline Vec3 cross(Vec3 const& lhs, Vec3 const& rhs) {
 		lhs.z * rhs.x - lhs.x * rhs.z,
 		lhs.x * rhs.y - lhs.y * rhs.x);
 }
-Real angle_between(Vec3 const& vec_a, Vec3 const& vec_b);
+Real angle_between(Vec3 const& v_a, Vec3 const& v_b);
 
 /**
  * A 4-vector for representing 4-momenta of particles.
@@ -104,44 +108,59 @@ struct Vec4 {
 	static Vec4 const Z;
 
 	Real t;
-	Vec3 r;
+	Real x;
+	Real y;
+	Real z;
 
-	Vec4() : t(0.), r(0., 0., 0.) { }
-	Vec4(Real t, Real x, Real y, Real z) : t(t), r(x, y, z) { }
-	Vec4(Real t, Vec3 r) : t(t), r(r) { }
+	Vec4() : t(0.), x(0.), y(0.), z(0.) { }
+	Vec4(Real t, Real x, Real y, Real z) : t(t), x(x), y(y), z(z) { }
+	Vec4(Real t, Vec3 r) : t(t), x(r.x), y(r.y), z(r.z) { }
 
 	static Vec4 from_length_and_r(Real m, Vec3 p);
 	static Vec4 from_length_and_t(Real m, Real t, Vec3 dir);
 
-	// Arithmentic operations.
+	Vec3 vec3() const {
+		return Vec3(x, y, z);
+	}
+
+	// Arithmetic operations.
 	Vec4& operator+=(Vec4 const& rhs) {
 		t += rhs.t;
-		r += rhs.r;
+		x += rhs.x;
+		y += rhs.y;
+		z += rhs.z;
 		return *this;
 	}
 	Vec4& operator-=(Vec4 const& rhs) {
 		t -= rhs.t;
-		r -= rhs.r;
+		x -= rhs.x;
+		y -= rhs.y;
+		z -= rhs.z;
 		return *this;
 	}
 	Vec4& operator*=(Real const& rhs) {
 		t *= rhs;
-		r *= rhs;
+		x *= rhs;
+		y *= rhs;
+		z *= rhs;
 		return *this;
 	}
 	Vec4& operator/=(Real const& rhs) {
 		t /= rhs;
-		r /= rhs;
+		x /= rhs;
+		y /= rhs;
+		z /= rhs;
 		return *this;
 	}
 	Vec4 operator-() const {
-		return Vec4(-t, -r);
+		return Vec4(-t, -x, -y, -z);
 	}
 
 	// Magnitude operations.
 	Real norm_sq() const;
 	Real norm() const;
 	Vec4 unit() const;
+	int sign() const;
 
 	// Projection operations.
 	Vec4 par(Vec4 const& v) const;
@@ -170,7 +189,7 @@ inline Vec4 operator/(Vec4 lhs, Real const& rhs) {
 }
 
 inline Real dot(Vec4 const& lhs, Vec4 const& rhs) {
-	return lhs.t * rhs.t - dot(lhs.r, rhs.r);
+	return lhs.t * rhs.t - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z;
 }
 Vec4 cross(Vec4 const& a, Vec4 const& b, Vec4 const& c);
 

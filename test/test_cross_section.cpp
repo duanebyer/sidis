@@ -8,8 +8,8 @@
 #include <sidis/sidis.hpp>
 #include <sidis/sf_model/ww.hpp>
 
-#include "stream_generator.hpp"
 #include "rel_matcher.hpp"
+#include "stream_generator.hpp"
 
 using namespace sidis;
 

@@ -9,8 +9,8 @@
 
 #include <sidis/math.hpp>
 
-#include "stream_generator.hpp"
 #include "rel_matcher.hpp"
+#include "stream_generator.hpp"
 
 using namespace sidis;
 

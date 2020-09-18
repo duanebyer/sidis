@@ -11,8 +11,8 @@
 #include <sidis/math.hpp>
 #include <sidis/vector.hpp>
 
-#include "stream_generator.hpp"
 #include "rel_matcher.hpp"
+#include "stream_generator.hpp"
 
 using namespace sidis;
 
@@ -100,8 +100,8 @@ TEST_CASE(
 	math::Vec4 ph = final_state.ph;
 	math::Vec4 px = (p + k1) - (k2 + ph);
 	// Basis vectors for angle checks.
-	math::Vec3 e_y = cross(k1.r, k2.r).unit();
-	math::Vec3 e_x = cross(e_y, q.r).unit();
+	math::Vec3 e_y = cross(k1.vec3(), k2.vec3()).unit();
+	math::Vec3 e_x = cross(e_y, q.vec3()).unit();
 
 	// Print state information.
 	std::stringstream ss;
@@ -156,37 +156,37 @@ TEST_CASE(
 
 	// 3-momenta magnitudes.
 	CHECK_THAT(
-		k1.r.norm(),
+		k1.vec3().norm(),
 		RelMatcher<Real>(kin.lambda_S_sqrt/(2.*M), prec));
 	CHECK_THAT(
-		q.r.norm(),
+		q.vec3().norm(),
 		RelMatcher<Real>(kin.lambda_Y_sqrt/(2.*M), prec));
 
 	// 3-momenta components.
 	CHECK_THAT(
-		dot(ph.r, q.r.unit()),
+		dot(ph.vec3(), q.vec3().unit()),
 		RelMatcher<Real>(kin.ph_l, prec));
 	CHECK_THAT(
-		cross(ph.r, q.r.unit()).norm(),
+		cross(ph.vec3(), q.vec3().unit()).norm(),
 		RelMatcher<Real>(kin.ph_t, prec));
 	CHECK_THAT(
-		cross(k1.r, q.r.unit()).norm(),
+		cross(k1.vec3(), q.vec3().unit()).norm(),
 		RelMatcher<Real>(kin.k1_t, prec));
 	CHECK_THAT(
-		cross(k2.r, q.r.unit()).norm(),
+		cross(k2.vec3(), q.vec3().unit()).norm(),
 		RelMatcher<Real>(kin.k1_t, prec));
 
 	// Volume parts.
 	CHECK_THAT(
-		dot(cross(k1.r, q.r), ph.r),
+		dot(cross(k1.vec3(), q.vec3()), ph.vec3()),
 		RelMatcher<Real>(kin.vol_phi_h/M, prec));
 
 	// Angles.
 	CHECK_THAT(
-		std::atan2(dot(e_y, ph.r), dot(e_x, ph.r)),
+		std::atan2(dot(e_y, ph.vec3()), dot(e_x, ph.vec3())),
 		RelMatcher<Real>(kin.phi_h, prec));
 	CHECK_THAT(
-		std::atan2(k2.r.y, k2.r.x),
+		std::atan2(k2.vec3().y, k2.vec3().x),
 		RelMatcher<Real>(kin.phi, prec));
 
 	// Particle masses.
@@ -199,16 +199,16 @@ TEST_CASE(
 		RelMatcher<Real>(M, prec));
 	CHECK_THAT(
 		k1.norm(),
-		RelMatcher<Real>(m, prec_base / (1. - k1.r.norm_sq()/math::sq(k1.t))));
+		RelMatcher<Real>(m, prec_base / (1. - k1.vec3().norm_sq()/math::sq(k1.t))));
 	CHECK_THAT(
 		k2.norm(),
-		RelMatcher<Real>(m, prec_base / (1. - k2.r.norm_sq()/math::sq(k2.t))));
+		RelMatcher<Real>(m, prec_base / (1. - k2.vec3().norm_sq()/math::sq(k2.t))));
 	CHECK_THAT(
 		ph.norm(),
-		RelMatcher<Real>(mh, prec_base / (1. - ph.r.norm_sq()/math::sq(ph.t))));
+		RelMatcher<Real>(mh, prec_base / (1. - ph.vec3().norm_sq()/math::sq(ph.t))));
 	CHECK_THAT(
 		px.norm(),
-		RelMatcher<Real>(kin.mx, prec_base / (1. - px.r.norm_sq()/math::sq(px.t))));
+		RelMatcher<Real>(kin.mx, prec_base / (1. - px.vec3().norm_sq()/math::sq(px.t))));
 }
 
 TEST_CASE(
@@ -243,10 +243,10 @@ TEST_CASE(
 	math::Vec4 ph = final_state.ph;
 	math::Vec4 px = (p + k1) - (k2 + ph);
 	// Basis vectors for angle checks.
-	math::Vec3 e_y = cross(k1.r, k2.r).unit();
-	math::Vec3 e_x = cross(e_y, q.r).unit();
-	math::Vec3 shift_e_y = cross(k1.r, (k2 + k).r).unit();
-	math::Vec3 shift_e_x = cross(shift_e_y, (q - k).r).unit();
+	math::Vec3 e_y = cross(k1.vec3(), k2.vec3()).unit();
+	math::Vec3 e_x = cross(e_y, q.vec3()).unit();
+	math::Vec3 shift_e_y = cross(k1.vec3(), (k2 + k).vec3()).unit();
+	math::Vec3 shift_e_x = cross(shift_e_y, (q - k).vec3()).unit();
 
 	// Print state information.
 	std::stringstream ss;
@@ -286,29 +286,29 @@ TEST_CASE(
 
 	// 3-momenta dot products.
 	CHECK_THAT(
-		dot(k.r, ph.r),
+		dot(k.vec3(), ph.vec3()),
 		RelMatcher<Real>(kin.lambda_RV/(4.*M*M), prec));
 	CHECK_THAT(
-		dot(k.r, q.r),
+		dot(k.vec3(), q.vec3()),
 		RelMatcher<Real>(kin.lambda_RY/(4.*M*M), prec));
 	CHECK_THAT(
-		dot(q.r, ph.r),
+		dot(q.vec3(), ph.vec3()),
 		RelMatcher<Real>(kin.lambda_V/(4.*M*M), prec));
 	CHECK_THAT(
-		ph.r.norm_sq(),
+		ph.vec3().norm_sq(),
 		RelMatcher<Real>(kin.lambda_H/(4.*M*M), prec));
 
 	// Volume parts.
 	CHECK_THAT(
-		dot(cross(k1.r, q.r), k.r),
+		dot(cross(k1.vec3(), q.vec3()), k.vec3()),
 		RelMatcher<Real>(kin.vol_phi_k/M, prec));
 	CHECK_THAT(
-		dot(cross(k.r, ph.r), q.r),
+		dot(cross(k.vec3(), ph.vec3()), q.vec3()),
 		RelMatcher<Real>(kin.vol_phi_hk/M, prec));
 
 	// Angles.
 	CHECK_THAT(
-		std::atan2(dot(e_y, k.r), dot(e_x, k.r)),
+		std::atan2(dot(e_y, k.vec3()), dot(e_x, k.vec3())),
 		RelMatcher<Real>(kin.phi_k, prec));
 
 	// Particle masses.
@@ -338,31 +338,31 @@ TEST_CASE(
 
 	// Shifted 3-momenta magnitudes.
 	CHECK_THAT(
-		(q - k).r.norm(),
+		(q - k).vec3().norm(),
 		RelMatcher<Real>(kin.shift_lambda_Y_sqrt/(2.*M), prec));
 
 	// Shifted 3-momenta components.
 	CHECK_THAT(
-		dot(ph.r, (q - k).r.unit()),
+		dot(ph.vec3(), (q - k).vec3().unit()),
 		RelMatcher<Real>(kin.shift_ph_l, prec));
 	CHECK_THAT(
-		cross(ph.r, (q - k).r.unit()).norm(),
+		cross(ph.vec3(), (q - k).vec3().unit()).norm(),
 		RelMatcher<Real>(kin.shift_ph_t, prec));
 	CHECK_THAT(
-		cross(k1.r, (q - k).r.unit()).norm(),
+		cross(k1.vec3(), (q - k).vec3().unit()).norm(),
 		RelMatcher<Real>(kin.shift_k1_t, prec));
 
 	// Shifted volume parts.
 	CHECK_THAT(
-		dot(cross(k1.r, (q - k).r), ph.r),
+		dot(cross(k1.vec3(), (q - k).vec3()), ph.vec3()),
 		RelMatcher<Real>(kin.shift_vol_phi_h/M, prec));
 
 	// Shifted angles.
 	CHECK_THAT(
-		std::atan2(dot(shift_e_y, ph.r), dot(shift_e_x, ph.r)),
+		std::atan2(dot(shift_e_y, ph.vec3()), dot(shift_e_x, ph.vec3())),
 		RelMatcher<Real>(kin.shift_phi_h, prec));
 	CHECK_THAT(
-		std::atan2(k2.r.y, k2.r.x),
+		std::atan2(k2.vec3().y, k2.vec3().x),
 		RelMatcher<Real>(kin.phi, prec));
 }
 

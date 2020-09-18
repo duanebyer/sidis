@@ -4,11 +4,14 @@ set(
 	"${Sidis_SOURCE_DIR}/include/sidis/constant.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/cross_section.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/hadronic_coeff.hpp"
+	"${Sidis_SOURCE_DIR}/include/sidis/integrate.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/interpolate.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/interpolate.ipp"
 	"${Sidis_SOURCE_DIR}/include/sidis/kinematics.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/leptonic_coeff.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/math.hpp"
+	"${Sidis_SOURCE_DIR}/include/sidis/structure_function.hpp"
+	"${Sidis_SOURCE_DIR}/include/sidis/transform.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/vector.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/sf_model/ww.hpp")
 set(HEADER_LIST_SOURCE ${HEADER_LIST_COMMON})
@@ -26,6 +29,7 @@ add_library(
 	kinematics.cpp
 	leptonic_coeff.cpp
 	math.cpp
+	transform.cpp
 	vector.cpp
 	sf_model/ww.cpp
 	${HEADER_LIST})

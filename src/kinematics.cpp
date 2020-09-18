@@ -328,8 +328,8 @@ Final::Final(Initial init, Kinematics kin) {
 	k2 = init.k1 - q;
 
 	// Form a basis for the reconstruction of `ph`.
-	Vec3 eq_y = cross(q.r, init.k1.r).unit();
-	Vec3 eq_z = q.r.unit();
+	Vec3 eq_y = cross(q.vec3(), init.k1.vec3()).unit();
+	Vec3 eq_z = q.vec3().unit();
 	Vec3 eq_x = cross(eq_y, eq_z);
 
 	ph = Vec4(
@@ -347,8 +347,8 @@ FinalRad::FinalRad(Initial init, KinematicsRad kin) {
 	k2 = init.k1 - q;
 
 	// Both `ph` and `k` can be reconstructed with the same basis.
-	Vec3 eq_y = cross(q.r, init.k1.r).unit();
-	Vec3 eq_z = q.r.unit();
+	Vec3 eq_y = cross(q.vec3(), init.k1.vec3()).unit();
+	Vec3 eq_z = q.vec3().unit();
 	Vec3 eq_x = cross(eq_y, eq_z);
 
 	ph = Vec4(
