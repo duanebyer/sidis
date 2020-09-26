@@ -39,28 +39,24 @@ Transform4 frame::target_from_lepton(Kinematics kin) {
 }
 Transform4 frame::lepton_from_target(Kinematics kin) {
 	// Equation [1.A5].
-	Real cos_phi = std::cos(kin.phi);
-	Real sin_phi = std::sin(kin.phi);
 	Real q_norm = kin.lambda_Y_sqrt/(2.*kin.M);
 	Vec3 ez = 1./q_norm*Vec3(
-		kin.q_t*sin_phi,
-		-kin.q_t*cos_phi,
+		kin.q_t*kin.sin_phi,
+		-kin.q_t*kin.cos_phi,
 		kin.q_l);
-	Vec3 ey = Vec3(-cos_phi, -sin_phi, 0.);
+	Vec3 ey = Vec3(-kin.cos_phi, -kin.sin_phi, 0.);
 	Vec3 ex = 1./q_norm*Vec3(
-		-sin_phi*kin.q_l,
-		cos_phi*kin.q_l,
+		-kin.sin_phi*kin.q_l,
+		kin.cos_phi*kin.q_l,
 		kin.q_t);
 	return Transform4(Transform3(ex, ey, ez));
 }
 
 Transform4 frame::target_from_hadron(Kinematics kin) {
 	// Equation [1.A2].
-	Real cos_phi_h = std::cos(kin.phi_h);
-	Real sin_phi_h = std::sin(kin.phi_h);
 	Transform3 rotate(
-		cos_phi_h, -sin_phi_h, 0.,
-		sin_phi_h, cos_phi_h, 0.,
+		kin.cos_phi_h, -kin.sin_phi_h, 0.,
+		kin.sin_phi_h, kin.cos_phi_h, 0.,
 		0., 0., 1.);
 	return target_from_lepton(kin) * Transform4(rotate);
 }
@@ -83,11 +79,9 @@ Transform4 frame::virt_photon_from_target(Kinematics kin) {
 
 Transform4 frame::target_from_real_photon(KinematicsRad kin) {
 	// Equation [1.A2].
-	Real cos_phi_k = std::cos(kin.phi_k);
-	Real sin_phi_k = std::sin(kin.phi_k);
 	Transform3 rotate(
-		cos_phi_k, -sin_phi_k, 0.,
-		sin_phi_k, cos_phi_k, 0.,
+		kin.cos_phi_k, -kin.sin_phi_k, 0.,
+		kin.sin_phi_k, kin.cos_phi_k, 0.,
 		0., 0., 1.);
 	return target_from_lepton(kin.project()) * Transform4(rotate);
 }

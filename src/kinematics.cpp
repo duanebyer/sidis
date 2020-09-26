@@ -21,6 +21,11 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 	phi_h = ph_space.phi_h;
 	phi = ph_space.phi;
 
+	cos_phi_h = std::cos(phi_h);
+	sin_phi_h = std::sin(phi_h);
+	cos_phi = std::cos(phi);
+	sin_phi = std::sin(phi);
+
 	S = 2. * dot(init.p, init.k1);
 	M = init.M;
 	m = init.m;
@@ -63,9 +68,9 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 
 	// Equation [1.5].
 	V_1 = ph_0*S/M - (ph_l*(S*S_x + 2.*sq(M)*Q_sq))/(M*lambda_Y_sqrt)
-		- 2.*ph_t*k1_t*std::cos(phi_h);
+		- 2.*ph_t*k1_t*cos_phi_h;
 	V_2 = ph_0*X/M - (ph_l*(X*S_x - 2.*sq(M)*Q_sq))/(M*lambda_Y_sqrt)
-		- 2.*ph_t*k1_t*std::cos(phi_h);
+		- 2.*ph_t*k1_t*cos_phi_h;
 	V_p = 0.5*(V_1 + V_2);
 	V_m = 0.5*(sq(mh) - Q_sq - t);
 
@@ -76,7 +81,7 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 	lambda_3_sqrt = std::sqrt(lambda_3);
 
 	// Equation [1.6]. `vol_phi_h` is defined as `dot(epsilon_perp, ph)`.
-	vol_phi_h = -0.5*ph_t*lambda_1_sqrt*std::sin(phi_h);
+	vol_phi_h = -0.5*ph_t*lambda_1_sqrt*sin_phi_h;
 }
 
 KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
@@ -91,6 +96,10 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		ph_t_sq(kin.ph_t_sq),
 		phi_h(kin.phi_h),
 		phi(kin.phi),
+		cos_phi_h(kin.cos_phi_h),
+		sin_phi_h(kin.sin_phi_h),
+		cos_phi(kin.cos_phi),
+		sin_phi(kin.sin_phi),
 		Q_sq(kin.Q_sq),
 		Q(kin.Q),
 		t(kin.t),
@@ -124,6 +133,9 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		tau(tau),
 		phi_k(phi_k),
 		R(R) {
+	cos_phi_k = std::cos(phi_k);
+	sin_phi_k = std::sin(phi_k);
+
 	// Equation [1.44].
 	tau_min = (S_x - lambda_Y_sqrt)/(2.*sq(M));
 	tau_max = (S_x + lambda_Y_sqrt)/(2.*sq(M));
@@ -151,11 +163,11 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 	z_1 = 1./lambda_Y*(
 		Q_sq*S_p
 		+ tau*(S*S_x + 2.*sq(M)*Q_sq)
-		- 2.*M*lambda_z_sqrt*std::cos(phi_k));
+		- 2.*M*lambda_z_sqrt*cos_phi_k);
 	z_2 = 1./lambda_Y*(
 		Q_sq*S_p
 		+ tau*(X*S_x - 2.*sq(M)*Q_sq)
-		- 2.*M*lambda_z_sqrt*std::cos(phi_k));
+		- 2.*M*lambda_z_sqrt*cos_phi_k);
 
 	// Real photon 4-momentum components.
 	k_0 = R/(2.*M);
@@ -174,7 +186,7 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 	// Equation [1.30].
 	// TODO: Why does this equation require a negative sign compared to what is
 	// given in [1]?
-	vol_phi_k = -(std::sin(phi_k)*R*std::sqrt(
+	vol_phi_k = -(sin_phi_k*R*std::sqrt(
 			lambda_1*(Q_sq + tau*(S_x - tau*sq(M)))))
 		/(2.*lambda_Y_sqrt);
 	// Equation [1.A9].
@@ -237,10 +249,11 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 			+ 2.*V_1*sq(M)*Q_sq));
 
 	// TODO: Fill in equation number from derivations.
-	shift_phi_h = std::atan2(
-		-8.*sq(M)*shift_lambda_Y_sqrt*shift_vol_phi_h,
+	shift_sin_phi_h = -2.*shift_vol_phi_h/(shift_ph_t*shift_q_t*lambda_S_sqrt);
+	shift_cos_phi_h = 1./(4.*sq(M)*shift_ph_t*shift_q_t*shift_lambda_Y_sqrt*lambda_S_sqrt)*(
 		shift_lambda_Y*(z*S*S_x - 2.*sq(M)*V_1)
 		- (lambda_V - lambda_RV)*(S*shift_S_x + 2.*sq(M)*Q_sq + 2.*sq(M)*z_1*R));
+	shift_phi_h = std::atan2(shift_sin_phi_h, shift_cos_phi_h);
 }
 
 Kinematics KinematicsRad::project() const {
@@ -257,6 +270,11 @@ Kinematics KinematicsRad::project() const {
 	kin.ph_t_sq = ph_t_sq;
 	kin.phi_h = phi_h;
 	kin.phi = phi;
+
+	kin.cos_phi_h = cos_phi_h;
+	kin.sin_phi_h = sin_phi_h;
+	kin.cos_phi = cos_phi;
+	kin.sin_phi = sin_phi;
 
 	kin.Q_sq = Q_sq;
 	kin.Q = Q;
@@ -308,6 +326,11 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.ph_t_sq = shift_ph_t_sq;
 	kin.phi_h = shift_phi_h;
 	kin.phi = phi;
+
+	kin.cos_phi_h = shift_cos_phi_h;
+	kin.sin_phi_h = shift_sin_phi_h;
+	kin.cos_phi = cos_phi;
+	kin.sin_phi = sin_phi;
 
 	kin.Q_sq = shift_Q_sq;
 	kin.Q = shift_Q;
@@ -365,13 +388,13 @@ FinalRad::FinalRad(Initial init, Vec3 target_pol, KinematicsRad kin) {
 	// the z-axis in this frame.
 	ph = lab_from_lepton * Vec4(
 		kin.ph_0,
-		kin.ph_t * std::cos(kin.phi_h),
-		kin.ph_t * std::sin(kin.phi_h),
+		kin.ph_t * kin.cos_phi_h,
+		kin.ph_t * kin.sin_phi_h,
 		kin.ph_l);
 	k = lab_from_lepton * Vec4(
 		kin.k_0,
-		kin.k_t * std::cos(kin.phi_k),
-		kin.k_t * std::sin(kin.phi_k),
+		kin.k_t * kin.cos_phi_k,
+		kin.k_t * kin.sin_phi_k,
 		kin.k_l);
 }
 
