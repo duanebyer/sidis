@@ -2,9 +2,12 @@
 
 #include <cmath>
 
+#include "sidis/frame.hpp"
 #include "sidis/extra/math.hpp"
+#include "sidis/extra/transform.hpp"
 
 using namespace sidis;
+using namespace sidis::frame;
 using namespace sidis::kin;
 using namespace sidis::math;
 
@@ -50,6 +53,12 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 		lambda_Y_ratio - ph_ratio_sq - lambda_Y_ratio*ph_ratio_sq);
 	mx_sq = sq(M) + t + (1. - z)*S_x;
 	mx = std::sqrt(mx_sq);
+
+	// Virtual photon 4-momentum components.
+	q_0 = S_x/(2.*M);
+	// Equation [1.4].
+	q_t = lambda_1_sqrt/lambda_S_sqrt;
+	q_l = (2.*sq(M)*Q_sq + S*S_x)/(2.*M*lambda_S_sqrt);
 	k1_t = lambda_1_sqrt/lambda_Y_sqrt;
 
 	// Equation [1.5].
@@ -105,6 +114,9 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		ph_0(kin.ph_0),
 		ph_t(kin.ph_t),
 		ph_l(kin.ph_l),
+		q_0(kin.q_0),
+		q_t(kin.q_t),
+		q_l(kin.q_l),
 		k1_t(kin.k1_t),
 		mx_sq(kin.mx_sq),
 		mx(kin.mx),
@@ -144,6 +156,11 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		Q_sq*S_p
 		+ tau*(X*S_x - 2.*sq(M)*Q_sq)
 		- 2.*M*lambda_z_sqrt*std::cos(phi_k));
+
+	// Real photon 4-momentum components.
+	k_0 = R/(2.*M);
+	k_t = (M*R*lambda_z_sqrt)/(lambda_1_sqrt*lambda_Y_sqrt);
+	k_l = lambda_RY/(2.*M*lambda_Y_sqrt);
 
 	// Equation [1.B5].
 	F_22 = 1./sq(z_2);
@@ -195,7 +212,15 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		- sq(lambda_RV)/(4.*sq(M)));
 	shift_ph_t = std::sqrt(shift_ph_t_sq);
 	shift_ph_l = 1./shift_lambda_Y_sqrt*(lambda_Y_sqrt*ph_l - lambda_RV/(2.*M));
-	shift_k1_t = shift_lambda_1_sqrt / shift_lambda_Y_sqrt;
+	shift_q_0 = shift_S_x/(2.*M);
+	// TODO: Find a more accurate method for calculating `shift_q_t`.
+	shift_q_t = std::sqrt(
+		sq(q_t)
+		+ R/(4.*sq(M))*(R - 2.*(S_x - 2.*sq(M)*tau))
+		- R/(4.*sq(M)*lambda_S)*(S - 2.*sq(M)*z_1)*(
+			R*(S - 2.*sq(M)*z_1) - 2.*(S*S_x + 2.*sq(M)*Q_sq)));
+	shift_q_l = q_l - R/(2.*M*lambda_S_sqrt)*(S - 2.*sq(M)*z_1);
+	shift_k1_t = shift_lambda_1_sqrt/shift_lambda_Y_sqrt;
 	shift_mx_sq = mx_sq - R*(1. + tau) + (z*R*S_x - lambda_RV)/(2.*sq(M));
 	shift_mx = std::sqrt(shift_mx_sq);
 
@@ -258,6 +283,9 @@ Kinematics KinematicsRad::project() const {
 	kin.ph_0 = ph_0;
 	kin.ph_t = ph_t;
 	kin.ph_l = ph_l;
+	kin.q_0 = q_0;
+	kin.q_t = q_t;
+	kin.q_l = q_l;
 	kin.k1_t = k1_t;
 	kin.mx_sq = mx_sq;
 	kin.mx = mx;
@@ -306,6 +334,9 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.ph_0 = ph_0;
 	kin.ph_t = shift_ph_t;
 	kin.ph_l = shift_ph_l;
+	kin.q_0 = shift_q_0;
+	kin.q_t = shift_q_t;
+	kin.q_l = shift_q_l;
 	kin.k1_t = shift_k1_t;
 	kin.mx_sq = shift_mx_sq;
 	kin.mx = shift_mx;
@@ -314,54 +345,33 @@ Kinematics KinematicsRad::project_shift() const {
 	return kin;
 }
 
-Final::Final(Initial init, Kinematics kin) {
-	// First reconstruct in the target rest frame, then transform into the same
-	// frame as was used for the initial state.
-
-	// Equations [A.1], [A.2].
-	Real q_0 = kin.S_x/(2.*kin.M);
-	Real q_l = (2.*sq(kin.M)*kin.Q_sq + kin.S*kin.S_x)
-		/(2.*kin.M*kin.lambda_S_sqrt);
-	Real q_t = q_0*std::sqrt(1. - sq(q_l/q_0) + kin.Q_sq/sq(q_0));
-	q = Vec4(q_0, -q_t*std::cos(kin.phi), -q_t*std::sin(kin.phi), q_l);
-
+Final::Final(Initial init, Vec3 target_pol, Kinematics kin) {
+	Transform4 lab_from_hadron = lab_from_target(init, target_pol)
+		* target_from_hadron(kin);
+	// `q` is easy to reconstruct in the hadron frame, since the z-axis is
+	// defined to point along `q`.
+	q = lab_from_hadron * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
 	k2 = init.k1 - q;
-
-	// Form a basis for the reconstruction of `ph`.
-	Vec3 eq_y = cross(q.vec3(), init.k1.vec3()).unit();
-	Vec3 eq_z = q.vec3().unit();
-	Vec3 eq_x = cross(eq_y, eq_z);
-
-	ph = Vec4(
-		kin.ph_0,
-		kin.ph_l*eq_z + kin.ph_t*(std::cos(kin.phi_h)*eq_x + std::sin(kin.phi_h)*eq_y));
+	ph = lab_from_hadron * Vec4(kin.ph_0, kin.ph_t, 0., kin.ph_l);
 }
 
-FinalRad::FinalRad(Initial init, KinematicsRad kin) {
-	Real q_0 = kin.S_x/(2.*kin.M);
-	Real q_l = (2.*sq(kin.M)*kin.Q_sq + kin.S*kin.S_x)
-		/(2.*kin.M*kin.lambda_S_sqrt);
-	Real q_t = q_0*std::sqrt(1. - sq(q_l/q_0) + kin.Q_sq/sq(q_0));
-	q = Vec4(q_0, -q_t*std::cos(kin.phi), -q_t*std::sin(kin.phi), q_l);
-
+FinalRad::FinalRad(Initial init, Vec3 target_pol, KinematicsRad kin) {
+	Transform4 lab_from_lepton = lab_from_target(init, target_pol)
+		* target_from_lepton(kin.project());
+	q = lab_from_lepton * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
 	k2 = init.k1 - q;
-
-	// Both `ph` and `k` can be reconstructed with the same basis.
-	Vec3 eq_y = cross(q.vec3(), init.k1.vec3()).unit();
-	Vec3 eq_z = q.vec3().unit();
-	Vec3 eq_x = cross(eq_y, eq_z);
-
-	ph = Vec4(
+	// To be slightly more efficient, construct both the `ph` and `k` vectors in
+	// the lepton frame, as they are simply rotated by `phi_h` and `phi_k` about
+	// the z-axis in this frame.
+	ph = lab_from_lepton * Vec4(
 		kin.ph_0,
-		kin.ph_l*eq_z
-			+ kin.ph_t*(std::cos(kin.phi_h)*eq_x + std::sin(kin.phi_h)*eq_y));
-
-	Real k_0 = kin.R/(2.*kin.M);
-	Real k_l = kin.lambda_RY/(2.*kin.M*kin.lambda_Y_sqrt);
-	Real k1_t = 1./(2.*kin.M)
-		*std::sqrt((sq(kin.R)*kin.lambda_Y - sq(kin.lambda_RY))/kin.lambda_Y);
-	k = Vec4(
-		k_0,
-		k_l*eq_z + k1_t*(std::cos(kin.phi_k)*eq_x + std::sin(kin.phi_k)*eq_y));
+		kin.ph_t * std::cos(kin.phi_h),
+		kin.ph_t * std::sin(kin.phi_h),
+		kin.ph_l);
+	k = lab_from_lepton * Vec4(
+		kin.k_0,
+		kin.k_t * std::cos(kin.phi_k),
+		kin.k_t * std::sin(kin.phi_k),
+		kin.k_l);
 }
 

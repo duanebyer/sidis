@@ -96,9 +96,14 @@ struct Kinematics {
 	Real lambda_2_sqrt;
 	Real lambda_3_sqrt;
 
+	// Components of hadron 4-momentum in lepton frame.
 	Real ph_0;
 	Real ph_t;
 	Real ph_l;
+	// Components of virtual photon 4-momentum in target frame.
+	Real q_0;
+	Real q_t;
+	Real q_l;
 	Real k1_t;
 	Real mx_sq;
 	Real mx;
@@ -151,6 +156,9 @@ struct KinematicsRad {
 	Real ph_0;
 	Real ph_t;
 	Real ph_l;
+	Real q_0;
+	Real q_t;
+	Real q_l;
 	Real k1_t;
 	Real mx_sq;
 	Real mx;
@@ -171,6 +179,11 @@ struct KinematicsRad {
 	Real lambda_z;
 	Real lambda_H;
 	Real lambda_z_sqrt;
+
+	// Components of real photon 4-momentum in lepton frame.
+	Real k_0;
+	Real k_t;
+	Real k_l;
 
 	Real vol_phi_k;
 	Real vol_phi_hk;
@@ -207,6 +220,9 @@ struct KinematicsRad {
 
 	Real shift_ph_t;
 	Real shift_ph_l;
+	Real shift_q_0;
+	Real shift_q_t;
+	Real shift_q_l;
 	Real shift_k1_t;
 	Real shift_mx_sq;
 	Real shift_mx;
@@ -246,7 +262,7 @@ struct Final {
 	math::Vec4 k2;
 	math::Vec4 ph;
 
-	Final(Initial init, Kinematics kin);
+	Final(Initial init, math::Vec3 target_pol, Kinematics kin);
 };
 
 struct FinalRad {
@@ -255,7 +271,7 @@ struct FinalRad {
 	math::Vec4 ph;
 	math::Vec4 k;
 
-	FinalRad(Initial init, KinematicsRad kin);
+	FinalRad(Initial init, math::Vec3 target_pol, KinematicsRad kin);
 };
 
 struct FinalEx {
@@ -265,7 +281,7 @@ struct FinalEx {
 	math::Vec4 pu;
 	math::Vec4 k;
 
-	FinalEx(Initial init, KinematicsEx kin);
+	FinalEx(Initial init, math::Vec3 target_pol, KinematicsEx kin);
 };
 
 }

@@ -56,8 +56,8 @@ Transform3 Transform3::project(Vec3 const& dir) {
 	return outer(dir, dir) / n_sq;
 }
 
-Transform4 Transform3::transform4() const {
-	return Transform4(Vec4::T, x.vec4(), y.vec4(), z.vec4());
+Transform3 Transform3::bivec(Vec3 const& dir) {
+	return cross(dir);
 }
 
 Transform3 Transform3::transpose() const {
@@ -83,6 +83,22 @@ Transform3 Transform3::inv() const {
 		y.x * z.y - y.y * z.x, x.y * z.x - x.x * z.y, x.x * y.y - x.y * y.x);
 }
 
+Vec3 Transform3::transform(Vec3 const& other) const {
+	return dot(*this, other);
+}
+
+Vec4 Transform3::transform(Vec4 const& other) const {
+	return Transform4(*this).transform(other);
+}
+
+Transform3 Transform3::transform(Transform3 const& other) const {
+	return dot(dot(*this, other), this->transpose());
+}
+
+Transform4 Transform3::transform(Transform4 const& other) const {
+	return Transform4(*this).transform(other);
+}
+
 Transform4 const Transform4::ZERO = Transform4(
 	0., 0., 0., 0.,
 	0., 0., 0., 0.,
@@ -94,13 +110,36 @@ Transform4 const Transform4::ID = Transform4(
 	0., 0., 1., 0.,
 	0., 0., 0., 1.);
 
+Transform4 Transform4::rotate(Vec3 const& dir, Real angle) {
+	return Transform4(Transform3::rotate(dir, angle));
+}
+Transform4 Transform4::rotate_to(Vec3 const& dir_old, Vec3 const& dir_new) {
+	return Transform4(Transform3::rotate_to(dir_old, dir_new));
+}
+Transform4 Transform4::rotate_to(Vec3 const& z_axis) {
+	return Transform4(Transform3::rotate_to(z_axis));
+}
+Transform4 Transform4::rotate_basis(Vec3 const& z_axis, Vec3 const& y_up) {
+	return Transform4(Transform3::rotate_basis(z_axis, y_up));
+}
+Transform4 Transform4::scale(Vec3 const& dir, Real scale) {
+	return Transform4(Transform3::scale(dir, scale));
+}
+Transform4 Transform4::project(Vec3 const& dir) {
+	return Transform4(Transform3::project(dir));
+}
+
 Transform4 Transform4::boost(Vec3 const& dir, Real rapidity) {
-	Vec4 dir_unit = dir.unit().vec4();
+	Vec4 dir_unit = Vec4(0., dir.unit());
 	Real cosh = std::cosh(rapidity);
 	Real sinh = std::sinh(rapidity);
 	return Transform4::ID
 		+ sinh * (outer(dir_unit, Vec4::T) - outer(Vec4::T, dir_unit))
 		+ (1. - cosh) * (outer(dir_unit, dir_unit) - outer(Vec4::T, Vec4::T));
+}
+
+Transform4 Transform4::boost_to(Vec4 const& t_new) {
+	return Transform4::transform_to(t_new);
 }
 
 Transform4 Transform4::transform_to(Vec4 const& dir_old, Vec4 const& dir_new) {
@@ -127,6 +166,15 @@ Transform4 Transform4::transform_to(Vec4 const& t_axis) {
 Transform4 Transform4::project(Vec4 const& dir) {
 	Real n_sq = dir.norm_sq();
 	return outer(dir, dir) / n_sq;
+}
+
+Transform4 Transform4::bivec(Vec3 const& v, Vec3 const& bv) {
+	return Transform4(
+		0., -v.x, -v.y, -v.z,
+		-v.x, 0., -bv.z, bv.y,
+		-v.y, bv.z, 0., -bv.x,
+		-v.z, -bv.y, bv.x, 0.);
+
 }
 
 Transform4 Transform4::transpose() const {
@@ -170,5 +218,17 @@ Transform4 Transform4::inv() const {
 		z.x * y.t * t.y + z.t * y.y * t.x + z.y * y.x * t.t - z.x * y.y * t.t - z.y * y.t * t.x - z.t * y.x * t.y,
 		x.x * z.t * t.y + x.t * z.y * t.x + x.y * z.x * t.t - x.x * z.y * t.t - x.y * z.t * t.x - x.t * z.x * t.y,
 		x.x * y.y * t.t + x.y * y.t * t.x + x.t * y.x * t.y - x.x * y.t * t.y - x.t * y.y * t.x - x.y * y.x * t.t);
+}
+
+Vec4 Transform4::transform(Vec4 const& other) const {
+	return dot(*this, other);
+}
+
+Transform4 Transform4::transform(Transform3 const& other) const {
+	return transform(Transform4(other));
+}
+
+Transform4 Transform4::transform(Transform4 const& other) const {
+	return dot(dot(*this, other), this->transpose());
 }
 

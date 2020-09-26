@@ -22,13 +22,15 @@ struct Transform3 {
 	static Transform3 rotate_basis(Vec3 const& z_axis, Vec3 const& y_up);
 	static Transform3 scale(Vec3 const& dir, Real scale);
 	static Transform3 project(Vec3 const& dir);
+	static Transform3 bivec(Vec3 const& dir);
 
 	Vec3 x;
 	Vec3 y;
 	Vec3 z;
 
 	Transform3() : x(Vec3::ZERO), y(Vec3::ZERO), z(Vec3::ZERO) { }
-	Transform3(Vec3 x, Vec3 y, Vec3 z) : x(x), y(y), z(z) { }
+	Transform3(Vec3 const& x, Vec3 const& y, Vec3 const& z)
+		: x(x), y(y), z(z) { }
 	Transform3(
 		Real xx, Real xy, Real xz,
 		Real yx, Real yy, Real yz,
@@ -40,8 +42,6 @@ struct Transform3 {
 		s, 0., 0.,
 		0., s, 0.,
 		0., 0., s) { };
-
-	Transform4 transform4() const;
 
 	Transform3 transpose() const;
 	Real trace() const;
@@ -83,6 +83,12 @@ struct Transform3 {
 	Transform3 operator-() const {
 		return Transform3(-x, -y, -z);
 	}
+
+	// Apply coordinate transformation to objects.
+	Vec3 transform(Vec3 const& other) const;
+	Vec4 transform(Vec4 const& other) const;
+	Transform3 transform(Transform3 const& other) const;
+	Transform4 transform(Transform4 const& other) const;
 };
 
 inline Transform3 operator+(Transform3 lhs, Transform3 const& rhs) {
@@ -134,6 +140,12 @@ inline Transform3 cross(Vec3 const& v) {
 		v.z, 0., -v.x,
 		-v.y, v.x, 0.);
 }
+inline Transform3 asym_prod(Vec3 const& v1, Vec3 const& v2) {
+	return outer(v1, v2) - outer(v2, v1);
+}
+inline Transform3 sym_prod(Vec3 const& v1, Vec3 const& v2) {
+	return outer(v1, v2) + outer(v1, v2);
+}
 
 /**
  * A linear transformation acting on 4-vectors.
@@ -142,31 +154,18 @@ struct Transform4 {
 	static Transform4 const ZERO;
 	static Transform4 const ID;
 
-	static Transform4 rotate(Vec3 const& dir, Real angle) {
-		return Transform3::rotate(dir, angle).transform4();
-	}
-	static Transform4 rotate_to(Vec3 const& dir_old, Vec3 const& dir_new) {
-		return Transform3::rotate_to(dir_old, dir_new).transform4();
-	}
-	static Transform4 rotate_to(Vec3 const& z_axis) {
-		return Transform3::rotate_to(z_axis).transform4();
-	}
-	static Transform4 rotate_basis(Vec3 const& z_axis, Vec3 const& y_up) {
-		return Transform3::rotate_basis(z_axis, y_up).transform4();
-	}
-	static Transform4 scale(Vec3 const& dir, Real scale) {
-		return Transform3::scale(dir, scale).transform4();
-	}
-	static Transform4 project(Vec3 const& dir) {
-		return Transform3::project(dir).transform4();
-	}
+	static Transform4 rotate(Vec3 const& dir, Real angle);
+	static Transform4 rotate_to(Vec3 const& dir_old, Vec3 const& dir_new);
+	static Transform4 rotate_to(Vec3 const& z_axis);
+	static Transform4 rotate_basis(Vec3 const& z_axis, Vec3 const& y_up);
+	static Transform4 scale(Vec3 const& dir, Real scale);
+	static Transform4 project(Vec3 const& dir);
 	static Transform4 project(Vec4 const& dir);
 	static Transform4 boost(Vec3 const& dir, Real rapidity);
+	static Transform4 boost_to(Vec4 const& t_new);
 	static Transform4 transform_to(Vec4 const& dir_old, Vec4 const& dir_new);
 	static Transform4 transform_to(Vec4 const& t_new);
-	static Transform4 boost_to(Vec4 const& t_new) {
-		return Transform4::transform_to(t_new);
-	}
+	static Transform4 bivec(Vec3 const& v, Vec3 const& bv);
 
 	Vec4 t;
 	Vec4 x;
@@ -174,7 +173,8 @@ struct Transform4 {
 	Vec4 z;
 
 	Transform4() : t(Vec4::ZERO), x(Vec4::ZERO), y(Vec4::ZERO), z(Vec4::ZERO) { }
-	Transform4(Vec4 t, Vec4 x, Vec4 y, Vec4 z) : t(t), x(x), y(y), z(z) { }
+	Transform4(Vec4 const& t, Vec4 const& x, Vec4 const& y, Vec4 const& z)
+		: t(t), x(x), y(y), z(z) { }
 	Transform4(
 		Real tt, Real tx, Real ty, Real tz,
 		Real xt, Real xx, Real xy, Real xz,
@@ -189,6 +189,12 @@ struct Transform4 {
 		0., s, 0., 0.,
 		0., 0., s, 0.,
 		0., 0., 0., s) { };
+	Transform4(Transform3 const& tr) :
+		Transform4(
+			Vec4::T,
+			Vec4(0., -tr.x),
+			Vec4(0., -tr.y),
+			Vec4(0., -tr.z)) { }
 
 	Transform4 transpose() const;
 	Real trace() const;
@@ -235,6 +241,11 @@ struct Transform4 {
 	Transform4 operator-() const {
 		return Transform4(-t, -x, -y, -z);
 	}
+
+	// Apply coordinate transformation to objects.
+	Vec4 transform(Vec4 const& other) const;
+	Transform4 transform(Transform3 const& other) const;
+	Transform4 transform(Transform4 const& other) const;
 };
 
 inline Transform4 operator+(Transform4 lhs, Transform4 const& rhs) {
@@ -287,6 +298,12 @@ inline Transform4 cross(Vec4 const& a, Vec4 const& b) {
 		a.z * b.y - a.y * b.z, 0., a.t * b.z - a.z * b.t, a.y * b.t - a.t * b.y,
 		a.x * b.z - a.z * b.x, a.z * b.t - a.t * b.z, 0., a.t * b.x - a.x * b.t,
 		a.y * b.x - a.x * b.y, a.t * b.y - a.y * b.t, a.x * b.t - a.t * b.x, 0.);
+}
+inline Transform4 asym_prod(Vec4 const& v1, Vec4 const& v2) {
+	return outer(v1, v2) - outer(v2, v1);
+}
+inline Transform4 sym_prod(Vec4 const& v1, Vec4 const& v2) {
+	return outer(v1, v2) + outer(v1, v2);
 }
 
 }

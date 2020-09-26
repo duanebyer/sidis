@@ -3,6 +3,7 @@ set(
 	"${Sidis_SOURCE_DIR}/include/sidis/sidis.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/constant.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/cross_section.hpp"
+	"${Sidis_SOURCE_DIR}/include/sidis/frame.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/hadronic_coeff.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/kinematics.hpp"
 	"${Sidis_SOURCE_DIR}/include/sidis/leptonic_coeff.hpp"
@@ -25,6 +26,7 @@ list(
 add_library(
 	sidis
 	cross_section.cpp
+	frame.cpp
 	hadronic_coeff.cpp
 	kinematics.cpp
 	leptonic_coeff.cpp

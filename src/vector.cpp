@@ -11,10 +11,6 @@ Vec3 const Vec3::X = Vec3(1., 0., 0.);
 Vec3 const Vec3::Y = Vec3(0., 1., 0.);
 Vec3 const Vec3::Z = Vec3(0., 0., 1.);
 
-Vec4 Vec3::vec4() const {
-	return Vec4(0., *this);
-}
-
 Real Vec3::norm_sq() const {
 	return dot(*this, *this);
 }
@@ -47,14 +43,19 @@ Vec3 Vec3::unit() const {
 Vec3 Vec3::par(Vec3 const& v) const {
 	Real n_sq = v.norm_sq();
 	if (n_sq == 0.) {
-		return Vec3::ZERO;
+		return *this;
 	} else {
 		return dot(*this, v) * v / n_sq;
 	}
 }
 
 Vec3 Vec3::perp(Vec3 const& v) const {
-	return *this - par(v);
+	Real n_sq = v.norm_sq();
+	if (n_sq == 0.) {
+		return Vec3::ZERO;
+	} else {
+		return cross(cross(v, *this), v) / n_sq;
+	}
 }
 
 Real math::angle_between(Vec3 const& v_a, Vec3 const& v_b) {
@@ -67,7 +68,7 @@ Vec4 const Vec4::X = Vec4(0., 1., 0., 0.);
 Vec4 const Vec4::Y = Vec4(0., 0., 1., 0.);
 Vec4 const Vec4::Z = Vec4(0., 0., 0., 1.);
 
-Vec4 Vec4::from_length_and_r(Real m, Vec3 p) {
+Vec4 Vec4::from_length_and_r(Real m, Vec3 const& p) {
 	Real max = std::max({
 		std::abs(m),
 		std::abs(p.x),
@@ -81,7 +82,7 @@ Vec4 Vec4::from_length_and_r(Real m, Vec3 p) {
 	return Vec4(energy, p);
 }
 
-Vec4 Vec4::from_length_and_t(Real m, Real t, Vec3 dir) {
+Vec4 Vec4::from_length_and_t(Real m, Real t, Vec3 const& dir) {
 	Real max = std::max({ std::abs(m), std::abs(t) });
 	Real m_r = m / max;
 	Real t_r = t / max;
@@ -136,7 +137,7 @@ int Vec4::sign() const {
 Vec4 Vec4::par(Vec4 const& v) const {
 	Real n_sq = v.norm_sq();
 	if (n_sq == 0.) {
-		return Vec4::ZERO;
+		return *this;
 	} else {
 		return dot(*this, v) * v / n_sq;
 	}

@@ -239,7 +239,7 @@ TEST_CASE(
 	Real norm = vec.norm();
 	if (norm == 0.) {
 		CHECK_THAT(
-			vec.vec3().norm(),
+			vec.r().norm(),
 			RelMatcher<Real>(vec.t, prec));
 	} else {
 		CHECK_THAT(
@@ -371,8 +371,8 @@ TEST_CASE(
 
 	// Check that the light path in the direction of the boost is an
 	// eigenvector.
-	if (vec.vec3().norm_sq() != 0.) {
-		math::Vec4 light = math::Vec4(vec.vec3().norm(), vec.vec3());
+	if (vec.r().norm_sq() != 0.) {
+		math::Vec4 light = math::Vec4(vec.r().norm(), vec.r());
 		math::Vec4 light_1 = boost_1 * light;
 		CHECK_THAT(light_1.x / light_1.t, RelMatcher<Real>(light.x / light.t, prec));
 		CHECK_THAT(light_1.y / light_1.t, RelMatcher<Real>(light.y / light.t, prec));
@@ -445,10 +445,10 @@ TEST_CASE(
 
 	// Apply to the `from` vector.
 	math::Vec4 result = boost * vec_from.unit();
-	CHECK_THAT(result.t, AbsMatcher<Real>(vec.unit().t, prec * vec.vec3().norm()));
-	CHECK_THAT(result.x, AbsMatcher<Real>(vec.unit().x, prec * vec.vec3().norm()));
-	CHECK_THAT(result.y, AbsMatcher<Real>(vec.unit().y, prec * vec.vec3().norm()));
-	CHECK_THAT(result.z, AbsMatcher<Real>(vec.unit().z, prec * vec.vec3().norm()));
+	CHECK_THAT(result.t, AbsMatcher<Real>(vec.unit().t, prec * vec.r().norm()));
+	CHECK_THAT(result.x, AbsMatcher<Real>(vec.unit().x, prec * vec.r().norm()));
+	CHECK_THAT(result.y, AbsMatcher<Real>(vec.unit().y, prec * vec.r().norm()));
+	CHECK_THAT(result.z, AbsMatcher<Real>(vec.unit().z, prec * vec.r().norm()));
 
 	// Check composition of transformations.
 	math::Vec4 test(1., 0.1, 0.2, 0.3);

@@ -6,8 +6,6 @@
 namespace sidis {
 namespace math {
 
-struct Vec4;
-
 /**
  * A spatial 3-vector.
  */
@@ -23,8 +21,6 @@ struct Vec3 {
 
 	Vec3() : x(0.), y(0.), z(0.) { }
 	Vec3(Real x, Real y, Real z) : x(x), y(y), z(z) { }
-
-	Vec4 vec4() const;
 
 	// Arithmetic operations.
 	Vec3& operator+=(Vec3 const& rhs) {
@@ -116,10 +112,10 @@ struct Vec4 {
 	Vec4(Real t, Real x, Real y, Real z) : t(t), x(x), y(y), z(z) { }
 	Vec4(Real t, Vec3 r) : t(t), x(r.x), y(r.y), z(r.z) { }
 
-	static Vec4 from_length_and_r(Real m, Vec3 p);
-	static Vec4 from_length_and_t(Real m, Real t, Vec3 dir);
+	static Vec4 from_length_and_r(Real m, Vec3 const& p);
+	static Vec4 from_length_and_t(Real m, Real t, Vec3 const& dir);
 
-	Vec3 vec3() const {
+	Vec3 r() const {
 		return Vec3(x, y, z);
 	}
 
