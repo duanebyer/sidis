@@ -127,7 +127,7 @@ T CubicView<T, N>::operator()(typename GridView<T, N>::Point x) const {
 		CubicView<T, N - 1>(_grid[idx - 1])(x_next);
 	T cubic_1 = CubicView<T, N - 1>(_grid[idx])(x_next);
 	T cubic_2 = CubicView<T, N - 1>(_grid[idx + 1])(x_next);
-	T cubic_3 = idx >= _grid.count(0) - 1 ? 0. :
+	T cubic_3 = idx >= _grid.count(0) - 2 ? 0. :
 		CubicView<T, N - 1>(_grid[idx + 2])(x_next);
 	return cubic(cubic_0, cubic_1, cubic_2, cubic_3, x_rel);
 }
