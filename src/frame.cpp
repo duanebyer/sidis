@@ -41,13 +41,13 @@ Transform4 frame::lepton_from_target(Kinematics kin) {
 	// Equation [1.A5].
 	Real q_norm = kin.lambda_Y_sqrt/(2.*kin.M);
 	Vec3 ez = 1./q_norm*Vec3(
-		kin.q_t*kin.sin_phi,
-		-kin.q_t*kin.cos_phi,
+		-kin.q_t*kin.sin_phi_q,
+		kin.q_t*kin.cos_phi_q,
 		kin.q_l);
-	Vec3 ey = Vec3(-kin.cos_phi, -kin.sin_phi, 0.);
+	Vec3 ey = Vec3(kin.cos_phi_q, kin.sin_phi_q, 0.);
 	Vec3 ex = 1./q_norm*Vec3(
-		-kin.sin_phi*kin.q_l,
-		kin.cos_phi*kin.q_l,
+		kin.sin_phi_q*kin.q_l,
+		-kin.cos_phi_q*kin.q_l,
 		kin.q_t);
 	return Transform4(Transform3(ex, ey, ez));
 }

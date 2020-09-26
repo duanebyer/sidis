@@ -74,10 +74,14 @@ struct Kinematics {
 	Real phi_h;
 	Real phi;
 
+	Real phi_q;
+
 	Real cos_phi_h;
 	Real sin_phi_h;
 	Real cos_phi;
 	Real sin_phi;
+	Real cos_phi_q;
+	Real sin_phi_q;
 
 	Real Q_sq;
 	Real Q;
@@ -133,10 +137,14 @@ struct KinematicsRad {
 	Real phi_h;
 	Real phi;
 
+	Real phi_q;
+
 	Real cos_phi_h;
 	Real sin_phi_h;
 	Real cos_phi;
 	Real sin_phi;
+	Real cos_phi_q;
+	Real sin_phi_q;
 
 	Real Q_sq;
 	Real Q;
@@ -215,9 +223,12 @@ struct KinematicsRad {
 	Real shift_z;
 	Real shift_ph_t_sq;
 	Real shift_phi_h;
+	Real shift_phi_q;
 
 	Real shift_cos_phi_h;
 	Real shift_sin_phi_h;
+	Real shift_cos_phi_q;
+	Real shift_sin_phi_q;
 
 	Real shift_Q_sq;
 	Real shift_Q;

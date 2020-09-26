@@ -192,8 +192,11 @@ TEST_CASE(
 		std::atan2(dot(e_y, ph.r()), dot(e_x, ph.r())),
 		RelMatcher<Real>(kin.phi_h, prec));
 	CHECK_THAT(
-		std::atan2(-k2.r().x, k2.r().y),
+		std::atan2(-k2.x, k2.y),
 		RelMatcher<Real>(kin.phi, prec));
+	CHECK_THAT(
+		std::atan2(-q.x, q.y),
+		RelMatcher<Real>(kin.phi_q, prec));
 
 	// Particle masses.
 	Real prec_base = 1e4 * std::numeric_limits<Real>::epsilon();
@@ -373,5 +376,8 @@ TEST_CASE(
 	CHECK_THAT(
 		std::atan2(dot(shift_e_y, ph.r()), dot(shift_e_x, ph.r())),
 		RelMatcher<Real>(kin.shift_phi_h, prec));
+	CHECK_THAT(
+		std::atan2((q - k).x, -(q - k).y),
+		RelMatcher<Real>(kin.shift_phi_q, prec));
 }
 

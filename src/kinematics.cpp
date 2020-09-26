@@ -2,11 +2,13 @@
 
 #include <cmath>
 
+#include "sidis/constant.hpp"
 #include "sidis/frame.hpp"
 #include "sidis/extra/math.hpp"
 #include "sidis/extra/transform.hpp"
 
 using namespace sidis;
+using namespace sidis::constant;
 using namespace sidis::frame;
 using namespace sidis::kin;
 using namespace sidis::math;
@@ -20,11 +22,19 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 	ph_t_sq = ph_space.ph_t_sq;
 	phi_h = ph_space.phi_h;
 	phi = ph_space.phi;
+	phi_q = std::fmod(ph_space.phi + PI, 2.*PI);
+	if (phi_q > PI) {
+		phi_q -= 2.*PI;
+	} else if (phi_q < -PI) {
+		phi_q += 2.*PI;
+	}
 
 	cos_phi_h = std::cos(phi_h);
 	sin_phi_h = std::sin(phi_h);
 	cos_phi = std::cos(phi);
 	sin_phi = std::sin(phi);
+	cos_phi_q = -cos_phi;
+	sin_phi_q = -sin_phi;
 
 	S = 2. * dot(init.p, init.k1);
 	M = init.M;
@@ -96,10 +106,13 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		ph_t_sq(kin.ph_t_sq),
 		phi_h(kin.phi_h),
 		phi(kin.phi),
+		phi_q(kin.phi_q),
 		cos_phi_h(kin.cos_phi_h),
 		sin_phi_h(kin.sin_phi_h),
 		cos_phi(kin.cos_phi),
 		sin_phi(kin.sin_phi),
+		cos_phi_q(kin.cos_phi_q),
+		sin_phi_q(kin.sin_phi_q),
 		Q_sq(kin.Q_sq),
 		Q(kin.Q),
 		t(kin.t),
@@ -254,6 +267,18 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		shift_lambda_Y*(z*S*S_x - 2.*sq(M)*V_1)
 		- (lambda_V - lambda_RV)*(S*shift_S_x + 2.*sq(M)*Q_sq + 2.*sq(M)*z_1*R));
 	shift_phi_h = std::atan2(shift_sin_phi_h, shift_cos_phi_h);
+
+	shift_sin_phi_q = 1./shift_q_t*(
+		q_t*sin_phi_q
+		- (2.*M)/lambda_Y_sqrt*(
+			k_t*(q_l*sin_phi*cos_phi_k + lambda_Y_sqrt/(2.*M)*cos_phi*sin_phi_k)
+			- k_l*q_t*sin_phi));
+	shift_cos_phi_q = 1./shift_q_t*(
+		q_t*cos_phi_q
+		- (2.*M)/lambda_Y_sqrt*(
+			k_t*(q_l*cos_phi*cos_phi_k - lambda_Y_sqrt/(2.*M)*sin_phi*sin_phi_k)
+			- k_l*q_t*cos_phi));
+	shift_phi_q = std::atan2(shift_sin_phi_q, shift_cos_phi_q);
 }
 
 Kinematics KinematicsRad::project() const {
@@ -271,10 +296,14 @@ Kinematics KinematicsRad::project() const {
 	kin.phi_h = phi_h;
 	kin.phi = phi;
 
+	kin.phi_q = phi_q;
+
 	kin.cos_phi_h = cos_phi_h;
 	kin.sin_phi_h = sin_phi_h;
 	kin.cos_phi = cos_phi;
 	kin.sin_phi = sin_phi;
+	kin.cos_phi_q = cos_phi_q;
+	kin.sin_phi_q = sin_phi_q;
 
 	kin.Q_sq = Q_sq;
 	kin.Q = Q;
@@ -327,10 +356,14 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.phi_h = shift_phi_h;
 	kin.phi = phi;
 
+	kin.phi_q = shift_phi_q;
+
 	kin.cos_phi_h = shift_cos_phi_h;
 	kin.sin_phi_h = shift_sin_phi_h;
 	kin.cos_phi = cos_phi;
 	kin.sin_phi = sin_phi;
+	kin.cos_phi_q = shift_cos_phi_q;
+	kin.sin_phi_q = shift_sin_phi_q;
 
 	kin.Q_sq = shift_Q_sq;
 	kin.Q = shift_Q;
