@@ -46,6 +46,10 @@ struct PhaseSpaceRad {
 	Real tau;
 	Real phi_k;
 	Real R;
+
+	PhaseSpace project() const {
+		return { x, y, z, ph_t_sq, phi_h, phi };
+	}
 };
 
 struct PhaseSpaceEx {
@@ -58,6 +62,10 @@ struct PhaseSpaceEx {
 
 	Real tau;
 	Real phi_k;
+
+	PhaseSpace project() const {
+		return { x, y, z, ph_t_sq, phi_h, phi };
+	}
 };
 
 struct Kinematics {
@@ -113,6 +121,11 @@ struct Kinematics {
 	Real q_0;
 	Real q_t;
 	Real q_l;
+	// Components of scattered lepton in target frame.
+	Real k2_0;
+	Real k2_t;
+	Real k2_l;
+
 	Real k1_t;
 	Real mx_sq;
 	Real mx;
@@ -177,6 +190,10 @@ struct KinematicsRad {
 	Real q_0;
 	Real q_t;
 	Real q_l;
+	Real k2_0;
+	Real k2_t;
+	Real k2_l;
+
 	Real k1_t;
 	Real mx_sq;
 	Real mx;

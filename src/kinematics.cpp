@@ -74,6 +74,11 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 	// Equation [1.4].
 	q_t = lambda_1_sqrt/lambda_S_sqrt;
 	q_l = (2.*sq(M)*Q_sq + S*S_x)/(2.*M*lambda_S_sqrt);
+
+	// Scattered lepton 4-momentum components.
+	k2_0 = X/(2.*M);
+	k2_l = (S*X - 2.*sq(M)*Q_sq - 4.*sq(M)*sq(m))/(2.*M*lambda_S_sqrt);
+	k2_t = lambda_1_sqrt/lambda_S_sqrt;
 	k1_t = lambda_1_sqrt/lambda_Y_sqrt;
 
 	// Equation [1.5].
@@ -139,6 +144,9 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		q_0(kin.q_0),
 		q_t(kin.q_t),
 		q_l(kin.q_l),
+		k2_0(kin.k2_0),
+		k2_t(kin.k2_t),
+		k2_l(kin.k2_l),
 		k1_t(kin.k1_t),
 		mx_sq(kin.mx_sq),
 		mx(kin.mx),
@@ -333,6 +341,9 @@ Kinematics KinematicsRad::project() const {
 	kin.q_0 = q_0;
 	kin.q_t = q_t;
 	kin.q_l = q_l;
+	kin.k2_0 = k2_0;
+	kin.k2_t = k2_t;
+	kin.k2_l = k2_l;
 	kin.k1_t = k1_t;
 	kin.mx_sq = mx_sq;
 	kin.mx = mx;
@@ -393,6 +404,9 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.q_0 = shift_q_0;
 	kin.q_t = shift_q_t;
 	kin.q_l = shift_q_l;
+	kin.k2_0 = k2_0;
+	kin.k2_t = k2_t;
+	kin.k2_l = k2_l;
 	kin.k1_t = shift_k1_t;
 	kin.mx_sq = shift_mx_sq;
 	kin.mx = shift_mx;
@@ -402,29 +416,37 @@ Kinematics KinematicsRad::project_shift() const {
 }
 
 Final::Final(Initial init, Vec3 target_pol, Kinematics kin) {
-	Transform4 lab_from_hadron = lab_from_target(init, target_pol)
-		* target_from_hadron(kin);
+	Transform4 target = lab_from_target(init, target_pol);
+	Transform4 hadron = target * target_from_hadron(kin);
 	// `q` is easy to reconstruct in the hadron frame, since the z-axis is
 	// defined to point along `q`.
-	q = lab_from_hadron * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
-	k2 = init.k1 - q;
-	ph = lab_from_hadron * Vec4(kin.ph_0, kin.ph_t, 0., kin.ph_l);
+	q = hadron * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
+	k2 = target * Vec4(
+		kin.k2_0,
+		-kin.k2_t * kin.sin_phi,
+		kin.k2_t * kin.cos_phi,
+		kin.k2_l);
+	ph = hadron * Vec4(kin.ph_0, kin.ph_t, 0., kin.ph_l);
 }
 
 FinalRad::FinalRad(Initial init, Vec3 target_pol, KinematicsRad kin) {
-	Transform4 lab_from_lepton = lab_from_target(init, target_pol)
-		* target_from_lepton(kin.project());
-	q = lab_from_lepton * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
-	k2 = init.k1 - q;
+	Transform4 target = lab_from_target(init, target_pol);
+	Transform4 lepton = target * target_from_lepton(kin.project());
+	q = lepton * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
+	k2 = target * Vec4(
+		kin.k2_0,
+		-kin.k2_t * kin.sin_phi,
+		kin.k2_t * kin.cos_phi,
+		kin.k2_l);
 	// To be slightly more efficient, construct both the `ph` and `k` vectors in
 	// the lepton frame, as they are simply rotated by `phi_h` and `phi_k` about
 	// the z-axis in this frame.
-	ph = lab_from_lepton * Vec4(
+	ph = lepton * Vec4(
 		kin.ph_0,
 		kin.ph_t * kin.cos_phi_h,
 		kin.ph_t * kin.sin_phi_h,
 		kin.ph_l);
-	k = lab_from_lepton * Vec4(
+	k = lepton * Vec4(
 		kin.k_0,
 		kin.k_t * kin.cos_phi_k,
 		kin.k_t * kin.sin_phi_k,
