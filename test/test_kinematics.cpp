@@ -258,6 +258,23 @@ void test_kin_nrad(
 		std::atan2(-q.x, q.y),
 		RelMatcher<Real>(kin.phi_q, prec));
 
+	// Completeness.
+	if (complete) {
+		math::Vec4 q_test = k1 - k2;
+		CHECK_THAT(
+			q_test.t,
+			RelMatcher<Real>(q.t, prec));
+		CHECK_THAT(
+			q_test.x,
+			RelMatcher<Real>(q.x, prec));
+		CHECK_THAT(
+			q_test.y,
+			RelMatcher<Real>(q.y, prec));
+		CHECK_THAT(
+			q_test.z,
+			RelMatcher<Real>(q.z, prec));
+	}
+
 	// Particle masses.
 	Real prec_base = 1e4 * std::numeric_limits<Real>::epsilon();
 	// The precisions for the comparisons are calculated in this way because
