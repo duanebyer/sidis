@@ -3,11 +3,13 @@
 #include <cmath>
 
 #include "sidis/constant.hpp"
+#include "sidis/frame.hpp"
 #include "sidis/hadronic_coeff.hpp"
 #include "sidis/kinematics.hpp"
 #include "sidis/leptonic_coeff.hpp"
 #include "sidis/structure_function.hpp"
 #include "sidis/extra/math.hpp"
+#include "sidis/extra/transform.hpp"
 #include "sidis/extra/vector.hpp"
 
 using namespace sidis;
@@ -161,37 +163,7 @@ Real xs::amm(Real lambda_e, Vec3 eta, Kinematics kin, Sf sf) {
 Real xs::rad(Real lambda_e, Vec3 eta, KinematicsRad kin, Sf sf, Sf shift_sf) {
 	// A shifted version of `eta` is needed to properly combine the unshifted
 	// and shifted cross-sections.
-	Vec3 r(
-		kin.lambda_Y*kin.ph_t,
-		kin.lambda_Y_sqrt*kin.ph_t,
-		kin.lambda_Y_sqrt);
-	Vec3 s(
-		kin.shift_lambda_Y*kin.shift_ph_t,
-		kin.shift_lambda_Y_sqrt*kin.shift_ph_t,
-		kin.shift_lambda_Y_sqrt);
-	Vec3 a_x(
-		r.x/s.x - 1./(4.*sq(kin.M)*s.x*r.x)*(
-			(sq(kin.R) - 2.*kin.lambda_RY)
-				*(sq(kin.lambda_V) - kin.lambda_H*kin.lambda_Y)
-			+ (kin.lambda_V - kin.lambda_RV)
-				*(kin.lambda_RY*kin.lambda_V - kin.lambda_RV*kin.lambda_Y)),
-		-1./(s.x*r.y)*(2.*(kin.lambda_V - kin.lambda_RV)*kin.vol_phi_hk),
-		1./(2.*kin.M*s.x*r.z)*(
-			(sq(kin.R) - kin.lambda_RY)*kin.lambda_V
-			+ (kin.lambda_Y - kin.lambda_RY)*kin.lambda_RV));
-	Vec3 a_y(
-		1./(s.y*r.x)*(2.*kin.vol_phi_hk*kin.lambda_V),
-		r.y/s.y + 1./(4.*sq(kin.M)*s.y*r.y)*(
-			kin.lambda_V*kin.lambda_RV
-			- kin.lambda_H*kin.lambda_RY),
-		-1./(s.y*r.z)*(4.*kin.M*kin.vol_phi_hk));
-	Vec3 a_z(
-		1./(2.*kin.M*s.z*r.x)*(
-			kin.lambda_RY*kin.lambda_V
-			- kin.lambda_RV*kin.lambda_Y),
-		1./(s.z*r.y)*(4.*kin.M*kin.vol_phi_hk),
-		r.z/s.z - 1./(s.z*r.z)*kin.lambda_RY);
-	Vec3 shift_eta(dot(a_x, eta), dot(a_y, eta), dot(a_z, eta));
+	Vec3 shift_eta = (frame::shift_from_hadron(kin) * Vec4(0., eta)).r();
 
 	// Now do the standard mixing of the base functions to get the total cross-
 	// section.
@@ -462,6 +434,14 @@ Real xs::rad_lt2_shift(Rad b, LepRadLU lep, HadLT2 shift_had) {
 				(lep.theta_051 + lep.theta_151)/b.R
 				+ (lep.theta_052 + lep.theta_152)
 				+ (lep.theta_053 + lep.theta_153)*b.R));
+}
+
+// Radiative correction to Born cross-section.
+Real xs::born_rad_factor(Kinematics kin) {
+	Real vr = delta_vr(kin);
+	Real had = delta_vac_had(kin);
+	Real lep = delta_vac_lep(kin);
+	return 1. + ALPHA/PI*(vr + had + lep);
 }
 
 Real xs::delta_vr(Kinematics kin) {
