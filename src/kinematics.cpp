@@ -173,7 +173,13 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 
 	// Equation [1.B3]. The equation has been modified to account for our sign
 	// conventions on the angles `phi_h` and `phi_k`.
-	mu = (z*R*S_x - lambda_RV)/(2.*sq(M)*R);
+	mu = ph_0/M
+		+ 1./(lambda_Y_sqrt)*(
+			(2.*tau*sq(M) - S_x)*ph_l/M
+			- 2.*M*ph_t*std::cos(phi_h - phi_k)*std::sqrt(
+				(tau - tau_min)*(tau_max - tau)));
+	// Alternative definition of `mu`. Undefined at `R=0`.
+	//   mu = (z*R*S_x - lambda_RV)/(2.*sq(M)*R);
 
 	// Equation [1.44].
 	R_max = (mx_sq - sq(M_th))/(1. + tau - mu);
@@ -207,9 +213,7 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 	// Equation [1.30].
 	// TODO: Why does this equation require a negative sign compared to what is
 	// given in [1]?
-	vol_phi_k = -(sin_phi_k*R*std::sqrt(
-			lambda_1*(Q_sq + tau*(S_x - tau*sq(M)))))
-		/(2.*lambda_Y_sqrt);
+	vol_phi_k = -0.5*sin_phi_k*M*R*lambda_z_sqrt/lambda_Y_sqrt;
 	// Equation [1.A9].
 	vol_phi_hk = 1./(2.*lambda_1)*(
 		R*vol_phi_h*(z_1*lambda_Y - Q_sq*S_p - tau*(S*S_x + 2.*sq(M)*Q_sq))
