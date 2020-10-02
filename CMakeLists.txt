@@ -38,6 +38,7 @@ add_subdirectory(external/mstwpdf)
 
 # Set up the library/app builds.
 add_subdirectory(src)
+add_subdirectory(example)
 add_subdirectory(app/sidisgen)
 
 # Set up the test builds.
