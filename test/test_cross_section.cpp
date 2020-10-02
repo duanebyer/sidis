@@ -107,8 +107,6 @@ TEST_CASE(
 	kin::Initial initial_state(M, m, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
 	kin::Kinematics kin(initial_state, phase_space, mh, M_th);
-	// Get the final state particles.
-	kin::Final final_state(initial_state, kin);
 	// Get beam and target polarizations.
 	Real beam_pol = input.beam_pol;
 	math::Vec3 target_pol = input.target_pol;
