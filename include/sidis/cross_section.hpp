@@ -80,6 +80,7 @@ struct Rad {
 };
 
 Real born(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Sf sf);
+Real born_rad_factor(kin::Kinematics kin);
 Real delta_vr(kin::Kinematics kin);
 Real delta_vac_lep(kin::Kinematics kin);
 Real delta_vac_had(kin::Kinematics kin);
