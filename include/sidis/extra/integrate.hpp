@@ -5,7 +5,7 @@ namespace sidis {
 namespace integ {
 
 template<typename R, typename F>
-R reimann(F f, R a, R b, unsigned n) {
+R riemann(F f, R a, R b, unsigned n) {
 	R delta = (b - a) / n;
 	R result = R(0.);
 	for (unsigned i = 0; i < n; ++i) {
