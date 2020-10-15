@@ -138,6 +138,11 @@ Real xs::amm(Real lambda_e, Vec3 eta, Kinematics kin, Model const& model) {
 	return uu + dot(eta, up) + lambda_e * (lu + dot(eta, lp));
 }
 
+Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics kin, Model const& model) {
+	return xs::born_rad_factor(kin) * xs::born(lambda_e, eta, kin, model)
+		+ xs::amm(lambda_e, eta, kin, model);
+}
+
 Real xs::rad(Real lambda_e, Vec3 eta, KinematicsRad kin, Model const& model) {
 	return rad_hard(lambda_e, eta, kin, model)
 		+ rad_soft(lambda_e, eta, kin, model);

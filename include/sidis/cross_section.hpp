@@ -71,12 +71,14 @@ Real born_rad_factor(kin::Kinematics kin);
 Real delta_vr(kin::Kinematics kin);
 Real delta_vac_lep(kin::Kinematics kin);
 Real delta_vac_had(kin::Kinematics kin);
-
 Real amm(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model);
+Real nrad(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model);
+
 Real rad(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 Real rad_hard(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 Real rad_soft(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 Real rad_soft_0(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
+
 Real ex(Real lambda_e, math::Vec3 eta, kin::KinematicsEx kin, sf::Model const& model);
 
 Real born_xu(Real lambda_e, kin::Kinematics kin, sf::Model const& model);
