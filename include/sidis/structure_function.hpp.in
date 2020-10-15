@@ -1,0 +1,135 @@
+#ifndef SIDIS_STRUCTURE_FUNCTION_HPP
+#define SIDIS_STRUCTURE_FUNCTION_HPP
+
+#include "sidis/constant.hpp"
+#include "sidis/numeric.hpp"
+
+namespace sidis {
+namespace sf {
+
+struct SfUU;
+struct SfUL;
+struct SfUT;
+struct SfLU;
+struct SfLL;
+struct SfLT;
+struct SfXU;
+struct SfXL;
+struct SfXT;
+struct SfUP;
+struct SfLP;
+struct SfUX;
+struct SfLX;
+struct SfXP;
+struct SfXX;
+
+/**
+ * A type that provides structure functions.
+ */
+class Model {
+public:
+
+	constant::Nucleus const target;
+
+	Model(constant::Nucleus target) : target(target) { }
+	virtual ~Model() = default;
+
+	virtual Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_UUT(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_UU_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_UU_cos_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+
+	virtual Real F_UL_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_UL_sin_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+
+	virtual Real F_UTL_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_UTT_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_UT_sin_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_UT_sin_3phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_UT_sin_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_UT_sin_phih_p_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+
+	virtual Real F_LU_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+
+	virtual Real F_LL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_LL_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+
+	virtual Real F_LT_cos_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_LT_cos_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+
+	virtual SfUU sf_uu(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfUL sf_ul(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfUT sf_ut(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfLU sf_lu(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfLL sf_ll(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfLT sf_lt(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+
+	virtual SfXU sf_xu(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfXL sf_xl(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfXT sf_xt(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfUP sf_up(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfLP sf_lp(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfUX sf_ux(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfLX sf_lx(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+
+	virtual SfXP sf_xp(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfXX sf_xx(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfXX sf(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+};
+
+/*[[[cog
+import gen
+gen.generate_pol_structs(
+	"Sf",
+	["U", "L"], ["U", "L", "T"],
+	{
+		("U", "U"): [
+			["Real", "F_UUL"],
+			["Real", "F_UUT"],
+			["Real", "F_UU_cos_phih"],
+			["Real", "F_UU_cos_2phih"],
+		],
+		("U", "L"): [
+			["Real", "F_UL_sin_phih"],
+			["Real", "F_UL_sin_2phih"],
+		],
+		("U", "T"): [
+			["Real", "F_UTL_sin_phih_m_phis"],
+			["Real", "F_UTT_sin_phih_m_phis"],
+			["Real", "F_UT_sin_2phih_m_phis"],
+			["Real", "F_UT_sin_3phih_m_phis"],
+			["Real", "F_UT_sin_phis"],
+			["Real", "F_UT_sin_phih_p_phis"],
+		],
+		("L", "U"): [
+			["Real", "F_LU_sin_phih"],
+		],
+		("L", "L"): [
+			["Real", "F_LL"],
+			["Real", "F_LL_cos_phih"],
+		],
+		("L", "T"): [
+			["Real", "F_LT_cos_phih_m_phis"],
+			["Real", "F_LT_cos_2phih_m_phis"],
+			["Real", "F_LT_cos_phis"],
+		],
+	},
+	constructor_fields=True,
+	generate_target_p=True
+)
+]]]*/
+/*[[[end]]]*/
+
+using SfUT1 = SfUT;
+using SfUT2 = SfUT;
+using SfLT1 = SfLT;
+using SfLT2 = SfLT;
+using SfXT1 = SfXT;
+using SfXT2 = SfXT;
+
+}
+}
+
+#endif
+

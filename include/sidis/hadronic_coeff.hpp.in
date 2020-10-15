@@ -1,0 +1,65 @@
+#ifndef SIDIS_HADRONIC_COEFF_HPP
+#define SIDIS_HADRONIC_COEFF_HPP
+
+#include "sidis/kinematics.hpp"
+#include "sidis/numeric.hpp"
+#include "sidis/structure_function.hpp"
+
+namespace sidis {
+namespace had {
+
+/*[[[cog
+import gen
+gen.generate_pol_structs(
+	"Had",
+	["U", "L"], ["U", "L", "T1", "T2"],
+	{
+		("U", "U"): [
+			["Real", "H_10"],
+			["Real", "H_20"],
+			["Real", "H_30"],
+			["Real", "H_40"],
+		],
+		("U", "L"): [
+			["Real", "H_63"],
+			["Real", "H_83"],
+		],
+		("U", "T1"): [
+			["Real", "H_61"],
+			["Real", "H_81"],
+		],
+		("U", "T2"): [
+			["Real", "H_12"],
+			["Real", "H_22"],
+			["Real", "H_32"],
+			["Real", "H_42"],
+		],
+		("L", "U"): [
+			["Real", "H_50"],
+		],
+		("L", "L"): [
+			["Real", "H_73"],
+			["Real", "H_93"],
+		],
+		("L", "T1"): [
+			["Real", "H_71"],
+			["Real", "H_91"],
+		],
+		("L", "T2"): [
+			["Real", "H_52"],
+		],
+	},
+	constructor_args=[
+		["kin::Kinematics", "kin"],
+		["sf::SfXX", "sf"],
+	],
+	generate_target_p=True
+)
+]]]*/
+/*[[[end]]]*/
+
+}
+}
+
+#endif
+

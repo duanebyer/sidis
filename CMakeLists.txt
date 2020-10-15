@@ -25,10 +25,12 @@ endif()
 
 include(CTest)
 
-# Configure the project with user settings.
 configure_file(
-	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp.in"
-	"${Sidis_BINARY_DIR}/include/sidis/numeric.hpp")
+	"${Sidis_SOURCE_DIR}/cmake/const.py.in"
+	"${Sidis_BINARY_DIR}/cmake/const.py")
+configure_file(
+	"${Sidis_SOURCE_DIR}/cmake/gen.py.in"
+	"${Sidis_BINARY_DIR}/cmake/gen.py")
 
 # Check the configuration.
 add_subdirectory(check)

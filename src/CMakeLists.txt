@@ -1,28 +1,44 @@
 set(
-	HEADER_LIST_COMMON
-	"${Sidis_SOURCE_DIR}/include/sidis/sidis.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/constant.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/cross_section.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/frame.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/hadronic_coeff.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/kinematics.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/leptonic_coeff.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/structure_function.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/sf_model/ww.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/extra/integrate.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/extra/interpolate.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/extra/interpolate.ipp"
-	"${Sidis_SOURCE_DIR}/include/sidis/extra/math.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/extra/transform.hpp"
-	"${Sidis_SOURCE_DIR}/include/sidis/extra/vector.hpp")
-set(HEADER_LIST_SOURCE ${HEADER_LIST_COMMON})
-set(HEADER_LIST ${HEADER_LIST_COMMON})
-list(
-	APPEND HEADER_LIST_SOURCE
-	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp.in")
-list(
-	APPEND HEADER_LIST
-	"${Sidis_SOURCE_DIR}/include/sidis/numeric.hpp")
+	HEADER_LIST_BASE
+	"sidis/sidis.hpp"
+	"sidis/constant.hpp"
+	"sidis/cross_section.hpp"
+	"sidis/frame.hpp"
+	"sidis/kinematics.hpp"
+	"sidis/sf_model/ww.hpp"
+	"sidis/extra/integrate.hpp"
+	"sidis/extra/interpolate.hpp"
+	"sidis/extra/interpolate.ipp"
+	"sidis/extra/math.hpp"
+	"sidis/extra/transform.hpp"
+	"sidis/extra/vector.hpp")
+set(
+	HEADER_LIST_GENERATE
+	"sidis/hadronic_coeff.hpp"
+	"sidis/leptonic_coeff.hpp"
+	"sidis/numeric.hpp"
+	"sidis/structure_function.hpp")
+
+set(HEADER_LIST_SOURCE)
+set(HEADER_LIST_DIST)
+foreach(HEADER ${HEADER_LIST_BASE})
+	list(APPEND HEADER_LIST_SOURCE "${Sidis_SOURCE_DIR}/include/${HEADER}")
+	list(APPEND HEADER_LIST_DIST "${Sidis_SOURCE_DIR}/include/${HEADER}")
+endforeach(HEADER)
+foreach(HEADER ${HEADER_LIST_GENERATE})
+	list(APPEND HEADER_LIST_SOURCE "${Sidis_SOURCE_DIR}/include/${HEADER}.in")
+	list(APPEND HEADER_LIST_DIST "${Sidis_BINARY_DIR}/include/${HEADER}")
+endforeach(HEADER)
+
+# Generated header files are processed through the `cog` utility.
+foreach(HEADER ${HEADER_LIST_GENERATE})
+	add_custom_command(
+		OUTPUT "${Sidis_BINARY_DIR}/include/${HEADER}"
+		COMMAND cog ARGS -d -I "${Sidis_BINARY_DIR}/cmake" -o "${Sidis_BINARY_DIR}/include/${HEADER}" "${Sidis_SOURCE_DIR}/include/${HEADER}.in"
+		MAIN_DEPENDENCY "${Sidis_SOURCE_DIR}/include/${HEADER}.in"
+		COMMENT "Generating header file ${HEADER}.")
+endforeach(HEADER)
+
 add_library(
 	sidis
 	cross_section.cpp
@@ -31,10 +47,11 @@ add_library(
 	kinematics.cpp
 	leptonic_coeff.cpp
 	math.cpp
+	structure_function.cpp
 	transform.cpp
 	vector.cpp
 	sf_model/ww.cpp
-	${HEADER_LIST})
+	${HEADER_LIST_SOURCE})
 target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf)
 target_include_directories(
 	sidis PUBLIC
@@ -58,7 +75,7 @@ add_custom_command(
 source_group(
 	TREE "${Sidis_SOURCE_DIR}/include"
 	PREFIX "Header files"
-	FILES ${HEADER_LIST_SOURCE} ${MODEL_WW_HEADER_LIST_SOURCE})
+	FILES ${HEADER_LIST_SOURCE})
 
 include(GNUInstallDirs)
 set_target_properties(

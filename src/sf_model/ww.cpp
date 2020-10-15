@@ -28,6 +28,9 @@ namespace {
 
 // The following parameters come from appendix A in [2].
 
+// We only have data files for proton structure function.
+Real const M = MASS_P;
+
 // Parameters for PDF.
 Real const F1_MEAN_K_PERP_SQ = 0.25;
 Real const G1_MEAN_K_PERP_SQ = 0.76 * F1_MEAN_K_PERP_SQ;
@@ -101,46 +104,6 @@ Real const PRETZ_N[6] = {
 Real const PRETZ_MEAN_K_PERP_SQ = (F1_MEAN_K_PERP_SQ * PRETZ_M_TT_SQ)
 	/ (F1_MEAN_K_PERP_SQ + PRETZ_M_TT_SQ);
 
-enum class QuarkFlavor {
-	U,
-	D,
-	S,
-	U_BAR,
-	D_BAR,
-	S_BAR,
-};
-
-enum class Particle {
-	PI_PLUS,
-	PI_MINUS,
-};
-
-Real charge(QuarkFlavor fl) {
-	switch (fl) {
-	case QuarkFlavor::U:
-		return 2. / 3.;
-	case QuarkFlavor::D:
-	case QuarkFlavor::S:
-		return -1. / 3.;
-	case QuarkFlavor::U_BAR:
-		return -2. / 3.;
-	case QuarkFlavor::D_BAR:
-	case QuarkFlavor::S_BAR:
-		return 1. / 3;
-	default:
-		throw std::domain_error("Invalid quark flavor");
-	}
-}
-
-QuarkFlavor const QUARK_FLAVORS[6] = {
-	QuarkFlavor::U,
-	QuarkFlavor::D,
-	QuarkFlavor::S,
-	QuarkFlavor::U_BAR,
-	QuarkFlavor::D_BAR,
-	QuarkFlavor::S_BAR,
-};
-
 Real G(Real ph_t_sq, Real l) {
 	// Equation [2.5.2].
 	return std::exp(-ph_t_sq / l) / (PI * l);
@@ -198,12 +161,34 @@ std::array<Grid<T, N>, K> load_grids(char const* file_name) {
 	return read_grids<T, N, K>(data, 0.000001);
 }
 
+// Set of quarks that we use for structure function calculations.
+std::array<Quark, 6> const QUARKS = {
+	Quark::U, Quark::D, Quark::S, Quark::U_B, Quark::D_B, Quark::S_B,
+};
+
+// The index used for the different quarks in arrays.
+unsigned quark_idx(Quark q) {
+	switch (q) {
+	case Quark::U:
+		return 0;
+	case Quark::D:
+		return 1;
+	case Quark::S:
+		return 2;
+	case Quark::U_B:
+		return 3;
+	case Quark::D_B:
+		return 4;
+	case Quark::S_B:
+		return 5;
+	default:
+		throw std::domain_error("Invalid quark");
+	}
+}
+
 }
 
 struct WW::Impl {
-	Real M;
-	Real mh;
-
 	// PDF are calculated with the MSTWPDF library.
 	std::ifstream file_pdf;
 	mstw::c_mstwpdf pdf;
@@ -228,8 +213,6 @@ struct WW::Impl {
 	CubicView<Real, 2> interp_sb[6];
 
 	Impl() :
-			M(MASS_P),
-			mh(MASS_PI),
 			file_pdf(),
 			pdf(find_file(file_pdf, "mstw2008lo.00.dat"), false, true),
 			data_D1_pi_plus(
@@ -286,56 +269,17 @@ struct WW::Impl {
 			} {
 		file_pdf.close();
 	}
-
-	// Structure functions.
-	Real F_UUL(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_UUT(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_UU_cos_phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_UU_cos_2phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-
-	Real F_UL_sin_phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_UL_sin_2phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-
-	Real F_UTL_sin_phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_UTT_sin_phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_UT_sin_2phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_UT_sin_3phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_UT_sin_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_UT_sin_phih_p_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-
-	Real F_LU_sin_phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-
-	Real F_LL(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_LL_cos_phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-
-	Real F_LT_cos_phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_LT_cos_2phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_LT_cos_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-
-	// Fragmentation functions.
-	Real D1(Particle p, QuarkFlavor fl, Real z, Real Q_sq) const;
-	Real H1perpM1(Particle p, QuarkFlavor fl, Real z, Real Q_sq) const;
-
-	// Transverse momentum distributions.
-	Real xf1(QuarkFlavor fl, Real x, Real Q_sq) const;
-	Real xf1TperpM1(QuarkFlavor fl, Real x, Real Q_sq) const;
-	Real xg1(QuarkFlavor fl, Real x, Real Q_sq) const;
-	Real xgT(QuarkFlavor fl, Real x, Real Q_sq) const;
-	Real xg1TperpM1(QuarkFlavor fl, Real x, Real Q_sq) const;
-	Real xh1(QuarkFlavor fl, Real x, Real Q_sq) const;
-	Real xh1M1(QuarkFlavor fl, Real x, Real Q_sq) const;
-	Real xh1LperpM1(QuarkFlavor fl, Real x, Real Q_sq) const;
-	Real xh1TperpM2(QuarkFlavor fl, Real x, Real Q_sq) const;
-	Real xh1perpM1(QuarkFlavor fl, Real x, Real Q_sq) const;
 };
 
-WW::WW(WW&& other) noexcept : _impl(std::exchange(other._impl, nullptr)) { }
+WW::WW(WW&& other) noexcept :
+	Model(Nucleus::P),
+	_impl(std::exchange(other._impl, nullptr)) { }
 WW& WW::operator=(WW&& other) noexcept {
 	std::swap(_impl, other._impl);
 	return *this;
 }
 
-WW::WW() {
+WW::WW() : Model(Nucleus::P) {
 	_impl = new Impl();
 }
 
@@ -345,162 +289,87 @@ WW::~WW() {
 	}
 }
 
-SfUU WW::sf_uu(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return {
-		_impl->F_UUL(x, z, Q_sq, ph_t_sq),
-		_impl->F_UUT(x, z, Q_sq, ph_t_sq),
-		_impl->F_UU_cos_phih(x, z, Q_sq, ph_t_sq),
-		_impl->F_UU_cos_2phih(x, z, Q_sq, ph_t_sq),
-	};
-}
-
-SfUL WW::sf_ul(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return {
-		_impl->F_UL_sin_phih(x, z, Q_sq, ph_t_sq),
-		_impl->F_UL_sin_2phih(x, z, Q_sq, ph_t_sq),
-	};
-}
-
-SfUT WW::sf_ut(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return {
-		_impl->F_UTL_sin_phih_m_phis(x, z, Q_sq, ph_t_sq),
-		_impl->F_UTT_sin_phih_m_phis(x, z, Q_sq, ph_t_sq),
-		_impl->F_UT_sin_2phih_m_phis(x, z, Q_sq, ph_t_sq),
-		_impl->F_UT_sin_3phih_m_phis(x, z, Q_sq, ph_t_sq),
-		_impl->F_UT_sin_phis(x, z, Q_sq, ph_t_sq),
-		_impl->F_UT_sin_phih_p_phis(x, z, Q_sq, ph_t_sq),
-	};
-}
-
-SfLU WW::sf_lu(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return {
-		_impl->F_LU_sin_phih(x, z, Q_sq, ph_t_sq),
-	};
-}
-
-SfLL WW::sf_ll(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return {
-		_impl->F_LL(x, z, Q_sq, ph_t_sq),
-		_impl->F_LL_cos_phih(x, z, Q_sq, ph_t_sq),
-	};
-}
-
-SfLT WW::sf_lt(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return {
-		_impl->F_LT_cos_phih_m_phis(x, z, Q_sq, ph_t_sq),
-		_impl->F_LT_cos_2phih_m_phis(x, z, Q_sq, ph_t_sq),
-		_impl->F_LT_cos_phis(x, z, Q_sq, ph_t_sq),
-	};
-}
-
-// Structure functions.
-Real WW::Impl::F_UUL(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	static_cast<void>(x);
-	static_cast<void>(z);
-	static_cast<void>(Q_sq);
-	static_cast<void>(ph_t_sq);
-	return 0.;
-}
-Real WW::Impl::F_UUT(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UUT(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.1a].
 	Real result = 0.;
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xf1(fl, x, Q_sq)
-			* D1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q)) * xf1(q, x, Q_sq) * D1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, F1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return G(ph_t_sq, l) * result;
 }
-Real WW::Impl::F_UU_cos_phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UU_cos_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.9a].
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
 	// Uses a WW-type approximation to rewrite in terms of `xf1`.
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xf1(fl, x, Q_sq)
-			* D1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q)) * xf1(q, x, Q_sq) * D1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, F1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2. * F1_MEAN_K_PERP_SQ / Q * ph_t * (z / l) * G(ph_t_sq, l) * result;
 }
-Real WW::Impl::F_UU_cos_2phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UU_cos_2phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.9a].
+	Real mh = mass(h);
 	Real result = 0.;
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xh1perpM1(fl, x, Q_sq)
-			* H1perpM1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q)) * xh1perpM1(q, x, Q_sq) * H1perpM1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, BM_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 4. * M * mh * ph_t_sq * sq(z / l) * G(ph_t_sq, l) * result;
 }
 
-Real WW::Impl::F_UL_sin_phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UL_sin_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.6a].
+	Real mh = mass(h);
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
 	// Use WW-type approximation to rewrite in terms of `xh1LperpM1`.
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xh1LperpM1(fl, x, Q_sq)
-			* H1perpM1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q)) * xh1LperpM1(q, x, Q_sq) * H1perpM1(h, q, z, Q_sq);
 	}
 	// Approximate width with `H1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return -8. * M * mh * z * ph_t / (Q * l) * G(ph_t_sq, l) * result;
 }
-Real WW::Impl::F_UL_sin_2phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UL_sin_2phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.6.2a].
+	Real mh = mass(h);
 	Real result = 0.;
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xh1LperpM1(fl, x, Q_sq)
-			* H1perpM1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q)) * xh1LperpM1(q, x, Q_sq) * H1perpM1(h, q, z, Q_sq);
 	}
 	// Approximate width with `H1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 4. * M * mh * ph_t_sq * sq(z / l) * G(ph_t_sq, l) * result;
 }
 
-Real WW::Impl::F_UTL_sin_phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	static_cast<void>(x);
-	static_cast<void>(z);
-	static_cast<void>(Q_sq);
-	static_cast<void>(ph_t_sq);
-	return 0.;
-}
-Real WW::Impl::F_UTT_sin_phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UTT_sin_phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.7a].
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xf1TperpM1(fl, x, Q_sq)
-			* D1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q)) * xf1TperpM1(q, x, Q_sq) * D1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, SIVERS_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2. * M * z * ph_t / l * G(ph_t_sq, l) * result;
 }
-Real WW::Impl::F_UT_sin_2phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UT_sin_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.8a].
+	Real mh = mass(h);
 	Real Q = std::sqrt(Q_sq);
 	Real result_1 = 0.;
 	// Use WW-type approximation to rewrite in terms of `xf1TperpM1`.
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result_1 += sq(charge(fl))
-			* xf1TperpM1(fl, x, Q_sq)
-			* D1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result_1 += sq(charge(q)) * xf1TperpM1(q, x, Q_sq) * D1(h, q, z, Q_sq);
 	}
 	Real result_2 = 0.;
 	// Use WW-type approximation to rewrite in terms of `h1TperpM2`.
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result_2 += sq(charge(fl))
-			* xh1TperpM2(fl, x, Q_sq)
-			* H1perpM1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result_2 += sq(charge(q)) * xh1TperpM2(q, x, Q_sq) * H1perpM1(h, q, z, Q_sq);
 	}
 	// Approximate width with `SIVERS_MEAN_K_PERP_SQ`.
 	Real l_1 = lambda(z, SIVERS_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
@@ -510,117 +379,112 @@ Real WW::Impl::F_UT_sin_2phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) co
 		SIVERS_MEAN_K_PERP_SQ * sq(z / l_1) * G(ph_t_sq, l_1) * result_1
 		- 4. * M * mh * sq(z / l_2) * G(ph_t_sq, l_2) * result_2);
 }
-Real WW::Impl::F_UT_sin_3phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UT_sin_3phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.10a].
+	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xh1TperpM2(fl, x, Q_sq)
-			* H1perpM1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q))
+			* xh1TperpM2(q, x, Q_sq)
+			* H1perpM1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, PRETZ_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 2. * sq(M) * mh * std::pow(z * ph_t / l, 3) * G(ph_t_sq, l) * result;
 }
-Real WW::Impl::F_UT_sin_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UT_sin_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.7a].
+	Real mh = mass(h);
 	Real Q = std::sqrt(Q_sq);
 	Real result = 0.;
 	// WW-type approximation used here (see [2] for details).
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xh1M1(fl, x, Q_sq)
-			* H1perpM1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q))
+			* xh1M1(q, x, Q_sq)
+			* H1perpM1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 8. * sq(M) * mh * sq(z) / (Q * l) * (1. - ph_t_sq / l)
 		* G(ph_t_sq, l) * result;
 }
-Real WW::Impl::F_UT_sin_phih_p_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UT_sin_phih_p_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.8a].
+	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xh1(fl, x, Q_sq)
-			* H1perpM1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q))
+			* xh1(q, x, Q_sq)
+			* H1perpM1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 2. * mh * z * ph_t / l * G(ph_t_sq, l) * result;
 }
 
-Real WW::Impl::F_LU_sin_phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	static_cast<void>(x);
-	static_cast<void>(z);
-	static_cast<void>(Q_sq);
-	static_cast<void>(ph_t_sq);
-	return 0.;
-}
-
-Real WW::Impl::F_LL(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_LL(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.5a].
 	Real result = 0.;
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xg1(fl, x, Q_sq)
-			* D1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q))
+			* xg1(q, x, Q_sq)
+			* D1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return G(ph_t_sq, l) * result;
 }
-Real WW::Impl::F_LL_cos_phih(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_LL_cos_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.5a].
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
 	// Uses a WW-type approximation to rewrite in terms of `xg1`.
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xg1(fl, x, Q_sq)
-			* D1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q))
+			* xg1(q, x, Q_sq)
+			* D1(h, q, z, Q_sq);
 	}
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2. * G1_MEAN_K_PERP_SQ * z * ph_t / (Q * l) * G(ph_t_sq, l) * result;
 }
 
-Real WW::Impl::F_LT_cos_phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_LT_cos_phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.6.1a].
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
 	// Uses a WW-type approximation to rewrite in terms of `xgT`.
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xgT(fl, x, Q_sq)
-			* D1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q))
+			* xgT(q, x, Q_sq)
+			* D1(h, q, z, Q_sq);
 	}
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return 2. * M * x * z * ph_t / l * G(ph_t_sq, l) * result;
 }
-Real WW::Impl::F_LT_cos_2phih_m_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_LT_cos_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.4a].
 	Real Q = std::sqrt(Q_sq);
 	Real result = 0.;
 	// Uses a WW-type approximation to rewrite in terms of `xgT`.
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xgT(fl, x, Q_sq)
-			* D1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q))
+			* xgT(q, x, Q_sq)
+			* D1(h, q, z, Q_sq);
 	}
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2. * G1_MEAN_K_PERP_SQ * M * x * ph_t_sq * sq(z / l) / Q
 		* G(ph_t_sq, l) * result;
 }
-Real WW::Impl::F_LT_cos_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_LT_cos_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.2a].
 	Real Q = std::sqrt(Q_sq);
 	Real result = 0.;
-	for (QuarkFlavor fl : QUARK_FLAVORS) {
-		result += sq(charge(fl))
-			* xgT(fl, x, Q_sq)
-			* D1(Particle::PI_PLUS, fl, z, Q_sq);
+	for (Quark q : QUARKS) {
+		result += sq(charge(q))
+			* xgT(q, x, Q_sq)
+			* D1(h, q, z, Q_sq);
 	}
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
@@ -628,31 +492,34 @@ Real WW::Impl::F_LT_cos_phis(Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 }
 
 // Fragmentation functions.
-Real WW::Impl::D1(Particle p, QuarkFlavor fl, Real z, Real Q_sq) const {
-	int fl_int = static_cast<int>(fl);
-	switch (p) {
-	case Particle::PI_PLUS:
-		return interp_D1_pi_plus[fl_int]({ z, Q_sq });
-	case Particle::PI_MINUS:
-		return interp_D1_pi_minus[fl_int]({ z, Q_sq });
+Real WW::D1(Hadron h, Quark q, Real z, Real Q_sq) const {
+	unsigned q_idx = quark_idx(q);
+	switch (h) {
+	case Hadron::PI_P:
+		return _impl->interp_D1_pi_plus[q_idx]({ z, Q_sq });
+	case Hadron::PI_M:
+		return _impl->interp_D1_pi_minus[q_idx]({ z, Q_sq });
 	default:
-		throw std::domain_error("Invalid particle");
+		throw std::domain_error("Invalid hadron");
 	}
 }
-Real WW::Impl::H1perpM1(Particle p, QuarkFlavor fl, Real z, Real Q_sq) const {
+Real WW::H1perpM1(Hadron h, Quark q, Real z, Real Q_sq) const {
+	Real mh = mass(h);
 	Real collins_coeff = 0.;
-	if (p == Particle::PI_PLUS) {
-		if (fl == QuarkFlavor::U || fl == QuarkFlavor::D_BAR) {
+	if (h == Hadron::PI_P) {
+		if (q == Quark::U || q == Quark::D_B) {
 			collins_coeff = COLLINS_N_FAV;
-		} else if (fl == QuarkFlavor::D || fl == QuarkFlavor::U_BAR) {
+		} else if (q == Quark::D || q == Quark::U_B) {
 			collins_coeff = COLLINS_N_DISFAV;
 		}
-	} else if (p == Particle::PI_MINUS) {
-		if (fl == QuarkFlavor::D || fl == QuarkFlavor::U_BAR) {
+	} else if (h == Hadron::PI_M) {
+		if (q == Quark::D || q == Quark::U_B) {
 			collins_coeff = COLLINS_N_FAV;
-		} else if (fl == QuarkFlavor::U || fl == QuarkFlavor::D_BAR) {
+		} else if (q == Quark::U || q == Quark::D_B) {
 			collins_coeff = COLLINS_N_DISFAV;
 		}
+	} else {
+		throw std::domain_error("Invalid hadron");
 	}
 	return std::sqrt(E / 2.) / (z * mh * COLLINS_M)
 		* sq(COLLINS_MEAN_P_PERP_SQ) / D1_MEAN_P_PERP_SQ
@@ -661,93 +528,93 @@ Real WW::Impl::H1perpM1(Particle p, QuarkFlavor fl, Real z, Real Q_sq) const {
 		* std::pow(COLLINS_GAMMA + COLLINS_DELTA, COLLINS_GAMMA + COLLINS_DELTA)
 		* std::pow(COLLINS_GAMMA, -COLLINS_GAMMA)
 		* std::pow(COLLINS_DELTA, -COLLINS_DELTA)
-		* D1(p, fl, z, Q_sq);
+		* D1(h, q, z, Q_sq);
 }
 
 // Parton distribution functions.
-Real WW::Impl::xf1(QuarkFlavor fl, Real x, Real Q_sq) const {
+Real WW::xf1(Quark q, Real x, Real Q_sq) const {
 	Real Q = std::sqrt(Q_sq);
-	switch (fl) {
-	case QuarkFlavor::U:
-		return pdf.parton(8, x, Q) + pdf.parton(-2, x, Q);
-	case QuarkFlavor::D:
-		return pdf.parton(7, x, Q) + pdf.parton(-1, x, Q);
-	case QuarkFlavor::S:
-		return pdf.parton(3, x, Q);
-	case QuarkFlavor::U_BAR:
-		return pdf.parton(-2, x, Q);
-	case QuarkFlavor::D_BAR:
-		return pdf.parton(-1, x, Q);
-	case QuarkFlavor::S_BAR:
-		return pdf.parton(-3, x, Q);
+	switch (q) {
+	case Quark::U:
+		return _impl->pdf.parton(8, x, Q) + _impl->pdf.parton(-2, x, Q);
+	case Quark::D:
+		return _impl->pdf.parton(7, x, Q) + _impl->pdf.parton(-1, x, Q);
+	case Quark::S:
+		return _impl->pdf.parton(3, x, Q);
+	case Quark::U_B:
+		return _impl->pdf.parton(-2, x, Q);
+	case Quark::D_B:
+		return _impl->pdf.parton(-1, x, Q);
+	case Quark::S_B:
+		return _impl->pdf.parton(-3, x, Q);
 	default:
-		throw std::domain_error("Invalid quark flavor");
+		throw std::domain_error("Invalid quark");
 	}
 }
 
 // Transverse momentum distributions.
-Real WW::Impl::xf1TperpM1(QuarkFlavor fl, Real x, Real Q_sq) const {
+Real WW::xf1TperpM1(Quark q, Real x, Real Q_sq) const {
 	// Equation [2.A.4].
-	int fl_int = static_cast<int>(fl);
+	unsigned q_idx = quark_idx(q);
 	return -std::sqrt(E / 2.) / (M * SIVERS_M_1)
 		* sq(SIVERS_MEAN_K_PERP_SQ) / F1_MEAN_K_PERP_SQ
-		* SIVERS_N[fl_int]
-		* std::pow(x, SIVERS_ALPHA[fl_int]) * std::pow(1. - x, SIVERS_BETA[fl_int])
-		* std::pow(SIVERS_ALPHA[fl_int] + SIVERS_BETA[fl_int],
-			SIVERS_ALPHA[fl_int] + SIVERS_BETA[fl_int])
-		* std::pow(SIVERS_ALPHA[fl_int], -SIVERS_ALPHA[fl_int])
-		* std::pow(SIVERS_BETA[fl_int], -SIVERS_BETA[fl_int])
-		* xf1(fl, x, Q_sq);
+		* SIVERS_N[q_idx]
+		* std::pow(x, SIVERS_ALPHA[q_idx]) * std::pow(1. - x, SIVERS_BETA[q_idx])
+		* std::pow(SIVERS_ALPHA[q_idx] + SIVERS_BETA[q_idx],
+			SIVERS_ALPHA[q_idx] + SIVERS_BETA[q_idx])
+		* std::pow(SIVERS_ALPHA[q_idx], -SIVERS_ALPHA[q_idx])
+		* std::pow(SIVERS_BETA[q_idx], -SIVERS_BETA[q_idx])
+		* xf1(q, x, Q_sq);
 }
-Real WW::Impl::xg1(QuarkFlavor fl, Real x, Real Q_sq) const {
-	return x * interp_g1[static_cast<int>(fl)]({ x, Q_sq });
+Real WW::xg1(Quark q, Real x, Real Q_sq) const {
+	return x * _impl->interp_g1[quark_idx(q)]({ x, Q_sq });
 }
-Real WW::Impl::xgT(QuarkFlavor fl, Real x, Real Q_sq) const {
-	return interp_xgT[static_cast<int>(fl)]({ x, Q_sq });
+Real WW::xgT(Quark q, Real x, Real Q_sq) const {
+	return _impl->interp_xgT[quark_idx(q)]({ x, Q_sq });
 }
-Real WW::Impl::xh1(QuarkFlavor fl, Real x, Real Q_sq) const {
+Real WW::xh1(Quark q, Real x, Real Q_sq) const {
 	// Use the Soffer bound to get an upper limit on transversity (Equation
 	// [2.A.7]).
-	int fl_int = static_cast<int>(fl);
-	return x * H1_N[fl_int]
+	int q_idx = quark_idx(q);
+	return x * H1_N[q_idx]
 		* std::pow(x, H1_ALPHA) * std::pow(1. - x, H1_BETA)
 		* std::pow(H1_ALPHA + H1_BETA, H1_ALPHA + H1_BETA)
 		* std::pow(H1_ALPHA, -H1_ALPHA)
 		* std::pow(H1_BETA, -H1_BETA)
-		* interp_sb[fl_int]({ x, Q_sq });
+		* _impl->interp_sb[q_idx]({ x, Q_sq });
 }
-Real WW::Impl::xh1M1(QuarkFlavor fl, Real x, Real Q_sq) const {
-	return H1_MEAN_K_PERP_SQ / (2. * sq(M)) * xh1(fl, x, Q_sq);
+Real WW::xh1M1(Quark q, Real x, Real Q_sq) const {
+	return H1_MEAN_K_PERP_SQ / (2. * sq(M)) * xh1(q, x, Q_sq);
 }
-Real WW::Impl::xh1LperpM1(QuarkFlavor fl, Real x, Real Q_sq) const {
-	if (fl != QuarkFlavor::U && fl != QuarkFlavor::D) {
+Real WW::xh1LperpM1(Quark q, Real x, Real Q_sq) const {
+	if (q != Quark::U && q != Quark::D) {
 		return 0.;
 	} else {
-		return interp_xh1LperpM1[static_cast<int>(fl)]({ x, Q_sq });
+		return _impl->interp_xh1LperpM1[quark_idx(q)]({ x, Q_sq });
 	}
 }
-Real WW::Impl::xh1TperpM2(QuarkFlavor fl, Real x, Real Q_sq) const {
+Real WW::xh1TperpM2(Quark q, Real x, Real Q_sq) const {
 	// Equation [2.A.24].
-	int fl_int = static_cast<int>(fl);
+	unsigned q_idx = quark_idx(q);
 	return E / (2. * sq(M) * PRETZ_M_TT_SQ)
 		* std::pow(PRETZ_MEAN_K_PERP_SQ, 3) / F1_MEAN_K_PERP_SQ
-		* PRETZ_N[fl_int]
+		* PRETZ_N[q_idx]
 		* std::pow(x, PRETZ_ALPHA) * std::pow(1. - x, PRETZ_BETA)
 		* std::pow(PRETZ_ALPHA + PRETZ_BETA, PRETZ_ALPHA + PRETZ_BETA)
 		* std::pow(PRETZ_ALPHA, -PRETZ_ALPHA)
 		* std::pow(PRETZ_BETA, -PRETZ_BETA)
-		* (xf1(fl, x, Q_sq) - xg1(fl, x, Q_sq));
+		* (xf1(q, x, Q_sq) - xg1(q, x, Q_sq));
 }
-Real WW::Impl::xh1perpM1(QuarkFlavor fl, Real x, Real Q_sq) const {
+Real WW::xh1perpM1(Quark q, Real x, Real Q_sq) const {
 	// Equation [2.A.18].
-	int fl_int = static_cast<int>(fl);
+	unsigned q_idx = quark_idx(q);
 	return -std::sqrt(E / 2.) / (M * BM_M_1)
 		* sq(BM_MEAN_K_PERP_SQ) / F1_MEAN_K_PERP_SQ
-		* BM_LAMBDA[fl_int] * BM_A[fl_int]
-		* std::pow(x, BM_ALPHA[fl_int]) * std::pow(1. - x, BM_BETA)
-		* std::pow(BM_ALPHA[fl_int] + BM_BETA, BM_ALPHA[fl_int] + BM_BETA)
-		* std::pow(BM_ALPHA[fl_int], -BM_ALPHA[fl_int])
+		* BM_LAMBDA[q_idx] * BM_A[q_idx]
+		* std::pow(x, BM_ALPHA[q_idx]) * std::pow(1. - x, BM_BETA)
+		* std::pow(BM_ALPHA[q_idx] + BM_BETA, BM_ALPHA[q_idx] + BM_BETA)
+		* std::pow(BM_ALPHA[q_idx], -BM_ALPHA[q_idx])
 		* std::pow(BM_BETA, -BM_BETA)
-		* xf1(fl, x, Q_sq);
+		* xf1(q, x, Q_sq);
 }
 

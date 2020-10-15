@@ -3,7 +3,10 @@
 
 namespace sidis {
 
-using Real = $CACHE{Sidis_REAL_TYPE};
+using Real =
+/*[[[cog import const; const.lookup("Sidis_REAL_TYPE")]]]*/
+/*[[[end]]]*/
+;
 
 }
 

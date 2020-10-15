@@ -1,0 +1,10 @@
+# Looks up build configuration variables.
+
+import cog
+
+def lookup(var_name):
+    if var_name == "Sidis_REAL_TYPE":
+        cog.out("$CACHE{Sidis_REAL_TYPE}")
+    else:
+        raise "Unrecognized configuration variable {}".format(var_name)
+

@@ -1,0 +1,138 @@
+#ifndef SIDIS_LEPTONIC_COEFF_HPP
+#define SIDIS_LEPTONIC_COEFF_HPP
+
+#include "sidis/kinematics.hpp"
+#include "sidis/numeric.hpp"
+
+namespace sidis {
+
+namespace lep {
+
+// Born coefficients.
+/*[[[cog
+import gen
+gen.generate_pol_structs(
+	"LepBorn",
+	["U", "L"], ["U", "P"],
+	{
+		("U", "U"): [
+			["Real", "theta_1"],
+			["Real", "theta_2"],
+			["Real", "theta_3"],
+			["Real", "theta_4"],
+		],
+		("U", "P"): [
+			["Real", "theta_6"],
+			["Real", "theta_8"],
+		],
+		("L", "U"): [
+			["Real", "theta_5"],
+		],
+		("L", "P"): [
+			["Real", "theta_7"],
+			["Real", "theta_9"],
+		],
+	},
+	constructor_args=[["kin::Kinematics", "kin"]]
+)
+]]]*/
+/*[[[end]]]*/
+
+// AMM coefficients.
+/*[[[cog
+import gen
+gen.generate_pol_structs(
+	"LepAmm",
+	["U", "L"], ["U", "P"],
+	{
+		"UU": [
+			["Real", "theta_1"],
+			["Real", "theta_2"],
+			["Real", "theta_3"],
+			["Real", "theta_4"],
+		],
+		"UP": [
+			["Real", "theta_6"],
+			["Real", "theta_8"],
+		],
+		"LU": [
+			["Real", "theta_5"],
+		],
+		"LP": [
+			["Real", "theta_7"],
+			["Real", "theta_9"],
+		],
+	},
+	constructor_args=[["kin::Kinematics", "kin"]]
+)
+]]]*/
+/*[[[end]]]*/
+
+// Radiative coefficients.
+/*[[[cog
+import gen
+gen.generate_pol_structs(
+	"LepRad",
+	["U", "L"], ["U", "P"],
+	{
+		"UU": [
+			["Real", "theta_011"],
+			["Real", "theta_012"],
+			["Real", "theta_013"],
+			["Real", "theta_021"],
+			["Real", "theta_022"],
+			["Real", "theta_023"],
+			["Real", "theta_031"],
+			["Real", "theta_032"],
+			["Real", "theta_033"],
+			["Real", "theta_041"],
+			["Real", "theta_042"],
+			["Real", "theta_043"],
+		],
+		"UP": [
+			["Real", "theta_061"],
+			["Real", "theta_062"],
+			["Real", "theta_063"],
+			["Real", "theta_064"],
+			["Real", "theta_081"],
+			["Real", "theta_082"],
+			["Real", "theta_083"],
+			["Real", "theta_084"],
+		],
+		"LU": [
+			["Real", "theta_051"],
+			["Real", "theta_052"],
+			["Real", "theta_053"],
+			["Real", "theta_151"],
+			["Real", "theta_152"],
+			["Real", "theta_153"],
+		],
+		"LP": [
+			["Real", "theta_071"],
+			["Real", "theta_072"],
+			["Real", "theta_073"],
+			["Real", "theta_074"],
+			["Real", "theta_171"],
+			["Real", "theta_172"],
+			["Real", "theta_173"],
+			["Real", "theta_174"],
+			["Real", "theta_091"],
+			["Real", "theta_092"],
+			["Real", "theta_093"],
+			["Real", "theta_094"],
+			["Real", "theta_191"],
+			["Real", "theta_192"],
+			["Real", "theta_193"],
+			["Real", "theta_194"],
+		],
+	},
+	constructor_args=[["kin::KinematicsRad", "kin"]]
+)
+]]]*/
+/*[[[end]]]*/
+
+}
+}
+
+#endif
+

@@ -93,28 +93,24 @@ TEST_CASE(
 
 	// Set up the input to the cross-section calculation.
 	Real E_b = input.beam_energy;
-	Real M = constant::MASS_P;
-	Real m = 0.;
+	constant::Lepton lep;
 	if (input.particle_id == 'e') {
-		m = constant::MASS_E;
+		lep = constant::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		m = constant::MASS_MU;
+		lep = constant::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		m = constant::MASS_TAU;
+		lep = constant::Lepton::TAU;
 	}
-	Real mh = constant::MASS_PI;
 	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(M, m, E_b);
+	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
-	kin::Kinematics kin(initial_state, phase_space, mh, M_th);
+	kin::Kinematics kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
 	// Get beam and target polarizations.
 	Real beam_pol = input.beam_pol;
 	math::Vec3 target_pol = input.target_pol;
-	// Calculate structure functions.
-	sf::Sf sf = ww.sf(kin.x, kin.z, kin.Q_sq, kin.ph_t);
 	// Compute the cross-sections.
-	Real born = xs::born(beam_pol, target_pol, kin, sf);
-	Real amm = xs::amm(beam_pol, target_pol, kin, sf);
+	Real born = xs::born(beam_pol, target_pol, kin, ww);
+	Real amm = xs::amm(beam_pol, target_pol, kin, ww);
 	Real delta_vr = xs::delta_vr(kin);
 	Real delta_vac_lep = xs::delta_vac_lep(kin);
 	Real delta_vac_had = xs::delta_vac_had(kin);

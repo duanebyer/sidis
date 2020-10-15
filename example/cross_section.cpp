@@ -66,60 +66,45 @@ int main(int argc, char** argv) {
 	}
 
 	// Set up the initial state particles.
-	Real M = MASS_P;
-	Real m = MASS_E;
-	Real mh = MASS_PI;
 	Real M_th = MASS_P + MASS_PI;
-	Initial initial_state(M, m, beam_energy);
+	Initial initial_state(Nucleus::P, Lepton::E, beam_energy);
 	PhaseSpace phase_space { x, y, z, ph_t * ph_t, phi_h, phi };
 	// Do kinematics calculations.
-	Kinematics kin(initial_state, phase_space, mh, M_th);
+	Kinematics kin(initial_state, phase_space, Hadron::PI_P, M_th);
 	// Get the final state particles.
 	Final final_state(initial_state, target_pol, kin);
 
-	// Compute structure functions.
+	// Construct a model for computing structure functions.
 	sf::model::WW ww;
-	sf::Sf sf = ww.sf(kin.x, kin.z, kin.Q_sq, kin.ph_t_sq);
 
 	// Get the target polarization in the hadron frame.
 	Vec3 eta = (frame::hadron_from_target(kin) * math::Vec4(0., target_pol)).r();
 	// Compute cross-sections.
-	Real born = xs::born(beam_pol, eta, kin, sf);
+	Real born = xs::born(beam_pol, eta, kin, ww);
 	Real born_rad_factor = xs::born_rad_factor(kin);
-	Real amm = xs::amm(beam_pol, eta, kin, sf);
+	Real amm = xs::amm(beam_pol, eta, kin, ww);
 	Real tau_min = kin::KinematicsRad(kin, 0., 0., 0.).tau_min;
 	Real tau_max = kin::KinematicsRad(kin, 0., 0., 0.).tau_max;
 	// TODO: Fix the radiative cross-section calculation so it integrates more
 	// precisely around the ridge in `(tau, phi_k)`.
 	Real rad = integ::trapezoid([&](Real tau) {
 			Real R_max = kin::KinematicsRad(kin, tau, 0., 0.).R_max;
-			// Right now, the cross-section calculation breaks at `R=0`, so we
-			// need to put in an arbitrary lower bound.
-			// TODO: Remove the lower bound once cross-section calculation is
-			// fixed.
-			Real R_min = 0.001 * R_max;
 			return integ::riemann(
 				[&](Real phi_k) {
 					return integ::trapezoid([&](Real R) {
 							kin::KinematicsRad kin_rad(kin, tau, phi_k, R);
-							sf::Sf sf_shift = ww.sf(
-								kin_rad.shift_x,
-								kin_rad.shift_z,
-								kin_rad.shift_Q_sq,
-								kin_rad.shift_ph_t_sq);
-							Real rad = xs::rad(beam_pol, eta, kin_rad, sf, sf_shift);
+							Real rad = xs::rad(beam_pol, eta, kin_rad, ww);
 							if (!std::isfinite(rad)) {
 								// On occasion the shifted kinematics take us
 								// out of the region on which grid data exists
 								// for the structure functions. For now, just
 								// set to zero when that happens.
-								// TODO: Deal with the boundary properly.
 								return 0.;
 							} else {
 								return rad;
 							}
 						},
-						R_min, R_max, 50);
+						0., R_max, 50);
 				},
 				0., 2. * PI, 4);
 		},
