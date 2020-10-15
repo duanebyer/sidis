@@ -18,9 +18,9 @@ found in the `examples` folder. To get started quickly:
 
 int main() {
 	sidis::kin::Initial initial_state(
-		sidis::constant::MASS_P, // Target mass.
-		sidis::constant::MASS_E, // Lepton mass.
-		10.6                     // Beam energy.
+		sidis::constant::Nucleus::P, // Target nucleus.
+		sidis::constant::Lepton::E,  // Beam lepton.
+		10.6                         // Beam energy.
 	);
 	sidis::kin::PhaseSpace phase_space {
 		0.2,      // Bjorken x.
@@ -33,7 +33,7 @@ int main() {
 	kin::Kinematics kin(
 		initial_state,
 		phase_space,
-		sidis::constant::MASS_PI,                          // Hadron mass.
+		sidis::constant::Hadron::PI_P,                     // Leading hadron.
 		sidis::constant::MASS_P + sidis::constant::MASS_PI // Threshold mass.
 	);
 	sidis::kin::Final final_state(initial_state, kin);
@@ -41,13 +41,7 @@ int main() {
 	sidis::math::Vec3 target_pol(0., 0., 0.);
 	// Compute structure functions with WW-type approximation.
 	sidis::sf::model::WW ww;
-	sidis::sf::Sf structure_functions = ww.sf(
-		kin.x, kin.z, kin.Q_sq, kin.ph_t_sq);
-	sidis::Real born_xs = sidis::xs::born(
-		beam_pol,
-		target_pol,
-		kin,
-		structure_functions);
+	sidis::Real born_xs = sidis::xs::born(beam_pol, target_pol, kin, ww);
 	std::cout << "Born unpolarized cross-section is " << born_xs << std::endl;
 	return 0;
 }
@@ -83,6 +77,7 @@ The following CMake build options may be of use:
 ## Acknowledgements
 
 This software makes use of the following libraries:
+* [cog](https://nedbatchelder.com/code/cog/) code generation with Python.
 * [WW-SIDIS](https://github.com/prokudin/WW-SIDIS) structure functions for
   proton using WW-type approximation [2].
 * [mstwpdf](https://mstwpdf.hepforge.org/) parton distribution functions for
