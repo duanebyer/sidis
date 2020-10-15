@@ -1,0 +1,14 @@
+#include <type_traits>
+
+using Real = $CACHE{Sidis_REAL_TYPE};
+
+static_assert(
+	std::is_same<Real, float>::value
+	|| std::is_same<Real, double>::value
+	|| std::is_same<Real, long double>::value,
+	"sidis::Real must be an allowed floating point type");
+
+int main(int argc, char** argv) {
+	return 0;
+}
+

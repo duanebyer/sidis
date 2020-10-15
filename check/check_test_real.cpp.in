@@ -1,8 +1,8 @@
-#include "sidis/numeric.hpp"
-
 #include <limits>
 
-using Limits = std::numeric_limits<sidis::Real>;
+using Real = $CACHE{Sidis_REAL_TYPE};
+
+using Limits = std::numeric_limits<Real>;
 
 // Require that the `Real` type is at least as capable as the IEEE 754 64-bit
 // interchange formats.
