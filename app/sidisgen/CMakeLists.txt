@@ -1,5 +1,6 @@
+find_package(ROOT 6.16 COMPONENTS Foam CONFIG REQUIRED)
 add_executable(sidisgen main.cpp)
-target_link_libraries(sidisgen PRIVATE sidis)
+target_link_libraries(sidisgen PRIVATE sidis ROOT::Core ROOT::Gpad ROOT::Foam)
 target_compile_features(sidisgen PRIVATE cxx_std_11)
 set_target_properties(sidisgen PROPERTIES CXX_EXTENSIONS OFF)
 target_compile_options(
