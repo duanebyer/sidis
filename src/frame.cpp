@@ -34,10 +34,10 @@ Transform4 frame::lab_from_target(Initial init, Vec3 pol) {
 	return target_from_lab(init, pol).transpose();
 }
 
-Transform4 frame::target_from_lepton(Kinematics kin) {
+Transform3 frame::target_from_lepton(Kinematics kin) {
 	return lepton_from_target(kin).transpose();
 }
-Transform4 frame::lepton_from_target(Kinematics kin) {
+Transform3 frame::lepton_from_target(Kinematics kin) {
 	// Equation [1.A5].
 	Real q_norm = kin.lambda_Y_sqrt/(2.*kin.M);
 	Vec3 ez = 1./q_norm*Vec3(
@@ -49,18 +49,18 @@ Transform4 frame::lepton_from_target(Kinematics kin) {
 		kin.q_l*kin.sin_phi_q,
 		-kin.q_l*kin.cos_phi_q,
 		kin.q_t);
-	return Transform4(Transform3(ex, ey, ez));
+	return Transform3(ex, ey, ez);
 }
 
-Transform4 frame::target_from_hadron(Kinematics kin) {
+Transform3 frame::target_from_hadron(Kinematics kin) {
 	// Equation [1.A2].
 	Transform3 rotate(
 		kin.cos_phi_h, -kin.sin_phi_h, 0.,
 		kin.sin_phi_h, kin.cos_phi_h, 0.,
 		0., 0., 1.);
-	return target_from_lepton(kin) * Transform4(rotate);
+	return target_from_lepton(kin) * rotate;
 }
-Transform4 frame::hadron_from_target(Kinematics kin) {
+Transform3 frame::hadron_from_target(Kinematics kin) {
 	return target_from_hadron(kin).transpose();
 }
 
@@ -79,27 +79,27 @@ Transform4 frame::virt_photon_from_target(Kinematics kin) {
 	return target_from_virt_photon(kin).transpose();
 }
 
-Transform4 frame::target_from_real_photon(KinematicsRad kin) {
+Transform3 frame::target_from_real_photon(KinematicsRad kin) {
 	// Equation [1.A2].
 	Transform3 rotate(
 		kin.cos_phi_k, -kin.sin_phi_k, 0.,
 		kin.sin_phi_k, kin.cos_phi_k, 0.,
 		0., 0., 1.);
-	return target_from_lepton(kin.project()) * Transform4(rotate);
+	return target_from_lepton(kin.project()) * rotate;
 }
-Transform4 frame::real_photon_from_target(KinematicsRad kin) {
+Transform3 frame::real_photon_from_target(KinematicsRad kin) {
 	return target_from_real_photon(kin).transpose();
 }
 
-Transform4 frame::target_from_shift(KinematicsRad kin) {
+Transform3 frame::target_from_shift(KinematicsRad kin) {
 	// TODO: See if this can be calculated more accurately by doing it directly.
 	return target_from_hadron(kin.project()) * hadron_from_shift(kin);
 }
-Transform4 frame::shift_from_target(KinematicsRad kin) {
+Transform3 frame::shift_from_target(KinematicsRad kin) {
 	return target_from_shift(kin).transpose();
 }
 
-Transform4 frame::hadron_from_shift(KinematicsRad kin) {
+Transform3 frame::hadron_from_shift(KinematicsRad kin) {
 	// TODO: Fill in equation number from derivations.
 	Vec3 ex(
 		1./(kin.shift_lambda_Y*kin.shift_ph_t)*(
@@ -130,9 +130,9 @@ Transform4 frame::hadron_from_shift(KinematicsRad kin) {
 			4.*kin.M*kin.vol_phi_hk),
 		1./kin.shift_lambda_Y_sqrt*(
 			kin.lambda_Y_sqrt - kin.lambda_RY/kin.lambda_Y_sqrt));
-	return Transform4(Transform3(ex, ey, ez));
+	return Transform3(ex, ey, ez);
 }
-Transform4 frame::shift_from_hadron(KinematicsRad kin) {
+Transform3 frame::shift_from_hadron(KinematicsRad kin) {
 	return hadron_from_shift(kin).transpose();
 }
 

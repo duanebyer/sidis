@@ -9,6 +9,7 @@ namespace kin {
 	struct KinematicsRad;
 }
 namespace math {
+	struct Transform3;
 	struct Transform4;
 	struct Vec3;
 }
@@ -48,22 +49,22 @@ namespace frame {
 math::Transform4 target_from_lab(kin::Initial init, math::Vec3 pol);
 math::Transform4 lab_from_target(kin::Initial init, math::Vec3 pol);
 
-math::Transform4 target_from_lepton(kin::Kinematics kin);
-math::Transform4 lepton_from_target(kin::Kinematics kin);
+math::Transform3 target_from_lepton(kin::Kinematics kin);
+math::Transform3 lepton_from_target(kin::Kinematics kin);
 
-math::Transform4 target_from_hadron(kin::Kinematics kin);
-math::Transform4 hadron_from_target(kin::Kinematics kin);
+math::Transform3 target_from_hadron(kin::Kinematics kin);
+math::Transform3 hadron_from_target(kin::Kinematics kin);
 
 math::Transform4 target_from_virt_photon(kin::Kinematics kin);
 math::Transform4 virt_photon_from_target(kin::Kinematics kin);
 
-math::Transform4 target_from_real_photon(kin::KinematicsRad kin);
-math::Transform4 real_photon_from_target(kin::KinematicsRad kin);
+math::Transform3 target_from_real_photon(kin::KinematicsRad kin);
+math::Transform3 real_photon_from_target(kin::KinematicsRad kin);
 
-math::Transform4 target_from_shift(kin::KinematicsRad kin);
-math::Transform4 shift_from_target(kin::KinematicsRad kin);
-math::Transform4 hadron_from_shift(kin::KinematicsRad kin);
-math::Transform4 shift_from_hadron(kin::KinematicsRad kin);
+math::Transform3 target_from_shift(kin::KinematicsRad kin);
+math::Transform3 shift_from_target(kin::KinematicsRad kin);
+math::Transform3 hadron_from_shift(kin::KinematicsRad kin);
+math::Transform3 shift_from_hadron(kin::KinematicsRad kin);
 
 }
 }
