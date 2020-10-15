@@ -86,19 +86,18 @@ TEST_CASE(
 			true));
 	Real E_b = input.beam_energy;
 	Real M = constant::MASS_P;
-	Real m = 0.;
+	constant::Lepton lep;
 	if (input.particle_id == 'e') {
-		m = constant::MASS_E;
+		lep = constant::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		m = constant::MASS_MU;
+		lep = constant::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		m = constant::MASS_TAU;
+		lep = constant::Lepton::TAU;
 	}
-	Real mh = constant::MASS_PI;
 	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(M, m, E_b);
+	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
-	kin::Kinematics kin(initial_state, phase_space, mh, M_th);
+	kin::Kinematics kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
 
 	// Print state information.
 	std::stringstream ss;
@@ -125,19 +124,18 @@ TEST_CASE(
 			true));
 	Real E_b = input.beam_energy;
 	Real M = constant::MASS_P;
-	Real m = 0.;
+	constant::Lepton lep;
 	if (input.particle_id == 'e') {
-		m = constant::MASS_E;
+		lep = constant::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		m = constant::MASS_MU;
+		lep = constant::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		m = constant::MASS_TAU;
+		lep = constant::Lepton::TAU;
 	}
-	Real mh = constant::MASS_PI;
 	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(M, m, E_b);
+	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
 	kin::PhaseSpaceRad phase_space = input.phase_space;
-	kin::KinematicsRad kin(initial_state, phase_space, mh, M_th);
+	kin::KinematicsRad kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
 
 	// Print state information.
 	std::stringstream ss;
@@ -308,19 +306,18 @@ TEST_CASE(
 			true));
 	Real E_b = input.beam_energy;
 	Real M = constant::MASS_P;
-	Real m = 0.;
+	constant::Lepton lep;
 	if (input.particle_id == 'e') {
-		m = constant::MASS_E;
+		lep = constant::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		m = constant::MASS_MU;
+		lep = constant::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		m = constant::MASS_TAU;
+		lep = constant::Lepton::TAU;
 	}
-	Real mh = constant::MASS_PI;
 	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(M, m, E_b);
+	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
 	kin::PhaseSpaceRad phase_space = input.phase_space;
-	kin::KinematicsRad kin(initial_state, phase_space, mh, M_th);
+	kin::KinematicsRad kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
 	kin::FinalRad final_state(initial_state, math::Vec3::ZERO, kin);
 	// Get 4-momenta of particles.
 	math::Vec4 p = initial_state.p;
@@ -389,7 +386,7 @@ TEST_CASE(
 	// Volume parts.
 	CHECK_THAT(
 		dot(cross(k1.r(), q.r()), k.r()),
-		RelMatcher<Real>(kin.vol_phi_k/M, prec));
+		RelMatcher<Real>(kin.R*kin.vol_phi_k_R/M, prec));
 	CHECK_THAT(
 		dot(cross(k.r(), ph.r()), q.r()),
 		RelMatcher<Real>(kin.vol_phi_hk/M, prec));
@@ -466,7 +463,7 @@ TEST_CASE(
 	math::Vec3 p(1.2, -0.5, 2.3);
 	math::Vec3 k1(0.4, -2.2, 0.2);
 	math::Vec3 pol(0.2, 0.1, -0.3);
-	kin::Initial initial_state(constant::MASS_P, p, constant::MASS_MU, k1);
+	kin::Initial initial_state(constant::Nucleus::P, p, constant::Lepton::MU, k1);
 
 	// Construct the frames.
 	math::Transform4 target_from_lab = frame::target_from_lab(initial_state, pol);
@@ -555,7 +552,7 @@ TEST_CASE(
 TEST_CASE(
 		"Default target to lab frame checks",
 		"[frame]") {
-	kin::Initial initial_state(constant::MASS_P, constant::MASS_MU, 8.2);
+	kin::Initial initial_state(constant::Nucleus::P, constant::Lepton::MU, 8.2);
 
 	// Construct the frames.
 	math::Vec3 pol = GENERATE(
@@ -599,19 +596,18 @@ TEST_CASE(
 
 	Real E_b = input.beam_energy;
 	Real M = constant::MASS_P;
-	Real m = 0.;
+	constant::Lepton lep;
 	if (input.particle_id == 'e') {
-		m = constant::MASS_E;
+		lep = constant::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		m = constant::MASS_MU;
+		lep = constant::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		m = constant::MASS_TAU;
+		lep = constant::Lepton::TAU;
 	}
-	Real mh = constant::MASS_PI;
 	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(M, m, E_b);
+	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
-	kin::Kinematics kin(initial_state, phase_space, mh, M_th);
+	kin::Kinematics kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
 	kin::Final final_state(initial_state, math::Vec3::Y, kin);
 	// Reference frames.
 	math::Transform4 target_from_lepton = frame::target_from_lepton(kin);
@@ -742,19 +738,18 @@ TEST_CASE(
 
 	Real E_b = input.beam_energy;
 	Real M = constant::MASS_P;
-	Real m = 0.;
+	constant::Lepton lep;
 	if (input.particle_id == 'e') {
-		m = constant::MASS_E;
+		lep = constant::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		m = constant::MASS_MU;
+		lep = constant::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		m = constant::MASS_TAU;
+		lep = constant::Lepton::TAU;
 	}
-	Real mh = constant::MASS_PI;
 	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(M, m, E_b);
+	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
 	kin::PhaseSpaceRad phase_space = input.phase_space;
-	kin::KinematicsRad kin(initial_state, phase_space, mh, M_th);
+	kin::KinematicsRad kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
 	kin::FinalRad final_state(initial_state, math::Vec3::Y, kin);
 	// Reference frames.
 	math::Transform4 target_from_shift = frame::target_from_shift(kin);

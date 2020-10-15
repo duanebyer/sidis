@@ -13,9 +13,11 @@ using namespace sidis::frame;
 using namespace sidis::kin;
 using namespace sidis::math;
 
-Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
-		mh(mh),
-		M_th(M_th) {
+Kinematics::Kinematics(
+		Initial init,
+		PhaseSpace ph_space,
+		Hadron hadron,
+		Real M_th) {
 	x = ph_space.x;
 	y = ph_space.y;
 	z = ph_space.z;
@@ -36,9 +38,15 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 	cos_phi_q = -cos_phi;
 	sin_phi_q = -sin_phi;
 
+	target = init.target;
+	beam = init.beam;
+	this->hadron = hadron;
+
 	S = 2. * dot(init.p, init.k1);
-	M = init.M;
-	m = init.m;
+	M = mass(target);
+	m = mass(beam);
+	mh = mass(hadron);
+	this->M_th = M_th;
 
 	// Equation [1.3].
 	Q_sq = S*x*y;
@@ -97,9 +105,15 @@ Kinematics::Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th) :
 
 	// Equation [1.6]. `vol_phi_h` is defined as `dot(epsilon_perp, ph)`.
 	vol_phi_h = -0.5*ph_t*lambda_1_sqrt*sin_phi_h;
+
+	// Equation [1.18]. Modified slightly to include a `Q^4` denominator.
+	C_1 = (4.*M*ph_l*(Q_sq + 2.*x*sq(M)))/sq(sq(Q_sq));
 }
 
 KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
+		target(kin.target),
+		beam(kin.beam),
+		hadron(kin.hadron),
 		S(kin.S),
 		M(kin.M),
 		m(kin.m),
@@ -151,6 +165,7 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		mx_sq(kin.mx_sq),
 		mx(kin.mx),
 		vol_phi_h(kin.vol_phi_h),
+		C_1(kin.C_1),
 		tau(tau),
 		phi_k(phi_k),
 		R(R) {
@@ -210,14 +225,14 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 	F_1p = 1./z_1 + 1./z_2;
 	F_IR = sq(m)*F_2p - (Q_sq + 2.*sq(m))*F_d;
 
-	// Equation [1.30].
+	// Equation [1.30]. Modified to remove the factor of `R`.
 	// TODO: Why does this equation require a negative sign compared to what is
 	// given in [1]?
-	vol_phi_k = -0.5*sin_phi_k*M*R*lambda_z_sqrt/lambda_Y_sqrt;
+	vol_phi_k_R = -0.5*sin_phi_k*M*lambda_z_sqrt/lambda_Y_sqrt;
 	// Equation [1.A9].
 	vol_phi_hk = 1./(2.*lambda_1)*(
 		R*vol_phi_h*(z_1*lambda_Y - Q_sq*S_p - tau*(S*S_x + 2.*sq(M)*Q_sq))
-		+ vol_phi_k*(S_x*(z*Q_sq*S_p - S*V_2 + X*V_1) - 4.*V_p*sq(M)*Q_sq));
+		+ R*vol_phi_k_R*(S_x*(z*Q_sq*S_p - S*V_2 + X*V_1) - 4.*V_p*sq(M)*Q_sq));
 
 	shift_Q_sq = Q_sq + R*tau;
 	shift_Q = std::sqrt(shift_Q_sq);
@@ -268,10 +283,12 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 			+ 2.*sq(m)*S_x
 			+ Q_sq*S
 			- z_1*(S*S_x + 2.*sq(M)*Q_sq))
-		+ vol_phi_k*(
+		+ R*vol_phi_k_R*(
 			2.*sq(m)*(4.*V_m*sq(M) - z*sq(S_x))
 			+ S*(S*V_2 - X*V_1 - z*Q_sq*S_x)
 			+ 2.*V_1*sq(M)*Q_sq));
+
+	shift_C_1 = (4.*M*shift_ph_l*(shift_Q_sq + 2.*shift_x*sq(M)))/sq(sq(shift_Q_sq));
 
 	// TODO: Fill in equation number from derivations.
 	shift_sin_phi_h = -2.*shift_vol_phi_h/(shift_ph_t*shift_q_t*lambda_S_sqrt);
@@ -295,6 +312,10 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 
 Kinematics KinematicsRad::project() const {
 	Kinematics kin;
+	kin.target = target;
+	kin.beam = beam;
+	kin.hadron = hadron;
+
 	kin.S = S;
 	kin.M = M;
 	kin.m = m;
@@ -353,11 +374,17 @@ Kinematics KinematicsRad::project() const {
 	kin.mx = mx;
 	kin.vol_phi_h = vol_phi_h;
 
+	kin.C_1 = C_1;
+
 	return kin;
 }
 
 Kinematics KinematicsRad::project_shift() const {
 	Kinematics kin;
+	kin.target = target;
+	kin.beam = beam;
+	kin.hadron = hadron;
+
 	kin.S = S;
 	kin.M = M;
 	kin.m = m;
@@ -415,6 +442,8 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.mx_sq = shift_mx_sq;
 	kin.mx = shift_mx;
 	kin.vol_phi_h = shift_vol_phi_h;
+
+	kin.C_1 = shift_C_1;
 
 	return kin;
 }

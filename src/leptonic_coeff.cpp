@@ -127,7 +127,7 @@ LepRadUP::LepRadUP(KinematicsRad kin) {
 					2.*sq(kin.M)*(kin.Q_sq + 2.*sq(kin.m))
 					- kin.S*kin.X)
 				- kin.S_x*(kin.Q_sq + 4.*sq(kin.m))))
-		+ 2.*kin.S_p*kin.vol_phi_k/kin.R*(
+		+ 2.*kin.S_p*kin.vol_phi_k_R*(
 			kin.F_2m*sq(kin.m)*(
 				kin.S_x*(kin.z*kin.S_p*kin.Q_sq - kin.S*kin.V_2 + kin.V_1*kin.X)
 				- 4.*sq(kin.M)*kin.Q_sq*kin.V_p)
@@ -158,7 +158,7 @@ LepRadUP::LepRadUP(KinematicsRad kin) {
 				+ 2.*kin.tau*kin.S_x*(kin.Q_sq + 2.*sq(kin.m))
 				- 4.*sq(kin.m)*kin.Q_sq)
 			+ kin.S_p*sq(kin.S_x))
-		+ kin.vol_phi_k/kin.R*(
+		+ kin.vol_phi_k_R*(
 			(kin.S_x*kin.F_1p + 2.*sq(kin.m)*kin.F_2m)*(
 				(kin.Q_sq + 4.*sq(kin.m))
 					*(kin.z*sq(kin.S_x) - 4.*sq(kin.M)*kin.V_m)
@@ -188,7 +188,7 @@ LepRadUP::LepRadUP(KinematicsRad kin) {
 					kin.S*kin.X
 					- 2.*sq(kin.M)*(kin.Q_sq + 2.*sq(kin.m))))
 			+ kin.S_p*(kin.tau*kin.Q_sq*kin.F_d - 2.*kin.S_x))
-		+ kin.vol_phi_k/kin.R*(
+		+ kin.vol_phi_k_R*(
 			kin.F_1p*(
 				(kin.Q_sq + 4.*sq(kin.m))
 					*(4.*sq(kin.M)*kin.V_m - kin.z*sq(kin.S_x))
@@ -226,7 +226,7 @@ LepRadUP::LepRadUP(KinematicsRad kin) {
 					+ kin.Q_sq*(
 						kin.tau*(12.*kin.S*kin.X + sq(kin.S_x))
 						+ 2.*kin.Q_sq*(kin.S_x - 6.*kin.tau*sq(kin.M))))))
-		+ 2.*kin.V_p*kin.vol_phi_k/kin.R*(
+		+ 2.*kin.V_p*kin.vol_phi_k_R*(
 			kin.F_IR*(
 				(kin.Q_sq + 4.*sq(kin.m))*(
 					kin.z*sq(kin.S_x)
@@ -263,7 +263,7 @@ LepRadUP::LepRadUP(KinematicsRad kin) {
 				+ kin.Q_sq*(
 					4.*kin.mu*(kin.S*kin.X - 2.*kin.Q_sq*sq(kin.M))
 					- kin.S_x*(2.*kin.V_m + kin.mu*kin.S_x))))
-		+ 2.*kin.vol_phi_k/kin.R*(
+		+ 2.*kin.vol_phi_k_R*(
 			(kin.F_1p*kin.V_m + kin.F_2m*kin.mu*sq(kin.m))*(
 				(kin.Q_sq + 4.*sq(kin.m))*(
 					kin.z*sq(kin.S_x)
@@ -295,7 +295,7 @@ LepRadUP::LepRadUP(KinematicsRad kin) {
 					kin.S*kin.X
 					- 2.*(kin.Q_sq + 2.*sq(kin.m))*sq(kin.M)))
 			+ kin.S_p*(kin.F_d*kin.tau*kin.Q_sq - 2.*kin.S_x))
-		+ kin.vol_phi_k/kin.R*(
+		+ kin.vol_phi_k_R*(
 			kin.F_1p*(
 				(kin.Q_sq + 4.*sq(kin.m))*(
 					4.*sq(kin.M)*kin.V_m
@@ -322,7 +322,7 @@ LepRadLU::LepRadLU(KinematicsRad kin) {
 			+ kin.Q_sq*(
 				kin.S_p*(kin.F_1p*kin.S_x + 2.*kin.F_2m*sq(kin.m))
 				- kin.F_d*kin.tau*(4.*kin.S*kin.X + sq(kin.S_x))))
-		+ 2.*kin.vol_phi_k/kin.R*(
+		+ 2.*kin.vol_phi_k_R*(
 			kin.F_2m*sq(kin.m)*(
 				kin.S_x*(
 					kin.S*kin.V_2
@@ -334,7 +334,7 @@ LepRadLU::LepRadLU(KinematicsRad kin) {
 					*(4.*sq(kin.M)*kin.V_m - kin.z*sq(kin.S_x))
 				+ kin.S_p*(kin.S*kin.V_2 - kin.X*kin.V_1))));
 	Real theta_053_hat = (2.*kin.S)/(kin.lambda_1*kin.lambda_S_sqrt)*kin.F_21*(
-		kin.vol_phi_k/kin.R*(
+		kin.vol_phi_k_R*(
 			2.*(kin.mu*kin.Q_sq + kin.tau*kin.V_1)
 				*(kin.S*kin.X - sq(kin.M)*kin.Q_sq)
 			+ (kin.Q_sq + kin.tau*kin.S)
@@ -352,7 +352,7 @@ LepRadLU::LepRadLU(KinematicsRad kin) {
 				4.*sq(kin.m)*(2.*kin.tau*sq(kin.M) - kin.S_x)
 				+ kin.Q_sq*(kin.S_x - 4.*kin.S)
 				- 2.*kin.tau*sq(kin.S)))
-		+ 2.*kin.vol_phi_k/kin.R*(
+		+ 2.*kin.vol_phi_k_R*(
 			2.*kin.F_21*sq(kin.m)*(
 				kin.S_x*(
 					2.*kin.z*kin.Q_sq
@@ -380,7 +380,7 @@ LepRadLU::LepRadLU(KinematicsRad kin) {
 				+ kin.tau*kin.S_x*(2.*sq(kin.S) - sq(kin.S_p))
 				+ 4.*sq(kin.M)*kin.Q_sq*(kin.tau*kin.S - kin.Q_sq)
 				- 4.*sq(kin.m)*kin.lambda_Y))
-		+ 2.*kin.vol_phi_k/kin.R*(kin.F_d*kin.X - kin.F_21*kin.S)*(
+		+ 2.*kin.vol_phi_k_R*(kin.F_d*kin.X - kin.F_21*kin.S)*(
 			kin.S_x*(
 				kin.z*kin.S_p*kin.Q_sq
 				+ kin.X*kin.V_1
@@ -395,7 +395,7 @@ LepRadLU::LepRadLU(KinematicsRad kin) {
 			+ kin.F_d*(
 				4.*sq(kin.m)*(kin.S_x - 2.*kin.tau*sq(kin.M))
 				+ 2.*kin.Q_sq*kin.S + kin.tau*(sq(kin.S) + sq(kin.X))))
-		+ 2.*kin.vol_phi_k/kin.R*(
+		+ 2.*kin.vol_phi_k_R*(
 			kin.F_21*(
 				2.*sq(kin.m)*(kin.z*sq(kin.S_x) - 4.*sq(kin.M)*kin.V_m)
 				+ 2.*sq(kin.M)*kin.Q_sq*kin.V_2

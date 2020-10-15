@@ -1,6 +1,7 @@
 #ifndef SIDIS_KINEMATICS_HPP
 #define SIDIS_KINEMATICS_HPP
 
+#include "sidis/constant.hpp"
 #include "sidis/numeric.hpp"
 #include "sidis/extra/vector.hpp"
 
@@ -8,22 +9,27 @@ namespace sidis {
 namespace kin {
 
 struct Initial {
-	Real M;
-	Real m;
+	constant::Nucleus target;
+	constant::Lepton beam;
 	math::Vec4 p;
 	math::Vec4 k1;
 
-	Initial(Real M, math::Vec3 p, Real m, math::Vec3 k1) :
-		M(M),
-		m(m),
-		p(math::Vec4::from_length_and_r(M, p)),
-		k1(math::Vec4::from_length_and_r(m, k1)) { }
+	Initial(
+		constant::Nucleus target, math::Vec3 p,
+		constant::Lepton beam, math::Vec3 k1) :
+		target(target),
+		beam(beam),
+		p(math::Vec4::from_length_and_r(mass(target), p)),
+		k1(math::Vec4::from_length_and_r(mass(beam), k1)) { }
 
-	Initial(Real M, Real m, Real beam_energy) :
-		M(M),
-		m(m),
-		p(math::Vec4(M, 0., 0., 0.)),
-		k1(math::Vec4::from_length_and_t(m, beam_energy, math::Vec3::Z)) { }
+	Initial(
+		constant::Nucleus target,
+		constant::Lepton beam,
+		Real beam_energy) :
+		target(target),
+		beam(beam),
+		p(math::Vec4(mass(target), 0., 0., 0.)),
+		k1(math::Vec4::from_length_and_t(mass(beam), beam_energy, math::Vec3::Z)) { }
 };
 
 struct PhaseSpace {
@@ -69,6 +75,10 @@ struct PhaseSpaceEx {
 };
 
 struct Kinematics {
+	constant::Nucleus target;
+	constant::Lepton beam;
+	constant::Hadron hadron;
+
 	Real S;
 	Real M;
 	Real m;
@@ -131,12 +141,22 @@ struct Kinematics {
 	Real mx;
 	Real vol_phi_h;
 
+	Real C_1;
+
 	Kinematics() { }
-	Kinematics(Initial init, PhaseSpace ph_space, Real mh, Real M_th);
+	Kinematics(
+		Initial init,
+		PhaseSpace ph_space,
+		constant::Hadron hadron,
+		Real M_th);
 };
 
 struct KinematicsRad {
 	// Base set of kinematic variables.
+	constant::Nucleus target;
+	constant::Lepton beam;
+	constant::Hadron hadron;
+
 	Real S;
 	Real M;
 	Real m;
@@ -199,6 +219,8 @@ struct KinematicsRad {
 	Real mx;
 	Real vol_phi_h;
 
+	Real C_1;
+
 	// Additional radiative kinematic variables.
 	Real tau;
 	Real phi_k;
@@ -223,7 +245,7 @@ struct KinematicsRad {
 	Real k_t;
 	Real k_l;
 
-	Real vol_phi_k;
+	Real vol_phi_k_R;
 	Real vol_phi_hk;
 
 	Real F_22;
@@ -272,6 +294,8 @@ struct KinematicsRad {
 	Real shift_mx;
 	Real shift_vol_phi_h;
 
+	Real shift_C_1;
+
 	Kinematics project() const;
 	Kinematics project_shift() const;
 
@@ -279,7 +303,8 @@ struct KinematicsRad {
 	KinematicsRad(
 		Initial init,
 		PhaseSpaceRad ph_space,
-		Real mh, Real M_th) :
+		constant::Hadron hadron,
+		Real M_th) :
 		KinematicsRad(
 			Kinematics(
 				init,
@@ -291,7 +316,8 @@ struct KinematicsRad {
 					ph_space.phi_h,
 					ph_space.phi,
 				},
-				mh, M_th),
+				hadron,
+				M_th),
 			ph_space.tau,
 			ph_space.phi_k,
 			ph_space.R) { }
