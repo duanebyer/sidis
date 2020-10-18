@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
 	sf::model::WW ww;
 
 	// Get the target polarization in the hadron frame.
-	Vec3 eta = (frame::hadron_from_target(kin) * math::Vec4(0., target_pol)).r();
+	Vec3 eta = frame::hadron_from_target(kin) * target_pol;
 	// Compute cross-sections.
 	Real born = xs::born(beam_pol, eta, kin, ww);
 	Real born_rad_factor = xs::born_rad_factor(kin);

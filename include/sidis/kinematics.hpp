@@ -3,9 +3,15 @@
 
 #include "sidis/constant.hpp"
 #include "sidis/numeric.hpp"
+#include "sidis/extra/bounds.hpp"
 #include "sidis/extra/vector.hpp"
 
 namespace sidis {
+
+namespace math {
+	struct Bounds;
+}
+
 namespace kin {
 
 struct Initial {
@@ -31,6 +37,16 @@ struct Initial {
 		p(math::Vec4(mass(target), 0., 0., 0.)),
 		k1(math::Vec4::from_length_and_t(mass(beam), beam_energy, math::Vec3::Z)) { }
 };
+
+// TODO: Make an easier method for calculating the bounds.
+math::Bounds x_bounds(Initial init);
+math::Bounds y_bounds(Initial init, Real x);
+math::Bounds z_bounds(Initial init, constant::Hadron h, Real M_th, Real x, Real y);
+math::Bounds ph_t_sq_bounds(Initial init, constant::Hadron h, Real M_th, Real x, Real y, Real z);
+math::Bounds tau_bounds(Initial init, Real x, Real y);
+math::Bounds R_bounds(
+	Initial init, constant::Hadron h, Real M_th,
+	Real x, Real y, Real z, Real ph_t_sq, Real phi_h, Real tau, Real phi_k);
 
 struct PhaseSpace {
 	Real x;

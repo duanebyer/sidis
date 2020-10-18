@@ -6,6 +6,7 @@ set(
 	"sidis/frame.hpp"
 	"sidis/kinematics.hpp"
 	"sidis/sf_model/ww.hpp"
+	"sidis/extra/bounds.hpp"
 	"sidis/extra/integrate.hpp"
 	"sidis/extra/interpolate.hpp"
 	"sidis/extra/interpolate.ipp"
@@ -41,6 +42,7 @@ endforeach(HEADER)
 
 add_library(
 	sidis
+	bounds.cpp
 	cross_section.cpp
 	frame.cpp
 	hadronic_coeff.cpp

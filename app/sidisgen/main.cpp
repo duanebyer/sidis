@@ -10,6 +10,8 @@
 #include <TTree.h>
 
 #include <sidis/sidis.hpp>
+#include <sidis/extra/bounds.hpp>
+#include <sidis/extra/transform.hpp>
 #include <sidis/extra/vector.hpp>
 #include <sidis/sf_model/ww.hpp>
 
@@ -18,7 +20,9 @@ using namespace sidis;
 namespace {
 
 sf::model::WW const ww;
+constant::Hadron const hadron = constant::Hadron::PI_P;
 Real const M_th = constant::MASS_P + constant::MASS_PI_0;
+Real const PI = constant::PI;
 
 // Converts between the `sidis` 4-vector type and the `ROOT` 4-vector type.
 TLorentzVector convert_vec4(math::Vec4 v) {
@@ -29,33 +33,52 @@ struct XsNRad : public TFoamIntegrand {
 	kin::Initial const initial_state;
 	Real const beam_pol;
 	math::Vec3 const target_pol;
+	math::Bounds const x_cut;
+	math::Bounds const Q_sq_cut;
 
-	XsNRad(kin::Initial initial_state, Real beam_pol, math::Vec3 target_pol) :
+	XsNRad(
+		kin::Initial initial_state,
+		Real beam_pol,
+		math::Vec3 target_pol,
+		Real x_max=0.1,
+		Real Q_sq_min=1.) :
 		initial_state(initial_state),
 		beam_pol(beam_pol),
-		target_pol(target_pol) { }
+		target_pol(target_pol),
+		x_cut(0., x_max),
+		Q_sq_cut(Q_sq_min, 1000.) { }
 
 	Double_t Density(int dim, Double_t* vec) override {
 		if (dim != 6) {
 			return 0.;
 		}
-		// TODO: Handle bounds correctly.
-		kin::PhaseSpace phase_space {
-			vec[0], vec[1], vec[2],
-			vec[3], vec[4], vec[5],
-		};
-		kin::Kinematics kin(
-			initial_state,
-			phase_space,
-			constant::Hadron::PI_P,
-			M_th);
-		Real xs = xs::nrad(beam_pol, target_pol, kin, ww);
+		Real S = 2.*math::dot(initial_state.p, initial_state.k1);
+		math::Bounds x_bounds = kin::x_bounds(initial_state) & x_cut;
+		Real x = x_bounds.lerp(vec[0]);
+		math::Bounds y_cut(Q_sq_cut.min / (S * x), Q_sq_cut.max / (S * x));
+		math::Bounds y_bounds = kin::y_bounds(initial_state, x) & y_cut;
+		Real y = y_bounds.lerp(vec[1]);
+		math::Bounds z_bounds = kin::z_bounds(initial_state, hadron, M_th, x, y);
+		Real z = z_bounds.lerp(vec[2]);
+		math::Bounds ph_t_sq_bounds = kin::ph_t_sq_bounds(initial_state, hadron, M_th, x, y, z);
+		Real ph_t_sq = ph_t_sq_bounds.lerp(vec[3]);
+		math::Bounds phi_h_bounds = math::Bounds(0., 2. * PI);
+		Real phi_h = phi_h_bounds.lerp(vec[4]);
+		math::Bounds phi_bounds = math::Bounds(0., 2. * PI);
+		Real phi = phi_bounds.lerp(vec[5]);
+		Real jacobian = x_bounds.size() * y_bounds.size() * z_bounds.size()
+			* ph_t_sq_bounds.size() * phi_h_bounds.size() * phi_bounds.size();
+
+		kin::PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
+		kin::Kinematics kin(initial_state, phase_space, hadron, M_th);
+		math::Vec3 eta = frame::hadron_from_target(kin) * target_pol;
+		Real xs = xs::nrad(beam_pol, eta, kin, ww);
 		// Some kinematic regions will be out of range for the structure
 		// functions, so return 0 in those cases.
 		if (!std::isfinite(xs)) {
 			return 0.;
 		} else {
-			return xs;
+			return jacobian * xs;
 		}
 	}
 };
@@ -64,32 +87,59 @@ struct XsRad : public TFoamIntegrand {
 	kin::Initial const initial_state;
 	Real const beam_pol;
 	math::Vec3 const target_pol;
+	math::Bounds const x_cut;
+	math::Bounds const Q_sq_cut;
 
-	XsRad(kin::Initial initial_state, Real beam_pol, math::Vec3 target_pol) :
+	XsRad(
+		kin::Initial initial_state,
+		Real beam_pol,
+		math::Vec3 target_pol,
+		Real x_max=0.1,
+		Real Q_sq_min=1.) :
 		initial_state(initial_state),
 		beam_pol(beam_pol),
-		target_pol(target_pol) { }
+		target_pol(target_pol),
+		x_cut(0., x_max),
+		Q_sq_cut(Q_sq_min, 1000.) { }
 
 	Double_t Density(int dim, Double_t* vec) override {
 		if (dim != 9) {
 			return 0.;
 		}
-		// TODO: Handle bounds correctly.
-		kin::PhaseSpaceRad phase_space {
-			vec[0], vec[1], vec[2],
-			vec[3], vec[4], vec[5],
-			vec[6], vec[7], vec[8],
-		};
-		kin::KinematicsRad kin(
-			initial_state,
-			phase_space,
-			constant::Hadron::PI_P,
-			M_th);
-		Real xs = xs::rad(beam_pol, target_pol, kin, ww);
+		Real S = 2.*math::dot(initial_state.p, initial_state.k1);
+		math::Bounds x_bounds = kin::x_bounds(initial_state) & x_cut;
+		Real x = x_bounds.lerp(vec[0]);
+		math::Bounds y_cut(Q_sq_cut.min / (S * x), Q_sq_cut.max / (S * x));
+		math::Bounds y_bounds = kin::y_bounds(initial_state, x) & y_cut;
+		Real y = y_bounds.lerp(vec[1]);
+		math::Bounds z_bounds = kin::z_bounds(initial_state, hadron, M_th, x, y);
+		Real z = z_bounds.lerp(vec[2]);
+		math::Bounds ph_t_sq_bounds = kin::ph_t_sq_bounds(initial_state, hadron, M_th, x, y, z);
+		Real ph_t_sq = ph_t_sq_bounds.lerp(vec[3]);
+		math::Bounds phi_h_bounds = math::Bounds(0., 2. * PI);
+		Real phi_h = phi_h_bounds.lerp(vec[4]);
+		math::Bounds phi_bounds = math::Bounds(0., 2. * PI);
+		Real phi = phi_bounds.lerp(vec[5]);
+		math::Bounds tau_bounds = kin::tau_bounds(initial_state, x, y);
+		Real tau = tau_bounds.lerp(vec[6]);
+		math::Bounds phi_k_bounds = math::Bounds(0., 2. * PI);
+		Real phi_k = phi_k_bounds.lerp(vec[7]);
+		math::Bounds R_bounds = kin::R_bounds(initial_state, hadron, M_th, x, y, z, ph_t_sq, phi_h, tau, phi_k);
+		Real R = R_bounds.lerp(vec[8]);
+		Real jacobian = x_bounds.size() * y_bounds.size() * z_bounds.size()
+			* ph_t_sq_bounds.size() * phi_h_bounds.size() * phi_bounds.size()
+			* tau_bounds.size() * phi_k_bounds.size() * R_bounds.size();
+
+		kin::PhaseSpaceRad phase_space { x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R };
+		kin::KinematicsRad kin(initial_state, phase_space, hadron, M_th);
+		math::Vec3 eta = frame::hadron_from_target(kin.project()) * target_pol;
+		Real xs = xs::rad(beam_pol, eta, kin, ww);
 		if (!std::isfinite(xs)) {
 			return 0.;
 		} else {
-			return xs;
+			// TODO: Fit this with a negative sign until we understand why the
+			// radiative cross-section is returning negative values.
+			return -jacobian * xs;
 		}
 	}
 };
@@ -101,8 +151,8 @@ int main(int argc, char** argv) {
 	Real beam_pol = 0.;
 	math::Vec3 target_pol(0., 0., 0.);
 	kin::Initial initial_state(constant::Nucleus::P, constant::Lepton::E, E_b);
-	unsigned N_init_nrad = 100000;
-	unsigned N_init_rad  = 100000;
+	unsigned N_init_nrad = 1000;
+	unsigned N_init_rad  = 1000;
 	unsigned N_gen = 100000;
 
 	TFile file_out("gen.root", "Recreate");
@@ -119,10 +169,12 @@ int main(int argc, char** argv) {
 	foam_nrad.Write();
 	std::cout << "complete!" << std::endl;
 	Double_t total_nrad, total_err_nrad;
+	// TODO: The total integral isn't calculated until some events have been
+	// generated.
 	foam_nrad.GetIntegMC(total_nrad, total_err_nrad);
 	std::cout << "σ_nrad = "
-		<< total_nrad << " ± "
-		<< total_err_nrad << " GeV⁻²" << std::endl;
+		<< std::scientific << total_nrad << "GeV⁻² ± "
+		<< std::fixed << 100. * (total_err_nrad / total_nrad) << "%" << std::endl;
 
 	std::cout << "Initializing radiative foam...";
 	TFoam foam_rad("FoamRad");
@@ -135,10 +187,12 @@ int main(int argc, char** argv) {
 	foam_rad.Write();
 	std::cout << "complete!" << std::endl;
 	Double_t total_rad, total_err_rad;
+	// TODO: The total integral isn't calculated until some events have been
+	// generated.
 	foam_rad.GetIntegMC(total_rad, total_err_rad);
 	std::cout << "σ_rad = "
-		<< total_rad << " ± "
-		<< total_err_rad << " GeV⁻²" << std::endl;
+		<< std::scientific << total_rad << "GeV⁻² ± "
+		<< std::fixed << 100. * (total_err_rad / total_rad) << "%" << std::endl;
 
 	TTree events("Events", "Events");
 	Bool_t is_rad;
@@ -176,11 +230,7 @@ int main(int argc, char** argv) {
 				event_vec[0], event_vec[1], event_vec[2],
 				event_vec[3], event_vec[4], event_vec[5],
 			};
-			kin::Kinematics kin(
-				initial_state,
-				phase_space,
-				constant::Hadron::PI_P,
-				M_th);
+			kin::Kinematics kin(initial_state, phase_space, hadron, M_th);
 			kin::Final final_state(initial_state, target_pol, kin);
 			// Fill in branches.
 			x = phase_space.x;
@@ -205,11 +255,7 @@ int main(int argc, char** argv) {
 				event_vec[3], event_vec[4], event_vec[5],
 				event_vec[6], event_vec[7], event_vec[8],
 			};
-			kin::KinematicsRad kin(
-				initial_state,
-				phase_space,
-				constant::Hadron::PI_P,
-				M_th);
+			kin::KinematicsRad kin(initial_state, phase_space, hadron, M_th);
 			kin::FinalRad final_state(initial_state, target_pol, kin);
 			// Fill in branches.
 			x = phase_space.x;
