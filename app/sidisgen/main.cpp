@@ -120,20 +120,24 @@ struct XsRad : public TFoamIntegrand {
 		Real phi_h = phi_h_bounds.lerp(vec[4]);
 		math::Bounds phi_bounds = math::Bounds(0., 2. * PI);
 		Real phi = phi_bounds.lerp(vec[5]);
-		math::Bounds tau_bounds = kin::tau_bounds(initial_state, x, y);
+
+		kin::PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
+		kin::Kinematics kin(initial_state, phase_space, hadron, M_th);
+
+		math::Bounds tau_bounds = kin::tau_bounds(kin);
 		Real tau = tau_bounds.lerp(vec[6]);
 		math::Bounds phi_k_bounds = math::Bounds(0., 2. * PI);
 		Real phi_k = phi_k_bounds.lerp(vec[7]);
-		math::Bounds R_bounds = kin::R_bounds(initial_state, hadron, M_th, x, y, z, ph_t_sq, phi_h, tau, phi_k);
+		math::Bounds R_bounds = kin::R_bounds(kin, tau, phi_k);
 		Real R = R_bounds.lerp(vec[8]);
 		Real jacobian = x_bounds.size() * y_bounds.size() * z_bounds.size()
 			* ph_t_sq_bounds.size() * phi_h_bounds.size() * phi_bounds.size()
 			* tau_bounds.size() * phi_k_bounds.size() * R_bounds.size();
 
-		kin::PhaseSpaceRad phase_space { x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R };
-		kin::KinematicsRad kin(initial_state, phase_space, hadron, M_th);
-		math::Vec3 eta = frame::hadron_from_target(kin.project()) * target_pol;
-		Real xs = xs::rad(beam_pol, eta, kin, ww);
+		kin::PhaseSpaceRad phase_space_rad { x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R };
+		kin::KinematicsRad kin_rad(kin, tau, phi_k, R);
+		math::Vec3 eta = frame::hadron_from_target(kin) * target_pol;
+		Real xs = xs::rad(beam_pol, eta, kin_rad, ww);
 		if (!std::isfinite(xs)) {
 			return 0.;
 		} else {

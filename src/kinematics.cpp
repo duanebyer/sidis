@@ -13,107 +13,6 @@ using namespace sidis::frame;
 using namespace sidis::kin;
 using namespace sidis::math;
 
-// Bounds of kinematic variables.
-// TODO: Some of the calculations in this section are redundant with later
-// kinematic calculations. This should be refactored to avoid that later.
-Bounds kin::x_bounds(Initial init) {
-	static_cast<void>(init);
-	return Bounds(0., 1.);
-}
-Bounds kin::y_bounds(Initial init, Real x) {
-	Real M = mass(init.target);
-	Real m = mass(init.beam);
-	Real S = 2.*dot(init.p, init.k1);
-	Real lambda_S = sq(S) - 4.*sq(M)*sq(m);
-	// TODO: Include bound from `sq(px) >= 0`.
-	Real min = 0.;
-	Real max = std::fmin(
-		1.,
-		// Bound from the condition that `sq(q_t) >= 0`.
-		(x*lambda_S)/(S*(sq(m) + sq(M)*sq(x) + S*x)));
-	return Bounds(min, max);
-}
-Bounds kin::z_bounds(Initial init, Hadron h, Real M_th, Real x, Real y) {
-	Real M = mass(init.target);
-	Real mh = mass(h);
-	Real S = 2.*dot(init.p, init.k1);
-	Real S_x = S*y;
-	Real Q_sq = S*x*y;
-	Real lambda_Y_sqrt = std::sqrt(sq(S_x) + 4.*sq(M)*Q_sq);
-	Real lambda = sq(M) + S_x - Q_sq;
-	Real denom = 2.*S_x*lambda;
-	Real a = (S_x + 2.*sq(M))*(lambda + sq(mh) - sq(M_th));
-	Real b = (lambda - sq(mh))*lambda_Y_sqrt;
-	Real min = std::fmax(
-		0.,
-		// Bound from the condition that `mx_sq >= 0`.
-		(a - b)/denom);
-	Real max = std::fmin(
-		1.,
-		// Bound from the condition that `mx_sq >= 0`.
-		(a + b)/denom);
-	return Bounds(min, max);
-}
-Bounds kin::ph_t_sq_bounds(Initial init, Hadron h, Real M_th, Real x, Real y, Real z) {
-	Real M = mass(init.target);
-	Real mh = mass(h);
-	Real S = 2.*dot(init.p, init.k1);
-	Real S_x = S*y;
-	Real Q_sq = S*x*y;
-	Real lambda_Y = sq(S_x) + 4.*sq(M)*Q_sq;
-	Real lambda = sq(M) + S_x - Q_sq;
-	Real ph_0 = (z*S_x)/(2.*M);
-	Real min = 0.;
-	// Bound from the condition that `mx_sq >= 0`.
-	Real max = sq(ph_0) - sq(mh) - sq(M)/lambda_Y*sq(
-		lambda + sq(mh) - sq(M_th) - S_x*z - (2.*sq(ph_0))/z);
-	return Bounds(min, max);
-}
-Bounds kin::tau_bounds(Initial init, Real x, Real y) {
-	Real M = mass(init.target);
-	Real S = 2.*dot(init.p, init.k1);
-	Real S_x = S*y;
-	Real Q_sq = S*x*y;
-	Real denom = 2.*sq(M);
-	Real a = S_x;
-	Real b = std::sqrt(sq(S_x) + 4.*sq(M)*Q_sq);
-	// Equation [1.44].
-	Real min = (a - b)/denom;
-	Real max = (a + b)/denom;
-	return Bounds(min, max);
-}
-Bounds kin::R_bounds(
-		Initial init, Hadron h, Real M_th,
-		Real x, Real y, Real z, Real ph_t_sq, Real phi_h, Real tau, Real phi_k) {
-	Real M = mass(init.target);
-	Real mh = mass(h);
-	Real S = 2.*dot(init.p, init.k1);
-	Real S_x = S*y;
-	Real Q_sq = S*x*y;
-	// Copied from the kinematic calculations below.
-	Real lambda_Y = sq(S_x) + 4.*sq(M)*Q_sq;
-	Real lambda_Y_sqrt = std::sqrt(lambda_Y);
-	Real lambda_Y_ratio = (4.*sq(M)*Q_sq)/sq(S_x);
-	Real ph_0 = (z*S_x)/(2.*M);
-	Real ph_ratio_sq = ph_t_sq/sq(ph_0) + sq(mh/ph_0);
-	Real ph_l = ph_0*std::sqrt(1. - ph_ratio_sq);
-	Real ph_t = std::sqrt(ph_t_sq);
-	Real t = -Q_sq + sq(mh) + (ph_0*S_x)/M*sqrt1p_1m(
-		lambda_Y_ratio - ph_ratio_sq - lambda_Y_ratio*ph_ratio_sq);
-	Real mx_sq = sq(M) + t + (1. - z)*S_x;
-	Real tau_min = tau_bounds(init, x, y).min;
-	Real tau_max = tau_bounds(init, x, y).max;
-	Real mu = ph_0/M
-		+ 1./lambda_Y_sqrt*(
-			(2.*tau*sq(M) - S_x)*ph_l/M
-			- 2.*M*ph_t*std::cos(phi_h - phi_k)*std::sqrt(
-				(tau - tau_min)*(tau_max - tau)));
-	// Equation [1.44].
-	Real min = 0.;
-	Real max = (mx_sq - sq(M_th))/(1. + tau - mu);
-	return Bounds(min, max);
-}
-
 Kinematics::Kinematics(
 		Initial init,
 		PhaseSpace ph_space,
@@ -585,5 +484,82 @@ FinalRad::FinalRad(Initial init, Vec3 target_pol, KinematicsRad kin) {
 		kin.k_t * kin.cos_phi_k,
 		kin.k_t * kin.sin_phi_k,
 		kin.k_l);
+}
+
+// Bounds of kinematic variables.
+// TODO: Some of the calculations in this section are redundant with earlier
+// kinematic calculations. This should be refactored to avoid that later.
+Bounds kin::x_bounds(Initial init) {
+	static_cast<void>(init);
+	return Bounds(0., 1.);
+}
+Bounds kin::y_bounds(Initial init, Real x) {
+	Real M = mass(init.target);
+	Real m = mass(init.beam);
+	Real S = 2.*dot(init.p, init.k1);
+	Real lambda_S = sq(S) - 4.*sq(M)*sq(m);
+	// TODO: Include bound from `sq(px) >= 0`.
+	Real min = 0.;
+	Real max = std::fmin(
+		1.,
+		// Bound from the condition that `sq(q_t) >= 0`.
+		(x*lambda_S)/(S*(sq(m) + sq(M)*sq(x) + S*x)));
+	return Bounds(min, max);
+}
+Bounds kin::z_bounds(Initial init, Hadron h, Real M_th, Real x, Real y) {
+	Real M = mass(init.target);
+	Real mh = mass(h);
+	Real S = 2.*dot(init.p, init.k1);
+	Real S_x = S*y;
+	Real Q_sq = S*x*y;
+	Real lambda_Y_sqrt = std::sqrt(sq(S_x) + 4.*sq(M)*Q_sq);
+	Real lambda = sq(M) + S_x - Q_sq;
+	Real denom = 2.*S_x*lambda;
+	Real a = (S_x + 2.*sq(M))*(lambda + sq(mh) - sq(M_th));
+	Real b = (lambda - sq(mh))*lambda_Y_sqrt;
+	Real min = std::fmax(
+		0.,
+		// Bound from the condition that `mx_sq >= 0`.
+		(a - b)/denom);
+	Real max = std::fmin(
+		1.,
+		// Bound from the condition that `mx_sq >= 0`.
+		(a + b)/denom);
+	return Bounds(min, max);
+}
+Bounds kin::ph_t_sq_bounds(Initial init, Hadron h, Real M_th, Real x, Real y, Real z) {
+	Real M = mass(init.target);
+	Real mh = mass(h);
+	Real S = 2.*dot(init.p, init.k1);
+	Real S_x = S*y;
+	Real Q_sq = S*x*y;
+	Real lambda_Y = sq(S_x) + 4.*sq(M)*Q_sq;
+	Real lambda = sq(M) + S_x - Q_sq;
+	Real ph_0 = (z*S_x)/(2.*M);
+	Real min = 0.;
+	// Bound from the condition that `mx_sq >= 0`.
+	Real max = sq(ph_0) - sq(mh) - sq(M)/lambda_Y*sq(
+		lambda + sq(mh) - sq(M_th) - S_x*z - (2.*sq(ph_0))/z);
+	return Bounds(min, max);
+}
+Bounds kin::tau_bounds(Kinematics kin) {
+	// Equation [1.44].
+	Real min = (kin.S_x - kin.lambda_Y_sqrt)/(2.*sq(kin.M));
+	Real max = (kin.S_x + kin.lambda_Y_sqrt)/(2.*sq(kin.M));
+	return Bounds(min, max);
+}
+Bounds kin::R_bounds(Kinematics kin, Real tau, Real phi_k) {
+	Real tau_min = tau_bounds(kin).min;
+	Real tau_max = tau_bounds(kin).max;
+	// Copied from the kinematic calculations below.
+	Real mu = kin.ph_0/kin.M
+		+ 1./kin.lambda_Y_sqrt*(
+			(2.*tau*sq(kin.M) - kin.S_x)*kin.ph_l/kin.M
+			- 2.*kin.M*kin.ph_t*std::cos(kin.phi_h - phi_k)*std::sqrt(
+				(tau - tau_min)*(tau_max - tau)));
+	// Equation [1.44].
+	Real min = 0.;
+	Real max = (kin.mx_sq - sq(kin.M_th))/(1. + tau - mu);
+	return Bounds(min, max);
 }
 
