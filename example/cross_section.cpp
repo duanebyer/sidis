@@ -83,33 +83,7 @@ int main(int argc, char** argv) {
 	Real born = xs::born(beam_pol, eta, kin, ww);
 	Real born_rad_factor = xs::born_rad_factor(kin);
 	Real amm = xs::amm(beam_pol, eta, kin, ww);
-	Real tau_min = kin::KinematicsRad(kin, 0., 0., 0.).tau_min;
-	Real tau_max = kin::KinematicsRad(kin, 0., 0., 0.).tau_max;
-	// TODO: Fix the radiative cross-section calculation so it integrates more
-	// precisely around the ridge in `(tau, phi_k)`.
-	Real rad = integ::trapezoid([&](Real tau) {
-			Real R_max = kin::KinematicsRad(kin, tau, 0., 0.).R_max;
-			return integ::riemann(
-				[&](Real phi_k) {
-					return integ::trapezoid([&](Real R) {
-							kin::KinematicsRad kin_rad(kin, tau, phi_k, R);
-							Real rad = xs::rad(beam_pol, eta, kin_rad, ww);
-							if (!std::isfinite(rad)) {
-								// On occasion the shifted kinematics take us
-								// out of the region on which grid data exists
-								// for the structure functions. For now, just
-								// set to zero when that happens.
-								return 0.;
-							} else {
-								return rad;
-							}
-						},
-						0., R_max, 50);
-				},
-				0., 2. * PI, 4);
-		},
-		tau_min, tau_max, 50);
-
+	Real rad = xs::rad_integ(beam_pol, eta, kin, ww);
 	std::cout << "σ_B   = " << born << std::endl;
 	std::cout << "σ_AMM = " << amm << std::endl;
 	std::cout << "σ_rad = " << rad << std::endl;

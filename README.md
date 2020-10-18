@@ -77,11 +77,13 @@ The following CMake build options may be of use:
 ## Acknowledgements
 
 This software makes use of the following libraries:
-* [cog](https://nedbatchelder.com/code/cog/) code generation with Python.
-* [WW-SIDIS](https://github.com/prokudin/WW-SIDIS) structure functions for
+* [WW-SIDIS](https://github.com/prokudin/WW-SIDIS): Structure functions for
   proton using WW-type approximation [2].
-* [mstwpdf](https://mstwpdf.hepforge.org/) parton distribution functions for
+* [mstwpdf](https://mstwpdf.hepforge.org/): Parton distribution functions for
   proton [3].
+* [cubature](https://github.com/stevengj/cubature): Multi-dimensional numerical
+  integration.
+* [cog](https://nedbatchelder.com/code/cog/): Code generation with Python.
 
 ## References
 

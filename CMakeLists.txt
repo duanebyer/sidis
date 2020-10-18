@@ -37,6 +37,7 @@ add_subdirectory(check)
 
 # Add external libraries.
 add_subdirectory(external/mstwpdf)
+add_subdirectory(external/cubature-cpp)
 
 # Set up the library/app builds.
 add_subdirectory(src)

@@ -1,3 +1,6 @@
 [submodule "external/mstwpdf"]
 	path = external/mstwpdf
 	url = https://github.com/duanebyer/mstwpdf.git
+[submodule "external/cubature-cpp"]
+	path = external/cubature-cpp
+	url = https://github.com/duanebyer/cubature-cpp.git

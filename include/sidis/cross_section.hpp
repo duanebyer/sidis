@@ -75,6 +75,9 @@ Real amm(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& mo
 Real nrad(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model);
 
 Real rad(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
+// TODO: Include a precision argument, which determines how accurately the
+// integrated cross-section is to be calculated.
+Real rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model);
 Real rad_hard(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 Real rad_soft(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 Real rad_soft_0(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);

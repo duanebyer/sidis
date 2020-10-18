@@ -54,7 +54,7 @@ add_library(
 	vector.cpp
 	sf_model/ww.cpp
 	${HEADER_LIST_SOURCE})
-target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf)
+target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature)
 target_include_directories(
 	sidis PUBLIC
 	"${Sidis_SOURCE_DIR}/include"
