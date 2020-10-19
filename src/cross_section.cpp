@@ -4,7 +4,7 @@
 #include <limits>
 #include <stdexcept>
 
-#include <cubature.h>
+#include <cubature.hpp>
 
 #include "sidis/constant.hpp"
 #include "sidis/frame.hpp"
@@ -152,68 +152,35 @@ Real xs::rad(Real lambda_e, Vec3 eta, KinematicsRad kin, Model const& model) {
 		+ rad_soft(lambda_e, eta, kin, model);
 }
 
-struct RadData {
-	Kinematics const& kin;
-	Real lambda_e;
-	Vec3 eta;
-	Model const& model;
-};
-
-namespace {
-
-int rad_integrand(
-		unsigned ndim, double const* x,
-		void* void_data,
-		unsigned fdim, double* fval) {
-	if (ndim != 3) {
-		return 1;
-	}
-	if (fdim != 1) {
-		return 2;
-	}
-	RadData const* data = static_cast<RadData const*>(void_data);
-	Real tau_rel = static_cast<Real>(x[0]);
-	Real phi_k_rel = static_cast<Real>(x[1]);
-	Real R_rel = static_cast<Real>(x[2]);
-
-	Real tau = tau_bounds(data->kin).lerp(tau_rel);
-	Real phi_k = Bounds(0., 2.*PI).lerp(phi_k_rel);
-	Real R = R_bounds(data->kin, tau, phi_k).lerp(R_rel);
-
-	KinematicsRad kin(data->kin, tau, phi_k, R);
-	Real result = rad(data->lambda_e, data->eta, kin, data->model);
-	if (!std::isfinite(result)) {
-		result = 0.;
-	}
-	fval[0] = static_cast<double>(result);
-	return 0;
-}
-
-}
-
 Real xs::rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model) {
-	double result, error;
-	RadData data {
-		kin,
-		lambda_e,
-		eta,
-		model,
-	};
-	double min[] = { 0., 0., 0. };
-	double max[] = { 1., 1., 1. };
-	int code = hcubature(
-		1, &rad_integrand, &data,
-		3,
-		min, max,
-		10000, 0., 1e-6,
-		ERROR_INDIVIDUAL,
-		&result, &error);
-	if (code == 0) {
-		throw std::runtime_error(
-			"Error integrating radiative cross-section (code "
-			+ std::to_string(code) + ")");
-	}
-	return result;
+	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
+		[&](cubature::Point<3, Real> x) {
+			Bounds tau_b = tau_bounds(kin);
+			Real tau = tau_b.lerp(x[0]);
+
+			Bounds phi_k_b(0., 2. * PI);
+			Real phi_k = phi_k_b.lerp(x[1]);
+
+			Bounds R_b = R_bounds(kin, tau, phi_k);
+			Real R = R_b.lerp(x[2]);
+
+			Real jacobian = tau_b.size() * phi_k_b.size() * R_b.size();
+			KinematicsRad kin_rad(kin, tau, phi_k, R);
+			Real result = rad(lambda_e, eta, kin_rad, model);
+			if (std::isnan(result)) {
+				// If the result is `NaN`, it most likely means we went out of
+				// the allowed region for the structure function grids. In that
+				// case, just return zero.
+				// TODO: Handle this case in a more correct way.
+				return 0.;
+			} else {
+				return jacobian * result;
+			}
+		},
+		cubature::Point<3, Real>{ 0., 0., 0. },
+		cubature::Point<3, Real>{ 1., 1., 1. },
+		10000, 0., 1e-6);
+	return xs_integ.val;
 }
 
 Real xs::rad_hard(Real lambda_e, Vec3 eta, KinematicsRad kin, Model const& model) {
