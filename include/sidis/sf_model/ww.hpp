@@ -66,14 +66,14 @@ public:
 	Real xh1perpM1(constant::Quark q, Real x, Real Q_sq) const;
 };
 
-struct DataFileNotFoundException : std::runtime_error {
+struct DataFileNotFoundException : public std::runtime_error {
 	std::string file_name;
 	DataFileNotFoundException(std::string file_name) :
 		std::runtime_error("Couldn't find data file " + file_name),
 		file_name(file_name) { }
 };
 
-struct DataFileFormatException : std::runtime_error {
+struct DataFileFormatException : public std::runtime_error {
 	std::string file_name;
 	DataFileFormatException(std::string file_name) :
 		std::runtime_error("Invalid format for data file " + file_name),
