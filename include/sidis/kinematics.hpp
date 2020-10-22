@@ -64,22 +64,6 @@ struct PhaseSpaceRad {
 	}
 };
 
-struct PhaseSpaceEx {
-	Real x;
-	Real y;
-	Real z;
-	Real ph_t_sq;
-	Real phi_h;
-	Real phi;
-
-	Real tau;
-	Real phi_k;
-
-	PhaseSpace project() const {
-		return { x, y, z, ph_t_sq, phi_h, phi };
-	}
-};
-
 struct Kinematics {
 	constant::Nucleus target;
 	constant::Lepton beam;
@@ -330,9 +314,6 @@ struct KinematicsRad {
 	KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R);
 };
 
-struct KinematicsEx {
-};
-
 struct Final {
 	math::Vec4 q;
 	math::Vec4 k2;
@@ -348,16 +329,6 @@ struct FinalRad {
 	math::Vec4 k;
 
 	FinalRad(Initial init, math::Vec3 target_pol, KinematicsRad kin);
-};
-
-struct FinalEx {
-	math::Vec4 q;
-	math::Vec4 k2;
-	math::Vec4 ph;
-	math::Vec4 pu;
-	math::Vec4 k;
-
-	FinalEx(Initial init, math::Vec3 target_pol, KinematicsEx kin);
 };
 
 // TODO: Make an easier method for calculating the bounds.
