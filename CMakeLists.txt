@@ -26,11 +26,12 @@ endif()
 include(CTest)
 
 configure_file(
-	"${Sidis_SOURCE_DIR}/cmake/const.py.in"
-	"${Sidis_BINARY_DIR}/cmake/const.py")
+	"${Sidis_SOURCE_DIR}/cog/const.py.in"
+	"${Sidis_BINARY_DIR}/cog/const.py")
 configure_file(
-	"${Sidis_SOURCE_DIR}/cmake/gen.py.in"
-	"${Sidis_BINARY_DIR}/cmake/gen.py")
+	"${Sidis_SOURCE_DIR}/cog/gen_struct.py"
+	"${Sidis_BINARY_DIR}/cog/gen_struct.py"
+	COPYONLY)
 
 # Check the configuration.
 add_subdirectory(check)

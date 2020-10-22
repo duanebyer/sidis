@@ -35,7 +35,10 @@ endforeach(HEADER)
 foreach(HEADER ${HEADER_LIST_GENERATE})
 	add_custom_command(
 		OUTPUT "${Sidis_BINARY_DIR}/include/${HEADER}"
-		COMMAND cog ARGS -d -I "${Sidis_BINARY_DIR}/cmake" -o "${Sidis_BINARY_DIR}/include/${HEADER}" "${Sidis_SOURCE_DIR}/include/${HEADER}.in"
+		COMMAND cog ARGS -d
+			-I "${Sidis_BINARY_DIR}/cog"
+			-o "${Sidis_BINARY_DIR}/include/${HEADER}"
+			"${Sidis_SOURCE_DIR}/include/${HEADER}.in"
 		MAIN_DEPENDENCY "${Sidis_SOURCE_DIR}/include/${HEADER}.in"
 		COMMENT "Generating header file ${HEADER}.")
 endforeach(HEADER)

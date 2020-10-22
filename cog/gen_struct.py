@@ -1,4 +1,4 @@
-# Cog script for code generation.
+# Cog script for polarized struct code generation.
 
 import cog
 import re
@@ -252,7 +252,7 @@ class Struct(object):
 
 # Generates a set of structs for all combinations of beam and target
 # polarizations, as well as conversions between them.
-def generate_pol_structs(
+def generate_structs_pol(
         base_name,
         beam_pols,
         target_pols,

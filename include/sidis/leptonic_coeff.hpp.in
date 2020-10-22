@@ -10,8 +10,8 @@ namespace lep {
 
 // Born coefficients.
 /*[[[cog
-import gen
-gen.generate_pol_structs(
+import gen_struct
+gen_struct.generate_structs_pol(
 	"LepBorn",
 	["U", "L"], ["U", "P"],
 	{
@@ -40,8 +40,8 @@ gen.generate_pol_structs(
 
 // AMM coefficients.
 /*[[[cog
-import gen
-gen.generate_pol_structs(
+import gen_struct
+gen_struct.generate_structs_pol(
 	"LepAmm",
 	["U", "L"], ["U", "P"],
 	{
@@ -70,8 +70,8 @@ gen.generate_pol_structs(
 
 // Radiative coefficients.
 /*[[[cog
-import gen
-gen.generate_pol_structs(
+import gen_struct
+gen_struct.generate_structs_pol(
 	"LepRad",
 	["U", "L"], ["U", "P"],
 	{

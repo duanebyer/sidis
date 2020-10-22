@@ -9,8 +9,8 @@ namespace sidis {
 namespace had {
 
 /*[[[cog
-import gen
-gen.generate_pol_structs(
+import gen_struct
+gen_struct.generate_structs_pol(
 	"Had",
 	["U", "L"], ["U", "L", "T1", "T2"],
 	{
