@@ -60,8 +60,8 @@ inline Real mass(Lepton lepton) {
 	return 0.;
 }
 
-inline Real mass(Nucleus nucleon) {
-	switch (nucleon) {
+inline Real mass(Nucleus nucleus) {
+	switch (nucleus) {
 	case Nucleus::P:
 		return MASS_P;
 	case Nucleus::N:
@@ -98,8 +98,8 @@ inline Real charge(Lepton lepton) {
 	return 0.;
 }
 
-inline Real charge(Nucleus nucleon) {
-	switch (nucleon) {
+inline Real charge(Nucleus nucleus) {
+	switch (nucleus) {
 	case Nucleus::P:
 	case Nucleus::D:
 		return +1.;
@@ -144,6 +144,78 @@ inline Real charge(Quark quark) {
 		return +1./3.;
 	}
 	return 0.;
+}
+
+inline char const* name(Lepton lepton) {
+	switch (lepton) {
+	case Lepton::E:
+		return "e";
+	case Lepton::MU:
+		return "μ";
+	case Lepton::TAU:
+		return "τ";
+	}
+	return "<error>";
+}
+
+inline char const* name(Nucleus nucleus) {
+	switch (nucleus) {
+	case Nucleus::P:
+		return "p";
+	case Nucleus::N:
+		return "n";
+	case Nucleus::D:
+		return "d";
+	}
+	return "<error>";
+}
+
+inline char const* name(Hadron hadron) {
+	switch (hadron) {
+	case Hadron::PI_0:
+		return "π⁰";
+	case Hadron::PI_P:
+		return "π⁺";
+	case Hadron::PI_M:
+		return "π⁻";
+	case Hadron::K_0:
+		return "K⁰";
+	case Hadron::K_P:
+		return "K⁺";
+	case Hadron::K_M:
+		return "K⁻";
+	}
+	return "<error>";
+}
+
+inline char const* name(Quark quark) {
+	switch (quark) {
+	case Quark::U:
+		return "u";
+	case Quark::D:
+		return "d";
+	case Quark::S:
+		return "s";
+	case Quark::C:
+		return "c";
+	case Quark::B:
+		return "b";
+	case Quark::T:
+		return "t";
+	case Quark::U_B:
+		return "u bar";
+	case Quark::D_B:
+		return "d bar";
+	case Quark::S_B:
+		return "s bar";
+	case Quark::C_B:
+		return "c bar";
+	case Quark::B_B:
+		return "b bar";
+	case Quark::T_B:
+		return "t bar";
+	}
+	return "<error>";
 }
 
 }
