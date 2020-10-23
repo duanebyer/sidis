@@ -11,6 +11,18 @@ project(
 	LANGUAGES CXX)
 
 set(
+	Sidis_BUILD_TESTS TRUE
+	CACHE BOOL
+	"should the tests be built (overrides BUILD_TESTING)")
+set(
+	Sidis_BUILD_EXAMPLES TRUE
+	CACHE BOOL
+	"should the examples be built")
+set(
+	Sidis_BUILD_APPS TRUE
+	CACHE BOOL
+	"should the apps (generator) be built")
+set(
 	Sidis_REAL_TYPE "double"
 	CACHE STRING
 	"what default floating point type should be used for real numbers")
@@ -23,6 +35,7 @@ if(NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	message(FATAL_ERROR "Sidis does not support subproject build")
 endif()
 
+set(BUILD_TESTING ${Sidis_BUILD_TESTS})
 include(CTest)
 
 configure_file(
@@ -42,11 +55,15 @@ add_subdirectory(external/cubature-cpp)
 
 # Set up the library/app builds.
 add_subdirectory(src)
-add_subdirectory(example)
-add_subdirectory(app/sidisgen)
+if(${Sidis_BUILD_EXAMPLES})
+	add_subdirectory(example)
+endif()
+if(${Sidis_BUILD_APPS})
+	add_subdirectory(app/sidisgen)
+endif()
 
 # Set up the test builds.
-if(${BUILD_TESTING})
+if(${Sidis_BUILD_TESTS})
 	enable_testing()
 	add_subdirectory(test)
 endif()
