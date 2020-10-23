@@ -3,7 +3,6 @@
 
 #include "sidis/constant.hpp"
 #include "sidis/numeric.hpp"
-#include "sidis/extra/bounds.hpp"
 #include "sidis/extra/vector.hpp"
 
 namespace sidis {

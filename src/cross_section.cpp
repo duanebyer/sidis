@@ -13,6 +13,7 @@
 #include "sidis/kinematics.hpp"
 #include "sidis/leptonic_coeff.hpp"
 #include "sidis/structure_function.hpp"
+#include "sidis/extra/bounds.hpp"
 #include "sidis/extra/math.hpp"
 #include "sidis/extra/integrate.hpp"
 #include "sidis/extra/transform.hpp"
