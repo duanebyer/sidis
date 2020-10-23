@@ -13,6 +13,9 @@ using namespace sidis::constant;
 using namespace sidis::kin;
 using namespace sidis::math;
 
+// This program calculates the cross-section given the parameters passed to it
+// on the command line. It outputs the Born cross-section, and the various
+// radiative correction contributions.
 int main(int argc, char** argv) {
 	// Read input parameters from command line.
 	Real beam_energy;
@@ -79,13 +82,14 @@ int main(int argc, char** argv) {
 	Vec3 eta = frame::hadron_from_target(kin) * target_pol;
 	// Compute cross-sections.
 	Real born = xs::born(beam_pol, eta, kin, ww);
-	Real born_rad_factor = xs::born_rad_factor(kin);
+	Real nrad = xs::nrad(beam_pol, eta, kin, ww);
 	Real amm = xs::amm(beam_pol, eta, kin, ww);
 	Real rad = xs::rad_integ(beam_pol, eta, kin, ww);
-	std::cout << "σ_B   = " << born << std::endl;
-	std::cout << "σ_AMM = " << amm << std::endl;
-	std::cout << "σ_rad = " << rad << std::endl;
-	std::cout << "σ_tot = " << born_rad_factor * born + amm + rad << std::endl;
+	std::cout << "σ_B    = " << born << std::endl;
+	std::cout << "σ_AMM  = " << amm << std::endl;
+	std::cout << "σ_nrad = " << nrad << std::endl;
+	std::cout << "σ_rad  = " << rad << std::endl;
+	std::cout << "σ_tot  = " << nrad + rad << std::endl;
 
 	return 0;
 }

@@ -50,6 +50,8 @@ namespace sf {
 
 namespace xs {
 
+extern Real const SMALL_R_REL;
+
 // Total SIDIS cross-section, including radiative corrections from all sources.
 Real rc(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model);
 
@@ -66,7 +68,6 @@ Real rad_soft(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model c
 Real rad_soft_0(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 
 // Radiative corrections to Born cross-section.
-Real born_rad_factor(kin::Kinematics kin);
 Real delta_vr(kin::Kinematics kin);
 Real delta_vac_lep(kin::Kinematics kin);
 Real delta_vac_had(kin::Kinematics kin);
@@ -100,6 +101,22 @@ Real amm_lu_base(Amm b, lep::LepAmmLU lep, had::HadLU had);
 Real amm_ll_base(Amm b, lep::LepAmmLP lep, had::HadLL had);
 Real amm_lt1_base(Amm b, lep::LepAmmLP lep, had::HadLT1 had);
 Real amm_lt2_base(Amm b, lep::LepAmmLU lep, had::HadLT2 had);
+
+struct NRad {
+	Born born;
+	Amm amm;
+	Real born_rad_factor;
+	explicit NRad(kin::Kinematics kin);
+};
+
+Real nrad_uu_base(NRad b, lep::LepBornUU lep_born, lep::LepAmmUU lep_amm, had::HadUU had);
+Real nrad_ul_base(NRad b, lep::LepBornUP lep_born, lep::LepAmmUP lep_amm, had::HadUL had);
+Real nrad_ut1_base(NRad b, lep::LepBornUP lep_born, lep::LepAmmUP lep_amm, had::HadUT1 had);
+Real nrad_ut2_base(NRad b, lep::LepBornUU lep_born, lep::LepAmmUU lep_amm, had::HadUT2 had);
+Real nrad_lu_base(NRad b, lep::LepBornLU lep_born, lep::LepAmmLU lep_amm, had::HadLU had);
+Real nrad_ll_base(NRad b, lep::LepBornLP lep_born, lep::LepAmmLP lep_amm, had::HadLL had);
+Real nrad_lt1_base(NRad b, lep::LepBornLP lep_born, lep::LepAmmLP lep_amm, had::HadLT1 had);
+Real nrad_lt2_base(NRad b, lep::LepBornLU lep_born, lep::LepAmmLU lep_amm, had::HadLT2 had);
 
 struct Rad {
 	Real coeff;
