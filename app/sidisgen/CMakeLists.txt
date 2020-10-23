@@ -1,6 +1,8 @@
 find_package(ROOT 6.16 COMPONENTS Core Foam Physics Tree CONFIG REQUIRED)
 add_executable(sidisgen main.cpp)
-target_link_libraries(sidisgen PRIVATE sidis ROOT::Core ROOT::Foam ROOT::Physics ROOT::Tree)
+target_link_libraries(sidisgen PRIVATE
+	sidis
+	ROOT::Core ROOT::Foam ROOT::Physics ROOT::Tree)
 target_compile_features(sidisgen PRIVATE cxx_std_11)
 set_target_properties(sidisgen PROPERTIES CXX_EXTENSIONS OFF)
 target_compile_options(
