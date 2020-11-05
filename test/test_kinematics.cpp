@@ -368,6 +368,9 @@ TEST_CASE(
 	CHECK_THAT(
 		dot(k, ph)/dot(k, p),
 		RelMatcher<Real>(kin.mu, prec));
+	CHECK_THAT(
+		(k1 / kin.z_1 - k2 / kin.z_2).norm_sq(),
+		RelMatcher<Real>(kin.F_IR, prec));
 
 	// 3-momenta dot products.
 	CHECK_THAT(
