@@ -841,6 +841,9 @@ TEST_CASE(
 
 	// Check that the shift frame is the same as the one obtained by using
 	// `project_shift` with the hadron frame.
+	// TODO: Fix up this test so it can actually be used. Right now, it fails
+	// because the precision requirements are too stringent since after
+	// projection, `target_from_hadron` is no longer very accurate.
 	/*
 	CHECK_THAT(target_from_shift.t.t, RelMatcher<Real>(target_from_hadron.t.t, prec));
 	CHECK_THAT(target_from_shift.t.x, RelMatcher<Real>(target_from_hadron.t.x, prec));
