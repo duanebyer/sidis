@@ -47,43 +47,6 @@ struct UnexpectedNucleusException : public std::runtime_error {
 		provided(provided) { }
 };
 
-Real S_phi(Real z_il[4], Real z_ij[4][4], Real a, Real b) {
-	// Equation [1.40].
-	return -a*(
-		b*std::log((z_il[0]*z_il[2])/(z_il[1]*z_il[3]))
-		+ 0.5*(
-			sq(std::log(std::abs(z_il[0])))
-			- sq(std::log(std::abs(z_il[1])))
-			- sq(std::log(std::abs(z_il[2])))
-			+ sq(std::log(std::abs(z_il[3]))))
-		+ (
-			std::log(std::abs(z_il[0]))*std::log(std::abs(z_ij[0][1]))
-			- std::log(std::abs(z_il[0]))*std::log(std::abs(z_ij[0][2]))
-			- std::log(std::abs(z_il[0]))*std::log(std::abs(z_ij[0][3]))
-			- std::log(std::abs(z_il[1]))*std::log(std::abs(z_ij[1][0]))
-			+ std::log(std::abs(z_il[1]))*std::log(std::abs(z_ij[1][2]))
-			+ std::log(std::abs(z_il[1]))*std::log(std::abs(z_ij[1][3]))
-			+ std::log(std::abs(z_il[2]))*std::log(std::abs(z_ij[2][0]))
-			+ std::log(std::abs(z_il[2]))*std::log(std::abs(z_ij[2][1]))
-			- std::log(std::abs(z_il[2]))*std::log(std::abs(z_ij[2][3]))
-			- std::log(std::abs(z_il[3]))*std::log(std::abs(z_ij[3][0]))
-			- std::log(std::abs(z_il[3]))*std::log(std::abs(z_ij[3][1]))
-			+ std::log(std::abs(z_il[3]))*std::log(std::abs(z_ij[3][2])))
-		- (
-			dilog(z_il[0]/z_ij[0][1])
-			- dilog(z_il[0]/z_ij[0][2])
-			- dilog(z_il[0]/z_ij[0][3])
-			- dilog(z_il[1]/z_ij[1][0])
-			+ dilog(z_il[1]/z_ij[1][2])
-			+ dilog(z_il[1]/z_ij[1][3])
-			+ dilog(z_il[2]/z_ij[2][0])
-			+ dilog(z_il[2]/z_ij[2][1])
-			- dilog(z_il[2]/z_ij[2][3])
-			- dilog(z_il[3]/z_ij[3][0])
-			- dilog(z_il[3]/z_ij[3][1])
-			+ dilog(z_il[3]/z_ij[3][2])));
-}
-
 }
 
 Real xs::rc(Real lambda_e, Vec3 eta, Kinematics kin, Model const& model) {
@@ -403,66 +366,23 @@ Real xs::delta_vr(Kinematics kin) {
 	Real L_S_prime = 1./lambda_S_prime_sqrt*std::log(-sum_S_prime/diff_S_prime);
 	Real L_X_prime = 1./lambda_X_prime_sqrt*std::log(-sum_X_prime/diff_X_prime);
 
-	// Instead of computing `z_i` using equation [1.42], compute the differences
-	// directly. Use the notation `z_ij = z_j - z_i`.
-	Real c = (2.*kin.mx_sq*kin.Q_sq)/X_prime;
-	Real c_diff = c/diff_X_prime;
-	Real c_sum = c/sum_X_prime;
-	Real d = lambda_X_prime_sqrt*diff_m;
-	Real d_diff = X_prime*diff_X_prime;
-	Real d_sum = X_prime*sum_X_prime;
-
-	Real z_1u = 1./lambda_X_prime_sqrt*(
-		S_prime*sum_S_prime - X_prime*sum_X_prime - c_diff*diff_m);
-	Real z_2u = 1./lambda_X_prime_sqrt*(
-		S_prime*sum_S_prime - X_prime*sum_X_prime + c_diff*sum_m);
-	Real z_3u = 1./lambda_X_prime_sqrt*(
-		S_prime*diff_S_prime - X_prime*diff_X_prime + c_sum*sum_m);
-	Real z_4u = 1./lambda_X_prime_sqrt*(
-		S_prime*diff_S_prime - X_prime*diff_X_prime - c_sum*diff_m);
-	Real z_1d = 1./lambda_X_prime*(
-		X_prime*sum_X_prime*(S_prime - X_prime) - c_diff*(d + d_diff));
-	Real z_2d = 1./lambda_X_prime*(
-		X_prime*sum_X_prime*(S_prime - X_prime) + c_diff*(d + d_sum));
-	Real z_3d = 1./lambda_X_prime*(
-		-X_prime*diff_X_prime*(S_prime - X_prime) + c_sum*(d + d_diff));
-	Real z_4d = 1./lambda_X_prime*(
-		-X_prime*diff_X_prime*(S_prime - X_prime) - c_sum*(d + d_sum));
-
-	Real z_12 = -lambda_m_sqrt/lambda_X_prime_sqrt
-		*(4.*kin.mx_sq)/(X_prime*diff_X_prime);
-	Real z_34 = lambda_m_sqrt/lambda_X_prime_sqrt
-		*(4.*kin.mx_sq)/(X_prime*sum_X_prime);
-	Real z_13 = 1./lambda_X_prime_sqrt*(
-		2.*(S_prime - X_prime) - c*(sum_m/sum_X_prime + diff_m/diff_X_prime));
-	Real z_24 = 1./lambda_X_prime_sqrt*(
-		2.*(S_prime - X_prime) + c*(diff_m/sum_X_prime + sum_m/diff_X_prime));
-	Real z_14 = 1./lambda_X_prime_sqrt*(
-		2.*(S_prime - X_prime) - 2.*c*diff_m/(diff_X_prime*sum_X_prime));
-	Real z_23 = 1./lambda_X_prime_sqrt*(
-		2.*(S_prime - X_prime) + 2.*c*sum_m/(diff_X_prime*sum_X_prime));
-
-	Real z_iu[4] = { z_1u, z_2u, z_3u, z_4u };
-	Real z_id[4] = { z_1d, z_2d, z_3d, z_4d };
-	Real z_ij[4][4] = {
-		{    0.,  z_12,  z_13,  z_14 },
-		{ -z_12,    0.,  z_23,  z_24 },
-		{ -z_13, -z_23,    0.,  z_34 },
-		{ -z_14, -z_24, -z_34,    0. },
-	};
-
 	// Equation [1.40].
-	Real S_phi_a = Q_m_sq/(2.*lambda_m_sqrt);
-	Real S_phi_b = std::log(-diff_X_prime/sum_X_prime);
-	Real S_phi_diff = S_phi(z_iu, z_ij, S_phi_a, S_phi_b)
-		- S_phi(z_id, z_ij, S_phi_a, S_phi_b);
+	Real rho = 1./lambda_m_sqrt*(
+		(Q_m_sq + lambda_m_sqrt)*S_prime
+		- 2.*sq(kin.m)*X_prime);
+	Real S_phi = Q_m_sq/lambda_m_sqrt*(
+		lambda_S_prime*L_S_prime/4. - lambda_X_prime*L_X_prime/4.
+		+ dilog(1. - 1./(sum_S_prime*S_prime)*rho)
+		+ dilog(1. - (sum_S_prime*S_prime)/(4.*sq(kin.m)*kin.mx_sq)*rho)
+		- dilog(1. - (sum_X_prime*X_prime)/(kin.mx_sq*sq(sum_m))*rho)
+		- dilog(1. - (4.*sq(kin.m))/(sum_X_prime*X_prime*sq(sum_m))*rho));
 
 	// Equation [1.52].
 	Real delta =
 		2.*(Q_m_sq*L_m - 1.)
 			*std::log((kin.mx_sq - sq(kin.M_th))/(kin.m*kin.mx))
 		+ 0.5*S_prime*L_S_prime + 0.5*X_prime*L_X_prime
-		+ S_phi_diff
+		+ S_phi
 		- 2.
 		+ (1.5*kin.Q_sq + 4.*sq(kin.m))*L_m
 		- Q_m_sq/lambda_m_sqrt*(
