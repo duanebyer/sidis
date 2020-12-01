@@ -46,6 +46,7 @@ endforeach(HEADER)
 add_library(
 	sidis
 	bounds.cpp
+	constant.cpp
 	cross_section.cpp
 	frame.cpp
 	hadronic_coeff.cpp
