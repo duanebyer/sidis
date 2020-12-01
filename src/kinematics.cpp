@@ -560,7 +560,48 @@ Bounds kin::R_bounds(Kinematics kin, Real tau, Real phi_k) {
 				(tau - tau_min)*(tau_max - tau)));
 	// Equation [1.44].
 	Real min = 0.;
-	Real max = (kin.mx_sq - sq(kin.M_th))/(1. + tau - mu);
+	Real max = 1./(1. + tau - mu)*(kin.mx_sq - sq(kin.M_th));
 	return Bounds(min, max);
+}
+Bounds kin::R_bounds_soft(Kinematics kin, Real tau, Real phi_k, Real k0_cut) {
+	Real k0_max = (kin.mx_sq - sq(kin.M_th))/(2.*kin.mx);
+	Real tau_min = tau_bounds(kin).min;
+	Real tau_max = tau_bounds(kin).max;
+	// Copied from the kinematic calculation for `mu`.
+	Real mu = kin.ph_0/kin.M
+		+ 1./kin.lambda_Y_sqrt*(
+			(2.*tau*sq(kin.M) - kin.S_x)*kin.ph_l/kin.M
+			- 2.*kin.M*kin.ph_t*std::cos(kin.phi_h - phi_k)*std::sqrt(
+				(tau - tau_min)*(tau_max - tau)));
+	// Equation [1.44].
+	Real min = 0.;
+	Real max = 1./(1. + tau - mu)*(
+		k0_cut < k0_max ?
+		(2.*kin.mx)*k0_cut :
+		kin.mx_sq - sq(kin.M_th));
+	if (min <= max) {
+		return Bounds(min, max);
+	} else {
+		return Bounds(min, min);
+	}
+}
+Bounds kin::R_bounds_hard(Kinematics kin, Real tau, Real phi_k, Real k0_cut) {
+	Real tau_min = tau_bounds(kin).min;
+	Real tau_max = tau_bounds(kin).max;
+	Real mu = kin.ph_0/kin.M
+		+ 1./kin.lambda_Y_sqrt*(
+			(2.*tau*sq(kin.M) - kin.S_x)*kin.ph_l/kin.M
+			- 2.*kin.M*kin.ph_t*std::cos(kin.phi_h - phi_k)*std::sqrt(
+				(tau - tau_min)*(tau_max - tau)));
+	Real min = 1./(1. + tau - mu)*(
+		k0_cut > 0. ?
+		2.*kin.mx*k0_cut :
+		0.);
+	Real max = 1./(1. + tau - mu)*(kin.mx_sq - sq(kin.M_th));
+	if (min <= max) {
+		return Bounds(min, max);
+	} else {
+		return Bounds(max, max);
+	}
 }
 
