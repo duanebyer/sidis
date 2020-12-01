@@ -17,6 +17,9 @@ static_assert(
 	|| (Limits::radix == 10
 		&& Limits::min_exponent <= -94 && Limits::max_exponent >= 97),
 	"float has insufficient exponent range");
+static_assert(
+	Limits::has_infinity,
+	"float has no infinity");
 
 int main(int argc, char** argv) {
 	return 0;

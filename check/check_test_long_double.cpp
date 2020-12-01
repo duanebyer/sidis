@@ -17,6 +17,9 @@ static_assert(
 	|| (Limits::radix == 10
 		&& Limits::min_exponent <= -382 && Limits::max_exponent >= 385),
 	"long double has insufficient exponent range");
+static_assert(
+	Limits::has_infinity,
+	"long double has no infinity");
 
 int main(int argc, char** argv) {
 	return 0;
