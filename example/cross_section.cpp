@@ -4,7 +4,6 @@
 
 #include <sidis/sidis.hpp>
 #include <sidis/sf_model/ww.hpp>
-#include <sidis/extra/integrate.hpp>
 #include <sidis/extra/transform.hpp>
 #include <sidis/extra/vector.hpp>
 
@@ -18,23 +17,25 @@ using namespace sidis::math;
 // radiative correction contributions.
 int main(int argc, char** argv) {
 	// Read input parameters from command line.
+	Real k0_cut;
 	Real beam_energy;
 	Real beam_pol;
 	Vec3 target_pol;
 	Real x, y, z, ph_t, phi_h, phi;
 	try {
-		if (argc != 10) {
-			throw std::invalid_argument("Expected 9 command line arguments");
+		if (argc != 11) {
+			throw std::invalid_argument("Expected 10 command line arguments");
 		}
-		beam_energy = std::stold(argv[1]);
-		std::string beam_pol_str = std::string(argv[2]);
-		std::string target_pol_str = std::string(argv[3]);
-		x = std::stold(argv[4]);
-		y = std::stold(argv[5]);
-		z = std::stold(argv[6]);
-		ph_t = std::stold(argv[7]);
-		phi_h = std::stold(argv[8]);
-		phi = std::stold(argv[9]);
+		k0_cut = std::stold(argv[1]);
+		beam_energy = std::stold(argv[2]);
+		std::string beam_pol_str = std::string(argv[3]);
+		std::string target_pol_str = std::string(argv[4]);
+		x = std::stold(argv[5]);
+		y = std::stold(argv[6]);
+		z = std::stold(argv[7]);
+		ph_t = std::stold(argv[8]);
+		phi_h = std::stold(argv[9]);
+		phi = std::stold(argv[10]);
 		if (beam_pol_str == "U") {
 			beam_pol = 0.;
 		} else if (beam_pol_str == "L") {
@@ -58,6 +59,7 @@ int main(int argc, char** argv) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		std::cout << "Usage: "
 			<< "cross-section "
+			<< "<k0 cut> "
 			<< "<beam energy> "
 			<< "<beam pol. U,L> "
 			<< "<target pol. U,L,T> "
@@ -67,7 +69,7 @@ int main(int argc, char** argv) {
 	}
 
 	// Set up the initial state particles.
-	Real M_th = MASS_P + MASS_PI;
+	Real M_th = MASS_P + MASS_PI_0;
 	Initial initial_state(Nucleus::P, Lepton::E, beam_energy);
 	PhaseSpace phase_space { x, y, z, ph_t * ph_t, phi_h, phi };
 	// Do kinematics calculations.
@@ -82,14 +84,16 @@ int main(int argc, char** argv) {
 	Vec3 eta = frame::hadron_from_target(kin) * target_pol;
 	// Compute cross-sections.
 	Real born = xs::born(beam_pol, eta, kin, ww);
-	Real nrad = xs::nrad(beam_pol, eta, kin, ww);
+	std::cout << "σ_B     = " << born << std::endl;
 	Real amm = xs::amm(beam_pol, eta, kin, ww);
-	Real rad = xs::rad_integ(beam_pol, eta, kin, ww);
-	std::cout << "σ_B    = " << born << std::endl;
-	std::cout << "σ_AMM  = " << amm << std::endl;
-	std::cout << "σ_nrad = " << nrad << std::endl;
-	std::cout << "σ_rad  = " << rad << std::endl;
-	std::cout << "σ_tot  = " << nrad + rad << std::endl;
+	std::cout << "σ_AMM   = " << amm << std::endl;
+	Real rad_f = xs::rad_f_integ(beam_pol, eta, kin, ww, k0_cut);
+	std::cout << "σ_rad_f = " << rad_f << std::endl;
+	Real nrad = xs::nrad(beam_pol, eta, kin, ww, k0_cut);
+	std::cout << "σ_nrad  = " << nrad << std::endl;
+	Real rad = xs::rad_integ(beam_pol, eta, kin, ww, k0_cut);
+	std::cout << "σ_rad   = " << rad << std::endl;
+	std::cout << "σ_tot   = " << nrad + rad << std::endl;
 
 	return 0;
 }
