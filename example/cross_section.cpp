@@ -26,16 +26,16 @@ int main(int argc, char** argv) {
 		if (argc != 11) {
 			throw std::invalid_argument("Expected 10 command line arguments");
 		}
-		k0_cut = std::stold(argv[1]);
-		beam_energy = std::stold(argv[2]);
-		std::string beam_pol_str = std::string(argv[3]);
-		std::string target_pol_str = std::string(argv[4]);
-		x = std::stold(argv[5]);
-		y = std::stold(argv[6]);
-		z = std::stold(argv[7]);
-		ph_t = std::stold(argv[8]);
-		phi_h = std::stold(argv[9]);
-		phi = std::stold(argv[10]);
+		beam_energy = std::stold(argv[1]);
+		std::string beam_pol_str = std::string(argv[2]);
+		std::string target_pol_str = std::string(argv[3]);
+		x = std::stold(argv[4]);
+		y = std::stold(argv[5]);
+		z = std::stold(argv[6]);
+		ph_t = std::stold(argv[7]);
+		phi_h = std::stold(argv[8]);
+		phi = std::stold(argv[9]);
+		k0_cut = std::stold(argv[10]);
 		if (beam_pol_str == "U") {
 			beam_pol = 0.;
 		} else if (beam_pol_str == "L") {
@@ -59,11 +59,11 @@ int main(int argc, char** argv) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		std::cout << "Usage: "
 			<< "cross-section "
-			<< "<k0 cut> "
 			<< "<beam energy> "
 			<< "<beam pol. U,L> "
 			<< "<target pol. U,L,T> "
-			<< "<x> <y> <z> <ph_t> <φ_h> <φ>"
+			<< "<x> <y> <z> <ph_t> <φ_h> <φ> "
+			<< "<k0 cut>"
 			<< std::endl;
 		return 1;
 	}
