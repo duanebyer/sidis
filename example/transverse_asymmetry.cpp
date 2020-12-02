@@ -25,15 +25,17 @@ namespace {
 struct RC {
 	bool apply_rc;
 	Real k0_cut;
+	std::size_t num_evals;
+	Real prec;
 
 	static RC none() {
-		return { false, 0. };
+		return { false, 0., 100000, 1e-6 };
 	}
 	static RC cut(Real k0_cut) {
-		return { true, k0_cut };
+		return { true, k0_cut, 100000, 1e-6 };
 	}
 	static RC all() {
-		return { true, INF };
+		return { true, INF, 100000, 1e-6 };
 	}
 };
 
@@ -45,7 +47,7 @@ Real const M_th = MASS_P + MASS_PI_0;
 // `phi_h`.
 Real xs_uu_integ(
 		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
-		RC rc_info = RC::none()) {
+		RC rc_info=RC::none()) {
 	// The `phi` integration only contributes a factor of `2 pi`, so we don't
 	// need to evaluate it. This leaves the `phi_h` integration.
 	Real S = 2. * dot(initial_state.p, initial_state.k1);
@@ -56,16 +58,17 @@ Real xs_uu_integ(
 	if (!rc_info.apply_rc) {
 		// Without radiative corrections, there is only the Born cross-section.
 		cubature::EstErr<Real> xs_born_integ;
-		xs_born_integ = cubature::cubature([&](Real phi_h) {
-			PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-			Kinematics kin(initial_state, phase_space, hadron, M_th);
-			xs::Born born(kin);
-			lep::LepBornUU lep(kin);
-			had::HadUU had(kin, sf);
-			return xs::born_uu_base(born, lep, had);
-		},
-		-PI, PI,
-		10000, 0., 1e-4);
+		xs_born_integ = cubature::cubature(
+			[&](Real phi_h) {
+				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(initial_state, phase_space, hadron, M_th);
+				xs::Born born(kin);
+				lep::LepBornUU lep(kin);
+				had::HadUU had(kin, sf);
+				return xs::born_uu_base(born, lep, had);
+			},
+			-PI, PI,
+			rc_info.num_evals, 0., rc_info.prec);
 		return 2. * PI * xs_born_integ.val;
 	} else {
 		cubature::EstErr<Real> xs_nrad_ir_integ;
@@ -73,62 +76,64 @@ Real xs_uu_integ(
 		// Evaluate the "non-radiative" and "radiative" parts separately so we
 		// can take combine the `phi_h` integration with the photon degrees of
 		// freedom.
-		xs_nrad_ir_integ = cubature::cubature([&](Real phi_h) {
-			PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-			Kinematics kin(initial_state, phase_space, hadron, M_th);
-			xs::NRadIR b(kin, rc_info.k0_cut);
-			lep::LepBornUU lep_born(kin);
-			lep::LepAmmUU lep_amm(kin);
-			had::HadUU had(kin, sf);
-			return xs::nrad_ir_uu_base(b, lep_born, lep_amm, had);
-		},
-		-PI, PI,
-		10000, 0., 1e-4);
-		xs_rad_f_integ = cubature::cubature([&](cubature::Point<4, Real> ph) {
-			Bounds phi_h_b(0., 2. * PI);
-			Real phi_h = phi_h_b.lerp(ph[0]);
-			PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-			Kinematics kin(initial_state, phase_space, hadron, M_th);
+		xs_nrad_ir_integ = cubature::cubature(
+			[&](Real phi_h) {
+				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(initial_state, phase_space, hadron, M_th);
+				xs::NRadIR b(kin, rc_info.k0_cut);
+				lep::LepBornUU lep_born(kin);
+				lep::LepAmmUU lep_amm(kin);
+				had::HadUU had(kin, sf);
+				return xs::nrad_ir_uu_base(b, lep_born, lep_amm, had);
+			},
+			-PI, PI,
+			rc_info.num_evals, 0., rc_info.prec);
+		xs_rad_f_integ = cubature::cubature(
+			[&](cubature::Point<4, Real> ph) {
+				Bounds phi_h_b(0., 2. * PI);
+				Real phi_h = phi_h_b.lerp(ph[0]);
+				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(initial_state, phase_space, hadron, M_th);
 
-			// Rescale the integral so it is evaluated on the unit 4-cube.
-			Bounds tau_b = tau_bounds(kin);
-			Real tau = tau_b.lerp(ph[1]);
-			Bounds phi_k_b(0., 2. * PI);
-			Real phi_k = phi_k_b.lerp(ph[2]);
-			Bounds R_b = R_bounds_soft(kin, tau, phi_k, rc_info.k0_cut);
-			Real R = R_b.lerp(ph[3]);
-			Real jacobian = phi_h_b.size()
-				* tau_b.size()
-				* phi_k_b.size()
-				* R_b.size();
+				// Rescale the integral so it is evaluated on the unit 4-cube.
+				Bounds tau_b = tau_bounds(kin);
+				Real tau = tau_b.lerp(ph[1]);
+				Bounds phi_k_b(0., 2. * PI);
+				Real phi_k = phi_k_b.lerp(ph[2]);
+				Bounds R_b = R_bounds_soft(kin, tau, phi_k, rc_info.k0_cut);
+				Real R = R_b.lerp(ph[3]);
+				Real jacobian = phi_h_b.size()
+					* tau_b.size()
+					* phi_k_b.size()
+					* R_b.size();
 
-			KinematicsRad kin_rad(kin, tau, phi_k, R);
-			xs::Rad b(kin_rad);
-			sf::SfUU shift_sf = model.sf_uu(
-				hadron,
-				kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
-			lep::LepRadUU lep(kin_rad);
-			had::HadUU had(kin, sf);
-			had::HadUU shift_had(kin_rad.project_shift(), shift_sf);
+				KinematicsRad kin_rad(kin, tau, phi_k, R);
+				xs::Rad b(kin_rad);
+				sf::SfUU shift_sf = model.sf_uu(
+					hadron,
+					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
+				lep::LepRadUU lep(kin_rad);
+				had::HadUU had(kin, sf);
+				had::HadUU shift_had(kin_rad.project_shift(), shift_sf);
 
-			// Compute hard cross-section.
-			Real uu_h = xs::rad_f_hard_uu_base(b, lep, shift_had);
-			// Compute soft cross-section.
-			Real uu_s;
-			if (std::abs(R) < std::abs(R_b.max) * xs::SMALL_R_REL) {
-				uu_s = xs::rad_f_soft_0(0., Vec3::ZERO, kin_rad, model);
-			} else {
-				uu_s = xs::rad_f_soft_uu_base(b, lep, had, shift_had);
-			}
-			Real xs = uu_h + uu_s;
-			if (std::isnan(xs)) {
-				xs = 0.;
-			}
-			return jacobian * xs;
-		},
-		cubature::Point<4, Real>{ 0., 0., 0., 0. },
-		cubature::Point<4, Real>{ 1., 1., 1., 1. },
-		10000, 0., 1e-4);
+				// Compute hard cross-section.
+				Real uu_h = xs::rad_f_hard_uu_base(b, lep, shift_had);
+				// Compute soft cross-section.
+				Real uu_s;
+				if (std::abs(R) < std::abs(R_b.max) * xs::SMALL_R_REL) {
+					uu_s = xs::rad_f_soft_0(0., Vec3::ZERO, kin_rad, model);
+				} else {
+					uu_s = xs::rad_f_soft_uu_base(b, lep, had, shift_had);
+				}
+				Real xs = uu_h + uu_s;
+				if (std::isnan(xs)) {
+					xs = 0.;
+				}
+				return jacobian * xs;
+			},
+			cubature::Point<4, Real>{ 0., 0., 0., 0. },
+			cubature::Point<4, Real>{ 1., 1., 1., 1. },
+			rc_info.num_evals, 0., rc_info.prec);
 		return 2. * PI * (xs_nrad_ir_integ.val + xs_rad_f_integ.val);
 	}
 }
@@ -140,98 +145,101 @@ Real xs_ut_integ_h(
 		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
 		Real eta_1=0., int phi_h_coeff_1=0, int offset_1=0,
 		Real eta_2=0., int phi_h_coeff_2=0, int offset_2=0,
-		RC rc_info = RC::none()) {
+		RC rc_info=RC::none()) {
 	Real S = 2. * dot(initial_state.p, initial_state.k1);
 	Real Q_sq = S * x * y;
 	sf::SfUP sf = model.sf_up(hadron, x, z, Q_sq, ph_t_sq);
 	if (!rc_info.apply_rc) {
 		cubature::EstErr<Real> xs_born_integ;
-		xs_born_integ = cubature::cubature([&](Real phi_h) {
-			PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-			Kinematics kin(initial_state, phase_space, hadron, M_th);
-			xs::Born b(kin);
-			lep::LepBornUX lep(kin);
-			had::HadUP had(kin, sf);
-			Vec3 eta(
-				eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
-				eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
-				0.);
-			return eta.x * xs::born_ut1_base(b, lep, had)
-				+ eta.y * xs::born_ut2_base(b, lep, had);
-		},
-		-PI, PI,
-		10000, 0., 1e-4);
+		xs_born_integ = cubature::cubature(
+			[&](Real phi_h) {
+				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(initial_state, phase_space, hadron, M_th);
+				xs::Born b(kin);
+				lep::LepBornUX lep(kin);
+				had::HadUP had(kin, sf);
+				Vec3 eta(
+					eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
+					eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
+					0.);
+				return eta.x * xs::born_ut1_base(b, lep, had)
+					+ eta.y * xs::born_ut2_base(b, lep, had);
+			},
+			-PI, PI,
+			rc_info.num_evals, 0., rc_info.prec);
 		return xs_born_integ.val;
 	} else {
 		cubature::EstErr<Real> xs_nrad_ir_integ;
 		cubature::EstErr<Real> xs_rad_f_integ;
-		xs_nrad_ir_integ = cubature::cubature([&](Real phi_h) {
-			PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-			Kinematics kin(initial_state, phase_space, hadron, M_th);
-			xs::NRadIR b(kin, rc_info.k0_cut);
-			lep::LepBornUX lep_born(kin);
-			lep::LepAmmUX lep_amm(kin);
-			had::HadUP had(kin, sf);
-			Vec3 eta(
-				eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
-				eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
-				0.);
-			return eta.x * xs::nrad_ir_ut1_base(b, lep_born, lep_amm, had)
-				+ eta.y * xs::nrad_ir_ut2_base(b, lep_born, lep_amm, had);
-		},
-		-PI, PI,
-		10000, 0., 1e-4);
-		xs_rad_f_integ = cubature::cubature([&](cubature::Point<4, Real> ph) {
-			Bounds phi_h_b(-PI, PI);
-			Real phi_h = phi_h_b.lerp(ph[0]);
-			PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-			Kinematics kin(initial_state, phase_space, hadron, M_th);
+		xs_nrad_ir_integ = cubature::cubature(
+			[&](Real phi_h) {
+				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(initial_state, phase_space, hadron, M_th);
+				xs::NRadIR b(kin, rc_info.k0_cut);
+				lep::LepBornUX lep_born(kin);
+				lep::LepAmmUX lep_amm(kin);
+				had::HadUP had(kin, sf);
+				Vec3 eta(
+					eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
+					eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
+					0.);
+				return eta.x * xs::nrad_ir_ut1_base(b, lep_born, lep_amm, had)
+					+ eta.y * xs::nrad_ir_ut2_base(b, lep_born, lep_amm, had);
+			},
+			-PI, PI,
+			rc_info.num_evals, 0., rc_info.prec);
+		xs_rad_f_integ = cubature::cubature(
+			[&](cubature::Point<4, Real> ph) {
+				Bounds phi_h_b(-PI, PI);
+				Real phi_h = phi_h_b.lerp(ph[0]);
+				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(initial_state, phase_space, hadron, M_th);
 
-			Bounds tau_b = tau_bounds(kin);
-			Real tau = tau_b.lerp(ph[1]);
-			Bounds phi_k_b(-PI, PI);
-			Real phi_k = phi_k_b.lerp(ph[2]);
-			Bounds R_b = R_bounds_soft(kin, tau, phi_k, rc_info.k0_cut);
-			Real R = R_b.lerp(ph[3]);
-			Real jacobian = phi_h_b.size()
-				* tau_b.size()
-				* phi_k_b.size()
-				* R_b.size();
+				Bounds tau_b = tau_bounds(kin);
+				Real tau = tau_b.lerp(ph[1]);
+				Bounds phi_k_b(-PI, PI);
+				Real phi_k = phi_k_b.lerp(ph[2]);
+				Bounds R_b = R_bounds_soft(kin, tau, phi_k, rc_info.k0_cut);
+				Real R = R_b.lerp(ph[3]);
+				Real jacobian = phi_h_b.size()
+					* tau_b.size()
+					* phi_k_b.size()
+					* R_b.size();
 
-			KinematicsRad kin_rad(kin, tau, phi_k, R);
-			xs::Rad b(kin_rad);
-			Transform3 shift_rot = frame::hadron_from_shift(kin_rad);
-			sf::SfUP shift_sf = model.sf_up(
-				hadron,
-				kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
-			lep::LepRadUX lep(kin_rad);
-			had::HadUP had(kin, sf);
-			had::HadUP shift_had(kin_rad.project_shift(), shift_sf);
+				KinematicsRad kin_rad(kin, tau, phi_k, R);
+				xs::Rad b(kin_rad);
+				Transform3 shift_rot = frame::hadron_from_shift(kin_rad);
+				sf::SfUP shift_sf = model.sf_up(
+					hadron,
+					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
+				lep::LepRadUX lep(kin_rad);
+				had::HadUP had(kin, sf);
+				had::HadUP shift_had(kin_rad.project_shift(), shift_sf);
 
-			Vec3 eta(
-				eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
-				eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
-				0.);
-			Real up_h = dot(
-				eta,
-				xs::rad_f_hard_up_base(b, lep, shift_had, shift_rot));
-			Real up_s;
-			if (std::abs(R) < std::abs(R_b.max) * xs::SMALL_R_REL) {
-				up_s = xs::rad_f_soft_0(0., eta, kin_rad, model);
-			} else {
-				up_s = dot(
+				Vec3 eta(
+					eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
+					eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
+					0.);
+				Real up_h = dot(
 					eta,
-					xs::rad_f_soft_up_base(b, lep, had, shift_had, shift_rot));
-			}
-			Real xs = up_h + up_s;
-			if (std::isnan(xs)) {
-				xs = 0.;
-			}
-			return jacobian * xs;
-		},
-		cubature::Point<4, Real>{ 0., 0., 0., 0. },
-		cubature::Point<4, Real>{ 1., 1., 1., 1. },
-		10000, 0., 1e-4);
+					xs::rad_f_hard_up_base(b, lep, shift_had, shift_rot));
+				Real up_s;
+				if (std::abs(R) < std::abs(R_b.max) * xs::SMALL_R_REL) {
+					up_s = xs::rad_f_soft_0(0., eta, kin_rad, model);
+				} else {
+					up_s = dot(
+						eta,
+						xs::rad_f_soft_up_base(b, lep, had, shift_had, shift_rot));
+				}
+				Real xs = up_h + up_s;
+				if (std::isnan(xs)) {
+					xs = 0.;
+				}
+				return jacobian * xs;
+			},
+			cubature::Point<4, Real>{ 0., 0., 0., 0. },
+			cubature::Point<4, Real>{ 1., 1., 1., 1. },
+			rc_info.num_evals, 0., rc_info.prec);
 		return xs_nrad_ir_integ.val + xs_rad_f_integ.val;
 	}
 }
@@ -241,7 +249,7 @@ Real xs_ut_integ_h(
 Real xs_ut_integ(
 		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
 		int phi_s_coeff=0, int phi_h_coeff=0, int offset=0,
-		RC rc_info = RC::none()) {
+		RC rc_info=RC::none()) {
 	// Evaluate the `phi - phi_h` integral on the `eta` components. To do this
 	// integral, we can approximate `phi_s` as `phi`. Then, analytically we get:
 	if (phi_s_coeff == 0 || phi_s_coeff > 1 || phi_s_coeff < -1) {
@@ -263,7 +271,7 @@ Real xs_ut_integ(
 Real asymmetry(
 		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
 		int phi_s_coeff, int phi_h_coeff, int offset,
-		RC rc_info = RC::none()) {
+		RC rc_info=RC::none()) {
 	Real xs_ut = xs_ut_integ(
 		initial_state, x, y, z, ph_t_sq,
 		phi_s_coeff, phi_h_coeff, offset,
@@ -274,13 +282,13 @@ Real asymmetry(
 
 Real collins(
 		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
-		RC rc_info = RC::none()) {
+		RC rc_info=RC::none()) {
 	return asymmetry(initial_state, x, y, z, ph_t_sq, 1, 1, 0, rc_info);
 }
 
 Real sivers(
 		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
-		RC rc_info = RC::none()) {
+		RC rc_info=RC::none()) {
 	return asymmetry(initial_state, x, y, z, ph_t_sq, -1, 1, 0, rc_info);
 }
 
@@ -303,7 +311,7 @@ int main(int argc, char** argv) {
 	// kinematic reasons.
 	Real z_min = 0.1;
 	Real z_max = 0.8;
-	Real k0_cut = 0.1;
+	Real k0_cut = INF;
 
 	TF1 f_sivers("Sivers Born", [&](Double_t* xs, Double_t* ps) {
 		Real z = static_cast<Real>(xs[0]);
