@@ -55,23 +55,23 @@ extern Real const SMALL_R_REL;
 
 Real born(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model);
 Real amm(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model);
-Real nrad_ir(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model, Real k0_cut = constant::INF);
-Real nrad(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model, Real k0_cut = constant::INF);
+Real nrad_ir(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model, Real k0_cut=constant::INF);
+Real nrad(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model, Real k0_cut=constant::INF);
 Real rad_f(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 Real rad(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 
 // TODO: Include a precision argument, which determines how accurately the
 // integrated cross-section is to be calculated.
-Real rad_f_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model, Real k0_cut = constant::INF);
-Real rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model, Real k0_cut = constant::INF);
+Real rad_f_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model, Real k0_cut=constant::INF);
+Real rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model const& model, Real k0_cut=constant::INF);
 
 Real rad_f_hard(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 Real rad_f_soft(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 Real rad_f_soft_0(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::Model const& model);
 
 // Various corrections to Born cross-section.
-Real delta_vert_rad_ir(kin::Kinematics kin, Real k0_cut = constant::INF);
-Real delta_rad_ir_hard(kin::Kinematics kin, Real k0_cut = constant::INF);
+Real delta_vert_rad_ir(kin::Kinematics kin, Real k0_cut=constant::INF);
+Real delta_rad_ir_hard(kin::Kinematics kin, Real k0_cut=constant::INF);
 Real delta_vac_lep(kin::Kinematics kin);
 Real delta_vac_had(kin::Kinematics kin);
 
