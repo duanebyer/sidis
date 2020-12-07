@@ -287,7 +287,7 @@ Real xs::rad_f_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Mod
 		},
 		cubature::Point<3, Real>{ 0., 0., 0. },
 		cubature::Point<3, Real>{ 1., 1., 1. },
-		10000, 0., 1e-6);
+		100000, 0., 1e-6);
 	return xs_integ.val;
 }
 
@@ -331,7 +331,7 @@ Real xs::rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::Model
 		},
 		cubature::Point<3, Real>{ 0., 0., 0. },
 		cubature::Point<3, Real>{ 1., 1., 1. },
-		10000, 0., 1e-6);
+		100000, 0., 1e-6);
 	return xs_integ.val;
 }
 
