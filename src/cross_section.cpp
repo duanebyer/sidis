@@ -77,21 +77,21 @@ Real delta_vert_rad_0(Kinematics kin) {
 
 }
 
-Real xs::born(Real lambda_e, Vec3 eta, Kinematics kin, SfModel const& model) {
+Real xs::born(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model) {
 	Born b(kin);
 	LepBornXX lep(kin);
 	HadXX had(kin, model);
 	return born_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::amm(Real lambda_e, Vec3 eta, Kinematics kin, SfModel const& model) {
+Real xs::amm(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model) {
 	Amm b(kin);
 	LepAmmXX lep(kin);
 	HadXX had(kin, model);
 	return amm_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::nrad_ir(Real lambda_e, Vec3 eta, Kinematics kin, SfModel const& model, Real k0_cut) {
+Real xs::nrad_ir(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k0_cut) {
 	NRadIR b(kin, k0_cut);
 	LepBornXX lep_born(kin);
 	LepAmmXX lep_amm(kin);
@@ -99,21 +99,21 @@ Real xs::nrad_ir(Real lambda_e, Vec3 eta, Kinematics kin, SfModel const& model, 
 	return nrad_ir_xx_base(lambda_e, eta, b, lep_born, lep_amm, had);
 }
 
-Real xs::rad(Real lambda_e, Vec3 eta, KinematicsRad kin, SfModel const& model) {
+Real xs::rad(Real lambda_e, Vec3 eta, KinematicsRad kin, SfSet const& model) {
 	Rad b(kin);
 	LepRadXX lep(kin);
 	HadRadXX had(kin, model);
 	return rad_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::rad_f(Real lambda_e, Vec3 eta, KinematicsRad kin, SfModel const& model) {
+Real xs::rad_f(Real lambda_e, Vec3 eta, KinematicsRad kin, SfSet const& model) {
 	Rad b(kin);
 	LepRadXX lep(kin);
 	HadRadFXX had(kin, model);
 	return rad_f_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics kin, SfModel const& model, Real k0_cut) {
+Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k0_cut) {
 	// The soft part of the radiative cross-section (below `k0_cut`) is bundled
 	// into the return value here.
 	Real xs_nrad_ir = nrad_ir(lambda_e, eta, kin, model, k0_cut);
@@ -121,7 +121,7 @@ Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics kin, SfModel const& model, Rea
 	return xs_nrad_ir + xs_rad_f;
 }
 
-Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfModel const& model, Real k0_cut) {
+Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k0_cut) {
 	HadXX had_0(kin, model);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
 		[&](cubature::Point<3, Real> x) {
@@ -154,7 +154,7 @@ Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfModel const& mod
 	return xs_integ.val;
 }
 
-Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfModel const& model, Real k0_cut) {
+Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k0_cut) {
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
 		[&](cubature::Point<3, Real> x) {
 			Bounds tau_b = tau_bounds(kin);

@@ -27,12 +27,12 @@ struct SfXX;
 /**
  * A type that provides structure functions.
  */
-class SfModel {
+class SfSet {
 public:
 	constant::Nucleus const target;
 
-	SfModel(constant::Nucleus target) : target(target) { }
-	virtual ~SfModel() = default;
+	SfSet(constant::Nucleus target) : target(target) { }
+	virtual ~SfSet() = default;
 
 	virtual Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	virtual Real F_UUT(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
@@ -81,12 +81,12 @@ public:
 /**
  * Computes structure functions directly from a set of TMDs and FFs.
  */
-class SfModelTmd final : public SfModel {
+class TmdSfSet final : public SfSet {
 public:
 	TmdSet const& tmd_set;
 
-	SfModelTmd(TmdSet const& tmd_set) :
-		SfModel(tmd_set.target),
+	TmdSfSet(TmdSet const& tmd_set) :
+		SfSet(tmd_set.target),
 		tmd_set(tmd_set) { };
 
 	Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
@@ -118,12 +118,12 @@ public:
  * Computes structure functions using the Gaussian approximation to more
  * efficently evaluate the integrals.
  */
-class SfModelTmdGaussian final : public SfModel {
+class GaussianTmdSfSet final : public SfSet {
 public:
-	TmdGaussianSet const& tmd_set;
+	GaussianTmdSet const& tmd_set;
 
-	SfModelTmdGaussian(TmdGaussianSet const& tmd_set) :
-		SfModel(tmd_set.target),
+	GaussianTmdSfSet(GaussianTmdSet const& tmd_set) :
+		SfSet(tmd_set.target),
 		tmd_set(tmd_set) { };
 
 	Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
@@ -151,12 +151,12 @@ public:
 	Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 };
 
-class SfModelTmdWw final : public SfModel {
+class TmdSfSetWw final : public SfSet {
 public:
-	TmdWwSet const& tmd_set;
+	WwTmdSet const& tmd_set;
 
-	SfModelTmdWw(TmdWwSet const& tmd_set) :
-		SfModel(tmd_set.target),
+	TmdSfSetWw(WwTmdSet const& tmd_set) :
+		SfSet(tmd_set.target),
 		tmd_set(tmd_set) { }
 
 	Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
@@ -184,12 +184,12 @@ public:
 	Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 };
 
-class SfModelTmdGaussianWw final : public SfModel {
+class GaussianWwTmdSfSet final : public SfSet {
 public:
-	TmdGaussianWwSet const& tmd_set;
+	GaussianWwTmdSet const& tmd_set;
 
-	SfModelTmdGaussianWw(TmdGaussianWwSet const& tmd_set) :
-		SfModel(tmd_set.target),
+	GaussianWwTmdSfSet(GaussianWwTmdSet const& tmd_set) :
+		SfSet(tmd_set.target),
 		tmd_set(tmd_set) { }
 
 	Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;

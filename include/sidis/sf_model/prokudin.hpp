@@ -13,7 +13,7 @@ namespace sf {
 namespace model {
 
 // Use data files from [2] to calculate TMDs and FFs.
-class ProkudinTmdSet final : public TmdGaussianWwSet {
+class ProkudinTmdSet final : public GaussianWwTmdSet {
 private:
 	struct Impl;
 	Impl* _impl;

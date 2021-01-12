@@ -272,14 +272,14 @@ struct WW::Impl {
 };
 
 WW::WW(WW&& other) noexcept :
-	SfModel(Nucleus::P),
+	SfSet(Nucleus::P),
 	_impl(std::exchange(other._impl, nullptr)) { }
 WW& WW::operator=(WW&& other) noexcept {
 	std::swap(_impl, other._impl);
 	return *this;
 }
 
-WW::WW() : SfModel(Nucleus::P) {
+WW::WW() : SfSet(Nucleus::P) {
 	_impl = new Impl();
 }
 

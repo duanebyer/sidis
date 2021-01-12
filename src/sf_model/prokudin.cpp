@@ -257,7 +257,7 @@ struct ProkudinTmdSet::Impl {
 };
 
 ProkudinTmdSet::ProkudinTmdSet() :
-	TmdGaussianWwSet(
+	GaussianWwTmdSet(
 		6,
 		constant::Nucleus::P,
 		// `mean_f1`.
@@ -296,7 +296,7 @@ ProkudinTmdSet::ProkudinTmdSet() :
 	_impl(new Impl()) { }
 
 ProkudinTmdSet::ProkudinTmdSet(ProkudinTmdSet&& other) noexcept :
-	TmdGaussianWwSet(
+	GaussianWwTmdSet(
 		other.flavor_count,
 		other.target,
 		other.mean_f1,

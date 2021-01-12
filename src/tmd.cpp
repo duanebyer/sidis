@@ -110,7 +110,7 @@ Real TmdSet::E_tilde(Hadron, unsigned, Real, Real, Real) const {
 }
 
 // Gaussian approximation.
-TmdGaussianSet::TmdGaussianSet(
+GaussianTmdSet::GaussianTmdSet(
 	unsigned flavor_count,
 	constant::Nucleus target,
 	Real mean_f1,
@@ -175,308 +175,308 @@ TmdGaussianSet::TmdGaussianSet(
 	mean_Gperp_tilde(mean_Gperp_tilde),
 	mean_E_tilde(mean_E_tilde) { }
 
-Real TmdGaussianSet::xf1(unsigned, Real, Real) const {
+Real GaussianTmdSet::xf1(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xf1Tperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xf1Tperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xfT(unsigned, Real, Real) const {
+Real GaussianTmdSet::xfT(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xfperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xfperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xfLperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xfLperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xfTperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xfTperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xg1(unsigned, Real, Real) const {
+Real GaussianTmdSet::xg1(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xg1Tperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xg1Tperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xgT(unsigned, Real, Real) const {
+Real GaussianTmdSet::xgT(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xgperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xgperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xgLperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xgLperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xgTperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xgTperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xh1(unsigned, Real, Real) const {
+Real GaussianTmdSet::xh1(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xh1perp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xh1perp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xh1Lperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xh1Lperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xh1Tperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xh1Tperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xh(unsigned, Real, Real) const {
+Real GaussianTmdSet::xh(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xhL(unsigned, Real, Real) const {
+Real GaussianTmdSet::xhL(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xhT(unsigned, Real, Real) const {
+Real GaussianTmdSet::xhT(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xhTperp(unsigned, Real, Real) const {
+Real GaussianTmdSet::xhTperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xe(unsigned, Real, Real) const {
+Real GaussianTmdSet::xe(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xeL(unsigned, Real, Real) const {
+Real GaussianTmdSet::xeL(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xeT(unsigned, Real, Real) const {
+Real GaussianTmdSet::xeT(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianSet::xeTperp(unsigned, Real, Real) const {
-	return 0.;
-}
-
-Real TmdGaussianSet::D1(Hadron, unsigned, Real, Real) const {
-	return 0.;
-}
-Real TmdGaussianSet::H1perp(Hadron, unsigned, Real, Real) const {
-	return 0.;
-}
-Real TmdGaussianSet::Dperp_tilde(Hadron, unsigned, Real, Real) const {
-	return 0.;
-}
-Real TmdGaussianSet::H_tilde(Hadron, unsigned, Real, Real) const {
-	return 0.;
-}
-Real TmdGaussianSet::Gperp_tilde(Hadron, unsigned, Real, Real) const {
-	return 0.;
-}
-Real TmdGaussianSet::E_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianTmdSet::xeTperp(unsigned, Real, Real) const {
 	return 0.;
 }
 
-Real TmdGaussianSet::xf1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::D1(Hadron, unsigned, Real, Real) const {
+	return 0.;
+}
+Real GaussianTmdSet::H1perp(Hadron, unsigned, Real, Real) const {
+	return 0.;
+}
+Real GaussianTmdSet::Dperp_tilde(Hadron, unsigned, Real, Real) const {
+	return 0.;
+}
+Real GaussianTmdSet::H_tilde(Hadron, unsigned, Real, Real) const {
+	return 0.;
+}
+Real GaussianTmdSet::Gperp_tilde(Hadron, unsigned, Real, Real) const {
+	return 0.;
+}
+Real GaussianTmdSet::E_tilde(Hadron, unsigned, Real, Real) const {
+	return 0.;
+}
+
+Real GaussianTmdSet::xf1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xf1(fl, x, Q_sq)*gaussian(k_perp_sq, mean_f1);
 }
-Real TmdGaussianSet::xf1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xf1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xf1Tperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_f1Tperp);
 }
-Real TmdGaussianSet::xfT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xfT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xfT(fl, x, Q_sq)*gaussian(k_perp_sq, mean_fT);
 }
-Real TmdGaussianSet::xfperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xfperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xfperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_fperp);
 }
-Real TmdGaussianSet::xfLperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xfLperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xfLperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_fLperp);
 }
-Real TmdGaussianSet::xfTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xfTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xfTperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_fTperp);
 }
-Real TmdGaussianSet::xg1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xg1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xg1(fl, x, Q_sq)*gaussian(k_perp_sq, mean_g1);
 }
-Real TmdGaussianSet::xg1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xg1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xg1Tperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_g1Tperp);
 }
-Real TmdGaussianSet::xgT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xgT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xgT(fl, x, Q_sq)*gaussian(k_perp_sq, mean_gT);
 }
-Real TmdGaussianSet::xgperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xgperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xgperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_gperp);
 }
-Real TmdGaussianSet::xgLperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xgLperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xgLperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_gLperp);
 }
-Real TmdGaussianSet::xgTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xgTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xgTperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_gTperp);
 }
-Real TmdGaussianSet::xh1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xh1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xh1(fl, x, Q_sq)*gaussian(k_perp_sq, mean_h1);
 }
-Real TmdGaussianSet::xh1perp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xh1perp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xh1perp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_h1perp);
 }
-Real TmdGaussianSet::xh1Lperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xh1Lperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xh1Lperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_h1Lperp);
 }
-Real TmdGaussianSet::xh1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xh1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xh1Tperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_h1Tperp);
 }
-Real TmdGaussianSet::xh(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xh(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xh(fl, x, Q_sq)*gaussian(k_perp_sq, mean_h);
 }
-Real TmdGaussianSet::xhL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xhL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xhL(fl, x, Q_sq)*gaussian(k_perp_sq, mean_hL);
 }
-Real TmdGaussianSet::xhT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xhT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xhT(fl, x, Q_sq)*gaussian(k_perp_sq, mean_hT);
 }
-Real TmdGaussianSet::xhTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xhTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xhTperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_hTperp);
 }
-Real TmdGaussianSet::xe(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xe(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xe(fl, x, Q_sq)*gaussian(k_perp_sq, mean_e);
 }
-Real TmdGaussianSet::xeL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xeL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xeL(fl, x, Q_sq)*gaussian(k_perp_sq, mean_eL);
 }
-Real TmdGaussianSet::xeT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xeT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xeT(fl, x, Q_sq)*gaussian(k_perp_sq, mean_eT);
 }
-Real TmdGaussianSet::xeTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real GaussianTmdSet::xeTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xeTperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_eTperp);
 }
 
-Real TmdGaussianSet::D1(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::D1(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return D1(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_D1);
 }
-Real TmdGaussianSet::H1perp(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::H1perp(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return H1perp(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_H1perp);
 }
-Real TmdGaussianSet::Dperp_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::Dperp_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return Dperp_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_Dperp_tilde);
 }
-Real TmdGaussianSet::H_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::H_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return H_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_H_tilde);
 }
-Real TmdGaussianSet::Gperp_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::Gperp_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return Gperp_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_Gperp_tilde);
 }
-Real TmdGaussianSet::E_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::E_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return E_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_E_tilde);
 }
 
 // WW-type approximation.
-Real TmdWwSet::xf1(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xf1(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xf1Tperp(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xf1Tperp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xg1(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xg1(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xg1Tperp(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xg1Tperp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xh1(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xh1(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xh1perp(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xh1perp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xh1Lperp(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xh1Lperp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xh1Tperp(unsigned, Real, Real, Real) const {
-	return 0.;
-}
-
-Real TmdWwSet::D1(Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
-}
-Real TmdWwSet::H1perp(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::xh1Tperp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
 
-Real TmdWwSet::xf1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::D1(Hadron, unsigned, Real, Real, Real) const {
+	return 0.;
+}
+Real WwTmdSet::H1perp(Hadron, unsigned, Real, Real, Real) const {
+	return 0.;
+}
+
+Real WwTmdSet::xf1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	Real M = mass(target);
 	return k_perp_sq/(2.*M*M)*xf1Tperp(fl, x, Q_sq, k_perp_sq);
 }
-Real TmdWwSet::xg1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xg1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	Real M = mass(target);
 	return k_perp_sq/(2.*M*M)*xg1Tperp(fl, x, Q_sq, k_perp_sq);
 }
-Real TmdWwSet::xh1perpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xh1perpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	Real M = mass(target);
 	return k_perp_sq/(2.*M*M)*xh1perp(fl, x, Q_sq, k_perp_sq);
 }
-Real TmdWwSet::xh1LperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xh1LperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	Real M = mass(target);
 	return k_perp_sq/(2.*M*M)*xh1Lperp(fl, x, Q_sq, k_perp_sq);
 }
-Real TmdWwSet::xh1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xh1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	Real M = mass(target);
 	return k_perp_sq/(2.*M*M)*xh1Tperp(fl, x, Q_sq, k_perp_sq);
 }
 
-Real TmdWwSet::xfT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xfT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return -xf1TperpM1(fl, x, Q_sq, k_perp_sq)/x;
 }
-Real TmdWwSet::xfperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xfperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xf1(fl, x, Q_sq, k_perp_sq)/x;
 }
-Real TmdWwSet::xfLperp(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xfLperp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xfTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xfTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xf1Tperp(fl, x, Q_sq, k_perp_sq)/x;
 }
-Real TmdWwSet::xgT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xgT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xg1TperpM1(fl, x, Q_sq, k_perp_sq)/x;
 }
-Real TmdWwSet::xgperp(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xgperp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xgLperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xgLperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xg1(fl, x, Q_sq, k_perp_sq)/x;
 }
-Real TmdWwSet::xgTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xgTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return xg1Tperp(fl, x, Q_sq, k_perp_sq)/x;
 }
-Real TmdWwSet::xh(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xh(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return -2.*xh1perpM1(fl, x, Q_sq, k_perp_sq)/x;
 }
-Real TmdWwSet::xhL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xhL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return -2.*xh1LperpM1(fl, x, Q_sq, k_perp_sq)/x;
 }
-Real TmdWwSet::xhT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xhT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return -(xh1(fl, x, Q_sq, k_perp_sq) + xh1TperpM1(fl, x, Q_sq, k_perp_sq))/x;
 }
-Real TmdWwSet::xhTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
+Real WwTmdSet::xhTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
 	return (xh1(fl, x, Q_sq, k_perp_sq) - xh1TperpM1(fl, x, Q_sq, k_perp_sq))/x;
 }
-Real TmdWwSet::xe(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xe(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xeL(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xeL(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xeT(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xeT(unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::xeTperp(unsigned, Real, Real, Real) const {
+Real WwTmdSet::xeTperp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
 
-Real TmdWwSet::Dperp_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::Dperp_tilde(Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::H_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::H_tilde(Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::Gperp_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::Gperp_tilde(Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdWwSet::E_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::E_tilde(Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
 
 // Gaussian and WW-type approximation combined.
-TmdGaussianWwSet::TmdGaussianWwSet(
+GaussianWwTmdSet::GaussianWwTmdSet(
 	unsigned flavor_count,
 	constant::Nucleus target,
 	Real mean_f1,
@@ -497,7 +497,7 @@ TmdGaussianWwSet::TmdGaussianWwSet(
 	Real mean_H1perp) :
 	// We choose infinity for the width of the structure functions that are to
 	// be neglected.
-	TmdGaussianSet(
+	GaussianTmdSet(
 		flavor_count,
 		target,
 		mean_f1,
@@ -545,35 +545,35 @@ TmdGaussianWwSet::TmdGaussianWwSet(
 		// `mean_E_tilde`
 		INF) { }
 
-Real TmdGaussianWwSet::xf1(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xf1(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xf1Tperp(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xf1Tperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xg1(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xg1(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xg1Tperp(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xg1Tperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xh1(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xh1(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xh1perp(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xh1perp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xh1Lperp(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xh1Lperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xh1Tperp(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xh1Tperp(unsigned, Real, Real) const {
 	return 0.;
 }
 
-Real TmdGaussianWwSet::D1(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::D1(Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::H1perp(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::H1perp(Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
 
@@ -581,86 +581,86 @@ Real TmdGaussianWwSet::H1perp(Hadron, unsigned, Real, Real) const {
 // with the Gaussian approximation, and then using Ww-type approximation. This
 // is done to avoid contradictions between these two approximations (see section
 // 4.4 of [2]).
-Real TmdGaussianWwSet::xf1TperpM1(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xf1TperpM1(unsigned fl, Real x, Real Q_sq) const {
 	Real M = mass(target);
 	return mean_f1Tperp/(2.*M*M)*xf1Tperp(fl, x, Q_sq);
 }
-Real TmdGaussianWwSet::xg1TperpM1(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xg1TperpM1(unsigned fl, Real x, Real Q_sq) const {
 	Real M = mass(target);
 	return mean_g1Tperp/(2.*M*M)*xg1Tperp(fl, x, Q_sq);
 }
-Real TmdGaussianWwSet::xh1perpM1(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xh1perpM1(unsigned fl, Real x, Real Q_sq) const {
 	Real M = mass(target);
 	return mean_h1perp/(2.*M*M)*xh1perp(fl, x, Q_sq);
 }
-Real TmdGaussianWwSet::xh1LperpM1(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xh1LperpM1(unsigned fl, Real x, Real Q_sq) const {
 	Real M = mass(target);
 	return mean_h1Lperp/(2.*M*M)*xh1Lperp(fl, x, Q_sq);
 }
-Real TmdGaussianWwSet::xh1TperpM1(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xh1TperpM1(unsigned fl, Real x, Real Q_sq) const {
 	Real M = mass(target);
 	return mean_h1Tperp/(2.*M*M)*xh1Tperp(fl, x, Q_sq);
 }
 
-Real TmdGaussianWwSet::xfT(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xfT(unsigned fl, Real x, Real Q_sq) const {
 	return -xf1TperpM1(fl, x, Q_sq)/x;
 }
-Real TmdGaussianWwSet::xfperp(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xfperp(unsigned fl, Real x, Real Q_sq) const {
 	return xf1(fl, x, Q_sq)/x;
 }
-Real TmdGaussianWwSet::xfLperp(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xfLperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xfTperp(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xfTperp(unsigned fl, Real x, Real Q_sq) const {
 	return xf1Tperp(fl, x, Q_sq)/x;
 }
-Real TmdGaussianWwSet::xgT(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xgT(unsigned fl, Real x, Real Q_sq) const {
 	return xg1TperpM1(fl, x, Q_sq)/x;
 }
-Real TmdGaussianWwSet::xgperp(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xgperp(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xgLperp(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xgLperp(unsigned fl, Real x, Real Q_sq) const {
 	return xg1(fl, x, Q_sq)/x;
 }
-Real TmdGaussianWwSet::xgTperp(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xgTperp(unsigned fl, Real x, Real Q_sq) const {
 	return xg1Tperp(fl, x, Q_sq)/x;
 }
-Real TmdGaussianWwSet::xh(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xh(unsigned fl, Real x, Real Q_sq) const {
 	return -2.*xh1perpM1(fl, x, Q_sq)/x;
 }
-Real TmdGaussianWwSet::xhL(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xhL(unsigned fl, Real x, Real Q_sq) const {
 	return -2.*xh1LperpM1(fl, x, Q_sq)/x;
 }
-Real TmdGaussianWwSet::xhT(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xhT(unsigned fl, Real x, Real Q_sq) const {
 	return -(xh1(fl, x, Q_sq) + xh1TperpM1(fl, x, Q_sq))/x;
 }
-Real TmdGaussianWwSet::xhTperp(unsigned fl, Real x, Real Q_sq) const {
+Real GaussianWwTmdSet::xhTperp(unsigned fl, Real x, Real Q_sq) const {
 	return (xh1(fl, x, Q_sq) - xh1TperpM1(fl, x, Q_sq))/x;
 }
-Real TmdGaussianWwSet::xe(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xe(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xeL(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xeL(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xeT(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xeT(unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::xeTperp(unsigned, Real, Real) const {
+Real GaussianWwTmdSet::xeTperp(unsigned, Real, Real) const {
 	return 0.;
 }
 
-Real TmdGaussianWwSet::Dperp_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::Dperp_tilde(Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::H_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::H_tilde(Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::Gperp_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::Gperp_tilde(Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real TmdGaussianWwSet::E_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::E_tilde(Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
 

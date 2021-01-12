@@ -55,7 +55,7 @@ public:
 	virtual Real E_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
 };
 
-class TmdGaussianSet : public TmdSet {
+class GaussianTmdSet : public TmdSet {
 public:
 	// TODO: For now, the widths of the Gaussian approximations are required to
 	// be independent of flavor, but support for flavor-dependent widths may be
@@ -92,7 +92,7 @@ public:
 	Real const mean_Gperp_tilde;
 	Real const mean_E_tilde;
 
-	TmdGaussianSet(
+	GaussianTmdSet(
 		unsigned flavor_count,
 		constant::Nucleus target,
 		Real mean_f1,
@@ -125,7 +125,7 @@ public:
 		Real mean_H_tilde,
 		Real mean_Gperp_tilde,
 		Real mean_E_tilde);
-	virtual ~TmdGaussianSet() = default;
+	virtual ~GaussianTmdSet() = default;
 
 	// Reduced TMDs (without `k_perp` dependence).
 	virtual Real xf1(unsigned fl, Real x, Real Q_sq) const;
@@ -194,15 +194,15 @@ public:
 	Real E_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 };
 
-class TmdWwSet : public TmdSet {
+class WwTmdSet : public TmdSet {
 public:
-	TmdWwSet(
+	WwTmdSet(
 		unsigned flavor_count,
 		constant::Nucleus target) :
 		TmdSet(
 			flavor_count,
 			target) { }
-	virtual ~TmdWwSet() = default;
+	virtual ~WwTmdSet() = default;
 
 	virtual Real xf1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	virtual Real xf1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
@@ -245,9 +245,9 @@ public:
 	Real E_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 };
 
-class TmdGaussianWwSet : public TmdGaussianSet {
+class GaussianWwTmdSet : public GaussianTmdSet {
 public:
-	TmdGaussianWwSet(
+	GaussianWwTmdSet(
 		unsigned flavor_count,
 		constant::Nucleus target,
 		Real mean_f1,
@@ -266,7 +266,7 @@ public:
 		Real mean_hTperp,
 		Real mean_D1,
 		Real mean_H1perp);
-	virtual ~TmdGaussianWwSet() = default;
+	virtual ~GaussianWwTmdSet() = default;
 
 	virtual Real xf1(unsigned fl, Real x, Real Q_sq) const;
 	virtual Real xf1Tperp(unsigned fl, Real x, Real Q_sq) const;

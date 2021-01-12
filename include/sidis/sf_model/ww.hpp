@@ -15,7 +15,7 @@ namespace model {
 /**
  * Wandzura-Wilczek approximation to the structure functions [2].
  */
-class WW final : public SfModel {
+class WW final : public SfSet {
 	struct Impl;
 	Impl* _impl;
 

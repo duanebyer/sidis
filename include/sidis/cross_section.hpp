@@ -57,21 +57,21 @@ namespace had {
 	struct HadRadFXX;
 }
 namespace sf {
-	struct SfModel;
+	struct SfSet;
 }
 
 namespace xs {
 
-Real born(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfModel const& model); Real amm(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfModel const& model);
-Real nrad_ir(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfModel const& model, Real k0_cut=constant::INF);
-Real nrad(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfModel const& model, Real k0_cut=constant::INF);
-Real rad_f(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::SfModel const& model);
-Real rad(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::SfModel const& model);
+Real born(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model); Real amm(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model);
+Real nrad_ir(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k0_cut=constant::INF);
+Real nrad(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k0_cut=constant::INF);
+Real rad_f(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::SfSet const& model);
+Real rad(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::SfSet const& model);
 
 // TODO: Include a precision argument, which determines how accurately the
 // integrated cross-section is to be calculated.
-Real rad_f_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfModel const& model, Real k0_cut=constant::INF);
-Real rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfModel const& model, Real k0_cut=constant::INF);
+Real rad_f_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k0_cut=constant::INF);
+Real rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k0_cut=constant::INF);
 
 // Various corrections to Born cross-section.
 Real delta_vert_rad_ir(kin::Kinematics kin, Real k0_cut=constant::INF);
