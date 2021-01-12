@@ -1,4 +1,4 @@
-find_package(ROOT 6.16 COMPONENTS Core Foam Physics Tree CONFIG REQUIRED)
+find_package(ROOT 6.16 REQUIRED COMPONENTS Core Foam Physics Tree CONFIG)
 add_executable(sidisgen main.cpp params.hpp params.cpp utility.hpp utility.cpp)
 target_link_libraries(sidisgen PRIVATE
 	sidis
