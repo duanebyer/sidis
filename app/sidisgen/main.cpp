@@ -82,6 +82,9 @@ struct XsNRad : public TFoamIntegrand {
 		}
 		Real jacobian;
 		kin::Kinematics kin = GetKinematics(vec, &jacobian);
+		if (!kin::valid(kin)) {
+			return 0.;
+		}
 		math::Vec3 eta = frame::hadron_from_target(kin) * params.target_pol;
 		// TODO: Evaluate when it is a good approximation to say that
 		// `nrad ~ nrad_ir`. This happens because for small `k0_cut`, the
@@ -146,6 +149,9 @@ struct XsRad : public TFoamIntegrand {
 		Real jacobian;
 		kin::KinematicsRad kin_rad = GetKinematics(vec, &jacobian);
 		kin::Kinematics kin = kin_rad.project();
+		if (!kin::valid(kin_rad)) {
+			return 0.;
+		}
 		math::Vec3 eta = frame::hadron_from_target(kin) * params.target_pol;
 		Real xs = xs::rad(params.beam_pol, eta, kin_rad, ww);
 		if (std::isnan(xs)) {
