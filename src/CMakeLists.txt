@@ -33,11 +33,29 @@ foreach(HEADER ${HEADER_LIST_GENERATE})
 	list(APPEND HEADER_LIST_DIST "${Sidis_BINARY_DIR}/include/${HEADER}")
 endforeach(HEADER)
 
+# Check that the `cog` code generation utility is installed on the system.
+if(${CMAKE_VERSION} VERSION_LESS 3.12)
+	find_package(PythonInterp 2.7 REQUIRED)
+	find_package(PythonLibs 2.7 REQUIRED)
+	set(Python_EXECUTABLE PYTHON_EXECUTABLE)
+else()
+	find_package(Python REQUIRED COMPONENTS Interpreter Development)
+endif()
+execute_process(
+	COMMAND ${Python_EXECUTABLE} -c "import cogapp"
+	COMMAND_ECHO STDOUT
+	RESULT_VARIABLE COG_FOUND
+	OUTPUT_QUIET
+	ERROR_QUIET)
+if(NOT COG_FOUND EQUAL "0")
+	message(FATAL_ERROR "Couldn't find required Python module `cogapp`. Try `pip install cogapp`.")
+endif()
+
 # Generated header files are processed through the `cog` utility.
 foreach(HEADER ${HEADER_LIST_GENERATE})
 	add_custom_command(
 		OUTPUT "${Sidis_BINARY_DIR}/include/${HEADER}"
-		COMMAND cog ARGS -d
+		COMMAND ${Python_EXECUTABLE} ARGS -m cogapp -d
 			-I "${Sidis_BINARY_DIR}/cog"
 			-o "${Sidis_BINARY_DIR}/include/${HEADER}"
 			"${Sidis_SOURCE_DIR}/include/${HEADER}.in"
