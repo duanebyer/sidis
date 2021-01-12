@@ -27,7 +27,9 @@ def camel_to_snake(name):
 def indent(string, n=1):
     tabs = "\t" * n
     end = ""
-    if string[-1] == "\n":
+    if len(string) == 0:
+        return tabs
+    elif string[-1] == "\n":
         end = "\n"
         string = string[:-1]
     result = tabs + string.replace("\n", "\n" + tabs) + end
@@ -200,7 +202,7 @@ class Struct(object):
         self.constructor_compose = []
         self.constructor_decompose = []
         self.constructor_delegate = []
-        self.constructor_base = None
+        self.constructor_base = []
         self.constructor_fields = None
     def name(self):
         return struct_name(self.base_name, self.pol)
@@ -217,8 +219,8 @@ class Struct(object):
             result += indent(cons.declare())
         for cons in self.constructor_delegate:
             result += indent(cons.declare())
-        if self.constructor_base is not None:
-            result += indent(self.constructor_base.declare())
+        for cons in self.constructor_base:
+            result += indent(cons.declare())
         if self.constructor_fields is not None:
             result += indent(self.constructor_fields.declare())
         result += "};\n"
@@ -231,8 +233,8 @@ class Struct(object):
             result += cons.define()
         for cons in self.constructor_delegate:
             result += cons.define()
-        if self.constructor_base is not None:
-            result += self.constructor_base.define()
+        for cons in self.constructor_base:
+            result += cons.define()
         if self.constructor_fields is not None:
             result += self.constructor_fields.define()
         return result
@@ -246,7 +248,8 @@ class Struct(object):
         self.constructor_delegate.append(
             ConstructorDelegate(self, child_pols, args))
     def add_constructor_base(self, args):
-        self.constructor_base = ConstructorBase(self, args)
+        self.constructor_base.append(
+            ConstructorBase(self, args))
     def add_constructor_fields(self):
         self.constructor_fields = ConstructorFields(self)
 
@@ -257,12 +260,13 @@ def generate_structs_pol(
         beam_pols,
         target_pols,
         base_fields,
-        constructor_args=None,
+        constructors=None,
         constructor_fields=None,
         generate_target_p=None):
-    args = None
-    if constructor_args is not None:
-        args = [Arg(arg[0], arg[1]) for arg in constructor_args]
+    constructor_args = []
+    if constructors is not None:
+        for args in constructors:
+            constructor_args.append([Arg(arg[0], arg[1]) for arg in args])
     structs = []
     # Structs with defined beam and target polarizations.
     for beam_pol in beam_pols:
@@ -276,7 +280,7 @@ def generate_structs_pol(
             if generate_target_p and target_pol != "U":
                 struct.add_constructor_decompose(["X", "P"])
             struct.add_constructor_decompose(["X", "X"])
-            if constructor_args is not None:
+            for args in constructor_args:
                 struct.add_constructor_base(args)
             structs.append(struct)
     # Unknown target polarization structs.
@@ -289,7 +293,7 @@ def generate_structs_pol(
             struct.add_constructor_decompose([beam_pol, "X"])
             struct.add_constructor_decompose(["X", "P"])
             struct.add_constructor_decompose(["X", "X"])
-            if constructor_args is not None:
+            for args in constructor_args:
                 struct.add_constructor_delegate(
                     mask_find_all(pol, [beam_pol], target_pols),
                     args)
@@ -302,7 +306,7 @@ def generate_structs_pol(
         if generate_target_p:
             struct.add_constructor_compose([[beam_pol, "U"], [beam_pol, "P"]])
         struct.add_constructor_decompose(["X", "X"])
-        if constructor_args is not None:
+        for args in constructor_args:
             struct.add_constructor_delegate(
                 mask_find_all(pol, [beam_pol], target_pols),
                 args)
@@ -316,7 +320,7 @@ def generate_structs_pol(
         if generate_target_p and target_pol != "U":
             struct.add_constructor_decompose(["X", "P"])
         struct.add_constructor_decompose(["X", "X"])
-        if constructor_args is not None:
+        for args in constructor_args:
             struct.add_constructor_delegate(
                 mask_find_all(pol, beam_pols, [target_pol]),
                 args)
@@ -331,7 +335,7 @@ def generate_structs_pol(
         struct.add_constructor_compose(
             mask_find_all(["X", "P"], ["X"], target_pols))
         struct.add_constructor_decompose(["X", "X"])
-        if constructor_args is not None:
+        for args in constructor_args:
             struct.add_constructor_delegate(
                 mask_find_all(["X", "P"], beam_pols, target_pols),
                 args)
@@ -349,7 +353,7 @@ def generate_structs_pol(
             mask_find_all(["X", "X"], ["X"], ["U", "P"]))
     struct.add_constructor_compose(
         mask_find_all(["X", "X"], ["X"], target_pols))
-    if constructor_args is not None:
+    for args in constructor_args:
         struct.add_constructor_delegate(
             mask_find_all(["X", "X"], beam_pols, target_pols),
             args)
@@ -363,6 +367,7 @@ def generate_structs_pol(
     # Output the structs.
     for struct in structs:
         cog.out(struct.declare())
+    cog.out("\n")
     for struct in structs:
         cog.out(struct.define())
         cog.out("\n")
