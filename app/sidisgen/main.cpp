@@ -252,6 +252,8 @@ int command_generate(std::string params_file_name) {
 	unsigned N_gen_nrad = 0;
 	unsigned N_gen_rad = 0;
 
+	TRandom3 random(0);
+
 	TFile event_file(params.event_file_name.c_str(), "RECREATE");
 	TFile foam_file(params.foam_file_name.c_str(), "RECREATE");
 	if (event_file.IsZombie()) {
@@ -266,9 +268,9 @@ int command_generate(std::string params_file_name) {
 			<< "'." << std::endl;
 		return ERROR_FILE_NOT_CREATED;
 	}
-	TRandom3 random(0);
 
 	std::cout << "Non-radiative FOAM initialization." << std::endl;
+	foam_file.cd();
 	TFoam foam_nrad("FoamNRad");
 	XsNRad xs_nrad(params);
 	foam_nrad.SetChat(0);
@@ -277,10 +279,10 @@ int command_generate(std::string params_file_name) {
 	foam_nrad.SetPseRan(&random);
 	foam_nrad.SetnSampl(N_init_nrad);
 	foam_nrad.Initialize();
-	foam_file.cd();
 	foam_nrad.Write();
 
 	std::cout << "Radiative FOAM initialization." << std::endl;
+	foam_file.cd();
 	TFoam foam_rad("FoamRad");
 	XsRad xs_rad(params);
 	foam_rad.SetChat(0);
@@ -289,9 +291,9 @@ int command_generate(std::string params_file_name) {
 	foam_rad.SetPseRan(&random);
 	foam_rad.SetnSampl(N_init_rad);
 	foam_rad.Initialize();
-	foam_file.cd();
 	foam_rad.Write();
 
+	event_file.cd();
 	TTree events("Events", "Events");
 	Bool_t is_rad;
 	Double_t weight;
@@ -426,11 +428,11 @@ int command_generate(std::string params_file_name) {
 	foam_rad.GetIntegMC(total_rad, total_rad_err);
 
 	// Write total cross-sections to file.
+	event_file.cd();
 	TParameter<Double_t> p_xs_total_nrad("xs_total_nrad", total_nrad);
 	TParameter<Double_t> p_xs_total_nrad_err("xs_total_nrad_err", total_nrad_err);
 	TParameter<Double_t> p_xs_total_rad("xs_total_rad", total_rad);
 	TParameter<Double_t> p_xs_total_rad_err("xs_total_rad_err", total_rad_err);
-	event_file.cd();
 	p_xs_total_nrad.Write();
 	p_xs_total_nrad_err.Write();
 	p_xs_total_rad.Write();
