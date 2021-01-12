@@ -15,7 +15,7 @@ namespace model {
 /**
  * Wandzura-Wilczek approximation to the structure functions [2].
  */
-class WW final : public Model {
+class WW final : public SfModel {
 	struct Impl;
 	Impl* _impl;
 
@@ -58,7 +58,6 @@ public:
 	Real xf1TperpM1(constant::Quark q, Real x, Real Q_sq) const;
 	Real xg1(constant::Quark q, Real x, Real Q_sq) const;
 	Real xgT(constant::Quark q, Real x, Real Q_sq) const;
-	Real xg1TperpM1(constant::Quark q, Real x, Real Q_sq) const;
 	Real xh1(constant::Quark q, Real x, Real Q_sq) const;
 	Real xh1M1(constant::Quark q, Real x, Real Q_sq) const;
 	Real xh1LperpM1(constant::Quark q, Real x, Real Q_sq) const;

@@ -3,6 +3,7 @@
 
 #include "sidis/constant.hpp"
 #include "sidis/numeric.hpp"
+#include "sidis/tmd.hpp"
 
 namespace sidis {
 namespace sf {
@@ -26,13 +27,12 @@ struct SfXX;
 /**
  * A type that provides structure functions.
  */
-class Model {
+class SfModel {
 public:
-
 	constant::Nucleus const target;
 
-	Model(constant::Nucleus target) : target(target) { }
-	virtual ~Model() = default;
+	SfModel(constant::Nucleus target) : target(target) { }
+	virtual ~SfModel() = default;
 
 	virtual Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	virtual Real F_UUT(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
@@ -58,24 +58,163 @@ public:
 	virtual Real F_LT_cos_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	virtual Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 
-	virtual SfUU sf_uu(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfUL sf_ul(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfUT sf_ut(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfLU sf_lu(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfLL sf_ll(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfLT sf_lt(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfUU sf_uu(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfUL sf_ul(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfUT sf_ut(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfLU sf_lu(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfLL sf_ll(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfLT sf_lt(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 
-	virtual SfXU sf_xu(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfXL sf_xl(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfXT sf_xt(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfUP sf_up(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfLP sf_lp(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfUX sf_ux(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfLX sf_lx(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfXU sf_xu(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfXL sf_xl(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfXT sf_xt(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfUP sf_up(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfLP sf_lp(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfUX sf_ux(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfLX sf_lx(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 
-	virtual SfXP sf_xp(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	virtual SfXX sf_xx(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfXP sf_xp(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	SfXX sf_xx(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	SfXX sf(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+};
+
+/**
+ * Computes structure functions directly from a set of TMDs and FFs.
+ */
+class SfModelTmd final : public SfModel {
+public:
+	TmdSet const& tmd_set;
+
+	SfModelTmd(TmdSet const& tmd_set) :
+		SfModel(tmd_set.target),
+		tmd_set(tmd_set) { };
+
+	Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UUT(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_UL_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UL_sin_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_UTL_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UTT_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_3phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phih_p_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LU_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LL_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LT_cos_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+};
+
+/**
+ * Computes structure functions using the Gaussian approximation to more
+ * efficently evaluate the integrals.
+ */
+class SfModelTmdGaussian final : public SfModel {
+public:
+	TmdGaussianSet const& tmd_set;
+
+	SfModelTmdGaussian(TmdGaussianSet const& tmd_set) :
+		SfModel(tmd_set.target),
+		tmd_set(tmd_set) { };
+
+	Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UUT(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_UL_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UL_sin_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_UTL_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UTT_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_3phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phih_p_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LU_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LL_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LT_cos_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+};
+
+class SfModelTmdWw final : public SfModel {
+public:
+	TmdWwSet const& tmd_set;
+
+	SfModelTmdWw(TmdWwSet const& tmd_set) :
+		SfModel(tmd_set.target),
+		tmd_set(tmd_set) { }
+
+	Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UUT(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_UL_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UL_sin_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_UTL_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UTT_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_3phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phih_p_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LU_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LL_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LT_cos_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+};
+
+class SfModelTmdGaussianWw final : public SfModel {
+public:
+	TmdGaussianWwSet const& tmd_set;
+
+	SfModelTmdGaussianWw(TmdGaussianWwSet const& tmd_set) :
+		SfModel(tmd_set.target),
+		tmd_set(tmd_set) { }
+
+	Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UUT(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_UL_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UL_sin_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_UTL_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UTT_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_3phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phih_p_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LU_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LL_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	Real F_LT_cos_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 };
 
 /*[[[cog

@@ -15,7 +15,7 @@
 #include "sidis/extra/math.hpp"
 
 #define SF_MODEL_DIR "sidis/sf_model"
-#define WW_DIR "ww"
+#define WW_DIR "prokudin"
 
 using namespace sidis;
 using namespace sidis::constant;
@@ -272,14 +272,14 @@ struct WW::Impl {
 };
 
 WW::WW(WW&& other) noexcept :
-	Model(Nucleus::P),
+	SfModel(Nucleus::P),
 	_impl(std::exchange(other._impl, nullptr)) { }
 WW& WW::operator=(WW&& other) noexcept {
 	std::swap(_impl, other._impl);
 	return *this;
 }
 
-WW::WW() : Model(Nucleus::P) {
+WW::WW() : SfModel(Nucleus::P) {
 	_impl = new Impl();
 }
 
@@ -375,9 +375,12 @@ Real WW::F_UT_sin_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq
 	Real l_1 = lambda(z, SIVERS_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	// Approximate width with `PRETZ_MEAN_K_PERP_SQ`.
 	Real l_2 = lambda(z, PRETZ_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
+	// The paragraph following [2.7.8a] has a mistake in the WW-type
+	// approximation linking `h1TM1 + h1TperpM1` with `h1TperpM2`, due to a
+	// missing factor of 2.
 	return 2. * M * ph_t_sq / Q * (
 		SIVERS_MEAN_K_PERP_SQ * sq(z / l_1) * G(ph_t_sq, l_1) * result_1
-		- 4. * M * mh * sq(z / l_2) * G(ph_t_sq, l_2) * result_2);
+		- 2. * M * mh * sq(z / l_2) * G(ph_t_sq, l_2) * result_2);
 }
 Real WW::F_UT_sin_3phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.10a].
@@ -403,7 +406,7 @@ Real WW::F_UT_sin_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const 
 			* xh1M1(q, x, Q_sq)
 			* H1perpM1(h, q, z, Q_sq);
 	}
-	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
+	Real l = lambda(z, PRETZ_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 8. * sq(M) * mh * sq(z) / (Q * l) * (1. - ph_t_sq / l)
 		* G(ph_t_sq, l) * result;
 }
