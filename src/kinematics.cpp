@@ -605,3 +605,41 @@ Bounds kin::R_bounds_hard(Kinematics kin, Real tau, Real phi_k, Real k0_cut) {
 	}
 }
 
+// Check whether within kinematic bounds.
+bool kin::valid(Kinematics kin) {
+	if (!(kin.S > 0.)) {
+		return false;
+	} else if (!(kin.x >= 0. && kin.x <= 1.)) {
+		return false;
+	} else if (!(kin.y >= 0. && kin.y <= 1.)) {
+		return false;
+	} else if (!(kin.z >= 0. && kin.z <= 1.)) {
+		return false;
+	} else if (!(kin.ph_t_sq >= 0.)) {
+		return false;
+	} else if (!std::isfinite(kin.phi_h)) {
+		return false;
+	} else if (!std::isfinite(kin.phi)) {
+		return false;
+	} else if (!(kin.mx >= kin.M_th)) {
+		return false;
+	} else if (!(kin.mx_sq <= kin.S + sq(kin.M) - sq(kin.m) - sq(kin.mh))) {
+		return false;
+	} else if (!(kin.q_t >= 0.)) {
+		return false;
+	} else if (!std::isfinite(kin.q_l)) {
+		return false;
+	} else if (!(kin.ph_t >= 0.)) {
+		return false;
+	} else if (!std::isfinite(kin.ph_l)) {
+		return false;
+	} else if (!(kin.ph_0 >= kin.mh)) {
+		return false;
+	} else {
+		return true;
+	}
+}
+bool kin::valid(KinematicsRad kin_rad) {
+	return valid(kin_rad.project());
+}
+

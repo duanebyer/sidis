@@ -340,6 +340,9 @@ math::Bounds R_bounds(Kinematics kin, Real tau, Real phi_k);
 math::Bounds R_bounds_soft(Kinematics kin, Real tau, Real phi_k, Real k0_cut=constant::INF);
 math::Bounds R_bounds_hard(Kinematics kin, Real tau, Real phi_k, Real k0_cut=constant::INF);
 
+bool valid(Kinematics kin);
+bool valid(KinematicsRad kin);
+
 }
 }
 
