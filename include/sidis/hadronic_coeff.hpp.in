@@ -4,15 +4,18 @@
 #include "sidis/kinematics.hpp"
 #include "sidis/numeric.hpp"
 #include "sidis/structure_function.hpp"
+#include "sidis/extra/transform.hpp"
+#include "sidis/extra/vector.hpp"
 
 namespace sidis {
 namespace had {
 
+// Standard coefficients.
 /*[[[cog
 import gen_struct
 gen_struct.generate_structs_pol(
 	"Had",
-	["U", "L"], ["U", "L", "T1", "T2"],
+	["U", "L"], ["U", "L", "T"],
 	{
 		("U", "U"): [
 			["Real", "H_10"],
@@ -24,15 +27,13 @@ gen_struct.generate_structs_pol(
 			["Real", "H_63"],
 			["Real", "H_83"],
 		],
-		("U", "T1"): [
-			["Real", "H_61"],
-			["Real", "H_81"],
-		],
-		("U", "T2"): [
+		("U", "T"): [
 			["Real", "H_12"],
 			["Real", "H_22"],
 			["Real", "H_32"],
 			["Real", "H_42"],
+			["Real", "H_61"],
+			["Real", "H_81"],
 		],
 		("L", "U"): [
 			["Real", "H_50"],
@@ -41,19 +42,110 @@ gen_struct.generate_structs_pol(
 			["Real", "H_73"],
 			["Real", "H_93"],
 		],
-		("L", "T1"): [
+		("L", "T"): [
+			["Real", "H_52"],
 			["Real", "H_71"],
 			["Real", "H_91"],
 		],
-		("L", "T2"): [
-			["Real", "H_52"],
-		],
 	},
-	constructor_args=[
-		["kin::Kinematics", "kin"],
-		["sf::SfXX", "sf"],
+	constructors=[
+		[["kin::Kinematics", "kin"], ["sf::SfXX", "sf"]],
+		[["kin::Kinematics", "kin"], ["sf::SfModel const&", "model"]],
 	],
 	generate_target_p=True
+)
+]]]*/
+/*[[[end]]]*/
+
+// Radiative coefficients.
+/*[[[cog
+import gen_struct
+gen_struct.generate_structs_pol(
+	"HadRad",
+	["U", "L"], ["U", "P"],
+	{
+		("U", "U"): [
+			["Real", "H_10"],
+			["Real", "H_20"],
+			["Real", "H_30"],
+			["Real", "H_40"],
+		],
+		("U", "P"): [
+			["math::Vec3", "H_1"],
+			["math::Vec3", "H_2"],
+			["math::Vec3", "H_3"],
+			["math::Vec3", "H_4"],
+			["math::Vec3", "H_6"],
+			["math::Vec3", "H_8"],
+		],
+		("L", "U"): [
+			["Real", "H_50"],
+		],
+		("L", "P"): [
+			["math::Vec3", "H_5"],
+			["math::Vec3", "H_7"],
+			["math::Vec3", "H_9"],
+		],
+	},
+	constructors=[
+		[["kin::KinematicsRad", "kin"], ["sf::SfXX", "shift_sf"]],
+		[["kin::KinematicsRad", "kin"], ["sf::SfModel const&", "model"]],
+	],
+	generate_target_p=False
+)
+]]]*/
+/*[[[end]]]*/
+
+// Infrared-divergent-free radiative coefficients.
+/*[[[cog
+import gen_struct
+gen_struct.generate_structs_pol(
+	"HadRadF",
+	["U", "L"], ["U", "P"],
+	{
+		("U", "U"): [
+			["Real", "H_10"],
+			["Real", "H_20"],
+			["Real", "H_30"],
+			["Real", "H_40"],
+			["Real", "H_10_diff"],
+			["Real", "H_20_diff"],
+			["Real", "H_30_diff"],
+			["Real", "H_40_diff"],
+		],
+		("U", "P"): [
+			["math::Vec3", "H_1"],
+			["math::Vec3", "H_2"],
+			["math::Vec3", "H_3"],
+			["math::Vec3", "H_4"],
+			["math::Vec3", "H_6"],
+			["math::Vec3", "H_8"],
+			["math::Vec3", "H_1_diff"],
+			["math::Vec3", "H_2_diff"],
+			["math::Vec3", "H_3_diff"],
+			["math::Vec3", "H_4_diff"],
+			["math::Vec3", "H_6_diff"],
+			["math::Vec3", "H_8_diff"],
+		],
+		("L", "U"): [
+			["Real", "H_50"],
+			["Real", "H_50_diff"],
+		],
+		("L", "P"): [
+			["math::Vec3", "H_5"],
+			["math::Vec3", "H_7"],
+			["math::Vec3", "H_9"],
+			["math::Vec3", "H_5_diff"],
+			["math::Vec3", "H_7_diff"],
+			["math::Vec3", "H_9_diff"],
+		],
+	},
+	constructors=[
+		[["kin::KinematicsRad", "kin"], ["sf::SfXX", "sf"], ["sf::SfXX", "shift_sf"]],
+		[["kin::KinematicsRad", "kin"], ["sf::SfModel const&", "model"]],
+		[["kin::KinematicsRad", "kin"], ["sf::SfModel const&", "model"], ["had::HadXX", "had_0"]],
+	],
+	generate_target_p=False
 )
 ]]]*/
 /*[[[end]]]*/

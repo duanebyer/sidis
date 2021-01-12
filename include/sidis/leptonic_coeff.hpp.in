@@ -33,7 +33,9 @@ gen_struct.generate_structs_pol(
 			["Real", "theta_9"],
 		],
 	},
-	constructor_args=[["kin::Kinematics", "kin"]]
+	constructors=[
+		[["kin::Kinematics", "kin"]],
+	]
 )
 ]]]*/
 /*[[[end]]]*/
@@ -63,7 +65,9 @@ gen_struct.generate_structs_pol(
 			["Real", "theta_9"],
 		],
 	},
-	constructor_args=[["kin::Kinematics", "kin"]]
+	constructors=[
+		[["kin::Kinematics", "kin"]],
+	]
 )
 ]]]*/
 /*[[[end]]]*/
@@ -126,7 +130,9 @@ gen_struct.generate_structs_pol(
 			["Real", "theta_194"],
 		],
 	},
-	constructor_args=[["kin::KinematicsRad", "kin"]]
+	constructors=[
+		[["kin::KinematicsRad", "kin"]],
+	]
 )
 ]]]*/
 /*[[[end]]]*/

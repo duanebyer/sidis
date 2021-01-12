@@ -1,10 +1,12 @@
+#include <iomanip>
+#include <ios>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 
 #include <sidis/sidis.hpp>
+#include <sidis/sf_model/prokudin.hpp>
 #include <sidis/sf_model/ww.hpp>
-#include <sidis/extra/transform.hpp>
 #include <sidis/extra/vector.hpp>
 
 using namespace sidis;
@@ -84,16 +86,19 @@ int main(int argc, char** argv) {
 	Vec3 eta = frame::hadron_from_target(kin) * target_pol;
 	// Compute cross-sections.
 	Real born = xs::born(beam_pol, eta, kin, ww);
-	std::cout << "σ_B     = " << born << std::endl;
+	std::cout << std::scientific << std::setprecision(16);
+	std::cout << "σ_B       = " << born << std::endl;
 	Real amm = xs::amm(beam_pol, eta, kin, ww);
-	std::cout << "σ_AMM   = " << amm << std::endl;
+	std::cout << "σ_AMM     = " << amm << std::endl;
+	Real nrad_ir = xs::nrad_ir(beam_pol, eta, kin, ww, k0_cut);
+	std::cout << "σ_nrad_ir = " << nrad_ir << std::endl;
 	Real rad_f = xs::rad_f_integ(beam_pol, eta, kin, ww, k0_cut);
-	std::cout << "σ_rad_f = " << rad_f << std::endl;
+	std::cout << "σ_rad_f   = " << rad_f << std::endl;
 	Real nrad = xs::nrad(beam_pol, eta, kin, ww, k0_cut);
-	std::cout << "σ_nrad  = " << nrad << std::endl;
+	std::cout << "σ_nrad    = " << nrad << std::endl;
 	Real rad = xs::rad_integ(beam_pol, eta, kin, ww, k0_cut);
-	std::cout << "σ_rad   = " << rad << std::endl;
-	std::cout << "σ_tot   = " << nrad + rad << std::endl;
+	std::cout << "σ_rad     = " << rad << std::endl;
+	std::cout << "σ_tot     = " << nrad + rad << std::endl;
 
 	return 0;
 }

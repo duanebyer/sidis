@@ -7,6 +7,7 @@
 #include <TApplication.h>
 #include <TCanvas.h>
 #include <TF1.h>
+#include <TFile.h>
 
 #include <sidis/sidis.hpp>
 #include <sidis/sf_model/ww.hpp>
@@ -113,19 +114,8 @@ Real xs_uu_integ(
 					hadron,
 					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
 				lep::LepRadUU lep(kin_rad);
-				had::HadUU had(kin, sf);
-				had::HadUU shift_had(kin_rad.project_shift(), shift_sf);
-
-				// Compute hard cross-section.
-				Real uu_h = xs::rad_f_hard_uu_base(b, lep, shift_had);
-				// Compute soft cross-section.
-				Real uu_s;
-				if (std::abs(R) < std::abs(R_b.max) * xs::SMALL_R_REL) {
-					uu_s = xs::rad_f_soft_0(0., Vec3::ZERO, kin_rad, model);
-				} else {
-					uu_s = xs::rad_f_soft_uu_base(b, lep, had, shift_had);
-				}
-				Real xs = uu_h + uu_s;
+				had::HadRadFUU had(kin_rad, sf, shift_sf);
+				Real xs = xs::rad_f_uu_base(b, lep, had);
 				if (std::isnan(xs)) {
 					xs = 0.;
 				}
@@ -208,30 +198,19 @@ Real xs_ut_integ_h(
 
 				KinematicsRad kin_rad(kin, tau, phi_k, R);
 				xs::Rad b(kin_rad);
-				Transform3 shift_rot = frame::hadron_from_shift(kin_rad);
 				sf::SfUP shift_sf = model.sf_up(
 					hadron,
 					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
 				lep::LepRadUX lep(kin_rad);
-				had::HadUP had(kin, sf);
-				had::HadUP shift_had(kin_rad.project_shift(), shift_sf);
+				had::HadRadFUP had(kin_rad, sf, shift_sf);
 
 				Vec3 eta(
 					eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
 					eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
 					0.);
-				Real up_h = dot(
+				Real xs = dot(
 					eta,
-					xs::rad_f_hard_up_base(b, lep, shift_had, shift_rot));
-				Real up_s;
-				if (std::abs(R) < std::abs(R_b.max) * xs::SMALL_R_REL) {
-					up_s = xs::rad_f_soft_0(0., eta, kin_rad, model);
-				} else {
-					up_s = dot(
-						eta,
-						xs::rad_f_soft_up_base(b, lep, had, shift_had, shift_rot));
-				}
-				Real xs = up_h + up_s;
+					xs::rad_f_up_base(b, lep, had));
 				if (std::isnan(xs)) {
 					xs = 0.;
 				}
@@ -363,6 +342,15 @@ int main(int argc, char** argv) {
 		f_collins.DrawCopy("LSAME");
 		f_collins_rc.DrawCopy("LSAME");
 	}
+
+	TFile output("out.root", "RECREATE");
+	f_sivers.Write();
+	f_sivers_rc.Write();
+	f_collins.Write();
+	f_collins_rc.Write();
+	canvas_sivers.Write();
+	canvas_collins.Write();
+	output.Close();
 
 	app.Run();
 
