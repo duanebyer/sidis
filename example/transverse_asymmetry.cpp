@@ -10,10 +10,9 @@
 #include <TFile.h>
 
 #include <sidis/sidis.hpp>
-#include <sidis/sf_model/ww.hpp>
 #include <sidis/extra/bounds.hpp>
-#include <sidis/extra/transform.hpp>
 #include <sidis/extra/vector.hpp>
+#include <sidis/sf_set/ww.hpp>
 
 using namespace sidis;
 using namespace sidis::constant;

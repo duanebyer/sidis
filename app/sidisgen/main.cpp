@@ -18,9 +18,8 @@
 
 #include <sidis/sidis.hpp>
 #include <sidis/extra/bounds.hpp>
-#include <sidis/extra/transform.hpp>
 #include <sidis/extra/vector.hpp>
-#include <sidis/sf_model/ww.hpp>
+#include <sidis/sf_set/ww.hpp>
 
 #include "params.hpp"
 #include "utility.hpp"

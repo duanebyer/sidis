@@ -6,8 +6,8 @@ set(
 	"sidis/frame.hpp"
 	"sidis/kinematics.hpp"
 	"sidis/tmd.hpp"
-	"sidis/sf_model/prokudin.hpp"
-	"sidis/sf_model/ww.hpp"
+	"sidis/sf_set/prokudin.hpp"
+	"sidis/sf_set/ww.hpp"
 	"sidis/extra/bounds.hpp"
 	"sidis/extra/integrate.hpp"
 	"sidis/extra/interpolate.hpp"
@@ -77,8 +77,8 @@ add_library(
 	tmd.cpp
 	transform.cpp
 	vector.cpp
-	sf_model/prokudin.cpp
-	sf_model/ww.cpp
+	sf_set/prokudin.cpp
+	sf_set/ww.cpp
 	${HEADER_LIST_SOURCE})
 target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature)
 target_include_directories(
@@ -95,10 +95,10 @@ target_compile_options(
 add_custom_command(
 	TARGET sidis POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E make_directory
-		"${Sidis_BINARY_DIR}/share/sidis/sf_model"
+		"${Sidis_BINARY_DIR}/share/sidis/sf_set"
 	COMMAND ${CMAKE_COMMAND} -E create_symlink
-		"${Sidis_SOURCE_DIR}/share/sidis/sf_model/prokudin"
-		"${Sidis_BINARY_DIR}/share/sidis/sf_model/prokudin")
+		"${Sidis_SOURCE_DIR}/share/sidis/sf_set/prokudin"
+		"${Sidis_BINARY_DIR}/share/sidis/sf_set/prokudin")
 
 source_group(
 	TREE "${Sidis_SOURCE_DIR}/include"
@@ -114,8 +114,8 @@ target_compile_definitions(
 	sidis PRIVATE
 	DATADIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}")
 install(
-	DIRECTORY "${Sidis_SOURCE_DIR}/share/sidis/sf_model/prokudin"
-	DESTINATION "${CMAKE_INSTALL_DATADIR}/sidis/sf_model"
+	DIRECTORY "${Sidis_SOURCE_DIR}/share/sidis/sf_set/prokudin"
+	DESTINATION "${CMAKE_INSTALL_DATADIR}/sidis/sf_set"
 	FILES_MATCHING
 		PATTERN ".git" EXCLUDE
 		PATTERN "*.m"

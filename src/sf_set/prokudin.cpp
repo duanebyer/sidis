@@ -1,4 +1,4 @@
-#include "sidis/sf_model/prokudin.hpp"
+#include "sidis/sf_set/prokudin.hpp"
 
 #include <array>
 #include <cmath>
@@ -14,7 +14,7 @@
 #include "sidis/extra/interpolate.hpp"
 #include "sidis/extra/math.hpp"
 
-#define SF_MODEL_DIR "sidis/sf_model"
+#define SF_SET_DIR "sidis/sf_set"
 #define PROKUDIN_DIR "prokudin"
 
 using namespace sidis;
@@ -125,15 +125,15 @@ struct DataFileFormatException : public std::runtime_error {
 // Finds a grid file.
 std::istream& find_file(std::ifstream& fin, char const* file_name) {
 	fin.open(
-		std::string(DATADIR "/" SF_MODEL_DIR "/" PROKUDIN_DIR "/") + file_name);
+		std::string(DATADIR "/" SF_SET_DIR "/" PROKUDIN_DIR "/") + file_name);
 	if (fin) {
 		return fin;
 	}
-	fin.open(std::string("../share/" SF_MODEL_DIR "/" PROKUDIN_DIR "/") + file_name);
+	fin.open(std::string("../share/" SF_SET_DIR "/" PROKUDIN_DIR "/") + file_name);
 	if (fin) {
 		return fin;
 	}
-	fin.open(std::string(SF_MODEL_DIR "/" PROKUDIN_DIR "/") + file_name);
+	fin.open(std::string(SF_SET_DIR "/" PROKUDIN_DIR "/") + file_name);
 	if (fin) {
 		return fin;
 	}

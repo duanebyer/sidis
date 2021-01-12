@@ -5,9 +5,9 @@
 #include <string>
 
 #include <sidis/sidis.hpp>
-#include <sidis/sf_model/prokudin.hpp>
-#include <sidis/sf_model/ww.hpp>
+#include <sidis/sf_set/ww.hpp>
 #include <sidis/extra/vector.hpp>
+#include <sidis/sf_set/prokudin.hpp>
 
 using namespace sidis;
 using namespace sidis::constant;

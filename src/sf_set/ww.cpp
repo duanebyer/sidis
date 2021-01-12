@@ -1,4 +1,4 @@
-#include "sidis/sf_model/ww.hpp"
+#include "sidis/sf_set/ww.hpp"
 
 #include <array>
 #include <cmath>
@@ -14,8 +14,8 @@
 #include "sidis/extra/interpolate.hpp"
 #include "sidis/extra/math.hpp"
 
-#define SF_MODEL_DIR "sidis/sf_model"
-#define WW_DIR "prokudin"
+#define SF_SET_DIR "sidis/sf_set"
+#define PROKUDIN_DIR "prokudin"
 
 using namespace sidis;
 using namespace sidis::constant;
@@ -115,19 +115,19 @@ Real lambda(Real z, Real mean_kperp_sq, Real mean_pperp_sq) {
 // Finds a grid file.
 std::istream& find_file(std::ifstream& fin, char const* file_name) {
 	fin.open(
-		std::string(DATADIR "/" SF_MODEL_DIR "/" WW_DIR "/") + file_name);
+		std::string(DATADIR "/" SF_SET_DIR "/" PROKUDIN_DIR "/") + file_name);
 	if (fin) {
 		return fin;
 	}
-	fin.open(std::string("../share/" SF_MODEL_DIR "/" WW_DIR "/") + file_name);
+	fin.open(std::string("../share/" SF_SET_DIR "/" PROKUDIN_DIR "/") + file_name);
 	if (fin) {
 		return fin;
 	}
-	fin.open(std::string(SF_MODEL_DIR "/" WW_DIR "/") + file_name);
+	fin.open(std::string(SF_SET_DIR "/" PROKUDIN_DIR "/") + file_name);
 	if (fin) {
 		return fin;
 	}
-	fin.open(std::string(WW_DIR "/") + file_name);
+	fin.open(std::string(PROKUDIN_DIR "/") + file_name);
 	if (fin) {
 		return fin;
 	}
