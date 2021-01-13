@@ -15,21 +15,33 @@
 // generator. This structure can be read/written to both a ROOT file or a plain
 // text file.
 struct Params {
-	std::string event_file_name;
-	std::string foam_file_name;
+	std::string event_file;
+	std::string foam_nrad_file;
+	std::string foam_rad_file;
+	Long_t num_events;
+	Long_t num_init;
+	Int_t seed;
+	Int_t seed_init;
 	sidis::Real beam_energy;
-	sidis::constant::Nucleus target;
 	sidis::constant::Lepton beam;
+	sidis::constant::Nucleus target;
+	sidis::constant::Hadron hadron;
 	sidis::math::Vec3 target_pol;
 	sidis::Real beam_pol;
 	sidis::Real k0_cut;
 
 	Params() :
-		event_file_name("gen.root"),
-		foam_file_name("foam.root"),
+		event_file("gen.root"),
+		foam_nrad_file("foam-nrad.root"),
+		foam_rad_file("foam-rad.root"),
+		num_events(10000),
+		num_init(1000),
+		seed(0),
+		seed_init(0),
 		beam_energy(10.),
-		target(sidis::constant::Nucleus::P),
 		beam(sidis::constant::Lepton::E),
+		target(sidis::constant::Nucleus::P),
+		hadron(sidis::constant::Hadron::PI_P),
 		target_pol(0., 0., 0.),
 		beam_pol(0.),
 		k0_cut(0.01) { }
@@ -39,6 +51,10 @@ struct Params {
 
 	void write(std::ostream& file) const;
 	void read(std::istream& file);
+
+	// Check whether a `TFoam` generated for one set of parameters can be used
+	// for another set.
+	bool compatible_foam(Params const& foam_params) const;
 };
 
 #endif

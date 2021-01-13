@@ -25,7 +25,7 @@ using namespace sidis::math;
 
 #define READ_PARAM_ROOT(file, param) \
 	{ \
-		auto p = static_cast<decltype(convert(param))*>(file.Get(#param)); \
+		auto p = file.Get<decltype(convert(param))>(#param); \
 		if (p != nullptr) { \
 			param = static_cast<decltype(param)>(convert(*p)); \
 		} \
@@ -146,6 +146,46 @@ std::istream& operator>>(std::istream& is, Lepton& lepton) {
 	return is;
 }
 
+std::ostream& operator<<(std::ostream& os, Hadron const& hadron) {
+	switch (hadron) {
+	case Hadron::PI_0:
+		return os << "pi0";
+	case Hadron::PI_P:
+		return os << "pi+";
+	case Hadron::PI_M:
+		return os << "pi-";
+	case Hadron::K_0:
+		return os << "K0";
+	case Hadron::K_P:
+		return os << "K+";
+	case Hadron::K_M:
+		return os << "K-";
+	default:
+		os.setstate(std::ios_base::failbit);
+		return os;
+	}
+}
+std::istream& operator>>(std::istream& is, Hadron& hadron) {
+	std::string name;
+	is >> name;
+	if (name == "pi0" || name == "pion0") {
+		hadron = Hadron::PI_0;
+	} else if (name == "pi+" || name == "pion+") {
+		hadron = Hadron::PI_P;
+	} else if (name == "pi-" || name == "pion-") {
+		hadron = Hadron::PI_M;
+	} else if (name == "K0" || name == "kaon0") {
+		hadron = Hadron::K_0;
+	} else if (name == "K+" || name == "kaon+") {
+		hadron = Hadron::K_P;
+	} else if (name == "K-" || name == "kaon-") {
+		hadron = Hadron::K_M;
+	} else {
+		is.setstate(std::ios_base::failbit);
+	}
+	return is;
+}
+
 std::ostream& operator<<(std::ostream& os, Vec3 const& vec) {
 	os << vec.x << " " << vec.y << " " << vec.z;
 	return os;
@@ -157,22 +197,34 @@ std::istream& operator>>(std::istream& is, Vec3& vec) {
 
 void Params::write_root(TFile& file) const {
 	file.cd();
-	WRITE_PARAM_ROOT(file, event_file_name);
-	WRITE_PARAM_ROOT(file, foam_file_name);
+	WRITE_PARAM_ROOT(file, event_file);
+	WRITE_PARAM_ROOT(file, foam_nrad_file);
+	WRITE_PARAM_ROOT(file, foam_rad_file);
+	WRITE_PARAM_ROOT(file, num_events);
+	WRITE_PARAM_ROOT(file, num_init);
+	WRITE_PARAM_ROOT(file, seed);
+	WRITE_PARAM_ROOT(file, seed_init);
 	WRITE_PARAM_ROOT(file, beam_energy);
-	WRITE_PARAM_ROOT(file, target);
 	WRITE_PARAM_ROOT(file, beam);
+	WRITE_PARAM_ROOT(file, target);
+	WRITE_PARAM_ROOT(file, hadron);
 	WRITE_PARAM_ROOT(file, target_pol);
 	WRITE_PARAM_ROOT(file, beam_pol);
 	WRITE_PARAM_ROOT(file, k0_cut);
 }
 
 void Params::read_root(TFile& file) {
-	READ_PARAM_ROOT(file, event_file_name);
-	READ_PARAM_ROOT(file, foam_file_name);
+	READ_PARAM_ROOT(file, event_file);
+	READ_PARAM_ROOT(file, foam_nrad_file);
+	READ_PARAM_ROOT(file, foam_rad_file);
+	READ_PARAM_ROOT(file, num_events);
+	READ_PARAM_ROOT(file, num_init);
+	READ_PARAM_ROOT(file, seed);
+	READ_PARAM_ROOT(file, seed_init);
 	READ_PARAM_ROOT(file, beam_energy);
-	READ_PARAM_ROOT(file, target);
 	READ_PARAM_ROOT(file, beam);
+	READ_PARAM_ROOT(file, target);
+	READ_PARAM_ROOT(file, hadron);
 	READ_PARAM_ROOT(file, target_pol);
 	READ_PARAM_ROOT(file, beam_pol);
 	READ_PARAM_ROOT(file, k0_cut);
@@ -181,11 +233,17 @@ void Params::read_root(TFile& file) {
 void Params::write(std::ostream& file) const {
 	// TODO: Set floating point precision so that all digits are kept, then
 	// unset after.
-	WRITE_PARAM(file, event_file_name);
-	WRITE_PARAM(file, foam_file_name);
+	WRITE_PARAM(file, event_file);
+	WRITE_PARAM(file, foam_nrad_file);
+	WRITE_PARAM(file, foam_rad_file);
+	WRITE_PARAM(file, num_events);
+	WRITE_PARAM(file, num_init);
+	WRITE_PARAM(file, seed);
+	WRITE_PARAM(file, seed_init);
 	WRITE_PARAM(file, beam_energy);
-	WRITE_PARAM(file, target);
 	WRITE_PARAM(file, beam);
+	WRITE_PARAM(file, target);
+	WRITE_PARAM(file, hadron);
 	WRITE_PARAM(file, target_pol);
 	WRITE_PARAM(file, beam_pol);
 	WRITE_PARAM(file, k0_cut);
@@ -206,11 +264,17 @@ void Params::read(std::istream& file) {
 		params[key] = value;
 	}
 
-	READ_PARAM(params, event_file_name);
-	READ_PARAM(params, foam_file_name);
+	READ_PARAM(params, event_file);
+	READ_PARAM(params, foam_nrad_file);
+	READ_PARAM(params, foam_rad_file);
+	READ_PARAM(params, num_events);
+	READ_PARAM(params, num_init);
+	READ_PARAM(params, seed);
+	READ_PARAM(params, seed_init);
 	READ_PARAM(params, beam_energy);
-	READ_PARAM(params, target);
 	READ_PARAM(params, beam);
+	READ_PARAM(params, target);
+	READ_PARAM(params, hadron);
 	READ_PARAM(params, target_pol);
 	READ_PARAM(params, beam_pol);
 	READ_PARAM(params, k0_cut);
@@ -225,5 +289,19 @@ void Params::read(std::istream& file) {
 		}
 		throw std::runtime_error(ss_err.str());
 	}
+}
+
+bool Params::compatible_foam(Params const& foam_params) const {
+	return foam_params.num_init >= num_init
+		&& (foam_params.seed_init == seed_init || 0 == seed_init)
+		&& foam_params.beam_energy == beam_energy
+		&& foam_params.beam == beam
+		&& foam_params.target == target
+		&& foam_params.hadron == hadron
+		&& foam_params.target_pol.x == target_pol.x
+		&& foam_params.target_pol.y == target_pol.y
+		&& foam_params.target_pol.z == target_pol.z
+		&& foam_params.beam_pol == beam_pol
+		&& foam_params.k0_cut == k0_cut;
 }
 

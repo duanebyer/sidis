@@ -51,6 +51,41 @@ float dilog(float x);
 double dilog(double x);
 long double dilog(long double x);
 
+// These functions compute `N (k / K)` with reduced chance of overflow.
+int prod_div(int N, int k, int K, int& rem);
+long prod_div(long N, long k, long K, long& rem);
+long long prod_div(long long N, long long k, long long K, long long& rem);
+
+unsigned prod_div(unsigned N, unsigned k, unsigned K, unsigned& rem);
+unsigned long prod_div(unsigned long N, unsigned long k, unsigned long K, unsigned long& rem);
+unsigned long long prod_div(unsigned long long N, unsigned long long k, unsigned long long K, unsigned long long& rem);
+
+inline int prod_div(int N, int k, int K) {
+	int rem;
+	return prod_div(N, k, K, rem);
+}
+inline long prod_div(long N, long k, long K) {
+	long rem;
+	return prod_div(N, k, K, rem);
+}
+inline long long prod_div(long long N, long long k, long long K) {
+	long long rem;
+	return prod_div(N, k, K, rem);
+}
+
+inline unsigned prod_div(unsigned N, unsigned k, unsigned K) {
+	unsigned rem;
+	return prod_div(N, k, K, rem);
+}
+inline unsigned long prod_div(unsigned long N, unsigned long k, unsigned long K) {
+	unsigned long rem;
+	return prod_div(N, k, K, rem);
+}
+inline unsigned long long prod_div(unsigned long long N, unsigned long long k, unsigned long long K) {
+	unsigned long long rem;
+	return prod_div(N, k, K, rem);
+}
+
 }
 }
 

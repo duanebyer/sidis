@@ -96,6 +96,35 @@ T dilog_impl(T x) {
 	return a * result + b;
 }
 
+template<typename T>
+T prod_div_impl(T N, T k, T K, T& rem) {
+	T N_max = N >= 0 ?
+		std::numeric_limits<T>::max() :
+		std::numeric_limits<T>::min();
+	if (k < 0) {
+		return prod_div_impl(-N, -k, K, rem);
+	} else if (k < N_max / N) {
+		// Base case, when there is no risk of overflow.
+		rem = (k * N) % K;
+		return (k * N) / K;
+	} else {
+		// The basic algorithm used here is to take `N / K`, and then scale
+		// repeatedly by fractions of the form `(p + 1) / p`, for `p = 1..k`.
+		T k_0 = N_max / N;
+		T quot = (N * k_0) / K;
+		rem = (N * k_0) % K;
+		for (T k_p = k_0; k_p < k; ++k_p) {
+			T quot_p = quot / k_p;
+			T rem_p = quot % k_p;
+			T prod_num = (rem * (k_p + 1) + rem_p * K);
+			T prod = prod_num / k_p;
+			quot += quot_p + prod / K;
+			rem = prod % K;
+		}
+		return quot;
+	}
+}
+
 }
 
 float math::sqrt1p_1m(float x) {
@@ -116,5 +145,25 @@ double math::dilog(double x) {
 }
 long double math::dilog(long double x) {
 	return dilog_impl<long double>(x);
+}
+
+int math::prod_div(int N, int k, int K, int& rem) {
+	return prod_div_impl<int>(N, k, K, rem);
+}
+long math::prod_div(long N, long k, long K, long& rem) {
+	return prod_div_impl<long>(N, k, K, rem);
+}
+long long math::prod_div(long long N, long long k, long long K, long long& rem) {
+	return prod_div_impl<long long>(N, k, K, rem);
+}
+
+unsigned math::prod_div(unsigned N, unsigned k, unsigned K, unsigned& rem) {
+	return prod_div_impl<unsigned>(N, k, K, rem);
+}
+unsigned long math::prod_div(unsigned long N, unsigned long k, unsigned long K, unsigned long& rem) {
+	return prod_div_impl<unsigned long>(N, k, K, rem);
+}
+unsigned long long math::prod_div(unsigned long long N, unsigned long long k, unsigned long long K, unsigned long long& rem) {
+	return prod_div_impl<unsigned long long>(N, k, K, rem);
 }
 
