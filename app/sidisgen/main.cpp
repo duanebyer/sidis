@@ -212,7 +212,11 @@ int command_help() {
 
 int command_version() {
 	// TODO: Output correct version and build information.
-	std::cout << "sidisgen 1.0" << std::endl;
+	std::cout << "sidisgen "
+		<< SIDIS_VERSION_MAJOR << "."
+		<< SIDIS_VERSION_MINOR << "."
+		<< SIDIS_VERSION_PATCH << "."
+		<< SIDIS_VERSION_TWEAK << std::endl;
 	return SUCCESS;
 }
 
@@ -358,8 +362,8 @@ int command_generate(std::string params_file_name) {
 	if (!params.compatible_foam(foam_nrad_params)) {
 		std::cerr
 			<< "Couldn't use non-radiative FOAM from '" << params.foam_nrad_file
-			<< "' because it was generated with different parameters than "
-			<< "provided parameter file '" << params_file_name
+			<< "' because it was generated with parameters incompatible with "
+			<< "the provided parameter file '" << params_file_name
 			<< "'." << std::endl;
 		return ERROR_FOAM_INCOMPATIBLE;
 	}

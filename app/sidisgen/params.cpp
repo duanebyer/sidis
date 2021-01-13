@@ -197,6 +197,8 @@ std::istream& operator>>(std::istream& is, Vec3& vec) {
 
 void Params::write_root(TFile& file) const {
 	file.cd();
+	WRITE_PARAM_ROOT(file, version_major);
+	WRITE_PARAM_ROOT(file, version_minor);
 	WRITE_PARAM_ROOT(file, event_file);
 	WRITE_PARAM_ROOT(file, foam_nrad_file);
 	WRITE_PARAM_ROOT(file, foam_rad_file);
@@ -214,6 +216,8 @@ void Params::write_root(TFile& file) const {
 }
 
 void Params::read_root(TFile& file) {
+	READ_PARAM_ROOT(file, version_major);
+	READ_PARAM_ROOT(file, version_minor);
 	READ_PARAM_ROOT(file, event_file);
 	READ_PARAM_ROOT(file, foam_nrad_file);
 	READ_PARAM_ROOT(file, foam_rad_file);
@@ -233,6 +237,8 @@ void Params::read_root(TFile& file) {
 void Params::write(std::ostream& file) const {
 	// TODO: Set floating point precision so that all digits are kept, then
 	// unset after.
+	WRITE_PARAM(file, version_major);
+	WRITE_PARAM(file, version_minor);
 	WRITE_PARAM(file, event_file);
 	WRITE_PARAM(file, foam_nrad_file);
 	WRITE_PARAM(file, foam_rad_file);
@@ -264,6 +270,8 @@ void Params::read(std::istream& file) {
 		params[key] = value;
 	}
 
+	READ_PARAM(params, version_major);
+	READ_PARAM(params, version_minor);
 	READ_PARAM(params, event_file);
 	READ_PARAM(params, foam_nrad_file);
 	READ_PARAM(params, foam_rad_file);
@@ -292,7 +300,9 @@ void Params::read(std::istream& file) {
 }
 
 bool Params::compatible_foam(Params const& foam_params) const {
-	return foam_params.num_init >= num_init
+	return foam_params.version_major == version_major
+		&& foam_params.version_minor <= version_minor
+		&& foam_params.num_init >= num_init
 		&& (foam_params.seed_init == seed_init || 0 == seed_init)
 		&& foam_params.beam_energy == beam_energy
 		&& foam_params.beam == beam

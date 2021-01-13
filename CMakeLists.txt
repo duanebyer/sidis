@@ -5,7 +5,7 @@ endif()
 
 project(
 	Sidis
-	VERSION 0.0.1
+	VERSION 0.1.0.0
 	DESCRIPTION "Event generator for polarized SIDIS with radiative corrections"
 	HOMEPAGE_URL "https://github.com/duanebyer/sidis"
 	LANGUAGES CXX)

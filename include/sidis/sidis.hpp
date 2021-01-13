@@ -9,6 +9,8 @@
 #include "sidis/leptonic_coeff.hpp"
 #include "sidis/numeric.hpp"
 #include "sidis/structure_function.hpp"
+#include "sidis/tmd.hpp"
+#include "sidis/version.hpp"
 
 #endif
 

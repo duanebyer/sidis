@@ -11,10 +11,18 @@
 #include <sidis/constant.hpp>
 #include <sidis/extra/vector.hpp>
 
+// Within a major version, there is forward compatibility (e.x. 1.4 is
+// forward-compatible with 1.5). Between major versions, there is no
+// compatibility.
+#define SIDIS_PARAMS_VERSION_MAJOR 1
+#define SIDIS_PARAMS_VERSION_MINOR 0
+
 // Keeps track of the various parameters that can be used for a run of the
 // generator. This structure can be read/written to both a ROOT file or a plain
 // text file.
 struct Params {
+	Int_t version_major;
+	Int_t version_minor;
 	std::string event_file;
 	std::string foam_nrad_file;
 	std::string foam_rad_file;
@@ -31,6 +39,8 @@ struct Params {
 	sidis::Real k0_cut;
 
 	Params() :
+		version_major(SIDIS_PARAMS_VERSION_MAJOR),
+		version_minor(SIDIS_PARAMS_VERSION_MINOR),
 		event_file("gen.root"),
 		foam_nrad_file("foam-nrad.root"),
 		foam_rad_file("foam-rad.root"),

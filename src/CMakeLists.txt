@@ -20,7 +20,8 @@ set(
 	"sidis/hadronic_coeff.hpp"
 	"sidis/leptonic_coeff.hpp"
 	"sidis/numeric.hpp"
-	"sidis/structure_function.hpp")
+	"sidis/structure_function.hpp"
+	"sidis/version.hpp")
 
 set(HEADER_LIST_SOURCE)
 set(HEADER_LIST_DIST)
