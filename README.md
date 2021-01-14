@@ -2,9 +2,40 @@
 
 This is an event generator for polarized semi-inclusive deep inelastic
 scattering (SIDIS) with QED radiative corrections, following closely work done
-in [1]. Currently under construction.
+in [1]. The project is divided into a library component `sidis` for calculating
+SIDIS cross-sections, and a binary component `sidisgen` for generating events.
 
 ## Quick start
+
+### Generator
+
+The `sidisgen` generator uses a parameter file. The allowed options are listed
+by `sidisgen --help`. As an example:
+
+```csv
+num_events  10000
+beam_energy 10.6
+beam        e
+target      p
+hadron      pi+
+beam_pol    0
+target_pol  0 0 0
+```
+
+Then, initialize a FOAM to approximate the differential cross-section in the
+specified kinematic region.
+
+```bash
+sidisgen --initialize <param-file>
+```
+
+Finally, use the FOAM for Monte-Carlo event generation.
+
+```bash
+sidisgen --generate <param-file>
+```
+
+### Library
 
 Many demonstrations of the different features of the `sidis` library can be
 found in the `examples` folder. To get started quickly:
@@ -71,7 +102,9 @@ The following CMake build options may be of use:
 * `Sidis_REAL_TYPE`: The floating point type to use for all cross-section
   calculations. Only the standard C++ floating point types `float`, `double`,
   and `long double` are supported.
-* `BUILD_TESTING`: Whether to build the tests.
+* `Sidis_BUILD_TESTS`: Whether to build the tests.
+* `Sidis_BUILD_EXAMPLES`: Whether to build the examples.
+* `Sidis_BUILD_APPS`: Whether to build the `sidisgen` binary.
 * `CMAKE_INSTALL_PREFIX`: The directory to which to install all library files.
 
 ## Acknowledgements
@@ -81,6 +114,9 @@ This software makes use of the following libraries:
   proton using WW-type approximation [2].
 * [mstwpdf](https://mstwpdf.hepforge.org/): Parton distribution functions for
   proton [3].
+* [ROOT](https://root.cern/): Plotting and data analysis.
+* [FOAM](http://jadach.web.cern.ch/jadach/Foam/Index.html): Monte-Carlo event
+  generation using spatial partitioning.
 * [cubature](https://github.com/stevengj/cubature): Multi-dimensional numerical
   integration.
 * [cog](https://nedbatchelder.com/code/cog/): Code generation with Python.
