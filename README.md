@@ -80,8 +80,12 @@ int main() {
 
 ## Build
 
-The `sidis` library uses CMake for building. To get started quickly, run the
-following commands (on Linux):
+The `sidis` library uses CMake for building. As part of the build process, the
+`cogapp` utility is used for code generation. `cogapp` can be installed through
+`pip` as `pip install cogapp`.
+
+Once `cogapp` is available, use CMake to build the project. On most Linux
+systems, this looks like:
 
 ```bash
 # Clone the project including submodules.
@@ -89,23 +93,25 @@ git clone https://github.com/duanebyer/sidis.git
 cd sidis
 git submodule init
 git submodule update
-# Build the project.
+# Make a build directory.
 mkdir build
 cd build
-cmake ..
+# Configure the build.
+cmake -DCMAKE_BUILD_TYPE=Release ..
+# Build.
 make
-# Optionally install the library files to your system.
+# Optionally install the library and binary files to your system. Use
+# `CMAKE_INSTALL_PREFIX` during the configure to choose the install location.
 make install
 ```
 
-The following CMake build options may be of use:
+The following CMake configuration options may be of use:
 * `Sidis_REAL_TYPE`: The floating point type to use for all cross-section
   calculations. Only the standard C++ floating point types `float`, `double`,
   and `long double` are supported.
 * `Sidis_BUILD_TESTS`: Whether to build the tests.
 * `Sidis_BUILD_EXAMPLES`: Whether to build the examples.
 * `Sidis_BUILD_APPS`: Whether to build the `sidisgen` binary.
-* `CMAKE_INSTALL_PREFIX`: The directory to which to install all library files.
 
 ## Acknowledgements
 
