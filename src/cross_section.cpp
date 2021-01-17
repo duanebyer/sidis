@@ -59,11 +59,11 @@ Real delta_vert_rad_0(Kinematics kin) {
 		(Q_m_sq + lambda_m_sqrt)*S_prime
 		- 2.*sq(kin.m)*X_prime);
 	Real S_phi = Q_m_sq/lambda_m_sqrt*(
-		lambda_S_prime*L_S_prime/4. - lambda_X_prime*L_X_prime/4.
+		lambda_S_prime*sq(L_S_prime)/4. - lambda_X_prime*sq(L_X_prime)/4.
 		+ dilog(1. - 1./(sum_S_prime*S_prime)*rho)
 		+ dilog(1. - (sum_S_prime*S_prime)/(4.*sq(kin.m)*kin.mx_sq)*rho)
-		- dilog(1. - (sum_X_prime*X_prime)/(kin.mx_sq*sq(sum_m))*rho)
-		- dilog(1. - (4.*sq(kin.m))/(sum_X_prime*X_prime*sq(sum_m))*rho));
+		- dilog(1. - (sum_X_prime*X_prime)/(kin.mx_sq*sq(sum_m)*kin.Q_sq)*rho)
+		- dilog(1. - (4.*sq(kin.m))/(sum_X_prime*X_prime*sq(sum_m)*kin.Q_sq)*rho));
 
 	// Equation [1.52].
 	Real delta = 0.5*S_prime*L_S_prime + 0.5*X_prime*L_X_prime + S_phi - 2.
