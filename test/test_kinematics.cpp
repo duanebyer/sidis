@@ -250,7 +250,7 @@ void test_kin_nrad(
 		std::atan2(dot(e_y, ph.r()), dot(e_x, ph.r())),
 		RelMatcher<Real>(kin.phi_h, prec));
 	CHECK_THAT(
-		std::atan2(-k2.x, k2.y),
+		std::atan2(k2.x, k2.y),
 		RelMatcher<Real>(kin.phi, prec));
 	CHECK_THAT(
 		std::atan2(-q.x, q.y),

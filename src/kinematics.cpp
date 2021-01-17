@@ -25,7 +25,7 @@ Kinematics::Kinematics(
 	ph_t_sq = ph_space.ph_t_sq;
 	phi_h = ph_space.phi_h;
 	phi = ph_space.phi;
-	phi_q = std::fmod(ph_space.phi + PI, 2.*PI);
+	phi_q = std::fmod(PI - ph_space.phi, 2.*PI);
 	if (phi_q > PI) {
 		phi_q -= 2.*PI;
 	} else if (phi_q < -PI) {
@@ -37,7 +37,7 @@ Kinematics::Kinematics(
 	cos_phi = std::cos(phi);
 	sin_phi = std::sin(phi);
 	cos_phi_q = -cos_phi;
-	sin_phi_q = -sin_phi;
+	sin_phi_q = sin_phi;
 
 	target = init.target;
 	beam = init.beam;
@@ -298,15 +298,17 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		- (lambda_V - lambda_RV)*(S*shift_S_x + 2.*sq(M)*Q_sq + 2.*sq(M)*z_1*R));
 	shift_phi_h = std::atan2(shift_sin_phi_h, shift_cos_phi_h);
 
+	// TODO: Verify the correctness of these expressions (considering the
+	// opposite signs of the `phi` and `phi_q` angles).
 	shift_sin_phi_q = 1./shift_q_t*(
 		q_t*sin_phi_q
 		- (2.*M)/lambda_Y_sqrt*(
-			k_t*(q_l*sin_phi*cos_phi_k + lambda_Y_sqrt/(2.*M)*cos_phi*sin_phi_k)
-			- k_l*q_t*sin_phi));
+			k_t*(-q_l*sin_phi*cos_phi_k + lambda_Y_sqrt/(2.*M)*cos_phi*sin_phi_k)
+			+ k_l*q_t*sin_phi));
 	shift_cos_phi_q = 1./shift_q_t*(
 		q_t*cos_phi_q
 		- (2.*M)/lambda_Y_sqrt*(
-			k_t*(q_l*cos_phi*cos_phi_k - lambda_Y_sqrt/(2.*M)*sin_phi*sin_phi_k)
+			k_t*(q_l*cos_phi*cos_phi_k + lambda_Y_sqrt/(2.*M)*sin_phi*sin_phi_k)
 			- k_l*q_t*cos_phi));
 	shift_phi_q = std::atan2(shift_sin_phi_q, shift_cos_phi_q);
 }
@@ -457,7 +459,7 @@ Final::Final(Initial init, Vec3 target_pol, Kinematics kin) {
 	q = hadron * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
 	k2 = target * Vec4(
 		kin.k2_0,
-		-kin.k2_t * kin.sin_phi,
+		kin.k2_t * kin.sin_phi,
 		kin.k2_t * kin.cos_phi,
 		kin.k2_l);
 	ph = hadron * Vec4(kin.ph_0, kin.ph_t, 0., kin.ph_l);
@@ -469,7 +471,7 @@ FinalRad::FinalRad(Initial init, Vec3 target_pol, KinematicsRad kin) {
 	q = lepton * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
 	k2 = target * Vec4(
 		kin.k2_0,
-		-kin.k2_t * kin.sin_phi,
+		kin.k2_t * kin.sin_phi,
 		kin.k2_t * kin.cos_phi,
 		kin.k2_l);
 	// To be slightly more efficient, construct both the `ph` and `k` vectors in
