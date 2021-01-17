@@ -7,6 +7,7 @@ set(
 	"sidis/kinematics.hpp"
 	"sidis/tmd.hpp"
 	"sidis/sf_set/prokudin.hpp"
+	"sidis/sf_set/test.hpp"
 	"sidis/sf_set/ww.hpp"
 	"sidis/extra/bounds.hpp"
 	"sidis/extra/integrate.hpp"
@@ -79,6 +80,7 @@ add_library(
 	transform.cpp
 	vector.cpp
 	sf_set/prokudin.cpp
+	sf_set/test.cpp
 	sf_set/ww.cpp
 	${HEADER_LIST_SOURCE})
 target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature)
