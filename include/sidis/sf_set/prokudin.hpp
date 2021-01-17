@@ -1,5 +1,5 @@
-#ifndef SIDIS_PROKUDIN_HPP
-#define SIDIS_PROKUDIN_HPP
+#ifndef SIDIS_SF_SET_PROKUDIN_HPP
+#define SIDIS_SF_SET_PROKUDIN_HPP
 
 #include "sidis/tmd.hpp"
 
