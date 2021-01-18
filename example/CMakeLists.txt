@@ -27,5 +27,15 @@ if(ROOT_FOUND)
 		PRIVATE
 		$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
 		$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+
+	add_executable(random_phase_space random_phase_space.cpp)
+	target_link_libraries(random_phase_space PRIVATE sidis)
+	target_compile_features(random_phase_space PRIVATE cxx_std_11)
+	set_target_properties(random_phase_space PROPERTIES CXX_EXTENSIONS OFF)
+	target_compile_options(
+		random_phase_space
+		PRIVATE
+		$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
+		$<$<CXX_COMPILER_ID:MSVC>:/W4>)
 endif()
 
