@@ -1,13 +1,15 @@
 #include <iomanip>
 #include <ios>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
 #include <sidis/sidis.hpp>
+#include <sidis/sf_set/prokudin.hpp>
+#include <sidis/sf_set/test.hpp>
 #include <sidis/sf_set/ww.hpp>
 #include <sidis/extra/vector.hpp>
-#include <sidis/sf_set/prokudin.hpp>
 
 using namespace sidis;
 using namespace sidis::constant;
@@ -19,25 +21,50 @@ using namespace sidis::math;
 // radiative correction contributions.
 int main(int argc, char** argv) {
 	// Read input parameters from command line.
-	Real k0_cut;
 	Real beam_energy;
 	Real beam_pol;
 	Vec3 target_pol;
+	std::unique_ptr<sidis::sf::SfSet> sf;
 	Real x, y, z, ph_t, phi_h, phi;
+	Real k0_cut = 0.01;
+	Real tau = 0., phi_k = 0., R = 0.;
+	bool radiative;
 	try {
-		if (argc != 11) {
-			throw std::invalid_argument("Expected 10 command line arguments");
+		if (argc != 12 && argc != 14) {
+			throw std::invalid_argument(
+				"Unexpected number of command line arguments");
 		}
-		beam_energy = std::stold(argv[1]);
-		std::string beam_pol_str = std::string(argv[2]);
-		std::string target_pol_str = std::string(argv[3]);
-		x = std::stold(argv[4]);
-		y = std::stold(argv[5]);
-		z = std::stold(argv[6]);
-		ph_t = std::stold(argv[7]);
-		phi_h = std::stold(argv[8]);
-		phi = std::stold(argv[9]);
-		k0_cut = std::stold(argv[10]);
+		int set_idx = std::stoi(argv[1]);
+		beam_energy = std::stold(argv[2]);
+		std::string beam_pol_str = std::string(argv[3]);
+		std::string target_pol_str = std::string(argv[4]);
+		x = std::stold(argv[5]);
+		y = std::stold(argv[6]);
+		z = std::stold(argv[7]);
+		ph_t = std::stold(argv[8]);
+		phi_h = std::stold(argv[9]);
+		phi = std::stold(argv[10]);
+		if (argc == 12) {
+			radiative = false;
+			k0_cut = std::stold(argv[11]);
+		} else {
+			radiative = true;
+			tau = std::stold(argv[11]);
+			phi_k = std::stold(argv[12]);
+			R = std::stold(argv[13]);
+		}
+
+		if (set_idx == 0) {
+			sf.reset(new sf::model::WW());
+		} else if (set_idx <= -1 && set_idx >= -18) {
+			bool mask[18] = { false };
+			mask[-set_idx - 1] = true;
+			sf.reset(new sf::model::TestSfSet(Nucleus::P, mask));
+		} else {
+			throw std::out_of_range(
+				"SF set index must be Prokudin (0) or Test (-18 to -1).");
+		}
+
 		if (beam_pol_str == "U") {
 			beam_pol = 0.;
 		} else if (beam_pol_str == "L") {
@@ -59,14 +86,23 @@ int main(int argc, char** argv) {
 		}
 	} catch (std::exception const& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
-		std::cout << "Usage: "
-			<< "cross-section "
-			<< "<beam energy> "
-			<< "<beam pol. U,L> "
-			<< "<target pol. U,L,T> "
+		std::cout << "Usage" << std::endl
+			<< "non-radiative: "
+			<< "cross_section "
+			<< "<SF set idx> "
+			<< "<E_b> "
+			<< "<U,L> "
+			<< "<U,L,T> "
 			<< "<x> <y> <z> <ph_t> <φ_h> <φ> "
-			<< "<k0 cut>"
-			<< std::endl;
+			<< "<k0 cut>" << std::endl
+			<< "radiative:     "
+			<< "cross_section "
+			<< "<SF set idx> "
+			<< "<E_b> "
+			<< "<U,L> "
+			<< "<U,L,T> "
+			<< "<x> <y> <z> <ph_t> <φ_h> <φ> "
+			<< "<τ> <φ_k> <R>" << std::endl;
 		return 1;
 	}
 
@@ -76,29 +112,32 @@ int main(int argc, char** argv) {
 	PhaseSpace phase_space { x, y, z, ph_t * ph_t, phi_h, phi };
 	// Do kinematics calculations.
 	Kinematics kin(initial_state, phase_space, Hadron::PI_P, M_th);
-	// Get the final state particles.
-	Final final_state(initial_state, target_pol, kin);
-
-	// Construct a model for computing structure functions.
-	sf::model::WW ww;
-
 	// Get the target polarization in the hadron frame.
 	Vec3 eta = frame::hadron_from_target(kin) * target_pol;
+
 	// Compute cross-sections.
-	Real born = xs::born(beam_pol, eta, kin, ww);
-	std::cout << std::scientific << std::setprecision(16);
-	std::cout << "σ_B       = " << born << std::endl;
-	Real amm = xs::amm(beam_pol, eta, kin, ww);
-	std::cout << "σ_AMM     = " << amm << std::endl;
-	Real nrad_ir = xs::nrad_ir(beam_pol, eta, kin, ww, k0_cut);
-	std::cout << "σ_nrad_ir = " << nrad_ir << std::endl;
-	Real rad_f = xs::rad_f_integ(beam_pol, eta, kin, ww, k0_cut);
-	std::cout << "σ_rad_f   = " << rad_f << std::endl;
-	Real nrad = xs::nrad(beam_pol, eta, kin, ww, k0_cut);
-	std::cout << "σ_nrad    = " << nrad << std::endl;
-	Real rad = xs::rad_integ(beam_pol, eta, kin, ww, k0_cut);
-	std::cout << "σ_rad     = " << rad << std::endl;
-	std::cout << "σ_tot     = " << nrad + rad << std::endl;
+	if (!radiative) {
+		Real born = xs::born(beam_pol, eta, kin, *sf);
+		std::cout << std::scientific << std::setprecision(16);
+		std::cout << "σ_B       = " << born << std::endl;
+		Real amm = xs::amm(beam_pol, eta, kin, *sf);
+		std::cout << "σ_AMM     = " << amm << std::endl;
+		Real nrad_ir = xs::nrad_ir(beam_pol, eta, kin, *sf, k0_cut);
+		std::cout << "σ_nrad_ir = " << nrad_ir << std::endl;
+		Real rad_f = xs::rad_f_integ(beam_pol, eta, kin, *sf, k0_cut);
+		std::cout << "σ_rad_f   = " << rad_f << std::endl;
+		Real nrad = xs::nrad(beam_pol, eta, kin, *sf, k0_cut);
+		std::cout << "σ_nrad    = " << nrad << std::endl;
+		Real rad = xs::rad_integ(beam_pol, eta, kin, *sf, k0_cut);
+		std::cout << "σ_rad     = " << rad << std::endl;
+		std::cout << "σ_tot     = " << nrad + rad << std::endl;
+	} else {
+		KinematicsRad kin_rad(kin, tau, phi_k, R);
+		Real rad_f = xs::rad_f(beam_pol, eta, kin_rad, *sf);
+		std::cout << "σ_rad_f = " << rad_f << std::endl;
+		Real rad = xs::rad(beam_pol, eta, kin_rad, *sf);
+		std::cout << "σ_rad   = " << rad << std::endl;
+	}
 
 	return 0;
 }
