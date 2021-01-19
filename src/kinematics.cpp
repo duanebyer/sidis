@@ -228,7 +228,8 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 
 	// Equation [1.30]. Modified to remove the factor of `R`.
 	// TODO: Why does this equation require a negative sign compared to what is
-	// given in [1]?
+	// given in [1]? One possibility is that we use an opposite sign convention
+	// than what is used in [1] for `phi_k`.
 	vol_phi_k_R = -0.5*sin_phi_k*M*lambda_z_sqrt/lambda_Y_sqrt;
 	// Equation [1.A9].
 	vol_phi_hk = 1./(2.*lambda_1)*(
