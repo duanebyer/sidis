@@ -68,15 +68,6 @@ Kinematics::Kinematics(
 	ph_t = std::sqrt(ph_t_sq);
 	Real ph_ratio_sq = ph_t_sq/sq(ph_0) + sq(mh/ph_0);
 	ph_l = ph_0*std::sqrt(1. - ph_ratio_sq);
-	// In the low `ph_t` case (where the cross-section is the highest), the
-	// computation for `t` has a catastrophic cancellation between the terms
-	// `2 M ph_l √λ_Y - z S_x²`. So, it's better to compute `t` in the following
-	// way:
-	Real lambda_Y_ratio = (4.*sq(M)*Q_sq)/sq(S_x);
-	t = -Q_sq + sq(mh) + (ph_0*S_x)/M*sqrt1p_1m(
-		lambda_Y_ratio - ph_ratio_sq - lambda_Y_ratio*ph_ratio_sq);
-	mx_sq = sq(M) + t + (1. - z)*S_x;
-	mx = std::sqrt(mx_sq);
 
 	// Virtual photon 4-momentum components.
 	q_0 = S_x/(2.*M);
@@ -96,7 +87,18 @@ Kinematics::Kinematics(
 	V_2 = ph_0*X/M - (ph_l*(X*S_x - 2.*sq(M)*Q_sq))/(M*lambda_Y_sqrt)
 		- 2.*ph_t*k1_t*cos_phi_h;
 	V_p = 0.5*(V_1 + V_2);
-	V_m = 0.5*(sq(mh) - Q_sq - t);
+
+	// In the low `ph_t` case (where the cross-section is the highest), the
+	// computation for `V_m` has a catastrophic cancellation between the terms
+	// `2 M ph_l √λ_Y - z S_x²`. So, it's better to compute it in the following
+	// way:
+	Real lambda_Y_ratio = (4.*sq(M)*Q_sq)/sq(S_x);
+	V_m = -(ph_0*S_x)/(2.*M)*sqrt1p_1m(
+		lambda_Y_ratio - ph_ratio_sq - lambda_Y_ratio*ph_ratio_sq);
+
+	t = sq(mh) - Q_sq - 2.*V_m;
+	mx_sq = sq(M) + t + (1. - z)*S_x;
+	mx = std::sqrt(mx_sq);
 
 	// Paragraph below equation [1.14].
 	lambda_2 = sq(V_m) + sq(mh)*Q_sq;
