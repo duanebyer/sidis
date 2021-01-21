@@ -15,6 +15,11 @@ using namespace sidis::math;
 
 // This program returns a random valid point in phase space.
 int main(int argc, char** argv) {
+	Real M_th = MASS_P + MASS_PI_0;
+	Lepton beam = Lepton::E;
+	Nucleus target = Nucleus::P;
+	Hadron hadron = Hadron::PI_P;
+
 	// Read input parameters from command line.
 	Real beam_energy;
 	bool radiative;
@@ -48,11 +53,9 @@ int main(int argc, char** argv) {
 
 	// Repeatedly choose a random point within phase space until we get one that
 	// is kinematically valid.
-	Initial initial_state(Nucleus::P, Lepton::E, beam_energy);
-	Hadron hadron = Hadron::PI_P;
+	Initial initial_state(target, beam, beam_energy);
 	Kinematics kin;
 	KinematicsRad kin_rad;
-	Real M_th = MASS_P + MASS_PI_0;
 	std::random_device rd;
 	std::mt19937 rng(rd());
 	std::uniform_real_distribution<Real> dist(0., 1.);
