@@ -643,6 +643,16 @@ bool kin::valid(Kinematics kin) {
 	}
 }
 bool kin::valid(KinematicsRad kin_rad) {
-	return valid(kin_rad.project());
+	if (!valid(kin_rad.project())) {
+		return false;
+	} else if (!(kin_rad.tau >= kin_rad.tau_min && kin_rad.tau <= kin_rad.tau_max)) {
+		return false;
+	} else if (!std::isfinite(kin_rad.phi_k)) {
+		return false;
+	} else if (!(kin_rad.R >= 0. && kin_rad.R <= kin_rad.R_max)) {
+		return false;
+	} else {
+		return true;
+	}
 }
 
