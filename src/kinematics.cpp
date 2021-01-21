@@ -495,8 +495,7 @@ FinalRad::FinalRad(Initial init, Vec3 target_pol, KinematicsRad kin) {
 // Bounds of kinematic variables.
 // TODO: Some of the calculations in this section are redundant with earlier
 // kinematic calculations. This should be refactored to avoid that later.
-Bounds kin::x_bounds(Initial init) {
-	static_cast<void>(init);
+Bounds kin::x_bounds(Initial) {
 	return Bounds(0., 1.);
 }
 Bounds kin::y_bounds(Initial init, Real x) {
