@@ -326,11 +326,16 @@ TEST_CASE(
 	test_kin_nrad(initial_state, kin.project_shift(), false);
 }
 
+// The following `[kin-rand]` tests will likely have a handful of failures,
+// corresponding to tested points that have bad numerical properties (resulting
+// in larger than expected inaccuracies in the result). Because of this, they
+// are disabled by default, but they can still be useful in verifying that
+// nothing really bad is going with kinematic calculations.
 TEST_CASE(
 		"Random phase space bounds outer check",
-		"[bounds-rand]") {
-	// Generate a random point in phase space, then check that it lies within
-	// the specified bounds.
+		"[.][kin-rand]") {
+	// Generate a random point just outside the phase space boundary, then check
+	// that it is not kinematically valid.
 	Real E_b = 3.;
 	Real Mth = constant::MASS_P + constant::MASS_PI_0;
 	constant::Nucleus target = constant::Nucleus::P;
@@ -358,8 +363,39 @@ TEST_CASE(
 }
 
 TEST_CASE(
+		"Random phase space bounds inner check",
+		"[.][kin-rand]") {
+	// Generate a random point just inside phase space boundary, then check that
+	// it is kinematically valid.
+	Real E_b = 3.;
+	Real Mth = constant::MASS_P + constant::MASS_PI_0;
+	constant::Nucleus target = constant::Nucleus::P;
+	constant::Lepton lepton = constant::Lepton::TAU;
+	constant::Hadron hadron = constant::Hadron::PI_P;
+	kin::Particles ps(target, lepton, hadron, Mth);
+	Real S = 2.*ps.M*E_b;
+	kin::Initial initial_state(ps, E_b);
+	kin::PhaseSpace phase_space = GENERATE_COPY(
+		take(1000000, gen_phase_space_surface(ps, S, 0.0001)));
+	kin::Kinematics kin(ps, S, phase_space);
+
+	std::stringstream ss;
+	ss
+		<< "E_b   = " << E_b                 << std::endl
+		<< "x     = " << phase_space.x       << std::endl
+		<< "y     = " << phase_space.y       << std::endl
+		<< "z     = " << phase_space.z       << std::endl
+		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
+		<< "φ_h   = " << phase_space.phi_h   << std::endl
+		<< "φ     = " << phase_space.phi     << std::endl;
+	INFO(ss.str());
+
+	test_kin_nrad(initial_state, kin, true, 1e6);
+}
+
+TEST_CASE(
 		"Random phase space points check",
-		"[kin-rand]") {
+		"[.][kin-rand]") {
 	// We choose these conditions to ensure that the phase space is explored
 	// even in the region between non-relativistic and ultra-relativistic.
 	Real E_b = 3.;
