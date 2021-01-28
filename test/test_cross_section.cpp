@@ -101,10 +101,10 @@ TEST_CASE(
 	} else if (input.particle_id == 't') {
 		lep = constant::Lepton::TAU;
 	}
-	Real M_th = constant::MASS_P + constant::MASS_PI_0;
+	Real Mth = constant::MASS_P + constant::MASS_PI_0;
 	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
-	kin::Kinematics kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
+	kin::Kinematics kin(initial_state, phase_space, constant::Hadron::PI_P, Mth);
 	// Get beam and target polarizations.
 	Real beam_pol = input.beam_pol;
 	math::Vec3 target_pol = input.target_pol;
