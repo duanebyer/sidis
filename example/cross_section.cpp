@@ -162,39 +162,6 @@ int main(int argc, char** argv) {
 		std::cout << "σ_rad_f = " << rad_f << std::endl;
 		Real rad = xs::rad(beam_pol, eta, kin_rad, *sf);
 		std::cout << "σ_rad   = " << rad << std::endl;
-		for (unsigned i = 0; i < 18; ++i) {
-			bool mask[18] = { false };
-			mask[i] = true;
-			if (i >= 0 && i < 4) {
-				// UU
-				beam_pol = 0.;
-				eta = frame::hadron_from_target(kin) * Vec3(0., 0., 0.);
-			} else if (i >= 4 && i < 6) {
-				// UL
-				beam_pol = 0.;
-				eta = frame::hadron_from_target(kin) * Vec3(0., 0., 1.);
-			} else if (i >= 6 && i < 12) {
-				// UT
-				beam_pol = 0.;
-				eta = frame::hadron_from_target(kin) * Vec3(0., 1., 0.);
-			} else if (i >= 12 && i < 13) {
-				// LU
-				beam_pol = 1.;
-				eta = frame::hadron_from_target(kin) * Vec3(0., 0., 0.);
-			} else if (i >= 13 && i < 15) {
-				// LL
-				beam_pol = 1.;
-				eta = frame::hadron_from_target(kin) * Vec3(0., 0., 1.);
-			} else {
-				// LT
-				beam_pol = 1.;
-				eta = frame::hadron_from_target(kin) * Vec3(0., 1., 0.);
-			}
-			sf.reset(new sf::model::TestSfSet(target, mask));
-			rad_f = xs::rad_f(beam_pol, eta, kin_rad, *sf);
-			rad = xs::rad(beam_pol, eta, kin_rad, *sf);
-			std::cout << rad_f << '\t' << rad << std::endl;
-		}
 	}
 
 	return 0;
