@@ -6,6 +6,7 @@ include(Catch)
 add_executable(
 	sidistest
 	main.cpp
+	test_cross_section.cpp
 	test_interpolate.cpp
 	test_kinematics.cpp
 	test_math.cpp

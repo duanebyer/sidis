@@ -2,11 +2,13 @@
 
 #include <fstream>
 #include <istream>
+#include <memory>
 #include <sstream>
 #include <utility>
 
 #include <sidis/sidis.hpp>
-#include <sidis/sf_model/ww.hpp>
+#include <sidis/sf_set/test.hpp>
+#include <sidis/sf_set/ww.hpp>
 #include <sidis/extra/vector.hpp>
 
 #include "rel_matcher.hpp"
@@ -17,8 +19,10 @@ using namespace sidis;
 namespace {
 
 struct Input {
-	char particle_id;
-	Real beam_energy;
+	int sf_set_idx;
+	Real k0_cut;
+	int beam_id;
+	Real S;
 	Real beam_pol;
 	math::Vec3 target_pol;
 	kin::PhaseSpace phase_space;
@@ -26,15 +30,11 @@ struct Input {
 
 struct Output {
 	Real born;
-	Real amm;
-	Real delta_vr;
-	Real delta_vac_lep;
-	Real delta_vac_had;
 	Real err_born;
+	Real amm;
 	Real err_amm;
-	Real err_delta_vr;
-	Real err_delta_vac_lep;
-	Real err_delta_vac_had;
+	Real nrad;
+	Real err_nrad;
 };
 
 struct TestPair {
@@ -45,15 +45,18 @@ struct TestPair {
 std::istream& operator>>(std::istream& in, TestPair& pair) {
 	Input& input = pair.input;
 	Output& output = pair.output;
-	in >> input.particle_id;
-	if (!(input.particle_id == 'e'
-			|| input.particle_id == 'm'
-			|| input.particle_id == 't')) {
+	in >> input.sf_set_idx;
+	if (!(input.sf_set_idx >= -18 && input.sf_set_idx < 1)) {
 		in.setstate(std::ios_base::failbit);
 	}
-	in >> input.beam_energy;
+	in >> input.k0_cut;
+	in >> input.beam_id;
+	if (!(input.beam_id >= 0 && input.beam_id < 3)) {
+		in.setstate(std::ios_base::failbit);
+	}
+	in >> input.S;
 	in >> input.beam_pol;
-	in >> input.target_pol.x;
+	input.target_pol.x = 0.;
 	in >> input.target_pol.y;
 	in >> input.target_pol.z;
 	in >> input.phase_space.x;
@@ -66,12 +69,8 @@ std::istream& operator>>(std::istream& in, TestPair& pair) {
 	in >> output.err_born;
 	in >> output.amm;
 	in >> output.err_amm;
-	in >> output.delta_vr;
-	in >> output.err_delta_vr;
-	in >> output.delta_vac_lep;
-	in >> output.err_delta_vac_lep;
-	in >> output.delta_vac_had;
-	in >> output.err_delta_vac_had;
+	in >> output.nrad;
+	in >> output.err_nrad;
 	return in;
 }
 
@@ -80,46 +79,49 @@ std::istream& operator>>(std::istream& in, TestPair& pair) {
 TEST_CASE(
 		"Non-radiative cross-section values",
 		"[xs]") {
-	// Load the structure function data once for all tests.
-	static sf::model::WW ww;
-
 	// Load pre-computed data to use for cross-section verifications.
 	TestPair test_pair = GENERATE(
 		from_stream<TestPair>(
-			std::move(std::ifstream("data/nrad_xs_vals.dat")),
+			std::move(std::ifstream("data/xs_nrad_vals.dat")),
 			true));
 	Input input = test_pair.input;
 	Output output = test_pair.output;
 
+	std::unique_ptr<sf::SfSet> sf;
+	if (input.sf_set_idx == 0) {
+		sf.reset(new sf::model::WW());
+	} else {
+		bool mask[18] = { false };
+		mask[-input.sf_set_idx - 1] = true;
+		sf.reset(new sf::model::TestSfSet(constant::Nucleus::P, mask));
+	}
+
 	// Set up the input to the cross-section calculation.
-	Real E_b = input.beam_energy;
 	constant::Lepton lep;
-	if (input.particle_id == 'e') {
+	if (input.beam_id == 0) {
 		lep = constant::Lepton::E;
-	} else if (input.particle_id == 'm') {
+	} else if (input.beam_id == 1) {
 		lep = constant::Lepton::MU;
-	} else if (input.particle_id == 't') {
+	} else if (input.beam_id == 2) {
 		lep = constant::Lepton::TAU;
 	}
 	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
+	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
 	kin::PhaseSpace phase_space = input.phase_space;
-	kin::Kinematics kin(initial_state, phase_space, constant::Hadron::PI_P, Mth);
+	kin::Kinematics kin(ps, input.S, phase_space);
 	// Get beam and target polarizations.
 	Real beam_pol = input.beam_pol;
-	math::Vec3 target_pol = input.target_pol;
+	math::Vec3 eta = frame::hadron_from_target(kin) * input.target_pol;
 	// Compute the cross-sections.
-	Real born = xs::born(beam_pol, target_pol, kin, ww);
-	Real amm = xs::amm(beam_pol, target_pol, kin, ww);
-	Real delta_vr = xs::delta_vr(kin);
-	Real delta_vac_lep = xs::delta_vac_lep(kin);
-	Real delta_vac_had = xs::delta_vac_had(kin);
+	Real born = xs::born(beam_pol, eta, kin, *sf);
+	Real amm = xs::amm(beam_pol, eta, kin, *sf);
+	Real nrad = xs::nrad_ir(beam_pol, eta, kin, *sf, input.k0_cut);
 
 	// Print state information.
 	std::stringstream ss;
 	ss
-		<< "pid   = " << input.particle_id   << std::endl
-		<< "E_b   = " << E_b                 << std::endl
+		<< "pid   = " << constant::name(lep) << std::endl
+		<< "S     = " << input.S             << std::endl
 		<< "x     = " << phase_space.x       << std::endl
 		<< "y     = " << phase_space.y       << std::endl
 		<< "z     = " << phase_space.z       << std::endl
@@ -127,26 +129,20 @@ TEST_CASE(
 		<< "φ_h   = " << phase_space.phi_h   << std::endl
 		<< "φ     = " << phase_space.phi     << std::endl
 		<< "λ_e   = " << beam_pol            << std::endl
-		<< "η_1   = " << target_pol.x        << std::endl
-		<< "η_2   = " << target_pol.y        << std::endl
-		<< "η_3   = " << target_pol.z;
+		<< "η_1   = " << eta.x               << std::endl
+		<< "η_2   = " << eta.y               << std::endl
+		<< "η_3   = " << eta.z;
 	INFO(ss.str());
 
 	// Do comparisons.
 	CHECK_THAT(
 		born,
-		RelMatcher<Real>(output.born, output.err_born));
+		RelMatcher<Real>(output.born, 10.*output.err_born));
 	CHECK_THAT(
 		amm,
-		RelMatcher<Real>(output.amm, output.err_amm));
+		RelMatcher<Real>(output.amm, 10.*output.err_amm));
 	CHECK_THAT(
-		delta_vr,
-		RelMatcher<Real>(output.delta_vr, output.err_delta_vr));
-	CHECK_THAT(
-		delta_vac_lep,
-		RelMatcher<Real>(output.delta_vac_lep, output.err_delta_vac_lep));
-	CHECK_THAT(
-		delta_vac_had,
-		RelMatcher<Real>(output.delta_vac_had, output.err_delta_vac_had));
+		nrad,
+		RelMatcher<Real>(output.nrad, 10.*output.err_nrad));
 }
 
