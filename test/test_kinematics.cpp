@@ -9,11 +9,13 @@
 #include <sidis/constant.hpp>
 #include <sidis/frame.hpp>
 #include <sidis/kinematics.hpp>
+#include <sidis/extra/bounds.hpp>
 #include <sidis/extra/math.hpp>
 #include <sidis/extra/transform.hpp>
 #include <sidis/extra/vector.hpp>
 
 #include "abs_matcher.hpp"
+#include "phase_space_generator.hpp"
 #include "rel_matcher.hpp"
 #include "stream_generator.hpp"
 
@@ -70,12 +72,176 @@ std::istream& operator>>(std::istream& in, InputRad& input) {
 	return in;
 }
 
+Real norm_euc(math::Vec4 vec) {
+	return std::hypot(vec.t, vec.r().norm());
 }
 
 void test_kin_nrad(
-	kin::Initial initial_state,
-	kin::Kinematics kin,
-	bool complete);
+		kin::Initial initial_state,
+		kin::Kinematics kin,
+		bool complete,
+		Real rel_prec=1e4) {
+	kin::Final final_state(initial_state, math::Vec3::Y, kin);
+	// Get 4-momenta of particles.
+	math::Vec4 p = initial_state.p;
+	math::Vec4 k1 = initial_state.k1;
+	math::Vec4 q = final_state.q;
+	math::Vec4 k2 = final_state.k2;
+	math::Vec4 ph = final_state.ph;
+	math::Vec4 px = (p + k1) - (k2 + ph);
+	// Basis vectors for angle checks.
+	math::Vec3 e_y = cross(q.r(), k1.r()).unit();
+	math::Vec3 e_x = cross(e_y, q.r()).unit();
+
+	// Do comparisons.
+	Real prec = rel_prec*std::numeric_limits<Real>::epsilon();
+
+	// Kinematic variables.
+	CHECK_THAT(
+		-dot(q, q)/(2.*dot(q, p)),
+		RelMatcher<Real>(
+			kin.x,
+			2.*prec*std::hypot(2.*q.t*q.t/dot(q, q), q.t*p.t/dot(q, p))));
+	CHECK_THAT(
+		dot(q, p)/dot(k1, p),
+		RelMatcher<Real>(
+			kin.y,
+			2.*prec*std::hypot(q.t*p.t/dot(q, p), k1.t*p.t/dot(k1, p))));
+	CHECK_THAT(
+		dot(ph, p)/dot(p, q),
+		RelMatcher<Real>(
+			kin.z,
+			2.*prec*std::hypot(ph.t*p.t/dot(ph, p), p.t*q.t/dot(p, q))));
+	CHECK_THAT(
+		(q - ph).norm_sq(),
+		AbsMatcher<Real>(
+			kin.t,
+			6.*prec*std::hypot(q.t, ph.t)*norm_euc(q - ph)));
+
+	CHECK_THAT(
+		2.*dot(p, k1),
+		AbsMatcher<Real>(kin.S, 4.*prec*p.t*k1.t));
+	CHECK_THAT(
+		-q.norm_sq(),
+		AbsMatcher<Real>(kin.Q_sq, 4.*prec*q.t*q.t));
+	CHECK_THAT(
+		2.*dot(p, k2),
+		AbsMatcher<Real>(kin.X, 4.*prec*p.t*k2.t));
+	CHECK_THAT(
+		2.*dot(p, q),
+		AbsMatcher<Real>(kin.S_x, 4.*prec*p.t*q.t));
+	CHECK_THAT(
+		2.*dot(k1, ph),
+		AbsMatcher<Real>(kin.V_1, 4.*prec*k1.t*ph.t));
+	CHECK_THAT(
+		2.*dot(k2, ph),
+		AbsMatcher<Real>(kin.V_2, 4.*prec*k2.t*ph.t));
+	CHECK_THAT(
+		dot(q, ph),
+		AbsMatcher<Real>(kin.V_m, 2.*prec*q.t*ph.t));
+
+	// 3-momenta magnitudes.
+	CHECK_THAT(
+		k1.r().norm(),
+		RelMatcher<Real>(kin.lambda_S_sqrt/(2.*kin.M), 2.*prec));
+	CHECK_THAT(
+		q.r().norm(),
+		RelMatcher<Real>(kin.lambda_Y_sqrt/(2.*kin.M), 2.*prec));
+
+	// 3-momenta components.
+	CHECK_THAT(
+		dot(ph.r(), q.r().unit()),
+		RelMatcher<Real>(kin.ph_l, 2.*prec));
+	CHECK_THAT(
+		cross(ph.r(), q.r().unit()).norm(),
+		RelMatcher<Real>(kin.ph_t, 2.*prec));
+	CHECK_THAT(
+		cross(k1.r(), q.r().unit()).norm(),
+		RelMatcher<Real>(kin.k1_t, 2.*prec));
+
+	if (complete) {
+		CHECK_THAT(
+			cross(k2.r(), q.r().unit()).norm(),
+			RelMatcher<Real>(kin.k1_t, 2.*prec));
+	}
+	CHECK_THAT(
+		dot(q.r(), k1.r().unit()),
+		RelMatcher<Real>(kin.q_l, 2.*prec));
+	CHECK_THAT(
+		cross(q.r(), k1.r().unit()).norm(),
+		RelMatcher<Real>(kin.q_t, 2.*prec));
+
+	// Volume parts.
+	CHECK_THAT(
+		dot(cross(k1.r(), q.r()), ph.r()),
+		RelMatcher<Real>(kin.vol_phi_h/kin.M, 4.*prec));
+
+	// Angles.
+	CHECK_THAT(
+		std::atan2(dot(e_y, ph.r()), dot(e_x, ph.r())),
+		RelMatcher<Real>(kin.phi_h, 2.*prec));
+	CHECK_THAT(
+		std::atan2(k2.x, k2.y),
+		RelMatcher<Real>(kin.phi, 2.*prec));
+	CHECK_THAT(
+		std::atan2(-q.x, q.y),
+		RelMatcher<Real>(kin.phi_q, 2.*2.*prec));
+
+	// Completeness.
+	if (complete) {
+		math::Vec4 q_test = k1 - k2;
+		CHECK_THAT(
+			q_test.t,
+			AbsMatcher<Real>(q.t, prec*std::hypot(k1.t, k2.t)));
+		CHECK_THAT(
+			q_test.x,
+			AbsMatcher<Real>(q.x, prec*std::hypot(k1.x, k2.x)));
+		CHECK_THAT(
+			q_test.y,
+			AbsMatcher<Real>(q.y, prec*std::hypot(k1.y, k2.y)));
+		CHECK_THAT(
+			q_test.z,
+			AbsMatcher<Real>(q.z, prec*std::hypot(k1.z, k2.z)));
+	}
+
+	// Conservation.
+	math::Vec4 p_tot_i = p + k1;
+	math::Vec4 p_tot_f = k2 + ph + px;
+	CHECK_THAT(
+		p_tot_i.t,
+		AbsMatcher<Real>(p_tot_f.t, prec*std::sqrt(p.t*p.t + k1.t*k1.t + k2.t*k2.t + ph.t*ph.t + px.t*px.t)));
+	CHECK_THAT(
+		p_tot_i.x,
+		AbsMatcher<Real>(p_tot_f.x, prec*std::sqrt(p.x*p.x + k1.x*k1.x + k2.x*k2.x + ph.x*ph.x + px.x*px.x)));
+	CHECK_THAT(
+		p_tot_i.y,
+		AbsMatcher<Real>(p_tot_f.y, prec*std::sqrt(p.y*p.y + k1.y*k1.y + k2.y*k2.y + ph.y*ph.y + px.y*px.y)));
+	CHECK_THAT(
+		p_tot_i.z,
+		AbsMatcher<Real>(p_tot_f.z, prec*std::sqrt(p.z*p.z + k1.z*k1.z + k2.z*k2.z + ph.z*ph.z + px.z*px.z)));
+
+	// Particle masses.
+	CHECK_THAT(
+		p.norm(),
+		AbsMatcher<Real>(kin.M, 4.*prec*p.t*p.t/kin.M));
+	CHECK_THAT(
+		k1.norm(),
+		AbsMatcher<Real>(kin.m, 4.*prec*k1.t*k1.t/kin.m));
+	CHECK_THAT(
+		k2.norm(),
+		AbsMatcher<Real>(kin.m, 4.*prec*k2.t*k2.t/kin.m));
+	CHECK_THAT(
+		ph.norm(),
+		AbsMatcher<Real>(kin.mh, 4.*prec*ph.t*ph.t/kin.mh));
+	if (complete) {
+		CHECK_THAT(
+			px.norm(),
+			AbsMatcher<Real>(kin.mx, 4.*prec*px.t*px.t/kin.mx));
+	}
+}
+
+
+}
 
 TEST_CASE(
 		"Non-radiative kinematics checks",
@@ -94,10 +260,12 @@ TEST_CASE(
 	} else if (input.particle_id == 't') {
 		lep = constant::Lepton::TAU;
 	}
-	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
+	Real Mth = constant::MASS_P + constant::MASS_PI_0;
+	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real S = 2.*ps.M*E_b;
+	kin::Initial initial_state(ps, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
-	kin::Kinematics kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
+	kin::Kinematics kin(ps, S, phase_space);
 
 	// Print state information.
 	std::stringstream ss;
@@ -132,10 +300,12 @@ TEST_CASE(
 	} else if (input.particle_id == 't') {
 		lep = constant::Lepton::TAU;
 	}
-	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
+	Real Mth = constant::MASS_P + constant::MASS_PI_0;
+	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real S = 2.*ps.M*E_b;
+	kin::Initial initial_state(ps, E_b);
 	kin::PhaseSpaceRad phase_space = input.phase_space;
-	kin::KinematicsRad kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
+	kin::KinematicsRad kin(ps, S, phase_space);
 
 	// Print state information.
 	std::stringstream ss;
@@ -156,145 +326,67 @@ TEST_CASE(
 	test_kin_nrad(initial_state, kin.project_shift(), false);
 }
 
-void test_kin_nrad(
-		kin::Initial initial_state,
-		kin::Kinematics kin,
-		bool complete) {
-	kin::Final final_state(initial_state, math::Vec3::Y, kin);
-	// Get 4-momenta of particles.
-	math::Vec4 p = initial_state.p;
-	math::Vec4 k1 = initial_state.k1;
-	math::Vec4 q = final_state.q;
-	math::Vec4 k2 = final_state.k2;
-	math::Vec4 ph = final_state.ph;
-	math::Vec4 px = (p + k1) - (k2 + ph);
-	// Basis vectors for angle checks.
-	math::Vec3 e_y = cross(q.r(), k1.r()).unit();
-	math::Vec3 e_x = cross(e_y, q.r()).unit();
+TEST_CASE(
+		"Random phase space bounds outer check",
+		"[bounds-rand]") {
+	// Generate a random point in phase space, then check that it lies within
+	// the specified bounds.
+	Real E_b = 3.;
+	Real Mth = constant::MASS_P + constant::MASS_PI_0;
+	constant::Nucleus target = constant::Nucleus::P;
+	constant::Lepton lepton = constant::Lepton::TAU;
+	constant::Hadron hadron = constant::Hadron::PI_P;
+	kin::Particles ps(target, lepton, hadron, Mth);
+	Real S = 2.*ps.M*E_b;
+	kin::Initial initial_state(ps, E_b);
+	kin::PhaseSpace phase_space = GENERATE_COPY(
+		take(1000000, gen_phase_space_surface(ps, S, -0.0001)));
+	kin::Kinematics kin(ps, S, phase_space);
 
-	// Do comparisons.
-	Real prec = 1e4 * std::numeric_limits<Real>::epsilon();
+	std::stringstream ss;
+	ss
+		<< "E_b   = " << E_b                 << std::endl
+		<< "x     = " << phase_space.x       << std::endl
+		<< "y     = " << phase_space.y       << std::endl
+		<< "z     = " << phase_space.z       << std::endl
+		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
+		<< "φ_h   = " << phase_space.phi_h   << std::endl
+		<< "φ     = " << phase_space.phi     << std::endl;
+	INFO(ss.str());
 
-	// Kinematic variables.
-	CHECK_THAT(
-		-dot(q, q)/(2.*dot(q, p)),
-		RelMatcher<Real>(kin.x, prec));
-	CHECK_THAT(
-		dot(q, p)/dot(k1, p),
-		RelMatcher<Real>(kin.y, prec));
-	CHECK_THAT(
-		dot(ph, p)/dot(p, q),
-		RelMatcher<Real>(kin.z, prec));
-	CHECK_THAT(
-		(q - ph).norm_sq(),
-		RelMatcher<Real>(kin.t, prec));
-	CHECK_THAT(
-		2.*dot(p, k1),
-		RelMatcher<Real>(kin.S, prec));
-	CHECK_THAT(
-		-q.norm_sq(),
-		RelMatcher<Real>(kin.Q_sq, prec));
-	CHECK_THAT(
-		2.*dot(p, k2),
-		RelMatcher<Real>(kin.X, prec));
-	CHECK_THAT(
-		2.*dot(p, q),
-		RelMatcher<Real>(kin.S_x, prec));
-	CHECK_THAT(
-		2.*dot(k1, ph),
-		RelMatcher<Real>(kin.V_1, prec));
-	CHECK_THAT(
-		2.*dot(k2, ph),
-		RelMatcher<Real>(kin.V_2, prec));
-	CHECK_THAT(
-		dot(q, ph),
-		RelMatcher<Real>(kin.V_m, prec));
+	CHECK(!kin::valid(kin));
+}
 
-	// 3-momenta magnitudes.
-	CHECK_THAT(
-		k1.r().norm(),
-		RelMatcher<Real>(kin.lambda_S_sqrt/(2.*kin.M), prec));
-	CHECK_THAT(
-		q.r().norm(),
-		RelMatcher<Real>(kin.lambda_Y_sqrt/(2.*kin.M), prec));
+TEST_CASE(
+		"Random phase space points check",
+		"[kin-rand]") {
+	// We choose these conditions to ensure that the phase space is explored
+	// even in the region between non-relativistic and ultra-relativistic.
+	Real E_b = 3.;
+	Real Mth = constant::MASS_P + constant::MASS_PI_0;
+	constant::Nucleus target = constant::Nucleus::P;
+	constant::Lepton lepton = constant::Lepton::TAU;
+	constant::Hadron hadron = constant::Hadron::PI_P;
+	kin::Particles ps(target, lepton, hadron, Mth);
+	Real S = 2.*ps.M*E_b;
+	kin::Initial initial_state(ps, E_b);
+	kin::PhaseSpace phase_space = GENERATE_COPY(
+		take(1000000, gen_phase_space(ps, S)));
+	kin::Kinematics kin(ps, S, phase_space);
 
-	// 3-momenta components.
-	CHECK_THAT(
-		dot(ph.r(), q.r().unit()),
-		RelMatcher<Real>(kin.ph_l, prec));
-	CHECK_THAT(
-		cross(ph.r(), q.r().unit()).norm(),
-		RelMatcher<Real>(kin.ph_t, prec));
-	CHECK_THAT(
-		cross(k1.r(), q.r().unit()).norm(),
-		RelMatcher<Real>(kin.k1_t, prec));
-	if (complete) {
-		CHECK_THAT(
-			cross(k2.r(), q.r().unit()).norm(),
-			RelMatcher<Real>(kin.k1_t, prec));
-	}
-	CHECK_THAT(
-		dot(q.r(), k1.r().unit()),
-		RelMatcher<Real>(kin.q_l, prec));
-	CHECK_THAT(
-		cross(q.r(), k1.r().unit()).norm(),
-		RelMatcher<Real>(kin.q_t, prec));
+	std::stringstream ss;
+	ss
+		<< "pid   = " << name(lepton)        << std::endl
+		<< "E_b   = " << E_b                 << std::endl
+		<< "x     = " << phase_space.x       << std::endl
+		<< "y     = " << phase_space.y       << std::endl
+		<< "z     = " << phase_space.z       << std::endl
+		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
+		<< "φ_h   = " << phase_space.phi_h   << std::endl
+		<< "φ     = " << phase_space.phi     << std::endl;
+	INFO(ss.str());
 
-	// Volume parts.
-	CHECK_THAT(
-		dot(cross(k1.r(), q.r()), ph.r()),
-		RelMatcher<Real>(kin.vol_phi_h/kin.M, prec));
-
-	// Angles.
-	CHECK_THAT(
-		std::atan2(dot(e_y, ph.r()), dot(e_x, ph.r())),
-		RelMatcher<Real>(kin.phi_h, prec));
-	CHECK_THAT(
-		std::atan2(k2.x, k2.y),
-		RelMatcher<Real>(kin.phi, prec));
-	CHECK_THAT(
-		std::atan2(-q.x, q.y),
-		RelMatcher<Real>(kin.phi_q, prec));
-
-	// Completeness.
-	if (complete) {
-		math::Vec4 q_test = k1 - k2;
-		CHECK_THAT(
-			q_test.t,
-			RelMatcher<Real>(q.t, prec));
-		CHECK_THAT(
-			q_test.x,
-			RelMatcher<Real>(q.x, prec));
-		CHECK_THAT(
-			q_test.y,
-			RelMatcher<Real>(q.y, prec));
-		CHECK_THAT(
-			q_test.z,
-			RelMatcher<Real>(q.z, prec));
-	}
-
-	// Particle masses.
-	Real prec_base = 1e4 * std::numeric_limits<Real>::epsilon();
-	// The precisions for the comparisons are calculated in this way because
-	// often there is a lot of precision lost when calculating the mass of a
-	// particle with high energy.
-	CHECK_THAT(
-		p.norm(),
-		RelMatcher<Real>(kin.M, prec));
-	CHECK_THAT(
-		k1.norm(),
-		RelMatcher<Real>(kin.m, prec_base/(1. - k1.r().norm_sq()/math::sq(k1.t))));
-	CHECK_THAT(
-		k2.norm(),
-		RelMatcher<Real>(kin.m, prec_base/(1. - k2.r().norm_sq()/math::sq(k2.t))));
-	CHECK_THAT(
-		ph.norm(),
-		RelMatcher<Real>(kin.mh, prec_base/(1. - ph.r().norm_sq()/math::sq(ph.t))));
-	if (complete) {
-		CHECK_THAT(
-			px.norm(),
-			RelMatcher<Real>(kin.mx, prec_base/(1. - px.r().norm_sq()/math::sq(px.t))));
-	}
+	test_kin_nrad(initial_state, kin, true, 1e6);
 }
 
 TEST_CASE(
@@ -314,10 +406,12 @@ TEST_CASE(
 	} else if (input.particle_id == 't') {
 		lep = constant::Lepton::TAU;
 	}
-	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
+	Real Mth = constant::MASS_P + constant::MASS_PI_0;
+	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real S = 2.*ps.M*E_b;
+	kin::Initial initial_state(ps, E_b);
 	kin::PhaseSpaceRad phase_space = input.phase_space;
-	kin::KinematicsRad kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
+	kin::KinematicsRad kin(ps, S, phase_space);
 	kin::FinalRad final_state(initial_state, math::Vec3::ZERO, kin);
 	// Get 4-momenta of particles.
 	math::Vec4 p = initial_state.p;
@@ -466,7 +560,12 @@ TEST_CASE(
 	math::Vec3 p(1.2, -0.5, 2.3);
 	math::Vec3 k1(0.4, -2.2, 0.2);
 	math::Vec3 pol(0.2, 0.1, -0.3);
-	kin::Initial initial_state(constant::Nucleus::P, p, constant::Lepton::MU, k1);
+	kin::Particles ps(
+		constant::Nucleus::P,
+		constant::Lepton::MU,
+		constant::Hadron::PI_P,
+		constant::MASS_P + constant::MASS_PI_0);
+	kin::Initial initial_state(ps, p, k1);
 
 	// Construct the frames.
 	math::Transform4 target_from_lab = frame::target_from_lab(initial_state, pol);
@@ -555,7 +654,12 @@ TEST_CASE(
 TEST_CASE(
 		"Default target to lab frame checks",
 		"[frame]") {
-	kin::Initial initial_state(constant::Nucleus::P, constant::Lepton::MU, 8.2);
+	kin::Particles ps(
+		constant::Nucleus::P,
+		constant::Lepton::MU,
+		constant::Hadron::PI_P,
+		constant::MASS_P + constant::MASS_PI_0);
+	kin::Initial initial_state(ps, 8.2);
 
 	// Construct the frames.
 	math::Vec3 pol = GENERATE(
@@ -607,10 +711,12 @@ TEST_CASE(
 	} else if (input.particle_id == 't') {
 		lep = constant::Lepton::TAU;
 	}
-	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
+	Real Mth = constant::MASS_P + constant::MASS_PI_0;
+	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real S = 2.*ps.M*E_b;
+	kin::Initial initial_state(ps, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
-	kin::Kinematics kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
+	kin::Kinematics kin(ps, S, phase_space);
 	kin::Final final_state(initial_state, math::Vec3::Y, kin);
 	// Reference frames.
 	math::Transform4 target_from_lepton = frame::target_from_lepton(kin);
@@ -749,10 +855,12 @@ TEST_CASE(
 	} else if (input.particle_id == 't') {
 		lep = constant::Lepton::TAU;
 	}
-	Real M_th = constant::MASS_P + constant::MASS_PI_0;
-	kin::Initial initial_state(constant::Nucleus::P, lep, E_b);
+	Real Mth = constant::MASS_P + constant::MASS_PI_0;
+	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real S = 2.*ps.M*E_b;
+	kin::Initial initial_state(ps, E_b);
 	kin::PhaseSpaceRad phase_space = input.phase_space;
-	kin::KinematicsRad kin(initial_state, phase_space, constant::Hadron::PI_P, M_th);
+	kin::KinematicsRad kin(ps, S, phase_space);
 	kin::FinalRad final_state(initial_state, math::Vec3::Y, kin);
 	// Reference frames.
 	math::Transform4 target_from_shift = frame::target_from_shift(kin);
