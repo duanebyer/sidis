@@ -16,7 +16,7 @@ using namespace sidis::math;
 // This program returns a random valid point in phase space.
 int main(int argc, char** argv) {
 	Real Mth = MASS_P + MASS_PI_0;
-	Lepton beam = Lepton::TAU;
+	Lepton beam = Lepton::E;
 	Nucleus target = Nucleus::P;
 	Hadron hadron = Hadron::PI_P;
 
