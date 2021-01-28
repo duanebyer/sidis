@@ -1,9 +1,17 @@
 #include "sidis/extra/bounds.hpp"
 
 #include <cmath>
+#include <limits>
 
 using namespace sidis;
 using namespace sidis::math;
+
+Bounds const Bounds::INVALID = Bounds(
+	std::numeric_limits<Real>::quiet_NaN(),
+	std::numeric_limits<Real>::quiet_NaN());
+Bounds const Bounds::FULL = Bounds(
+	std::numeric_limits<Real>::lowest(),
+	std::numeric_limits<Real>::max());
 
 Bounds math::operator&(Bounds lhs, Bounds rhs) {
 	return Bounds(

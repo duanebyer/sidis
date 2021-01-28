@@ -7,6 +7,9 @@ namespace sidis {
 namespace math {
 
 struct Bounds {
+	static Bounds const INVALID;
+	static Bounds const FULL;
+
 	Real min;
 	Real max;
 	Bounds(Real min, Real max) : min(min), max(max) { }
