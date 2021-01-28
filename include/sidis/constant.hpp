@@ -24,6 +24,8 @@ static Real const MASS_PI_0 = 0.1349770L;
 static Real const MASS_PI = 0.13957061L;
 static Real const MASS_K_0 = 0.497611L;
 static Real const MASS_K = 0.493677L;
+static Real const MASS_PHI = 1.019461L;
+static Real const MASS_J_PSI = 3.096900L;
 
 enum class Lepton {
 	E, MU, TAU,
@@ -42,6 +44,8 @@ enum class Hadron {
 	K_0,
 	K_P,
 	K_M,
+	PHI,
+	J_PSI,
 };
 
 enum class Quark {
@@ -85,6 +89,10 @@ inline Real mass(Hadron hadron) {
 	case Hadron::K_P:
 	case Hadron::K_M:
 		return MASS_K;
+	case Hadron::PHI:
+		return MASS_PHI;
+	case Hadron::J_PSI:
+		return MASS_J_PSI;
 	}
 	return 0.;
 }
@@ -114,6 +122,8 @@ inline Real charge(Hadron hadron) {
 	switch (hadron) {
 	case Hadron::PI_0:
 	case Hadron::K_0:
+	case Hadron::PHI:
+	case Hadron::J_PSI:
 		return 0.;
 	case Hadron::PI_P:
 	case Hadron::K_P:
@@ -185,6 +195,10 @@ inline char const* name(Hadron hadron) {
 		return "K⁺";
 	case Hadron::K_M:
 		return "K⁻";
+	case Hadron::PHI:
+		return "φ";
+	case Hadron::J_PSI:
+		return "J/ψ";
 	}
 	return "<error>";
 }
