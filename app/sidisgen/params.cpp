@@ -210,6 +210,7 @@ void Params::write_root(TFile& file) const {
 	WRITE_PARAM_ROOT(file, beam);
 	WRITE_PARAM_ROOT(file, target);
 	WRITE_PARAM_ROOT(file, hadron);
+	WRITE_PARAM_ROOT(file, mass_threshold);
 	WRITE_PARAM_ROOT(file, target_pol);
 	WRITE_PARAM_ROOT(file, beam_pol);
 	WRITE_PARAM_ROOT(file, k0_cut);
@@ -229,6 +230,7 @@ void Params::read_root(TFile& file) {
 	READ_PARAM_ROOT(file, beam);
 	READ_PARAM_ROOT(file, target);
 	READ_PARAM_ROOT(file, hadron);
+	READ_PARAM_ROOT(file, mass_threshold);
 	READ_PARAM_ROOT(file, target_pol);
 	READ_PARAM_ROOT(file, beam_pol);
 	READ_PARAM_ROOT(file, k0_cut);
@@ -250,6 +252,7 @@ void Params::write(std::ostream& file) const {
 	WRITE_PARAM(file, beam);
 	WRITE_PARAM(file, target);
 	WRITE_PARAM(file, hadron);
+	WRITE_PARAM(file, mass_threshold);
 	WRITE_PARAM(file, target_pol);
 	WRITE_PARAM(file, beam_pol);
 	WRITE_PARAM(file, k0_cut);
@@ -283,6 +286,7 @@ void Params::read(std::istream& file) {
 	READ_PARAM(params, beam);
 	READ_PARAM(params, target);
 	READ_PARAM(params, hadron);
+	READ_PARAM(params, mass_threshold);
 	READ_PARAM(params, target_pol);
 	READ_PARAM(params, beam_pol);
 	READ_PARAM(params, k0_cut);
@@ -308,6 +312,7 @@ bool Params::compatible_foam(Params const& foam_params) const {
 		&& foam_params.beam == beam
 		&& foam_params.target == target
 		&& foam_params.hadron == hadron
+		&& foam_params.mass_threshold == mass_threshold
 		&& foam_params.target_pol.x == target_pol.x
 		&& foam_params.target_pol.y == target_pol.y
 		&& foam_params.target_pol.z == target_pol.z

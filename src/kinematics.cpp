@@ -1,24 +1,38 @@
 #include "sidis/kinematics.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 #include "sidis/constant.hpp"
 #include "sidis/frame.hpp"
 #include "sidis/extra/bounds.hpp"
+#include "sidis/extra/exception.hpp"
 #include "sidis/extra/math.hpp"
 #include "sidis/extra/transform.hpp"
 
 using namespace sidis;
 using namespace sidis::constant;
-using namespace sidis::frame;
 using namespace sidis::kin;
 using namespace sidis::math;
 
-Kinematics::Kinematics(
-		Initial init,
-		PhaseSpace ph_space,
+Particles::Particles(
+		Nucleus target,
+		Lepton beam,
 		Hadron hadron,
-		Real M_th) {
+		Real Mth) :
+		target(target),
+		beam(beam),
+		hadron(hadron),
+		M(mass(target)),
+		m(mass(beam)),
+		mh(mass(hadron)),
+		Mth(Mth) {
+	if (!(Mth >= M) || !(Mth <= M + mh)) {
+		throw MassThresholdOutOfRange(Mth, M, M + mh);
+	}
+}
+
+Kinematics::Kinematics(Particles ps, Real S, PhaseSpace ph_space) {
 	x = ph_space.x;
 	y = ph_space.y;
 	z = ph_space.z;
@@ -39,20 +53,20 @@ Kinematics::Kinematics(
 	cos_phi_q = -cos_phi;
 	sin_phi_q = sin_phi;
 
-	target = init.target;
-	beam = init.beam;
-	this->hadron = hadron;
+	target = ps.target;
+	beam = ps.beam;
+	hadron = ps.hadron;
 
-	S = 2.*dot(init.p, init.k1);
-	M = mass(target);
-	m = mass(beam);
-	mh = mass(hadron);
-	this->M_th = M_th;
+	this->S = S;
+	M = ps.M;
+	m = ps.m;
+	mh = ps.mh;
+	Mth = ps.Mth;
 
 	// Equation [1.3].
 	Q_sq = S*x*y;
 	Q = std::sqrt(Q_sq);
-	X = S*(1. - y);
+	X = (1. - y)*S;
 	S_x = S*y;
 	S_p = S*(2. - y);
 	lambda_S = sq(S) - 4.*sq(M)*sq(m);
@@ -94,7 +108,7 @@ Kinematics::Kinematics(
 	// way:
 	Real lambda_Y_ratio = (4.*sq(M)*Q_sq)/sq(S_x);
 	V_m = -(ph_0*S_x)/(2.*M)*sqrt1p_1m(
-		lambda_Y_ratio - ph_ratio_sq - lambda_Y_ratio*ph_ratio_sq);
+		lambda_Y_ratio - ph_ratio_sq*(1. + lambda_Y_ratio));
 
 	t = sq(mh) - Q_sq - 2.*V_m;
 	mx_sq = sq(M) + t + (1. - z)*S_x;
@@ -121,7 +135,7 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		M(kin.M),
 		m(kin.m),
 		mh(kin.mh),
-		M_th(kin.M_th),
+		Mth(kin.Mth),
 		x(kin.x),
 		y(kin.y),
 		z(kin.z),
@@ -200,7 +214,7 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 	//   mu = (z*R*S_x - lambda_RV)/(2.*sq(M)*R);
 
 	// Equation [1.44].
-	R_max = (mx_sq - sq(M_th))/(1. + tau - mu);
+	R_max = (mx_sq - sq(Mth))/(1. + tau - mu);
 
 	// Equation [1.B4].
 	lambda_z = (tau_max - tau)*(tau - tau_min)*lambda_1;
@@ -326,7 +340,7 @@ Kinematics KinematicsRad::project() const {
 	kin.M = M;
 	kin.m = m;
 	kin.mh = mh;
-	kin.M_th = M_th;
+	kin.Mth = Mth;
 
 	kin.x = x;
 	kin.y = y;
@@ -395,7 +409,7 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.M = M;
 	kin.m = m;
 	kin.mh = mh;
-	kin.M_th = M_th;
+	kin.Mth = Mth;
 
 	kin.x = shift_x;
 	kin.y = shift_y;
@@ -455,24 +469,29 @@ Kinematics KinematicsRad::project_shift() const {
 }
 
 Final::Final(Initial init, Vec3 target_pol, Kinematics kin) {
-	Transform4 target = lab_from_target(init, target_pol);
-	Transform4 hadron = target * target_from_hadron(kin);
+	beam = kin.beam;
+	hadron = kin.hadron;
+	Transform4 lab_from_target = frame::lab_from_target(init, target_pol);
+	Transform4 lab_from_lepton = lab_from_target * frame::target_from_lepton(kin);
+	Transform4 lab_from_hadron = lab_from_target * frame::target_from_hadron(kin);
 	// `q` is easy to reconstruct in the hadron frame, since the z-axis is
 	// defined to point along `q`.
-	q = hadron * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
-	k2 = target * Vec4(
+	q = lab_from_lepton * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
+	k2 = lab_from_target * Vec4(
 		kin.k2_0,
 		kin.k2_t * kin.sin_phi,
 		kin.k2_t * kin.cos_phi,
 		kin.k2_l);
-	ph = hadron * Vec4(kin.ph_0, kin.ph_t, 0., kin.ph_l);
+	ph = lab_from_hadron * Vec4(kin.ph_0, kin.ph_t, 0., kin.ph_l);
 }
 
 FinalRad::FinalRad(Initial init, Vec3 target_pol, KinematicsRad kin) {
-	Transform4 target = lab_from_target(init, target_pol);
-	Transform4 lepton = target * target_from_lepton(kin.project());
-	q = lepton * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
-	k2 = target * Vec4(
+	beam = kin.beam;
+	hadron = kin.hadron;
+	Transform4 lab_from_target = frame::lab_from_target(init, target_pol);
+	Transform4 lab_from_lepton = lab_from_target * frame::target_from_lepton(kin.project());
+	q = lab_from_lepton * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
+	k2 = lab_from_target * Vec4(
 		kin.k2_0,
 		kin.k2_t * kin.sin_phi,
 		kin.k2_t * kin.cos_phi,
@@ -480,12 +499,12 @@ FinalRad::FinalRad(Initial init, Vec3 target_pol, KinematicsRad kin) {
 	// To be slightly more efficient, construct both the `ph` and `k` vectors in
 	// the lepton frame, as they are simply rotated by `phi_h` and `phi_k` about
 	// the z-axis in this frame.
-	ph = lepton * Vec4(
+	ph = lab_from_lepton * Vec4(
 		kin.ph_0,
 		kin.ph_t * kin.cos_phi_h,
 		kin.ph_t * kin.sin_phi_h,
 		kin.ph_l);
-	k = lepton * Vec4(
+	k = lab_from_lepton * Vec4(
 		kin.k_0,
 		kin.k_t * kin.cos_phi_k,
 		kin.k_t * kin.sin_phi_k,
@@ -495,68 +514,113 @@ FinalRad::FinalRad(Initial init, Vec3 target_pol, KinematicsRad kin) {
 // Bounds of kinematic variables.
 // TODO: Some of the calculations in this section are redundant with earlier
 // kinematic calculations. This should be refactored to avoid that later.
-Bounds kin::x_bounds(Initial) {
-	return Bounds(0., 1.);
+Real kin::S_min(Particles ps) {
+	return sq(ps.Mth + ps.mh) + 2.*ps.m*(ps.Mth + ps.mh) - math::sq(ps.M);
 }
-Bounds kin::y_bounds(Initial init, Real x) {
-	Real M = mass(init.target);
-	Real m = mass(init.beam);
-	Real S = 2.*dot(init.p, init.k1);
+Bounds kin::x_bounds(Particles ps, Real S) {
+	Real M = ps.M;
+	Real m = ps.m;
+	Real mh = ps.mh;
+	Real Mth = ps.Mth;
 	Real lambda_S = sq(S) - 4.*sq(M)*sq(m);
-	// TODO: Include bound from `sq(px) >= 0`.
-	Real min = 0.;
-	Real max = std::fmin(
-		1.,
-		// Bound from the condition that `sq(q_t) >= 0`.
-		(x*lambda_S)/(S*(sq(m) + sq(M)*sq(x) + S*x)));
-	return Bounds(min, max);
+	Real L = S - (sq(Mth + mh) - sq(M));
+
+	Real denom = 2.*(lambda_S + sq(M)*(sq(Mth + mh) - sq(M)));
+	Real a = lambda_S - S*(sq(Mth + mh) - sq(M));
+	Real b = std::sqrt(lambda_S*(L - 2.*m*(Mth + mh))*(L + 2.*m*(Mth + mh)));
+	Real x_1 = (a - b)/denom;
+	Real x_2 = (a + b)/denom;
+
+	// Combined bounds `mx >= Mth` and `sq(q_t) >= 0`.
+	if (std::isnan(x_1) || std::isnan(x_2)) {
+		return Bounds::INVALID;
+	}
+	Real min = std::max({ 0., x_1 });
+	Real max = std::min({ 1., x_2 });
+	return min <= max ? Bounds(min, max) : Bounds::INVALID;
 }
-Bounds kin::z_bounds(Initial init, Hadron h, Real M_th, Real x, Real y) {
-	Real M = mass(init.target);
-	Real mh = mass(h);
-	Real S = 2.*dot(init.p, init.k1);
-	Real S_x = S*y;
-	Real Q_sq = S*x*y;
-	Real lambda_Y_sqrt = std::sqrt(sq(S_x) + 4.*sq(M)*Q_sq);
-	Real lambda = sq(M) + S_x - Q_sq;
-	Real denom = 2.*S_x*lambda;
-	Real a = (S_x + 2.*sq(M))*(lambda + sq(mh) - sq(M_th));
-	Real b = (lambda - sq(mh))*lambda_Y_sqrt;
-	Real min = std::fmax(
-		0.,
-		// Bound from the condition that `mx_sq >= 0`.
-		(a - b)/denom);
-	Real max = std::fmin(
-		1.,
-		// Bound from the condition that `mx_sq >= 0`.
-		(a + b)/denom);
-	return Bounds(min, max);
+Bounds kin::y_bounds(Particles ps, Real S, Real x) {
+	Real M = ps.M;
+	Real m = ps.m;
+	Real mh = ps.mh;
+	Real Mth = ps.Mth;
+	Real lambda_S = sq(S) - 4.*sq(M)*sq(m);
+
+	// Bound `mx >= Mth`.
+	Real px_threshold = (sq(Mth + mh) - sq(M))/((1. - x)*S);
+	if (std::isnan(px_threshold)) {
+		return Bounds::INVALID;
+	}
+	Real min = std::max({ 0., px_threshold });
+	// Bound `sq(q_t) >= 0`.
+	Real q_threshold = (x*lambda_S)/(S*(sq(M*x) + S*x + sq(m)));
+	if (std::isnan(q_threshold)) {
+		return Bounds::INVALID;
+	}
+	Real max = std::min({ 1., q_threshold });
+	return min <= max ? Bounds(min, max) : Bounds::INVALID;
 }
-Bounds kin::ph_t_sq_bounds(Initial init, Hadron h, Real M_th, Real x, Real y, Real z) {
-	Real M = mass(init.target);
-	Real mh = mass(h);
-	Real S = 2.*dot(init.p, init.k1);
+Bounds kin::z_bounds(Particles ps, Real S, Real x, Real y) {
+	Real M = ps.M;
+	Real mh = ps.mh;
+	Real Mth = ps.Mth;
 	Real S_x = S*y;
 	Real Q_sq = S*x*y;
 	Real lambda_Y = sq(S_x) + 4.*sq(M)*Q_sq;
-	Real lambda = sq(M) + S_x - Q_sq;
+	Real L = (1. - x)*S_x + sq(M);
+
+	Real denom = 2.*S_x*L;
+	Real a = (S_x + 2.*sq(M))*(L - sq(Mth) + sq(mh));
+	Real b = std::sqrt(lambda_Y*(L - sq(Mth - mh))*(L - sq(Mth + mh)));
+	Real z_crossover = 2.*sq(M)*(L - sq(Mth) + sq(mh))/(S_x*(S_x + 2.*sq(M)));
+	Real z_0 = (2.*M*mh)/S_x;
+	Real z_1 = (a - b)/denom;
+	Real z_2 = (a + b)/denom;
+
+	// Bound `mx >= Mth`.
+	Real px_threshold_min = z_crossover > z_0 ? z_0 : z_1;
+	Real px_threshold_max = z_2;
+	if (std::isnan(z_0) || std::isnan(z_1) || std::isnan(z_2)
+			|| std::isnan(z_crossover)) {
+		return Bounds::INVALID;
+	}
+	Real min = std::max({ 0., px_threshold_min });
+	Real max = std::min({ 1., px_threshold_max });
+	return min <= max ? Bounds(min, max) : Bounds::INVALID;
+}
+Bounds kin::ph_t_sq_bounds(Particles ps, Real S, Real x, Real y, Real z) {
+	Real M = ps.M;
+	Real mh = ps.mh;
+	Real Mth = ps.Mth;
+	Real S_x = S*y;
+	Real Q_sq = S*x*y;
+	Real lambda_Y = sq(S_x) + 4.*sq(M)*Q_sq;
+	Real L = (1. - x)*S_x + sq(M);
 	Real ph_0 = (z*S_x)/(2.*M);
-	Real min = 0.;
-	// Bound from the condition that `mx_sq >= 0`.
-	Real max = sq(ph_0) - sq(mh) - sq(M)/lambda_Y*sq(
-		lambda + sq(mh) - sq(M_th) - S_x*z - (2.*sq(ph_0))/z);
-	return Bounds(min, max);
+	Real det = (S_x + 2.*sq(M))*S_x/(2.*sq(M))*z - L + sq(Mth) - sq(mh);
+	if (det < 0.) {
+		det = 0.;
+	}
+
+	Real min = std::max({ 0. });
+	// Bound `mx >= Mth`.
+	Real px_threshold = sq(ph_0) - sq(mh) - sq(M)/lambda_Y*sq(det);
+	if (std::isnan(px_threshold)) {
+		return Bounds::INVALID;
+	}
+	Real max = std::min({ px_threshold });
+	return min <= max ? Bounds(min, max) : Bounds::INVALID;
 }
 Bounds kin::tau_bounds(Kinematics kin) {
 	// Equation [1.44].
 	Real min = (kin.S_x - kin.lambda_Y_sqrt)/(2.*sq(kin.M));
 	Real max = (kin.S_x + kin.lambda_Y_sqrt)/(2.*sq(kin.M));
-	return Bounds(min, max);
+	return min <= max ? Bounds(min, max) : Bounds::INVALID;
 }
 Bounds kin::R_bounds(Kinematics kin, Real tau, Real phi_k) {
 	Real tau_min = tau_bounds(kin).min;
 	Real tau_max = tau_bounds(kin).max;
-	// Copied from the kinematic calculations below.
+	// Copied from the kinematic calculations above.
 	Real mu = kin.ph_0/kin.M
 		+ 1./kin.lambda_Y_sqrt*(
 			(2.*tau*sq(kin.M) - kin.S_x)*kin.ph_l/kin.M
@@ -564,11 +628,11 @@ Bounds kin::R_bounds(Kinematics kin, Real tau, Real phi_k) {
 				(tau - tau_min)*(tau_max - tau)));
 	// Equation [1.44].
 	Real min = 0.;
-	Real max = 1./(1. + tau - mu)*(kin.mx_sq - sq(kin.M_th));
-	return Bounds(min, max);
+	Real max = 1./(1. + tau - mu)*(kin.mx_sq - sq(kin.Mth));
+	return min <= max ? Bounds(min, max) : Bounds::INVALID;
 }
 Bounds kin::R_bounds_soft(Kinematics kin, Real tau, Real phi_k, Real k0_cut) {
-	Real k0_max = (kin.mx_sq - sq(kin.M_th))/(2.*kin.mx);
+	Real k0_max = (kin.mx_sq - sq(kin.Mth))/(2.*kin.mx);
 	Real tau_min = tau_bounds(kin).min;
 	Real tau_max = tau_bounds(kin).max;
 	// Copied from the kinematic calculation for `mu`.
@@ -582,12 +646,8 @@ Bounds kin::R_bounds_soft(Kinematics kin, Real tau, Real phi_k, Real k0_cut) {
 	Real max = 1./(1. + tau - mu)*(
 		k0_cut < k0_max ?
 		(2.*kin.mx)*k0_cut :
-		kin.mx_sq - sq(kin.M_th));
-	if (min <= max) {
-		return Bounds(min, max);
-	} else {
-		return Bounds(min, min);
-	}
+		kin.mx_sq - sq(kin.Mth));
+	return min <= max ? Bounds(min, max) : Bounds::INVALID;
 }
 Bounds kin::R_bounds_hard(Kinematics kin, Real tau, Real phi_k, Real k0_cut) {
 	Real tau_min = tau_bounds(kin).min;
@@ -601,12 +661,8 @@ Bounds kin::R_bounds_hard(Kinematics kin, Real tau, Real phi_k, Real k0_cut) {
 		k0_cut > 0. ?
 		2.*kin.mx*k0_cut :
 		0.);
-	Real max = 1./(1. + tau - mu)*(kin.mx_sq - sq(kin.M_th));
-	if (min <= max) {
-		return Bounds(min, max);
-	} else {
-		return Bounds(max, max);
-	}
+	Real max = 1./(1. + tau - mu)*(kin.mx_sq - sq(kin.Mth));
+	return min <= max ? Bounds(min, max) : Bounds::INVALID;
 }
 
 // Check whether within kinematic bounds.
@@ -625,9 +681,9 @@ bool kin::valid(Kinematics kin) {
 		return false;
 	} else if (!std::isfinite(kin.phi)) {
 		return false;
-	} else if (!(kin.mx >= kin.M_th)) {
+	} else if (!(kin.mx >= kin.Mth)) {
 		return false;
-	} else if (!(kin.mx_sq <= kin.S + sq(kin.M) - sq(kin.m) - sq(kin.mh))) {
+	} else if (!(kin.mx_sq <= kin.S + sq(kin.M) - sq(kin.mh))) {
 		return false;
 	} else if (!(kin.q_t >= 0.)) {
 		return false;

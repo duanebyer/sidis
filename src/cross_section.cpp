@@ -186,7 +186,7 @@ Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, 
 // Radiative corrections to Born cross-section.
 Real xs::delta_vert_rad_ir(Kinematics kin, Real k0_cut) {
 	// Paragraph following equation [1.C17].
-	Real k0_max = (kin.mx_sq - sq(kin.M_th))/(2.*kin.mx);
+	Real k0_max = (kin.mx_sq - sq(kin.Mth))/(2.*kin.mx);
 	if (!(k0_cut > 0.)) {
 		return -INFINITY;
 	}
@@ -202,11 +202,11 @@ Real xs::delta_vert_rad_ir(Kinematics kin, Real k0_cut) {
 	Real delta_shift = 2.*(Q_m_sq*L_m - 1.)*std::log(
 		k0_cut < k0_max ?
 		(2.*k0_cut)/kin.m :
-		(kin.mx_sq - sq(kin.M_th))/(kin.m*kin.mx));
+		(kin.mx_sq - sq(kin.Mth))/(kin.m*kin.mx));
 	return delta_0 + delta_shift;
 }
 Real xs::delta_rad_ir_hard(Kinematics kin, Real k0_cut) {
-	Real k0_max = (kin.mx_sq - sq(kin.M_th))/(2.*kin.mx);
+	Real k0_max = (kin.mx_sq - sq(kin.Mth))/(2.*kin.mx);
 	if (!(k0_cut > 0.)) {
 		return INFINITY;
 	} else if (!(k0_cut < k0_max)) {
@@ -220,7 +220,7 @@ Real xs::delta_rad_ir_hard(Kinematics kin, Real k0_cut) {
 	Real L_m = 1./lambda_m_sqrt*std::log(sum_m/diff_m);
 	// Equation [1.38].
 	Real delta = 2.*(Q_m_sq*L_m - 1.)*std::log(
-		(kin.mx_sq - sq(kin.M_th))/(2.*k0_cut*kin.mx));
+		(kin.mx_sq - sq(kin.Mth))/(2.*k0_cut*kin.mx));
 	return delta;
 }
 

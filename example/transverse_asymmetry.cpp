@@ -40,28 +40,25 @@ struct RC {
 };
 
 sf::model::WW const model;
-Hadron const hadron = Hadron::PI_P;
-Real const M_th = MASS_P + MASS_PI_0;
 
 // Integrates the unpolarized cross-section over the azimuthal angles `phi` and
 // `phi_h`.
 Real xs_uu_integ(
-		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
+		Particles ps, Real S, Real x, Real y, Real z, Real ph_t_sq,
 		RC rc_info=RC::none()) {
 	// The `phi` integration only contributes a factor of `2 pi`, so we don't
 	// need to evaluate it. This leaves the `phi_h` integration.
-	Real S = 2. * dot(initial_state.p, initial_state.k1);
 	Real Q_sq = S * x * y;
 	// Calculate the structure functions ahead of time, because they are
 	// constant over the integrals we'll be doing.
-	sf::SfUU sf = model.sf_uu(hadron, x, z, Q_sq, ph_t_sq);
+	sf::SfUU sf = model.sf_uu(ps.hadron, x, z, Q_sq, ph_t_sq);
 	if (!rc_info.apply_rc) {
 		// Without radiative corrections, there is only the Born cross-section.
 		cubature::EstErr<Real> xs_born_integ;
 		xs_born_integ = cubature::cubature(
 			[&](Real phi_h) {
 				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(initial_state, phase_space, hadron, M_th);
+				Kinematics kin(ps, S, phase_space);
 				xs::Born born(kin);
 				lep::LepBornUU lep(kin);
 				had::HadUU had(kin, sf);
@@ -79,7 +76,7 @@ Real xs_uu_integ(
 		xs_nrad_ir_integ = cubature::cubature(
 			[&](Real phi_h) {
 				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(initial_state, phase_space, hadron, M_th);
+				Kinematics kin(ps, S, phase_space);
 				xs::NRadIR b(kin, rc_info.k0_cut);
 				lep::LepBornUU lep_born(kin);
 				lep::LepAmmUU lep_amm(kin);
@@ -93,7 +90,7 @@ Real xs_uu_integ(
 				Bounds phi_h_b(0., 2. * PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
 				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(initial_state, phase_space, hadron, M_th);
+				Kinematics kin(ps, S, phase_space);
 
 				// Rescale the integral so it is evaluated on the unit 4-cube.
 				Bounds tau_b = tau_bounds(kin);
@@ -110,7 +107,7 @@ Real xs_uu_integ(
 				KinematicsRad kin_rad(kin, tau, phi_k, R);
 				xs::Rad b(kin_rad);
 				sf::SfUU shift_sf = model.sf_uu(
-					hadron,
+					ps.hadron,
 					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
 				lep::LepRadUU lep(kin_rad);
 				had::HadRadFUU had(kin_rad, sf, shift_sf);
@@ -131,19 +128,18 @@ Real xs_uu_integ(
 // over `phi_h` with fixed values for `eta_1` and `eta_2`. This is used by
 // `xs_ut_integ` to compute the integral over both `phi` and `phi_h`.
 Real xs_ut_integ_h(
-		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
+		Particles ps, Real S, Real x, Real y, Real z, Real ph_t_sq,
 		Real eta_1=0., int phi_h_coeff_1=0, int offset_1=0,
 		Real eta_2=0., int phi_h_coeff_2=0, int offset_2=0,
 		RC rc_info=RC::none()) {
-	Real S = 2. * dot(initial_state.p, initial_state.k1);
 	Real Q_sq = S * x * y;
-	sf::SfUP sf = model.sf_up(hadron, x, z, Q_sq, ph_t_sq);
+	sf::SfUP sf = model.sf_up(ps.hadron, x, z, Q_sq, ph_t_sq);
 	if (!rc_info.apply_rc) {
 		cubature::EstErr<Real> xs_born_integ;
 		xs_born_integ = cubature::cubature(
 			[&](Real phi_h) {
 				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(initial_state, phase_space, hadron, M_th);
+				Kinematics kin(ps, S, phase_space);
 				xs::Born b(kin);
 				lep::LepBornUX lep(kin);
 				had::HadUP had(kin, sf);
@@ -163,7 +159,7 @@ Real xs_ut_integ_h(
 		xs_nrad_ir_integ = cubature::cubature(
 			[&](Real phi_h) {
 				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(initial_state, phase_space, hadron, M_th);
+				Kinematics kin(ps, S, phase_space);
 				xs::NRadIR b(kin, rc_info.k0_cut);
 				lep::LepBornUX lep_born(kin);
 				lep::LepAmmUX lep_amm(kin);
@@ -182,7 +178,7 @@ Real xs_ut_integ_h(
 				Bounds phi_h_b(-PI, PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
 				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(initial_state, phase_space, hadron, M_th);
+				Kinematics kin(ps, S, phase_space);
 
 				Bounds tau_b = tau_bounds(kin);
 				Real tau = tau_b.lerp(ph[1]);
@@ -198,7 +194,7 @@ Real xs_ut_integ_h(
 				KinematicsRad kin_rad(kin, tau, phi_k, R);
 				xs::Rad b(kin_rad);
 				sf::SfUP shift_sf = model.sf_up(
-					hadron,
+					ps.hadron,
 					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
 				lep::LepRadUX lep(kin_rad);
 				had::HadRadFUP had(kin_rad, sf, shift_sf);
@@ -225,7 +221,7 @@ Real xs_ut_integ_h(
 // Integrates the transverse part of the cross-section over the azimuthal angles
 // `phi` and `phi_h`.
 Real xs_ut_integ(
-		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
+		Particles ps, Real S, Real x, Real y, Real z, Real ph_t_sq,
 		int phi_s_coeff=0, int phi_h_coeff=0, int offset=0,
 		RC rc_info=RC::none()) {
 	// Evaluate the `phi - phi_h` integral on the `eta` components. To do this
@@ -236,7 +232,7 @@ Real xs_ut_integ(
 	Real eta_1 = 0.5;
 	Real eta_2 = 0.5 * phi_s_coeff;
 	return 2. * PI * xs_ut_integ_h(
-		initial_state, x, y, z, ph_t_sq,
+		ps, S, x, y, z, ph_t_sq,
 		eta_1, phi_s_coeff + phi_h_coeff, offset,
 		eta_2, phi_s_coeff + phi_h_coeff, offset + 1,
 		rc_info);
@@ -247,27 +243,27 @@ Real xs_ut_integ(
 // sin(phi_s_coeff * phi + phi_h_coeff * phi_h + 0.5 * offset * PI)
 // ```
 Real asymmetry(
-		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
+		Particles ps, Real S, Real x, Real y, Real z, Real ph_t_sq,
 		int phi_s_coeff, int phi_h_coeff, int offset,
 		RC rc_info=RC::none()) {
 	Real xs_ut = xs_ut_integ(
-		initial_state, x, y, z, ph_t_sq,
+		ps, S, x, y, z, ph_t_sq,
 		phi_s_coeff, phi_h_coeff, offset,
 		rc_info);
-	Real xs_uu = xs_uu_integ(initial_state, x, y, z, ph_t_sq, rc_info);
+	Real xs_uu = xs_uu_integ(ps, S, x, y, z, ph_t_sq, rc_info);
 	return 2. * xs_ut / xs_uu;
 }
 
 Real collins(
-		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
+		Particles ps, Real S, Real x, Real y, Real z, Real ph_t_sq,
 		RC rc_info=RC::none()) {
-	return asymmetry(initial_state, x, y, z, ph_t_sq, 1, 1, 0, rc_info);
+	return asymmetry(ps, S, x, y, z, ph_t_sq, 1, 1, 0, rc_info);
 }
 
 Real sivers(
-		Initial initial_state, Real x, Real y, Real z, Real ph_t_sq,
+		Particles ps, Real S, Real x, Real y, Real z, Real ph_t_sq,
 		RC rc_info=RC::none()) {
-	return asymmetry(initial_state, x, y, z, ph_t_sq, -1, 1, 0, rc_info);
+	return asymmetry(ps, S, x, y, z, ph_t_sq, -1, 1, 0, rc_info);
 }
 
 }
@@ -279,7 +275,9 @@ Real sivers(
 int main(int argc, char** argv) {
 	TApplication app("Transverse asymmetry plots", &argc, argv);
 
-	Initial initial_state(Nucleus::P, Lepton::E, 10.6);
+	Real E_b = 10.6;
+	Particles ps(Nucleus::P, Lepton::E, Hadron::PI_P, MASS_P + MASS_PI_0);
+	Real S = 2. * ps.M * E_b;
 	Real x = 0.2;
 	Real y = 0.754;
 
@@ -291,25 +289,25 @@ int main(int argc, char** argv) {
 	Real z_max = 0.8;
 	Real k0_cut = INF;
 
-	TF1 f_sivers("Sivers Born", [&](Double_t* xs, Double_t* ps) {
+	TF1 f_sivers("Sivers Born", [&](Double_t* xs, Double_t* arr) {
 		Real z = static_cast<Real>(xs[0]);
-		Real ph_t_sq = static_cast<Real>(ps[0] * ps[0]);
-		return sivers(initial_state, x, y, z, ph_t_sq, RC::none());
+		Real ph_t_sq = static_cast<Real>(arr[0] * arr[0]);
+		return sivers(ps, S, x, y, z, ph_t_sq, RC::none());
 	}, z_min, z_max, 1);
-	TF1 f_sivers_rc("Sivers RC", [&](Double_t* xs, Double_t* ps) {
+	TF1 f_sivers_rc("Sivers RC", [&](Double_t* xs, Double_t* arr) {
 		Real z = static_cast<Real>(xs[0]);
-		Real ph_t_sq = static_cast<Real>(ps[0] * ps[0]);
-		return sivers(initial_state, x, y, z, ph_t_sq, RC::cut(k0_cut));
+		Real ph_t_sq = static_cast<Real>(arr[0] * arr[0]);
+		return sivers(ps, S, x, y, z, ph_t_sq, RC::cut(k0_cut));
 	}, z_min, z_max, 1);
-	TF1 f_collins("Collins Born", [&](Double_t* xs, Double_t* ps) {
+	TF1 f_collins("Collins Born", [&](Double_t* xs, Double_t* arr) {
 		Real z = static_cast<Real>(xs[0]);
-		Real ph_t_sq = static_cast<Real>(ps[0] * ps[0]);
-		return collins(initial_state, x, y, z, ph_t_sq, RC::none());
+		Real ph_t_sq = static_cast<Real>(arr[0] * arr[0]);
+		return collins(ps, S, x, y, z, ph_t_sq, RC::none());
 	}, z_min, z_max, 1);
-	TF1 f_collins_rc("Collins RC", [&](Double_t* xs, Double_t* ps) {
+	TF1 f_collins_rc("Collins RC", [&](Double_t* xs, Double_t* arr) {
 		Real z = static_cast<Real>(xs[0]);
-		Real ph_t_sq = static_cast<Real>(ps[0] * ps[0]);
-		return collins(initial_state, x, y, z, ph_t_sq, RC::cut(k0_cut));
+		Real ph_t_sq = static_cast<Real>(arr[0] * arr[0]);
+		return collins(ps, S, x, y, z, ph_t_sq, RC::cut(k0_cut));
 	}, z_min, z_max, 1);
 
 	Color_t color = 1;

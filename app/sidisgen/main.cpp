@@ -40,7 +40,6 @@ int const ERROR_FOAM_INCOMPATIBLE = -5;
 int const ERROR_FOAM_NOT_FOUND = -6;
 
 sf::model::WW const ww;
-Real const M_th = constant::MASS_P + constant::MASS_PI_0;
 Real const PI = constant::PI;
 
 // Converts between the `sidis` 4-vector type and the `ROOT` 4-vector type.
@@ -50,24 +49,24 @@ TLorentzVector convert_vec4(math::Vec4 v) {
 
 struct XsNRad : public TFoamIntegrand {
 	Params const params;
-	kin::Initial const initial_state;
-	constant::Hadron const hadron;
+	kin::Particles const ps;
+	Real const S;
 
 	explicit XsNRad(Params params) :
 		params(params),
-		initial_state(params.target, params.beam, params.beam_energy),
-		hadron(params.hadron) { }
+		ps(params.target, params.beam, params.hadron, params.mass_threshold),
+		S(2. * mass(params.target) * params.beam_energy) { }
 
 	// Converts from the unit hyper-cube to a point in phase space, also
 	// providing the associated jacobian.
 	kin::Kinematics GetKinematics(Double_t const* vec, Real* jacobian) {
-		math::Bounds x_bounds = kin::x_bounds(initial_state);
+		math::Bounds x_bounds = kin::x_bounds(ps, S);
 		Real x = x_bounds.lerp(vec[0]);
-		math::Bounds y_bounds = kin::y_bounds(initial_state, x);
+		math::Bounds y_bounds = kin::y_bounds(ps, S, x);
 		Real y = y_bounds.lerp(vec[1]);
-		math::Bounds z_bounds = kin::z_bounds(initial_state, hadron, M_th, x, y);
+		math::Bounds z_bounds = kin::z_bounds(ps, S, x, y);
 		Real z = z_bounds.lerp(vec[2]);
-		math::Bounds ph_t_sq_bounds = kin::ph_t_sq_bounds(initial_state, hadron, M_th, x, y, z);
+		math::Bounds ph_t_sq_bounds = kin::ph_t_sq_bounds(ps, S, x, y, z);
 		Real ph_t_sq = ph_t_sq_bounds.lerp(vec[3]);
 		math::Bounds phi_h_bounds = math::Bounds(0., 2. * PI);
 		Real phi_h = phi_h_bounds.lerp(vec[4]);
@@ -77,7 +76,7 @@ struct XsNRad : public TFoamIntegrand {
 			* ph_t_sq_bounds.size() * phi_h_bounds.size() * phi_bounds.size();
 
 		kin::PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
-		kin::Kinematics kin(initial_state, phase_space, hadron, M_th);
+		kin::Kinematics kin(ps, S, phase_space);
 		return kin;
 	}
 
@@ -87,6 +86,8 @@ struct XsNRad : public TFoamIntegrand {
 		}
 		Real jacobian;
 		kin::Kinematics kin = GetKinematics(vec, &jacobian);
+		// TODO: Remove this condition, once we feel confident enough in the
+		// kinematic bounds functions.
 		if (!kin::valid(kin)) {
 			return 0.;
 		}
@@ -110,22 +111,22 @@ struct XsNRad : public TFoamIntegrand {
 
 struct XsRad : public TFoamIntegrand {
 	Params const params;
-	kin::Initial const initial_state;
-	constant::Hadron const hadron;
+	kin::Particles const ps;
+	Real const S;
 
 	explicit XsRad(Params params) :
 		params(params),
-		initial_state(params.target, params.beam, params.beam_energy),
-		hadron(params.hadron) { }
+		ps(params.target, params.beam, params.hadron, params.mass_threshold),
+		S(2. * mass(params.target) * params.beam_energy) { }
 
 	kin::KinematicsRad GetKinematics(Double_t const* vec, Real* jacobian) {
-		math::Bounds x_bounds = kin::x_bounds(initial_state);
+		math::Bounds x_bounds = kin::x_bounds(ps, S);
 		Real x = x_bounds.lerp(vec[0]);
-		math::Bounds y_bounds = kin::y_bounds(initial_state, x);
+		math::Bounds y_bounds = kin::y_bounds(ps, S, x);
 		Real y = y_bounds.lerp(vec[1]);
-		math::Bounds z_bounds = kin::z_bounds(initial_state, hadron, M_th, x, y);
+		math::Bounds z_bounds = kin::z_bounds(ps, S, x, y);
 		Real z = z_bounds.lerp(vec[2]);
-		math::Bounds ph_t_sq_bounds = kin::ph_t_sq_bounds(initial_state, hadron, M_th, x, y, z);
+		math::Bounds ph_t_sq_bounds = kin::ph_t_sq_bounds(ps, S, x, y, z);
 		Real ph_t_sq = ph_t_sq_bounds.lerp(vec[3]);
 		math::Bounds phi_h_bounds = math::Bounds(0., 2. * PI);
 		Real phi_h = phi_h_bounds.lerp(vec[4]);
@@ -133,7 +134,7 @@ struct XsRad : public TFoamIntegrand {
 		Real phi = phi_bounds.lerp(vec[5]);
 
 		kin::PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
-		kin::Kinematics kin(initial_state, phase_space, hadron, M_th);
+		kin::Kinematics kin(ps, S, phase_space);
 
 		math::Bounds tau_bounds = kin::tau_bounds(kin);
 		Real tau = tau_bounds.lerp(vec[6]);
@@ -409,9 +410,11 @@ int command_generate(std::string params_file_name) {
 
 	constant::Nucleus target = params.target;
 	constant::Lepton beam = params.beam;
+	constant::Hadron hadron = params.hadron;
 	math::Vec3 target_pol = params.target_pol;
+	kin::Particles ps(target, beam, hadron, params.mass_threshold);
 
-	kin::Initial initial_state(target, beam, params.beam_energy);
+	kin::Initial initial_state(ps, params.beam_energy);
 	ULong_t N_gen = params.num_events >= 0 ? params.num_events : 0;
 	// These keep track of how many radiative/non-radiative events have been
 	// generated so far, so that the ratio of radiative to non-radiative events

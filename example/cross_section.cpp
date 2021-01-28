@@ -9,6 +9,7 @@
 #include <sidis/sf_set/prokudin.hpp>
 #include <sidis/sf_set/test.hpp>
 #include <sidis/sf_set/ww.hpp>
+#include <sidis/extra/bounds.hpp>
 #include <sidis/extra/vector.hpp>
 
 using namespace sidis;
@@ -20,12 +21,17 @@ using namespace sidis::math;
 // on the command line. It outputs the Born cross-section, and the various
 // radiative correction contributions.
 int main(int argc, char** argv) {
+	Real Mth = MASS_P + MASS_PI_0;
+	Lepton beam = Lepton::TAU;
+	Nucleus target = Nucleus::P;
+	Hadron hadron = Hadron::PI_P;
+
 	// Read input parameters from command line.
 	Real beam_energy;
 	Real beam_pol;
 	Vec3 target_pol;
 	std::unique_ptr<sidis::sf::SfSet> sf;
-	Real x, y, z, ph_t, phi_h, phi;
+	Real x, y, z, ph_t_sq, phi_h, phi;
 	Real k0_cut = 0.01;
 	Real tau = 0., phi_k = 0., R = 0.;
 	bool radiative;
@@ -41,7 +47,7 @@ int main(int argc, char** argv) {
 		x = std::stold(argv[5]);
 		y = std::stold(argv[6]);
 		z = std::stold(argv[7]);
-		ph_t = std::stold(argv[8]);
+		ph_t_sq = std::stold(argv[8]);
 		phi_h = std::stold(argv[9]);
 		phi = std::stold(argv[10]);
 		if (argc == 12) {
@@ -59,10 +65,10 @@ int main(int argc, char** argv) {
 		} else if (set_idx <= -1 && set_idx >= -18) {
 			bool mask[18] = { false };
 			mask[-set_idx - 1] = true;
-			sf.reset(new sf::model::TestSfSet(Nucleus::P, mask));
+			sf.reset(new sf::model::TestSfSet(target, mask));
 		} else {
 			throw std::out_of_range(
-				"SF set index must be Prokudin (0) or Test (-18 to -1).");
+				"SF set index must be Prokudin (0) or Test (-18 to -1)");
 		}
 
 		if (beam_pol_str == "U") {
@@ -93,7 +99,7 @@ int main(int argc, char** argv) {
 			<< "<E_b> "
 			<< "<U,L> "
 			<< "<U,L,T> "
-			<< "<x> <y> <z> <ph_t> <φ_h> <φ> "
+			<< "<x> <y> <z> <ph_t²> <φ_h> <φ> "
 			<< "<k0 cut>" << std::endl
 			<< "radiative:     "
 			<< "cross_section "
@@ -101,24 +107,36 @@ int main(int argc, char** argv) {
 			<< "<E_b> "
 			<< "<U,L> "
 			<< "<U,L,T> "
-			<< "<x> <y> <z> <ph_t> <φ_h> <φ> "
+			<< "<x> <y> <z> <ph_t²> <φ_h> <φ> "
 			<< "<τ> <φ_k> <R>" << std::endl;
 		return 1;
 	}
 
 	// Set up the initial state particles.
-	Real M_th = MASS_P + MASS_PI_0;
-	Initial initial_state(Nucleus::P, Lepton::E, beam_energy);
-	PhaseSpace phase_space { x, y, z, ph_t * ph_t, phi_h, phi };
+	Particles ps(target, beam, hadron, Mth);
+	Real S = 2. * ps.M * beam_energy;
+	PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
+	// Check that we are in valid kinematic region.
+	if (!(S >= S_min(ps))) {
+		throw std::out_of_range("Beam energy is below threshold");
+	} else if (!x_bounds(ps, S)(x)) {
+		throw std::out_of_range("x is out of valid kinematic range");
+	} else if (!y_bounds(ps, S, x)(y)) {
+		throw std::out_of_range("y is out of valid kinematic range");
+	} else if (!z_bounds(ps, S, x, y)(z)) {
+		throw std::out_of_range("z is out of valid kinematic range");
+	} else if (!ph_t_sq_bounds(ps, S, x, y, z)(ph_t_sq)) {
+		throw std::out_of_range("ph_t_sq is out of valid kinematic range");
+	}
 	// Do kinematics calculations.
-	Kinematics kin(initial_state, phase_space, Hadron::PI_P, M_th);
+	Kinematics kin(ps, S, phase_space);
 	// Get the target polarization in the hadron frame.
 	Vec3 eta = frame::hadron_from_target(kin) * target_pol;
 
 	// Compute cross-sections.
 	if (!radiative) {
-		Real born = xs::born(beam_pol, eta, kin, *sf);
 		std::cout << std::scientific << std::setprecision(16);
+		Real born = xs::born(beam_pol, eta, kin, *sf);
 		std::cout << "σ_B       = " << born << std::endl;
 		Real amm = xs::amm(beam_pol, eta, kin, *sf);
 		std::cout << "σ_AMM     = " << amm << std::endl;
@@ -132,11 +150,51 @@ int main(int argc, char** argv) {
 		std::cout << "σ_rad     = " << rad << std::endl;
 		std::cout << "σ_tot     = " << nrad + rad << std::endl;
 	} else {
+		// Do radiative kinematics checks.
+		if (!tau_bounds(kin)(tau)) {
+			throw std::out_of_range("tau is out of valid kinematic range");
+		} else if (!R_bounds(kin, tau, phi_k)(R)) {
+			throw std::out_of_range("R is out of valid kinematic range");
+		}
+		std::cout << std::scientific << std::setprecision(16);
 		KinematicsRad kin_rad(kin, tau, phi_k, R);
 		Real rad_f = xs::rad_f(beam_pol, eta, kin_rad, *sf);
 		std::cout << "σ_rad_f = " << rad_f << std::endl;
 		Real rad = xs::rad(beam_pol, eta, kin_rad, *sf);
 		std::cout << "σ_rad   = " << rad << std::endl;
+		for (unsigned i = 0; i < 18; ++i) {
+			bool mask[18] = { false };
+			mask[i] = true;
+			if (i >= 0 && i < 4) {
+				// UU
+				beam_pol = 0.;
+				eta = frame::hadron_from_target(kin) * Vec3(0., 0., 0.);
+			} else if (i >= 4 && i < 6) {
+				// UL
+				beam_pol = 0.;
+				eta = frame::hadron_from_target(kin) * Vec3(0., 0., 1.);
+			} else if (i >= 6 && i < 12) {
+				// UT
+				beam_pol = 0.;
+				eta = frame::hadron_from_target(kin) * Vec3(0., 1., 0.);
+			} else if (i >= 12 && i < 13) {
+				// LU
+				beam_pol = 1.;
+				eta = frame::hadron_from_target(kin) * Vec3(0., 0., 0.);
+			} else if (i >= 13 && i < 15) {
+				// LL
+				beam_pol = 1.;
+				eta = frame::hadron_from_target(kin) * Vec3(0., 0., 1.);
+			} else {
+				// LT
+				beam_pol = 1.;
+				eta = frame::hadron_from_target(kin) * Vec3(0., 1., 0.);
+			}
+			sf.reset(new sf::model::TestSfSet(target, mask));
+			rad_f = xs::rad_f(beam_pol, eta, kin_rad, *sf);
+			rad = xs::rad(beam_pol, eta, kin_rad, *sf);
+			std::cout << rad_f << '\t' << rad << std::endl;
+		}
 	}
 
 	return 0;

@@ -15,8 +15,8 @@ using namespace sidis::math;
 
 // This program returns a random valid point in phase space.
 int main(int argc, char** argv) {
-	Real M_th = MASS_P + MASS_PI_0;
-	Lepton beam = Lepton::E;
+	Real Mth = MASS_P + MASS_PI_0;
+	Lepton beam = Lepton::TAU;
 	Nucleus target = Nucleus::P;
 	Hadron hadron = Hadron::PI_P;
 
@@ -53,27 +53,25 @@ int main(int argc, char** argv) {
 
 	// Repeatedly choose a random point within phase space until we get one that
 	// is kinematically valid.
-	Initial initial_state(target, beam, beam_energy);
-	Kinematics kin;
-	KinematicsRad kin_rad;
+	Particles ps(target, beam, hadron, Mth);
+	Real S = 2. * ps.M * beam_energy;
 	std::random_device rd;
 	std::mt19937 rng(rd());
 	std::uniform_real_distribution<Real> dist(0., 1.);
-	do {
-		Real x = x_bounds(initial_state).lerp(dist(rng));
-		Real y = y_bounds(initial_state, x).lerp(dist(rng));
-		Real z = z_bounds(initial_state, hadron, M_th, x, y).lerp(dist(rng));
-		Real ph_t_sq = ph_t_sq_bounds(initial_state, hadron, M_th, x, y, z).lerp(dist(rng));
-		Real phi_h = Bounds(-PI, PI).lerp(dist(rng));
-		Real phi = Bounds(-PI, PI).lerp(dist(rng));
-		PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
-		kin = Kinematics(initial_state, phase_space, hadron, M_th);
 
-		Real tau = tau_bounds(kin).lerp(dist(rng));
-		Real phi_k = Bounds(-PI, PI).lerp(dist(rng));
-		Real R = R_bounds(kin, tau, phi_k).lerp(dist(rng));
-		kin_rad = KinematicsRad(kin, tau, phi_k, R);
-	} while ((!radiative && !valid(kin)) || (radiative && !valid(kin_rad)));
+	Real x = x_bounds(ps, S).lerp(dist(rng));
+	Real y = y_bounds(ps, S, x).lerp(dist(rng));
+	Real z = z_bounds(ps, S, x, y).lerp(dist(rng));
+	Real ph_t_sq = ph_t_sq_bounds(ps, S, x, y, z).lerp(dist(rng));
+	Real phi_h = Bounds(-PI, PI).lerp(dist(rng));
+	Real phi = Bounds(-PI, PI).lerp(dist(rng));
+	PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
+	Kinematics kin(ps, S, phase_space);
+
+	Real tau = tau_bounds(kin).lerp(dist(rng));
+	Real phi_k = Bounds(-PI, PI).lerp(dist(rng));
+	Real R = R_bounds(kin, tau, phi_k).lerp(dist(rng));
+	KinematicsRad kin_rad(kin, tau, phi_k, R);
 
 	std::cout << std::scientific << std::setprecision(16);
 

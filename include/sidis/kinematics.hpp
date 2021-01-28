@@ -13,28 +13,20 @@ namespace math {
 
 namespace kin {
 
-struct Initial {
+struct Particles {
 	constant::Nucleus target;
 	constant::Lepton beam;
-	math::Vec4 p;
-	math::Vec4 k1;
+	constant::Hadron hadron;
+	Real M;
+	Real m;
+	Real mh;
+	Real Mth;
 
-	Initial(
-		constant::Nucleus target, math::Vec3 p,
-		constant::Lepton beam, math::Vec3 k1) :
-		target(target),
-		beam(beam),
-		p(math::Vec4::from_length_and_r(mass(target), p)),
-		k1(math::Vec4::from_length_and_r(mass(beam), k1)) { }
-
-	Initial(
+	Particles(
 		constant::Nucleus target,
 		constant::Lepton beam,
-		Real beam_energy) :
-		target(target),
-		beam(beam),
-		p(math::Vec4(mass(target), 0., 0., 0.)),
-		k1(math::Vec4::from_length_and_t(mass(beam), beam_energy, math::Vec3::Z)) { }
+		constant::Hadron hadron,
+		Real Mth);
 };
 
 struct PhaseSpace {
@@ -72,7 +64,7 @@ struct Kinematics {
 	Real M;
 	Real m;
 	Real mh;
-	Real M_th;
+	Real Mth;
 
 	Real x;
 	Real y;
@@ -133,11 +125,7 @@ struct Kinematics {
 	Real C_1;
 
 	Kinematics() { }
-	Kinematics(
-		Initial init,
-		PhaseSpace ph_space,
-		constant::Hadron hadron,
-		Real M_th);
+	Kinematics(Particles ps, Real S, PhaseSpace ph_space);
 };
 
 struct KinematicsRad {
@@ -150,7 +138,7 @@ struct KinematicsRad {
 	Real M;
 	Real m;
 	Real mh;
-	Real M_th;
+	Real Mth;
 
 	Real x;
 	Real y;
@@ -289,14 +277,11 @@ struct KinematicsRad {
 	Kinematics project_shift() const;
 
 	KinematicsRad() { }
-	KinematicsRad(
-		Initial init,
-		PhaseSpaceRad ph_space,
-		constant::Hadron hadron,
-		Real M_th) :
+	KinematicsRad(Particles ps, Real S, PhaseSpaceRad ph_space) :
 		KinematicsRad(
 			Kinematics(
-				init,
+				ps,
+				S,
 				{
 					ph_space.x,
 					ph_space.y,
@@ -304,16 +289,36 @@ struct KinematicsRad {
 					ph_space.ph_t_sq,
 					ph_space.phi_h,
 					ph_space.phi,
-				},
-				hadron,
-				M_th),
+				}),
 			ph_space.tau,
 			ph_space.phi_k,
 			ph_space.R) { }
 	KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R);
 };
 
+struct Initial {
+	constant::Nucleus target;
+	constant::Lepton beam;
+	math::Vec4 p;
+	math::Vec4 k1;
+
+	Initial(
+		Particles ps, math::Vec3 p, math::Vec3 k1) :
+		target(ps.target),
+		beam(ps.beam),
+		p(math::Vec4::from_length_and_r(ps.M, p)),
+		k1(math::Vec4::from_length_and_r(ps.m, k1)) { }
+
+	Initial(Particles ps, Real beam_energy) :
+		target(ps.target),
+		beam(ps.beam),
+		p(math::Vec4(ps.M, 0., 0., 0.)),
+		k1(math::Vec4::from_length_and_t(ps.m, beam_energy, math::Vec3::Z)) { }
+};
+
 struct Final {
+	constant::Lepton beam;
+	constant::Hadron hadron;
 	math::Vec4 q;
 	math::Vec4 k2;
 	math::Vec4 ph;
@@ -322,6 +327,8 @@ struct Final {
 };
 
 struct FinalRad {
+	constant::Lepton beam;
+	constant::Hadron hadron;
 	math::Vec4 q;
 	math::Vec4 k2;
 	math::Vec4 ph;
@@ -331,10 +338,11 @@ struct FinalRad {
 };
 
 // TODO: Make an easier method for calculating the bounds.
-math::Bounds x_bounds(Initial init);
-math::Bounds y_bounds(Initial init, Real x);
-math::Bounds z_bounds(Initial init, constant::Hadron h, Real M_th, Real x, Real y);
-math::Bounds ph_t_sq_bounds(Initial init, constant::Hadron h, Real M_th, Real x, Real y, Real z);
+Real S_min(Particles ps);
+math::Bounds x_bounds(Particles ps, Real S);
+math::Bounds y_bounds(Particles ps, Real S, Real x);
+math::Bounds z_bounds(Particles ps, Real S, Real x, Real y);
+math::Bounds ph_t_sq_bounds(Particles ps, Real S, Real x, Real y, Real z);
 math::Bounds tau_bounds(Kinematics kin);
 math::Bounds R_bounds(Kinematics kin, Real tau, Real phi_k);
 math::Bounds R_bounds_soft(Kinematics kin, Real tau, Real phi_k, Real k0_cut=constant::INF);
