@@ -10,7 +10,7 @@
 #include <sstream>
 
 template<typename T>
-class AbsMatcher : public Catch::MatcherBase<T> {
+class AbsMatcher final : public Catch::MatcherBase<T> {
 	T _value;
 	T _abs_error;
 	mutable T _cache;

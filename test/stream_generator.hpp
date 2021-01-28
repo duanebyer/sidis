@@ -10,7 +10,7 @@
 #include <utility>
 
 template<typename S, typename T>
-class StreamGenerator : public Catch::Generators::IGenerator<T> {
+class StreamGenerator final : public Catch::Generators::IGenerator<T> {
 	S _stream;
 	T _value;
 	std::size_t _elem_count;

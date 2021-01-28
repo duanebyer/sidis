@@ -10,7 +10,7 @@
 #include <sstream>
 
 template<typename T>
-class RelMatcher : public Catch::MatcherBase<T> {
+class RelMatcher final : public Catch::MatcherBase<T> {
 	T _value;
 	T _rel_error;
 	mutable T _cache;
