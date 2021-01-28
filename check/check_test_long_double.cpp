@@ -20,6 +20,9 @@ static_assert(
 static_assert(
 	Limits::has_infinity,
 	"long double has no infinity");
+static_assert(
+	Limits::has_quiet_NaN,
+	"long double has no NaN");
 
 int main(int argc, char** argv) {
 	return 0;
