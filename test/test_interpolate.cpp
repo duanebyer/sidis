@@ -139,16 +139,16 @@ TEST_CASE(
 
 	CHECK_THROWS_AS(
 		(interp::read_grids<double, 3, 0>)(data_bad_1),
-		interp::NotEnoughPointsException);
+		interp::NotEnoughPointsError);
 	CHECK_THROWS_AS(
 		(interp::read_grids<double, 3, 0>)(data_bad_2),
-		interp::InvalidSpacingException);
+		interp::InvalidSpacingError);
 	CHECK_THROWS_AS(
 		(interp::read_grids<double, 3, 0>)(data_bad_3),
-		interp::UnexpectedGridPointException);
+		interp::UnexpectedGridPointError);
 	CHECK_THROWS_AS(
 		(interp::read_grids<double, 3, 0>)(data_bad_4),
-		interp::UnexpectedGridPointException);
+		interp::UnexpectedGridPointError);
 }
 
 TEST_CASE(

@@ -11,6 +11,7 @@
 #include <mstwpdf.h>
 
 #include "sidis/constant.hpp"
+#include "sidis/extra/exception.hpp"
 #include "sidis/extra/interpolate.hpp"
 #include "sidis/extra/math.hpp"
 
@@ -135,7 +136,7 @@ std::istream& find_file(std::ifstream& fin, char const* file_name) {
 	if (fin) {
 		return fin;
 	}
-	throw DataFileNotFoundException(file_name);
+	throw DataFileNotFound(file_name);
 }
 
 // Convenience method for loading grid data from a file. Automatically searches
@@ -154,7 +155,7 @@ std::array<Grid<T, N>, K> load_grids(char const* file_name) {
 		}
 		data.push_back(next);
 		if (!line_in) {
-			throw DataFileFormatException(file_name);
+			throw DataFileParseError(file_name);
 		}
 	}
 	// By default, assume the grids are only accurate to single precision.

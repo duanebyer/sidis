@@ -27,13 +27,13 @@ GridView<T, N>::GridView(
 	for (std::size_t idx = 0; idx < N; ++idx) {
 		_count_total *= _count[idx];
 		if (!std::isfinite(lower[idx]) || !std::isfinite(upper[idx])) {
-			throw InvalidBoundsException();
+			throw InvalidBoundsError();
 		}
 		if (lower[idx] > upper[idx]) {
-			throw InvalidBoundsException();
+			throw InvalidBoundsError();
 		}
 		if (_count[idx] <= 1) {
-			throw SingularDimensionException(idx);
+			throw SingularDimensionError(idx);
 		}
 	}
 }
@@ -74,13 +74,13 @@ Grid<T, N>::Grid(T const* data, CellIndex count, Point lower, Point upper) :
 	for (std::size_t idx = 0; idx < N; ++idx) {
 		_count_total *= _count[idx];
 		if (!std::isfinite(lower[idx]) || !std::isfinite(upper[idx])) {
-			throw InvalidBoundsException();
+			throw InvalidBoundsError();
 		}
 		if (lower[idx] > upper[idx]) {
-			throw InvalidBoundsException();
+			throw InvalidBoundsError();
 		}
 		if (_count[idx] <= 1) {
-			throw SingularDimensionException(idx);
+			throw SingularDimensionError(idx);
 		}
 	}
 	_data = std::vector<T>(data, data + _count_total);
@@ -150,7 +150,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 
 	// If there are not enough grid points to form one unit cell, then give up.
 	if (grid_points.size() < (1 << N)) {
-		throw NotEnoughPointsException(grid_points.size(), 1 << N);
+		throw NotEnoughPointsError(grid_points.size(), 1 << N);
 	}
 
 	std::size_t count_total = 1;
@@ -162,7 +162,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 	for (std::size_t dim_idx = 0; dim_idx < N; ++dim_idx) {
 		std::size_t sub_count = grid_points.size() / count_total;
 		if (sub_count * count_total != grid_points.size()) {
-			throw NotEnoughPointsException(
+			throw NotEnoughPointsError(
 				grid_points.size(),
 				(sub_count + 1) * count_total);
 		}
@@ -170,7 +170,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 		std::size_t step_dim_idx = 0;
 		while (true) {
 			if (step_dim_idx == N) {
-				throw NotEnoughPointsException(
+				throw NotEnoughPointsError(
 					grid_points.size(),
 					2 * grid_points.size());
 			}
@@ -213,7 +213,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 		std::size_t next_count = grid_planes.size();
 		counts[step_dim_idx] = next_count;
 		if (next_count <= 1) {
-			throw SingularDimensionException(step_dim_idx);
+			throw SingularDimensionError(step_dim_idx);
 		}
 
 		// Check that the data in the column is valid.
@@ -221,7 +221,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 			T next = grid_points[row_idx][step_dim_idx];
 			std::size_t group_idx = row_idx / count_total;
 			if (next != grid_planes[group_idx % next_count]) {
-				throw UnexpectedGridPointException(row_idx);
+				throw UnexpectedGridPointError(row_idx);
 			}
 		}
 
@@ -231,10 +231,10 @@ inline std::array<Grid<T, N>, K> read_grids(
 		lower[step_dim_idx] = next_lower;
 		upper[step_dim_idx] = next_upper;
 		if (!std::isfinite(next_lower) || !std::isfinite(next_upper)) {
-			throw InvalidBoundsException();
+			throw InvalidBoundsError();
 		}
 		if (next_lower >= next_upper) {
-			throw InvalidBoundsException();
+			throw InvalidBoundsError();
 		}
 
 		// Check that the grids are spaced approximately evenly.
@@ -244,7 +244,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 			T uniform_plane = next_lower + pl_idx * spacing;
 			T rel_tol = tolerance;
 			if (std::abs(plane - uniform_plane) > std::abs(rel_tol * spacing)) {
-				throw InvalidSpacingException();
+				throw InvalidSpacingError();
 			}
 		}
 
@@ -286,7 +286,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 	return grids;
 }
 
-inline NotEnoughPointsException::NotEnoughPointsException(
+inline NotEnoughPointsError::NotEnoughPointsError(
 	std::size_t points,
 	std::size_t expected_points) :
 	std::runtime_error(
@@ -296,17 +296,17 @@ inline NotEnoughPointsException::NotEnoughPointsException(
 	points(points),
 	expected_points(expected_points) { }
 
-inline SingularDimensionException::SingularDimensionException(std::size_t dim) :
+inline SingularDimensionError::SingularDimensionError(std::size_t dim) :
 	std::runtime_error("Grid is singular in dimension " + std::to_string(dim)),
 	dim(dim) { }
 
-inline InvalidBoundsException::InvalidBoundsException() :
+inline InvalidBoundsError::InvalidBoundsError() :
 	std::runtime_error("Lower grid bound must be smaller than upper bound") { }
 
-inline InvalidSpacingException::InvalidSpacingException() :
+inline InvalidSpacingError::InvalidSpacingError() :
 	std::runtime_error("Grid must be spaced uniformly") { }
 
-inline UnexpectedGridPointException::UnexpectedGridPointException(
+inline UnexpectedGridPointError::UnexpectedGridPointError(
 	std::size_t line_number) :
 	std::runtime_error(
 		"Unexpected grid point at line " + std::to_string(line_number)),

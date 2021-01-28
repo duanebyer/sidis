@@ -11,6 +11,7 @@
 #include <mstwpdf.h>
 
 #include "sidis/constant.hpp"
+#include "sidis/extra/exception.hpp"
 #include "sidis/extra/interpolate.hpp"
 #include "sidis/extra/math.hpp"
 
@@ -107,21 +108,6 @@ Real const PRETZ_N[6] = {
 Real const PRETZ_MEAN_K_PERP_SQ = (F1_MEAN_K_PERP_SQ * PRETZ_M_TT_SQ)
 	/ (F1_MEAN_K_PERP_SQ + PRETZ_M_TT_SQ);
 
-// TODO: Move these into a better location.
-struct DataFileNotFoundException : public std::runtime_error {
-	std::string file_name;
-	DataFileNotFoundException(std::string file_name) :
-		std::runtime_error("Couldn't find data file " + file_name),
-		file_name(file_name) { }
-};
-
-struct DataFileFormatException : public std::runtime_error {
-	std::string file_name;
-	DataFileFormatException(std::string file_name) :
-		std::runtime_error("Invalid format for data file " + file_name),
-		file_name(file_name) { }
-};
-
 // Finds a grid file.
 std::istream& find_file(std::ifstream& fin, char const* file_name) {
 	fin.open(
@@ -145,7 +131,7 @@ std::istream& find_file(std::ifstream& fin, char const* file_name) {
 	if (fin) {
 		return fin;
 	}
-	throw DataFileNotFoundException(file_name);
+	throw DataFileNotFound(file_name);
 }
 
 // Convenience method for loading grid data from a file. Automatically searches
@@ -164,7 +150,7 @@ std::array<Grid<T, N>, K> load_grids(char const* file_name) {
 		}
 		data.push_back(next);
 		if (!line_in) {
-			throw DataFileFormatException(file_name);
+			throw DataFileParseError(file_name);
 		}
 	}
 	// By default, assume the grids are only accurate to single precision.
@@ -365,7 +351,9 @@ Real ProkudinTmdSet::xf1(unsigned fl, Real x, Real Q_sq) const {
 	case 5:
 		return _impl->pdf.parton(-3, x, Q);
 	default:
-		throw std::domain_error("Invalid flavor");
+		// Although we could throw an exception here, most of the other TMDs are
+		// unchecked, so for consistency we will leave it.
+		return 0.;
 	}
 }
 
@@ -443,7 +431,7 @@ Real ProkudinTmdSet::D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq) cons
 	case Hadron::PI_M:
 		return _impl->interp_D1_pi_minus[fl]({ z, Q_sq });
 	default:
-		throw std::domain_error("Invalid hadron");
+		throw HadronOutOfRange(h);
 	}
 }
 
@@ -464,7 +452,7 @@ Real ProkudinTmdSet::H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq) 
 			collins_coeff = COLLINS_N_DISFAV;
 		}
 	} else {
-		throw std::domain_error("Invalid hadron");
+		throw HadronOutOfRange(h);
 	}
 	return std::sqrt(2.*E)*z*mh/COLLINS_M
 		*COLLINS_MEAN_P_PERP_SQ/D1_MEAN_P_PERP_SQ

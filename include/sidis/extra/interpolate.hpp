@@ -246,28 +246,28 @@ std::array<Grid<T, N>, K> read_grids(
 	std::vector<std::array<T, N + K> > const& raw_data,
 	T tolerance = 1.e2 * std::numeric_limits<T>::epsilon());
 
-struct NotEnoughPointsException : public std::runtime_error {
+struct NotEnoughPointsError : public std::runtime_error {
 	std::size_t points;
 	std::size_t expected_points;
-	NotEnoughPointsException(std::size_t points, std::size_t expected_points);
+	NotEnoughPointsError(std::size_t points, std::size_t expected_points);
 };
 
-struct SingularDimensionException : public std::runtime_error {
+struct SingularDimensionError : public std::runtime_error {
 	std::size_t dim;
-	SingularDimensionException(std::size_t dim);
+	SingularDimensionError(std::size_t dim);
 };
 
-struct InvalidBoundsException : public std::runtime_error {
-	InvalidBoundsException();
+struct InvalidBoundsError : public std::runtime_error {
+	InvalidBoundsError();
 };
 
-struct InvalidSpacingException : public std::runtime_error {
-	InvalidSpacingException();
+struct InvalidSpacingError : public std::runtime_error {
+	InvalidSpacingError();
 };
 
-struct UnexpectedGridPointException : public std::runtime_error {
+struct UnexpectedGridPointError : public std::runtime_error {
 	std::size_t line_number;
-	UnexpectedGridPointException(std::size_t line_number);
+	UnexpectedGridPointError(std::size_t line_number);
 };
 
 }

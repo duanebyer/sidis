@@ -10,6 +10,7 @@ set(
 	"sidis/sf_set/test.hpp"
 	"sidis/sf_set/ww.hpp"
 	"sidis/extra/bounds.hpp"
+	"sidis/extra/exception.hpp"
 	"sidis/extra/integrate.hpp"
 	"sidis/extra/interpolate.hpp"
 	"sidis/extra/interpolate.ipp"
@@ -70,6 +71,7 @@ add_library(
 	bounds.cpp
 	constant.cpp
 	cross_section.cpp
+	exception.cpp
 	frame.cpp
 	hadronic_coeff.cpp
 	kinematics.cpp
