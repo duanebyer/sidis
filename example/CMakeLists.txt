@@ -30,7 +30,7 @@ target_compile_options(
 
 # ROOT is used to provide plotting for several of the examples. If not found,
 # then don't build those examples.
-find_package(ROOT 6.16 QUIET COMPONENTS Core Gpad Graf CONFIG)
+find_package(ROOT 6.16 COMPONENTS Core Gpad Graf CONFIG)
 if(NOT ROOT_FOUND)
 	message(WARNING "Couldn't find ROOT, so some examples will not be built.")
 endif()
