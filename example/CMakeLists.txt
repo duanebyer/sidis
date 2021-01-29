@@ -18,6 +18,16 @@ target_compile_options(
 	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
 	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
 
+add_executable(quick_start quick_start.cpp)
+target_link_libraries(quick_start PRIVATE sidis)
+target_compile_features(quick_start PRIVATE cxx_std_11)
+set_target_properties(quick_start PROPERTIES CXX_EXTENSIONS OFF)
+target_compile_options(
+	quick_start
+	PRIVATE
+	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
+	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+
 # ROOT is used to provide plotting for several of the examples. If not found,
 # then don't build those examples.
 find_package(ROOT 6.16 QUIET COMPONENTS Core Gpad Graf CONFIG)

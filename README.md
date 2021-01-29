@@ -43,16 +43,20 @@ found in the `examples` folder. To get started quickly:
 ```cpp
 #include <iostream>
 #include <sidis/sidis.hpp>
+#include <sidis/sf_set/ww.hpp>
 #include <sidis/extra/vector.hpp>
 
-#define PI (3.14159)
+sidis::Real const PI = sidis::constant::PI;
+sidis::Real const M_TH = sidis::constant::MASS_P + sidis::constant::MASS_PI_0;
 
 int main() {
-	sidis::kin::Initial initial_state(
-		sidis::constant::Nucleus::P, // Target nucleus.
-		sidis::constant::Lepton::E,  // Beam lepton.
-		10.6                         // Beam energy.
+	sidis::kin::Particles particles(
+		sidis::constant::Nucleus::P,   // Target nucleus.
+		sidis::constant::Lepton::E,    // Beam lepton.
+		sidis::constant::Hadron::PI_P, // Leading hadron.
+		M_TH                           // Threshold mass of undetected part.
 	);
+	sidis::Real S = 2. * 10.6 * particles.M; // Kinematic variable `S = 2 p k1`.
 	sidis::kin::PhaseSpace phase_space {
 		0.2,      // Bjorken x.
 		0.9,      // Bjorken y.
@@ -61,13 +65,7 @@ int main() {
 		0.5 * PI, // Azimuthal angle of hadron.
 		0.,       // Azimuthal angle of transverse target polarization.
 	};
-	kin::Kinematics kin(
-		initial_state,
-		phase_space,
-		sidis::constant::Hadron::PI_P,                     // Leading hadron.
-		sidis::constant::MASS_P + sidis::constant::MASS_PI // Threshold mass.
-	);
-	sidis::kin::Final final_state(initial_state, kin);
+	sidis::kin::Kinematics kin(particles, S, phase_space);
 	sidis::Real beam_pol = 0.;
 	sidis::math::Vec3 target_pol(0., 0., 0.);
 	// Compute structure functions with WW-type approximation.
