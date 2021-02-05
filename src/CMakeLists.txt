@@ -3,6 +3,7 @@ set(
 	"sidis/sidis.hpp"
 	"sidis/constant.hpp"
 	"sidis/cross_section.hpp"
+	"sidis/cut.hpp"
 	"sidis/frame.hpp"
 	"sidis/kinematics.hpp"
 	"sidis/tmd.hpp"
@@ -71,6 +72,7 @@ add_library(
 	bounds.cpp
 	constant.cpp
 	cross_section.cpp
+	cut.cpp
 	exception.cpp
 	frame.cpp
 	hadronic_coeff.cpp

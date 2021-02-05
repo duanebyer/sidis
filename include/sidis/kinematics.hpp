@@ -221,6 +221,7 @@ struct KinematicsRad {
 	Real k_0;
 	Real k_t;
 	Real k_l;
+	Real k_0_bar;
 
 	Real vol_phi_k_R;
 	Real vol_phi_hk;
@@ -336,20 +337,6 @@ struct FinalRad {
 
 	FinalRad(Initial init, math::Vec3 target_pol, KinematicsRad kin);
 };
-
-// TODO: Make an easier method for calculating the bounds.
-Real S_min(Particles ps);
-math::Bounds x_bounds(Particles ps, Real S);
-math::Bounds y_bounds(Particles ps, Real S, Real x);
-math::Bounds z_bounds(Particles ps, Real S, Real x, Real y);
-math::Bounds ph_t_sq_bounds(Particles ps, Real S, Real x, Real y, Real z);
-math::Bounds tau_bounds(Kinematics kin);
-math::Bounds R_bounds(Kinematics kin, Real tau, Real phi_k);
-math::Bounds R_bounds_soft(Kinematics kin, Real tau, Real phi_k, Real k0_cut=constant::INF);
-math::Bounds R_bounds_hard(Kinematics kin, Real tau, Real phi_k, Real k0_cut=constant::INF);
-
-bool valid(Kinematics kin);
-bool valid(KinematicsRad kin);
 
 }
 }

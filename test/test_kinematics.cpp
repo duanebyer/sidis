@@ -359,7 +359,7 @@ TEST_CASE(
 		<< "φ     = " << phase_space.phi     << std::endl;
 	INFO(ss.str());
 
-	CHECK(!kin::valid(kin));
+	CHECK(!cut::valid(kin));
 }
 
 TEST_CASE(
@@ -390,6 +390,7 @@ TEST_CASE(
 		<< "φ     = " << phase_space.phi     << std::endl;
 	INFO(ss.str());
 
+	REQUIRE(cut::valid(kin));
 	test_kin_nrad(initial_state, kin, true, 1e6);
 }
 

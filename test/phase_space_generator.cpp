@@ -16,33 +16,21 @@ std::uniform_real_distribution<Real> dist(0., 1.);
 }
 
 bool PhaseSpaceGenerator::next() {
-	Real x = kin::x_bounds(_ps, _S).lerp(dist(rng));
-	Real y = kin::y_bounds(_ps, _S, x).lerp(dist(rng));
-	Real z = kin::z_bounds(_ps, _S, x, y).lerp(dist(rng));
-	Real ph_t_sq = kin::ph_t_sq_bounds(_ps, _S, x, y, z).lerp(dist(rng));
-	Real phi_h = math::Bounds(-constant::PI, constant::PI).lerp(dist(rng));
-	Real phi = math::Bounds(-constant::PI, constant::PI).lerp(dist(rng));
-	kin::PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
-	_value = phase_space;
+	Real point[6] = {
+		dist(rng), dist(rng), dist(rng),
+		dist(rng), dist(rng), dist(rng),
+	};
+	cut::take(_ps, _S, point, &_value, nullptr);
 	return true;
 }
 
 bool PhaseSpaceRadGenerator::next() {
-	Real x = kin::x_bounds(_ps, _S).lerp(dist(rng));
-	Real y = kin::y_bounds(_ps, _S, x).lerp(dist(rng));
-	Real z = kin::z_bounds(_ps, _S, x, y).lerp(dist(rng));
-	Real ph_t_sq = kin::ph_t_sq_bounds(_ps, _S, x, y, z).lerp(dist(rng));
-	Real phi_h = math::Bounds(-constant::PI, constant::PI).lerp(dist(rng));
-	Real phi = math::Bounds(-constant::PI, constant::PI).lerp(dist(rng));
-	kin::PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
-	kin::Kinematics kin(_ps, _S, phase_space);
-	Real tau = kin::tau_bounds(kin).lerp(dist(rng));
-	Real phi_k = math::Bounds(-constant::PI, constant::PI).lerp(dist(rng));
-	Real R = kin::R_bounds(kin, tau, phi_k).lerp(dist(rng));
-	kin::PhaseSpaceRad phase_space_rad {
-		x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R
+	Real point[9] = {
+		dist(rng), dist(rng), dist(rng),
+		dist(rng), dist(rng), dist(rng),
+		dist(rng), dist(rng), dist(rng),
 	};
-	_value = phase_space_rad;
+	cut::take(_ps, _S, point, &_value, nullptr);
 	return true;
 }
 
@@ -61,10 +49,10 @@ bool PhaseSpaceSurfaceGenerator::next() {
 		select = 3;
 	}
 	Real value = dist(rng) < 0.5 ? 1. - _skin_depth : _skin_depth;
-	Real x = kin::x_bounds(_ps, _S).lerp(select == 0 ? value : dist(rng));
-	Real y = kin::y_bounds(_ps, _S, x).lerp(select == 1 ? value : dist(rng));
-	Real z = kin::z_bounds(_ps, _S, x, y).lerp(select == 2 ? value : dist(rng));
-	Real ph_t_sq = kin::ph_t_sq_bounds(_ps, _S, x, y, z).lerp(select == 3 ? value : dist(rng));
+	Real x = cut::x_bounds(_ps, _S).lerp(select == 0 ? value : dist(rng));
+	Real y = cut::y_bounds(_ps, _S, x).lerp(select == 1 ? value : dist(rng));
+	Real z = cut::z_bounds(_ps, _S, x, y).lerp(select == 2 ? value : dist(rng));
+	Real ph_t_sq = cut::ph_t_sq_bounds(_ps, _S, x, y, z).lerp(select == 3 ? value : dist(rng));
 	Real phi_h = math::Bounds(-constant::PI, constant::PI).lerp(dist(rng));
 	Real phi = math::Bounds(-constant::PI, constant::PI).lerp(dist(rng));
 	kin::PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
@@ -91,19 +79,19 @@ bool PhaseSpaceRadSurfaceGenerator::next() {
 		select = 5;
 	}
 	Real value = dist(rng) < 0.5 ? 1. - _skin_depth : _skin_depth;
-	Real x = kin::x_bounds(_ps, _S).lerp(select == 0 ? value : dist(rng));
-	Real y = kin::y_bounds(_ps, _S, x).lerp(select == 1 ? value : dist(rng));
-	Real z = kin::z_bounds(_ps, _S, x, y).lerp(select == 2 ? value : dist(rng));
-	Real ph_t_sq = kin::ph_t_sq_bounds(_ps, _S, x, y, z).lerp(select == 3 ? value : dist(rng));
+	Real x = cut::x_bounds(_ps, _S).lerp(select == 0 ? value : dist(rng));
+	Real y = cut::y_bounds(_ps, _S, x).lerp(select == 1 ? value : dist(rng));
+	Real z = cut::z_bounds(_ps, _S, x, y).lerp(select == 2 ? value : dist(rng));
+	Real ph_t_sq = cut::ph_t_sq_bounds(_ps, _S, x, y, z).lerp(select == 3 ? value : dist(rng));
 	Real phi_h = math::Bounds(-constant::PI, constant::PI).lerp(dist(rng));
 	Real phi = math::Bounds(-constant::PI, constant::PI).lerp(dist(rng));
 	kin::PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
 	kin::Kinematics kin(_ps, _S, phase_space);
-	Real tau = kin::tau_bounds(kin).lerp(select == 4 ? value : dist(rng));
+	Real tau = cut::tau_bounds(kin).lerp(select == 4 ? value : dist(rng));
 	Real phi_k = math::Bounds(-constant::PI, constant::PI).lerp(dist(rng));
-	Real R = kin::R_bounds(kin, tau, phi_k).lerp(select == 5 ? value : dist(rng));
+	Real R = cut::R_bounds(kin, tau, phi_k).lerp(select == 5 ? value : dist(rng));
 	kin::PhaseSpaceRad phase_space_rad {
-		x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R
+		x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R,
 	};
 	_value = phase_space_rad;
 	return true;

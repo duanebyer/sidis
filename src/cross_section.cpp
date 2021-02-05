@@ -7,6 +7,7 @@
 #include <cubature.hpp>
 
 #include "sidis/constant.hpp"
+#include "sidis/cut.hpp"
 #include "sidis/frame.hpp"
 #include "sidis/hadronic_coeff.hpp"
 #include "sidis/kinematics.hpp"
@@ -18,14 +19,15 @@
 #include "sidis/extra/vector.hpp"
 
 using namespace sidis;
-using namespace sidis::xs;
 using namespace sidis::constant;
+using namespace sidis::cut;
 using namespace sidis::had;
 using namespace sidis::integ;
 using namespace sidis::kin;
 using namespace sidis::lep;
 using namespace sidis::math;
 using namespace sidis::sf;
+using namespace sidis::xs;
 
 namespace {
 
@@ -123,17 +125,15 @@ Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real 
 
 Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k0_cut) {
 	HadXX had_0(kin, model);
+	CutRad cut;
+	cut.k_0_bar = Bounds(0., k0_cut);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
 		[&](cubature::Point<3, Real> x) {
-			Bounds tau_b = tau_bounds(kin);
-			Real tau = tau_b.lerp(x[0]);
-			Bounds phi_k_b(0., 2. * PI);
-			Real phi_k = phi_k_b.lerp(x[1]);
-			Bounds R_b = R_bounds_soft(kin, tau, phi_k, k0_cut);
-			Real R = R_b.lerp(x[2]);
-			Real jacobian = tau_b.size() * phi_k_b.size() * R_b.size();
+			Real point[3] = { x[0], x[1], x[2] };
+			KinematicsRad kin_rad;
+			Real jacobian;
+			while (!take(cut, kin, point, &kin_rad, &jacobian)) { }
 
-			KinematicsRad kin_rad(kin, tau, phi_k, R);
 			Rad b(kin_rad);
 			LepRadXX lep(kin_rad);
 			HadRadFXX had(kin_rad, model, had_0);
@@ -155,17 +155,15 @@ Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model
 }
 
 Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k0_cut) {
+	CutRad cut;
+	cut.k_0_bar = Bounds(k0_cut, INF);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
 		[&](cubature::Point<3, Real> x) {
-			Bounds tau_b = tau_bounds(kin);
-			Real tau = tau_b.lerp(x[0]);
-			Bounds phi_k_b(0., 2. * PI);
-			Real phi_k = phi_k_b.lerp(x[1]);
-			Bounds R_b = R_bounds_hard(kin, tau, phi_k, k0_cut);
-			Real R = R_b.lerp(x[2]);
-			Real jacobian = tau_b.size() * phi_k_b.size() * R_b.size();
+			Real point[3] = { x[0], x[1], x[2] };
+			KinematicsRad kin_rad;
+			Real jacobian;
+			while (!take(cut, kin, point, &kin_rad, &jacobian)) { }
 
-			KinematicsRad kin_rad(kin, tau, phi_k, R);
 			Rad b(kin_rad);
 			LepRadXX lep(kin_rad);
 			HadRadXX had(kin_rad, model);

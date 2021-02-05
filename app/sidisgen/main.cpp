@@ -48,47 +48,26 @@ TLorentzVector convert_vec4(math::Vec4 v) {
 }
 
 struct XsNRad : public TFoamIntegrand {
-	Params const params;
-	kin::Particles const ps;
-	Real const S;
+	Params params;
+	cut::Cut cut;
+	cut::CutRad cut_rad;
+	kin::Particles ps;
+	Real S;
 
 	explicit XsNRad(Params params) :
 		params(params),
+		cut(),
+		cut_rad(),
 		ps(params.target, params.beam, params.hadron, params.mass_threshold),
 		S(2. * mass(params.target) * params.beam_energy) { }
-
-	// Converts from the unit hyper-cube to a point in phase space, also
-	// providing the associated jacobian.
-	kin::Kinematics GetKinematics(Double_t const* vec, Real* jacobian) {
-		math::Bounds x_bounds = kin::x_bounds(ps, S);
-		Real x = x_bounds.lerp(vec[0]);
-		math::Bounds y_bounds = kin::y_bounds(ps, S, x);
-		Real y = y_bounds.lerp(vec[1]);
-		math::Bounds z_bounds = kin::z_bounds(ps, S, x, y);
-		Real z = z_bounds.lerp(vec[2]);
-		math::Bounds ph_t_sq_bounds = kin::ph_t_sq_bounds(ps, S, x, y, z);
-		Real ph_t_sq = ph_t_sq_bounds.lerp(vec[3]);
-		math::Bounds phi_h_bounds = math::Bounds(0., 2. * PI);
-		Real phi_h = phi_h_bounds.lerp(vec[4]);
-		math::Bounds phi_bounds = math::Bounds(0., 2. * PI);
-		Real phi = phi_bounds.lerp(vec[5]);
-		*jacobian = x_bounds.size() * y_bounds.size() * z_bounds.size()
-			* ph_t_sq_bounds.size() * phi_h_bounds.size() * phi_bounds.size();
-
-		kin::PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
-		kin::Kinematics kin(ps, S, phase_space);
-		return kin;
-	}
 
 	Double_t Density(int dim, Double_t* vec) override {
 		if (dim != 6) {
 			return 0.;
 		}
+		kin::Kinematics kin;
 		Real jacobian;
-		kin::Kinematics kin = GetKinematics(vec, &jacobian);
-		// TODO: Remove this condition, once we feel confident enough in the
-		// kinematic bounds functions.
-		if (!kin::valid(kin)) {
+		if (!cut::take(cut, ps, S, vec, &kin, &jacobian)) {
 			return 0.;
 		}
 		math::Vec3 eta = frame::hadron_from_target(kin) * params.target_pol;
@@ -110,56 +89,29 @@ struct XsNRad : public TFoamIntegrand {
 };
 
 struct XsRad : public TFoamIntegrand {
-	Params const params;
-	kin::Particles const ps;
-	Real const S;
+	Params params;
+	cut::Cut cut;
+	cut::CutRad cut_rad;
+	kin::Particles ps;
+	Real S;
 
 	explicit XsRad(Params params) :
 		params(params),
+		cut(),
+		cut_rad(),
 		ps(params.target, params.beam, params.hadron, params.mass_threshold),
 		S(2. * mass(params.target) * params.beam_energy) { }
-
-	kin::KinematicsRad GetKinematics(Double_t const* vec, Real* jacobian) {
-		math::Bounds x_bounds = kin::x_bounds(ps, S);
-		Real x = x_bounds.lerp(vec[0]);
-		math::Bounds y_bounds = kin::y_bounds(ps, S, x);
-		Real y = y_bounds.lerp(vec[1]);
-		math::Bounds z_bounds = kin::z_bounds(ps, S, x, y);
-		Real z = z_bounds.lerp(vec[2]);
-		math::Bounds ph_t_sq_bounds = kin::ph_t_sq_bounds(ps, S, x, y, z);
-		Real ph_t_sq = ph_t_sq_bounds.lerp(vec[3]);
-		math::Bounds phi_h_bounds = math::Bounds(0., 2. * PI);
-		Real phi_h = phi_h_bounds.lerp(vec[4]);
-		math::Bounds phi_bounds = math::Bounds(0., 2. * PI);
-		Real phi = phi_bounds.lerp(vec[5]);
-
-		kin::PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
-		kin::Kinematics kin(ps, S, phase_space);
-
-		math::Bounds tau_bounds = kin::tau_bounds(kin);
-		Real tau = tau_bounds.lerp(vec[6]);
-		math::Bounds phi_k_bounds = math::Bounds(0., 2. * PI);
-		Real phi_k = phi_k_bounds.lerp(vec[7]);
-		math::Bounds R_bounds = kin::R_bounds_hard(kin, tau, phi_k, params.k0_cut);
-		Real R = R_bounds.lerp(vec[8]);
-		*jacobian = x_bounds.size() * y_bounds.size() * z_bounds.size()
-			* ph_t_sq_bounds.size() * phi_h_bounds.size() * phi_bounds.size()
-			* tau_bounds.size() * phi_k_bounds.size() * R_bounds.size();
-
-		kin::KinematicsRad kin_rad(kin, tau, phi_k, R);
-		return kin_rad;
-	}
 
 	Double_t Density(int dim, Double_t* vec) override {
 		if (dim != 9) {
 			return 0.;
 		}
+		kin::KinematicsRad kin_rad;
 		Real jacobian;
-		kin::KinematicsRad kin_rad = GetKinematics(vec, &jacobian);
-		kin::Kinematics kin = kin_rad.project();
-		if (!kin::valid(kin_rad)) {
+		if (!cut::take(cut, cut_rad, ps, S, vec, &kin_rad, &jacobian)) {
 			return 0.;
 		}
+		kin::Kinematics kin = kin_rad.project();
 		math::Vec3 eta = frame::hadron_from_target(kin) * params.target_pol;
 		Real xs = xs::rad(params.beam_pol, eta, kin_rad, ww);
 		if (std::isnan(xs)) {
@@ -189,9 +141,10 @@ int command_help() {
 		<< "num_init       <integer>"                        << std::endl
 		<< "seed           <integer>"                        << std::endl
 		<< "seed_init      <integer>"                        << std::endl
-		<< "beam_energy    <energy>"                         << std::endl
+		<< "beam_energy    <energy (GeV)>"                   << std::endl
 		<< "beam           <pid>"                            << std::endl
 		<< "target         <pid>"                            << std::endl
+		<< "mass_threshold <mass (GeV)>"                     << std::endl
 		<< "hadron         <pid>"                            << std::endl
 		<< "beam_pol       <U, L>"                           << std::endl
 		<< "target_pol     <U, L, T>"                        << std::endl
@@ -207,7 +160,9 @@ int command_help() {
 		<< "Q2_cut         <min> <max>"                      << std::endl
 		<< "y_cut          <min> <max>"                      << std::endl
 		<< "z_cut          <min> <max>"                      << std::endl
-		<< "ph_t_cut       <min> <max>"                      << std::endl;
+		<< "ph_t_cut       <min> <max>"                      << std::endl
+		<< "phi_h          <min> <max>"                      << std::endl
+		<< "phi            <min> <max>"                      << std::endl;
 	return SUCCESS;
 }
 
@@ -413,6 +368,7 @@ int command_generate(std::string params_file_name) {
 	constant::Hadron hadron = params.hadron;
 	math::Vec3 target_pol = params.target_pol;
 	kin::Particles ps(target, beam, hadron, params.mass_threshold);
+	Real S = 2.*params.beam_energy*ps.M;
 
 	kin::Initial initial_state(ps, params.beam_energy);
 	ULong_t N_gen = params.num_events >= 0 ? params.num_events : 0;
@@ -513,48 +469,55 @@ int command_generate(std::string params_file_name) {
 			N_gen_nrad += 1;
 			Double_t event_vec[6];
 			weight = foam_nrad->MCgenerate(event_vec);
-			Real jacobian;
-			kin::Kinematics kin = xs_nrad.GetKinematics(event_vec, &jacobian);
-			kin::Final final_state(initial_state, target_pol, kin);
-			// Fill in branches.
-			x = kin.x;
-			y = kin.y;
-			z = kin.z;
-			ph_t_sq = kin.ph_t_sq;
-			phi_h = kin.phi_h;
-			phi = kin.phi;
-			Q_sq = kin.Q_sq;
-			p = convert_vec4(initial_state.p);
-			k1 = convert_vec4(initial_state.k1);
-			q = convert_vec4(final_state.q);
-			k2 = convert_vec4(final_state.k2);
-			ph = convert_vec4(final_state.ph);
+			kin::Kinematics kin;
+			if (cut::take(xs_nrad.cut, ps, S, event_vec, &kin, nullptr)) {
+				kin::Final final_state(initial_state, target_pol, kin);
+				// Fill in branches.
+				x = kin.x;
+				y = kin.y;
+				z = kin.z;
+				ph_t_sq = kin.ph_t_sq;
+				phi_h = kin.phi_h;
+				phi = kin.phi;
+				Q_sq = kin.Q_sq;
+				p = convert_vec4(initial_state.p);
+				k1 = convert_vec4(initial_state.k1);
+				q = convert_vec4(final_state.q);
+				k2 = convert_vec4(final_state.k2);
+				ph = convert_vec4(final_state.ph);
+			} else {
+				// Make sure invalid data isn't written to the events.
+				weight = 0.;
+			}
 		} else {
 			// Generate a radiative event.
 			is_rad = true;
 			N_gen_rad += 1;
 			Double_t event_vec[9];
 			weight = foam_rad->MCgenerate(event_vec);
-			Real jacobian;
-			kin::KinematicsRad kin = xs_rad.GetKinematics(event_vec, &jacobian);
-			kin::FinalRad final_state(initial_state, target_pol, kin);
-			// Fill in branches.
-			x = kin.x;
-			y = kin.y;
-			z = kin.z;
-			ph_t_sq = kin.ph_t_sq;
-			phi_h = kin.phi_h;
-			phi = kin.phi;
-			tau = kin.tau;
-			phi_k = kin.phi_k;
-			R = kin.R;
-			Q_sq = kin.Q_sq;
-			p = convert_vec4(initial_state.p);
-			k1 = convert_vec4(initial_state.k1);
-			q = convert_vec4(final_state.q);
-			k2 = convert_vec4(final_state.k2);
-			ph = convert_vec4(final_state.ph);
-			k = convert_vec4(final_state.k);
+			kin::KinematicsRad kin;
+			if (!cut::take(xs_rad.cut, xs_rad.cut_rad, ps, S, event_vec, &kin, nullptr)) {
+				kin::FinalRad final_state(initial_state, target_pol, kin);
+				// Fill in branches.
+				x = kin.x;
+				y = kin.y;
+				z = kin.z;
+				ph_t_sq = kin.ph_t_sq;
+				phi_h = kin.phi_h;
+				phi = kin.phi;
+				tau = kin.tau;
+				phi_k = kin.phi_k;
+				R = kin.R;
+				Q_sq = kin.Q_sq;
+				p = convert_vec4(initial_state.p);
+				k1 = convert_vec4(initial_state.k1);
+				q = convert_vec4(final_state.q);
+				k2 = convert_vec4(final_state.k2);
+				ph = convert_vec4(final_state.ph);
+				k = convert_vec4(final_state.k);
+			} else {
+				weight = 0.;
+			}
 		}
 		events.Fill();
 	}

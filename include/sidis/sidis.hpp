@@ -3,6 +3,7 @@
 
 #include "sidis/constant.hpp"
 #include "sidis/cross_section.hpp"
+#include "sidis/cut.hpp"
 #include "sidis/frame.hpp"
 #include "sidis/hadronic_coeff.hpp"
 #include "sidis/kinematics.hpp"
