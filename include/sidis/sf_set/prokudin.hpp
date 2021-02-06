@@ -10,7 +10,7 @@ namespace constant {
 }
 
 namespace sf {
-namespace model {
+namespace set {
 
 // Use data files from [2] to calculate TMDs and FFs.
 class ProkudinTmdSet final : public GaussianWwTmdSet {

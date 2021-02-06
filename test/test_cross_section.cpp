@@ -144,11 +144,11 @@ TEST_CASE(
 
 	std::unique_ptr<sf::SfSet> sf;
 	if (input.sf_set_idx == 0) {
-		sf.reset(new sf::model::WW());
+		sf.reset(new sf::set::WW());
 	} else {
 		bool mask[18] = { false };
 		mask[-input.sf_set_idx - 1] = true;
-		sf.reset(new sf::model::TestSfSet(constant::Nucleus::P, mask));
+		sf.reset(new sf::set::TestSfSet(constant::Nucleus::P, mask));
 	}
 
 	// Set up the input to the cross-section calculation.
@@ -215,11 +215,11 @@ TEST_CASE(
 
 	std::unique_ptr<sf::SfSet> sf;
 	if (input.sf_set_idx == 0) {
-		sf.reset(new sf::model::WW());
+		sf.reset(new sf::set::WW());
 	} else {
 		bool mask[18] = { false };
 		mask[-input.sf_set_idx - 1] = true;
-		sf.reset(new sf::model::TestSfSet(constant::Nucleus::P, mask));
+		sf.reset(new sf::set::TestSfSet(constant::Nucleus::P, mask));
 	}
 
 	// Set up the input to the cross-section calculation.

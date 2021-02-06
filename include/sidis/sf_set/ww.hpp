@@ -10,7 +10,7 @@
 
 namespace sidis {
 namespace sf {
-namespace model {
+namespace set {
 
 /**
  * Wandzura-Wilczek approximation to the structure functions [2].

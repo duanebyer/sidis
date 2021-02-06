@@ -5,7 +5,7 @@
 
 namespace sidis {
 namespace sf {
-namespace model {
+namespace set {
 
 /*
  * Structure function set that returns a constant value of one for some subset

@@ -39,7 +39,7 @@ int const ERROR_PARAMS_PARSE = -4;
 int const ERROR_FOAM_INCOMPATIBLE = -5;
 int const ERROR_FOAM_NOT_FOUND = -6;
 
-sf::model::WW const ww;
+sf::set::WW const ww;
 Real const PI = constant::PI;
 
 // Converts between the `sidis` 4-vector type and the `ROOT` 4-vector type.

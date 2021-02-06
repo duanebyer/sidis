@@ -5,7 +5,7 @@
 using namespace sidis;
 using namespace sidis::constant;
 using namespace sidis::sf;
-using namespace sidis::sf::model;
+using namespace sidis::sf::set;
 
 TestSfSet::TestSfSet(Nucleus target, const bool (&mask)[18]) :
 		SfSet(target),

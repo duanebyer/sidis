@@ -23,7 +23,7 @@ using namespace sidis::constant;
 using namespace sidis::interp;
 using namespace sidis::math;
 using namespace sidis::sf;
-using namespace sidis::sf::model;
+using namespace sidis::sf::set;
 
 namespace {
 
