@@ -63,19 +63,19 @@ namespace sf {
 namespace xs {
 
 Real born(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model); Real amm(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model);
-Real nrad_ir(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k0_cut=constant::INF);
-Real nrad(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k0_cut=constant::INF);
+Real nrad_ir(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k_0_bar=constant::INF);
+Real nrad(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k_0_bar=constant::INF);
 Real rad_f(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::SfSet const& model);
 Real rad(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::SfSet const& model);
 
 // TODO: Include a precision argument, which determines how accurately the
 // integrated cross-section is to be calculated.
-Real rad_f_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k0_cut=constant::INF);
-Real rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k0_cut=constant::INF);
+Real rad_f_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k_0_bar=constant::INF);
+Real rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& model, Real k_0_bar=constant::INF);
 
 // Various corrections to Born cross-section.
-Real delta_vert_rad_ir(kin::Kinematics kin, Real k0_cut=constant::INF);
-Real delta_rad_ir_hard(kin::Kinematics kin, Real k0_cut=constant::INF);
+Real delta_vert_rad_ir(kin::Kinematics kin, Real k_0_bar=constant::INF);
+Real delta_rad_ir_hard(kin::Kinematics kin, Real k_0_bar=constant::INF);
 Real delta_vac_lep(kin::Kinematics kin);
 Real delta_vac_had(kin::Kinematics kin);
 
@@ -114,7 +114,7 @@ Real amm_lt2_base(Amm b, lep::LepAmmLU lep, had::HadLT had);
 struct NRadIR {
 	Real coeff_born;
 	Real coeff_amm;
-	explicit NRadIR(kin::Kinematics kin, Real k0_cut);
+	explicit NRadIR(kin::Kinematics kin, Real k_0_bar);
 };
 
 Real nrad_ir_xx_base(Real lambda_e, math::Vec3 eta, NRadIR b, lep::LepBornXX lep_born, lep::LepAmmXX lep_amm, had::HadXX had);

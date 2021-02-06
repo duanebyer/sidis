@@ -93,8 +93,8 @@ Real xs::amm(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model) {
 	return amm_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::nrad_ir(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k0_cut) {
-	NRadIR b(kin, k0_cut);
+Real xs::nrad_ir(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k_0_bar) {
+	NRadIR b(kin, k_0_bar);
 	LepBornXX lep_born(kin);
 	LepAmmXX lep_amm(kin);
 	HadXX had(kin, model);
@@ -115,18 +115,18 @@ Real xs::rad_f(Real lambda_e, Vec3 eta, KinematicsRad kin, SfSet const& model) {
 	return rad_f_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k0_cut) {
-	// The soft part of the radiative cross-section (below `k0_cut`) is bundled
+Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k_0_bar) {
+	// The soft part of the radiative cross-section (below `k_0_bar`) is bundled
 	// into the return value here.
-	Real xs_nrad_ir = nrad_ir(lambda_e, eta, kin, model, k0_cut);
-	Real xs_rad_f = rad_f_integ(lambda_e, eta, kin, model, k0_cut);
+	Real xs_nrad_ir = nrad_ir(lambda_e, eta, kin, model, k_0_bar);
+	Real xs_rad_f = rad_f_integ(lambda_e, eta, kin, model, k_0_bar);
 	return xs_nrad_ir + xs_rad_f;
 }
 
-Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k0_cut) {
+Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k_0_bar) {
 	HadXX had_0(kin, model);
 	CutRad cut;
-	cut.k_0_bar = Bounds(0., k0_cut);
+	cut.k_0_bar = Bounds(0., k_0_bar);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
 		[&](cubature::Point<3, Real> x) {
 			Real point[3] = { x[0], x[1], x[2] };
@@ -154,9 +154,9 @@ Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model
 	return xs_integ.val;
 }
 
-Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k0_cut) {
+Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, Real k_0_bar) {
 	CutRad cut;
-	cut.k_0_bar = Bounds(k0_cut, INF);
+	cut.k_0_bar = Bounds(k_0_bar, INF);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
 		[&](cubature::Point<3, Real> x) {
 			Real point[3] = { x[0], x[1], x[2] };
@@ -182,10 +182,10 @@ Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& model, 
 }
 
 // Radiative corrections to Born cross-section.
-Real xs::delta_vert_rad_ir(Kinematics kin, Real k0_cut) {
+Real xs::delta_vert_rad_ir(Kinematics kin, Real k_0_bar) {
 	// Paragraph following equation [1.C17].
 	Real k0_max = (kin.mx_sq - sq(kin.Mth))/(2.*kin.mx);
-	if (!(k0_cut > 0.)) {
+	if (!(k_0_bar > 0.)) {
 		return -INFINITY;
 	}
 	Real Q_m_sq = kin.Q_sq + 2.*sq(kin.m);
@@ -198,16 +198,16 @@ Real xs::delta_vert_rad_ir(Kinematics kin, Real k0_cut) {
 	// This comes from subtracting `delta_H` (equation [1.38]) from `delta_VR`
 	// (equation [1.52]).
 	Real delta_shift = 2.*(Q_m_sq*L_m - 1.)*std::log(
-		k0_cut < k0_max ?
-		(2.*k0_cut)/kin.m :
+		k_0_bar < k0_max ?
+		(2.*k_0_bar)/kin.m :
 		(kin.mx_sq - sq(kin.Mth))/(kin.m*kin.mx));
 	return delta_0 + delta_shift;
 }
-Real xs::delta_rad_ir_hard(Kinematics kin, Real k0_cut) {
+Real xs::delta_rad_ir_hard(Kinematics kin, Real k_0_bar) {
 	Real k0_max = (kin.mx_sq - sq(kin.Mth))/(2.*kin.mx);
-	if (!(k0_cut > 0.)) {
+	if (!(k_0_bar > 0.)) {
 		return INFINITY;
-	} else if (!(k0_cut < k0_max)) {
+	} else if (!(k_0_bar < k0_max)) {
 		return 0.;
 	}
 	Real Q_m_sq = kin.Q_sq + 2.*sq(kin.m);
@@ -218,7 +218,7 @@ Real xs::delta_rad_ir_hard(Kinematics kin, Real k0_cut) {
 	Real L_m = 1./lambda_m_sqrt*std::log(sum_m/diff_m);
 	// Equation [1.38].
 	Real delta = 2.*(Q_m_sq*L_m - 1.)*std::log(
-		(kin.mx_sq - sq(kin.Mth))/(2.*k0_cut*kin.mx));
+		(kin.mx_sq - sq(kin.Mth))/(2.*k_0_bar*kin.mx));
 	return delta;
 }
 
@@ -360,11 +360,11 @@ Real xs::amm_lt2_base(Amm b, LepAmmLU lep, HadLT had) {
 }
 
 // Non-radiative infrared-divergence-free base functions.
-NRadIR::NRadIR(Kinematics kin, Real k0_cut) {
+NRadIR::NRadIR(Kinematics kin, Real k_0_bar) {
 	Born born(kin);
 	Amm amm(kin);
 	Real born_factor = 1. + ALPHA/PI*(
-		delta_vert_rad_ir(kin, k0_cut)
+		delta_vert_rad_ir(kin, k_0_bar)
 		+ delta_vac_lep(kin)
 		+ delta_vac_had(kin));
 	coeff_born = born_factor*born.coeff;
