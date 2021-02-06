@@ -9,13 +9,14 @@
 
 #include <sidis/numeric.hpp>
 #include <sidis/constant.hpp>
+#include <sidis/extra/bounds.hpp>
 #include <sidis/extra/vector.hpp>
 
 // Within a major version, there is forward compatibility (e.x. 1.4 is
 // forward-compatible with 1.5). Between major versions, there is no
 // compatibility.
 #define SIDIS_PARAMS_VERSION_MAJOR 1
-#define SIDIS_PARAMS_VERSION_MINOR 1
+#define SIDIS_PARAMS_VERSION_MINOR 2
 
 // Keeps track of the various parameters that can be used for a run of the
 // generator. This structure can be read/written to both a ROOT file or a plain

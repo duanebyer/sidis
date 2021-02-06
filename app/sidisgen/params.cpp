@@ -19,15 +19,15 @@ using namespace sidis::math;
 
 #define WRITE_PARAM_ROOT(file, param) \
 	{ \
-		auto p = convert(param); \
+		auto p = root_from_param(param); \
 		file.WriteObject(&p, #param); \
 	}
 
 #define READ_PARAM_ROOT(file, param) \
 	{ \
-		auto p = file.Get<decltype(convert(param))>(#param); \
+		auto p = file.Get<decltype(root_from_param(param))>(#param); \
 		if (p != nullptr) { \
-			param = static_cast<decltype(param)>(convert(*p)); \
+			param = param_from_root<decltype(param)>(*p); \
 		} \
 	}
 
@@ -52,42 +52,68 @@ using is_scoped_enum = std::integral_constant<
 	bool,
 	std::is_enum<T>::value && !std::is_convertible<T, int>::value>;
 
-template<
-	typename T,
-	typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
-T convert(TParameter<T> const& in) {
+template<typename T, typename R>
+T param_from_root(R const& in) {
+	throw std::runtime_error("Unsupported parameter conversion");
+}
+template<>
+Int_t param_from_root<Int_t>(TParameter<Int_t> const& in) {
 	return in.GetVal();
 }
+template<>
+Long_t param_from_root<Long_t>(TParameter<Long_t> const& in) {
+	return in.GetVal();
+}
+template<>
+Real param_from_root<Real>(TParameter<Real> const& in) {
+	return in.GetVal();
+}
+template<>
+Nucleus param_from_root<Nucleus>(TParameter<int> const& in) {
+	return static_cast<Nucleus>(in.GetVal());
+}
+template<>
+Lepton param_from_root<Lepton>(TParameter<int> const& in) {
+	return static_cast<Lepton>(in.GetVal());
+}
+template<>
+Hadron param_from_root<Hadron>(TParameter<int> const& in) {
+	return static_cast<Hadron>(in.GetVal());
+}
+template<>
+std::string param_from_root<std::string>(TObjString const& in) {
+	return in.GetString().Data();
+}
+template<>
+Vec3 param_from_root<Vec3>(TVector3 const& in) {
+	return Vec3(in.X(), in.Y(), in.Z());
+}
+template<>
+Bounds param_from_root<Bounds>(TVector2 const& in) {
+	return Bounds(in.X(), in.Y());
+}
+
 template<
 	typename T,
 	typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
-TParameter<T> convert(T const& in) {
+TParameter<T> root_from_param(T const& in) {
 	return TParameter<T>("", in);
 }
 template<
 	typename T,
 	typename = typename std::enable_if<is_scoped_enum<T>::value>::type>
-T convert(TParameter<typename std::underlying_type<T>::type> const& in) {
-	return static_cast<T>(in.GetVal());
-}
-template<
-	typename T,
-	typename = typename std::enable_if<is_scoped_enum<T>::value>::type>
-TParameter<typename std::underlying_type<T>::type> convert(T const& in) {
+TParameter<typename std::underlying_type<T>::type> root_from_param(T const& in) {
 	return TParameter<typename std::underlying_type<T>::type>(
 		"", static_cast<typename std::underlying_type<T>::type>(in));
 }
-TObjString convert(std::string str) {
+TObjString root_from_param(std::string const& str) {
 	return TObjString(str.c_str());
 }
-std::string convert(TObjString str) {
-	return str.GetString().Data();
-}
-TVector3 convert(Vec3 const& vec) {
+TVector3 root_from_param(Vec3 const& vec) {
 	return TVector3(vec.x, vec.y, vec.z);
 }
-Vec3 convert(TVector3 const& vec) {
-	return Vec3(vec.X(), vec.Y(), vec.Z());
+TVector2 root_from_param(Bounds const& bounds) {
+	return TVector2(bounds.min(), bounds.max());
 }
 
 std::ostream& operator<<(std::ostream& os, Nucleus const& nucleus) {
@@ -192,6 +218,18 @@ std::ostream& operator<<(std::ostream& os, Vec3 const& vec) {
 }
 std::istream& operator>>(std::istream& is, Vec3& vec) {
 	is >> vec.x >> vec.y >> vec.z;
+	return is;
+}
+
+std::ostream& operator<<(std::ostream& os, Bounds const& bounds) {
+	os << bounds.min() << " " << bounds.max();
+	return os;
+}
+std::istream& operator>>(std::istream& is, Bounds& bounds) {
+	Real min;
+	Real max;
+	is >> min >> max;
+	bounds = Bounds(min, max);
 	return is;
 }
 
