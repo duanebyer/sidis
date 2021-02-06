@@ -115,46 +115,46 @@ HadLT::HadLT(Kinematics kin, SfLT sf) {
 		- kin.lambda_3*kin.S_x*H_121);
 	H_91 = 2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_121;
 }
-HadUU::HadUU(Kinematics kin, SfSet const& model) : HadUU(
+HadUU::HadUU(Kinematics kin, SfSet const& sf) : HadUU(
 		kin,
-		model.sf_uu(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+		sf.sf_uu(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadUL::HadUL(Kinematics kin, SfSet const& model) : HadUL(
+HadUL::HadUL(Kinematics kin, SfSet const& sf) : HadUL(
 		kin,
-		model.sf_ul(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+		sf.sf_ul(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadUT::HadUT(Kinematics kin, SfSet const& model) : HadUT(
+HadUT::HadUT(Kinematics kin, SfSet const& sf) : HadUT(
 		kin,
-		model.sf_ut(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+		sf.sf_ut(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadLU::HadLU(Kinematics kin, SfSet const& model) : HadLU(
+HadLU::HadLU(Kinematics kin, SfSet const& sf) : HadLU(
 		kin,
-		model.sf_lu(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+		sf.sf_lu(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadLL::HadLL(Kinematics kin, SfSet const& model) : HadLL(
+HadLL::HadLL(Kinematics kin, SfSet const& sf) : HadLL(
 		kin,
-		model.sf_ll(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+		sf.sf_ll(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadLT::HadLT(Kinematics kin, SfSet const& model) : HadLT(
+HadLT::HadLT(Kinematics kin, SfSet const& sf) : HadLT(
 		kin,
-		model.sf_lt(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+		sf.sf_lt(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
 }
 
@@ -254,32 +254,32 @@ HadRadLP::HadRadLP(KinematicsRad kin, SfLP shift_sf) {
 		0.,
 		2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_123));
 }
-HadRadUU::HadRadUU(KinematicsRad kin, SfSet const& model) : HadRadUU(
+HadRadUU::HadRadUU(KinematicsRad kin, SfSet const& sf) : HadRadUU(
 		kin,
-		model.sf_uu(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+		sf.sf_uu(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadRadUP::HadRadUP(KinematicsRad kin, SfSet const& model) : HadRadUP(
+HadRadUP::HadRadUP(KinematicsRad kin, SfSet const& sf) : HadRadUP(
 		kin,
-		model.sf_up(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+		sf.sf_up(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadRadLU::HadRadLU(KinematicsRad kin, SfSet const& model) : HadRadLU(
+HadRadLU::HadRadLU(KinematicsRad kin, SfSet const& sf) : HadRadLU(
 		kin,
-		model.sf_lu(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+		sf.sf_lu(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadRadLP::HadRadLP(KinematicsRad kin, SfSet const& model) : HadRadLP(
+HadRadLP::HadRadLP(KinematicsRad kin, SfSet const& sf) : HadRadLP(
 		kin,
-		model.sf_lp(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+		sf.sf_lp(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
 }
 
@@ -334,11 +334,11 @@ HadRadFLP::HadRadFLP(KinematicsRad kin, SfLP sf, SfLP shift_sf) {
 	H_7_diff = (had.H_7 - Vec3(had_0.H_71, 0., had_0.H_73))/kin.R;
 	H_9_diff = (had.H_9 - Vec3(had_0.H_91, 0., had_0.H_93))/kin.R;
 }
-HadRadFUU::HadRadFUU(KinematicsRad kin, SfSet const& model, HadUU had_0) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+HadRadFUU::HadRadFUU(KinematicsRad kin, SfSet const& sf, HadUU had_0) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
-	HadRadUU had(kin, model);
+	HadRadUU had(kin, sf);
 	H_10 = had.H_10;
 	H_20 = had.H_20;
 	H_30 = had.H_30;
@@ -349,8 +349,8 @@ HadRadFUU::HadRadFUU(KinematicsRad kin, SfSet const& model, HadUU had_0) {
 		Real R_2 = 2.*delta_R;
 		KinematicsRad kin_1(kin.project(), kin.tau, kin.phi_k, R_1);
 		KinematicsRad kin_2(kin.project(), kin.tau, kin.phi_k, R_2);
-		HadRadUU had_1(kin_1, model);
-		HadRadUU had_2(kin_2, model);
+		HadRadUU had_1(kin_1, sf);
+		HadRadUU had_2(kin_2, sf);
 		H_10_diff = diff_R(kin.R, delta_R, had_0.H_10, had_1.H_10, had_2.H_10);
 		H_20_diff = diff_R(kin.R, delta_R, had_0.H_20, had_1.H_20, had_2.H_20);
 		H_30_diff = diff_R(kin.R, delta_R, had_0.H_30, had_1.H_30, had_2.H_30);
@@ -362,11 +362,11 @@ HadRadFUU::HadRadFUU(KinematicsRad kin, SfSet const& model, HadUU had_0) {
 		H_40_diff = (had.H_40 - had_0.H_40)/kin.R;
 	}
 }
-HadRadFUP::HadRadFUP(KinematicsRad kin, SfSet const& model, HadUP had_0) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+HadRadFUP::HadRadFUP(KinematicsRad kin, SfSet const& sf, HadUP had_0) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
-	HadRadUP had(kin, model);
+	HadRadUP had(kin, sf);
 	H_1 = had.H_1;
 	H_2 = had.H_2;
 	H_3 = had.H_3;
@@ -385,8 +385,8 @@ HadRadFUP::HadRadFUP(KinematicsRad kin, SfSet const& model, HadUP had_0) {
 		Real R_2 = 2.*delta_R;
 		KinematicsRad kin_1(kin.project(), kin.tau, kin.phi_k, R_1);
 		KinematicsRad kin_2(kin.project(), kin.tau, kin.phi_k, R_2);
-		HadRadUP had_1(kin_1, model);
-		HadRadUP had_2(kin_2, model);
+		HadRadUP had_1(kin_1, sf);
+		HadRadUP had_2(kin_2, sf);
 		H_1_diff = diff_R(kin.R, delta_R, had_0_H_1, had_1.H_1, had_2.H_1);
 		H_2_diff = diff_R(kin.R, delta_R, had_0_H_2, had_1.H_2, had_2.H_2);
 		H_3_diff = diff_R(kin.R, delta_R, had_0_H_3, had_1.H_3, had_2.H_3);
@@ -402,11 +402,11 @@ HadRadFUP::HadRadFUP(KinematicsRad kin, SfSet const& model, HadUP had_0) {
 		H_8_diff = (had.H_8 - had_0_H_8)/kin.R;
 	}
 }
-HadRadFLU::HadRadFLU(KinematicsRad kin, SfSet const& model, HadLU had_0) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+HadRadFLU::HadRadFLU(KinematicsRad kin, SfSet const& sf, HadLU had_0) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
-	HadRadLU had(kin, model);
+	HadRadLU had(kin, sf);
 	H_50 = had.H_50;
 	Real delta_R = kin.R_max*DELTA_R_REL;
 	if (kin.R < delta_R) {
@@ -414,18 +414,18 @@ HadRadFLU::HadRadFLU(KinematicsRad kin, SfSet const& model, HadLU had_0) {
 		Real R_2 = 2.*delta_R;
 		KinematicsRad kin_1(kin.project(), kin.tau, kin.phi_k, R_1);
 		KinematicsRad kin_2(kin.project(), kin.tau, kin.phi_k, R_2);
-		HadRadLU had_1(kin_1, model);
-		HadRadLU had_2(kin_2, model);
+		HadRadLU had_1(kin_1, sf);
+		HadRadLU had_2(kin_2, sf);
 		H_50_diff = diff_R(kin.R, delta_R, had_0.H_50, had_1.H_50, had_2.H_50);
 	} else {
 		H_50_diff = (had.H_50 - had_0.H_50)/kin.R;
 	}
 }
-HadRadFLP::HadRadFLP(KinematicsRad kin, SfSet const& model, HadLP had_0) {
-	if (model.target != kin.target) {
-		throw TargetMismatch(kin.target, model.target);
+HadRadFLP::HadRadFLP(KinematicsRad kin, SfSet const& sf, HadLP had_0) {
+	if (sf.target != kin.target) {
+		throw TargetMismatch(kin.target, sf.target);
 	}
-	HadRadLP had(kin, model);
+	HadRadLP had(kin, sf);
 	H_5 = had.H_5;
 	H_7 = had.H_7;
 	H_9 = had.H_9;
@@ -438,8 +438,8 @@ HadRadFLP::HadRadFLP(KinematicsRad kin, SfSet const& model, HadLP had_0) {
 		Real R_2 = 2.*delta_R;
 		KinematicsRad kin_1(kin.project(), kin.tau, kin.phi_k, R_1);
 		KinematicsRad kin_2(kin.project(), kin.tau, kin.phi_k, R_2);
-		HadRadLP had_1(kin_1, model);
-		HadRadLP had_2(kin_2, model);
+		HadRadLP had_1(kin_1, sf);
+		HadRadLP had_2(kin_2, sf);
 		H_5_diff = diff_R(kin.R, delta_R, had_0_H_5, had_1.H_5, had_2.H_5);
 		H_7_diff = diff_R(kin.R, delta_R, had_0_H_7, had_1.H_7, had_2.H_7);
 		H_9_diff = diff_R(kin.R, delta_R, had_0_H_9, had_1.H_9, had_2.H_9);
@@ -449,12 +449,12 @@ HadRadFLP::HadRadFLP(KinematicsRad kin, SfSet const& model, HadLP had_0) {
 		H_9_diff = (had.H_9 - had_0_H_9)/kin.R;
 	}
 }
-HadRadFUU::HadRadFUU(KinematicsRad kin, SfSet const& model) :
-	HadRadFUU(kin, model, HadUU(kin.project(), model)) { }
-HadRadFUP::HadRadFUP(KinematicsRad kin, SfSet const& model) :
-	HadRadFUP(kin, model, HadUP(kin.project(), model)) { }
-HadRadFLU::HadRadFLU(KinematicsRad kin, SfSet const& model) :
-	HadRadFLU(kin, model, HadLU(kin.project(), model)) { }
-HadRadFLP::HadRadFLP(KinematicsRad kin, SfSet const& model) :
-	HadRadFLP(kin, model, HadLP(kin.project(), model)) { }
+HadRadFUU::HadRadFUU(KinematicsRad kin, SfSet const& sf) :
+	HadRadFUU(kin, sf, HadUU(kin.project(), sf)) { }
+HadRadFUP::HadRadFUP(KinematicsRad kin, SfSet const& sf) :
+	HadRadFUP(kin, sf, HadUP(kin.project(), sf)) { }
+HadRadFLU::HadRadFLU(KinematicsRad kin, SfSet const& sf) :
+	HadRadFLU(kin, sf, HadLU(kin.project(), sf)) { }
+HadRadFLP::HadRadFLP(KinematicsRad kin, SfSet const& sf) :
+	HadRadFLP(kin, sf, HadLP(kin.project(), sf)) { }
 
