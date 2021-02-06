@@ -50,16 +50,21 @@ TLorentzVector convert_vec4(math::Vec4 v) {
 struct XsNRad : public TFoamIntegrand {
 	Params params;
 	cut::Cut cut;
-	cut::CutRad cut_rad;
 	kin::Particles ps;
 	Real S;
 
 	explicit XsNRad(Params params) :
-		params(params),
-		cut(),
-		cut_rad(),
-		ps(params.target, params.beam, params.hadron, params.mass_threshold),
-		S(2. * mass(params.target) * params.beam_energy) { }
+			params(params),
+			cut(),
+			ps(params.target, params.beam, params.hadron, params.mass_threshold),
+			S(2. * mass(params.target) * params.beam_energy) {
+		cut.x = params.x_cut;
+		cut.y = params.y_cut;
+		cut.z = params.z_cut;
+		cut.ph_t_sq = params.ph_t_sq_cut;
+		cut.phi_h = params.phi_h_cut;
+		cut.phi = params.phi_cut;
+	}
 
 	Double_t Density(int dim, Double_t* vec) override {
 		if (dim != 6) {
@@ -72,12 +77,12 @@ struct XsNRad : public TFoamIntegrand {
 		}
 		math::Vec3 eta = frame::hadron_from_target(kin) * params.target_pol;
 		// TODO: Evaluate when it is a good approximation to say that
-		// `nrad ~ nrad_ir`. This happens because for small `k0_cut`, the
-		// contribution of `rad_f` integrated up to `k0_cut` becomes vanishingly
+		// `nrad ~ nrad_ir`. This happens because for small `k_0_bar`, the
+		// contribution of `rad_f` integrated up to `k_0_bar` becomes vanishingly
 		// small, so it can be neglected. However, this must be balanced with
-		// choosing `k0_cut` to be non-zero to avoid the infrared divergence in
+		// choosing `k_0_bar` to be non-zero to avoid the infrared divergence in
 		// the radiative part of the cross-section.
-		Real xs = xs::nrad_ir(params.beam_pol, eta, kin, ww, params.k0_cut);
+		Real xs = xs::nrad_ir(params.beam_pol, eta, kin, ww, params.k_0_bar);
 		// Some kinematic regions will be out of range for the structure
 		// functions, so return 0 in those cases.
 		if (std::isnan(xs)) {
@@ -96,11 +101,18 @@ struct XsRad : public TFoamIntegrand {
 	Real S;
 
 	explicit XsRad(Params params) :
-		params(params),
-		cut(),
-		cut_rad(),
-		ps(params.target, params.beam, params.hadron, params.mass_threshold),
-		S(2. * mass(params.target) * params.beam_energy) { }
+			params(params),
+			cut(),
+			cut_rad(),
+			ps(params.target, params.beam, params.hadron, params.mass_threshold),
+			S(2. * mass(params.target) * params.beam_energy) {
+		cut.x = params.x_cut;
+		cut.y = params.y_cut;
+		cut.z = params.z_cut;
+		cut.ph_t_sq = params.ph_t_sq_cut;
+		cut.phi_h = params.phi_h_cut;
+		cut.phi = params.phi_cut;
+	}
 
 	Double_t Density(int dim, Double_t* vec) override {
 		if (dim != 9) {
@@ -146,23 +158,23 @@ int command_help() {
 		<< "target         <pid>"                            << std::endl
 		<< "mass_threshold <mass (GeV)>"                     << std::endl
 		<< "hadron         <pid>"                            << std::endl
-		<< "beam_pol       <U, L>"                           << std::endl
-		<< "target_pol     <U, L, T>"                        << std::endl
+		<< "beam_pol       <real in [0, 1]>"                 << std::endl
+		<< "target_pol     <vector in unit sphere>"          << std::endl
+		<< "k_0_bar        <energy (GeV)>"                   << std::endl
+		<< "x_cut          <x min.>     <x max.>"            << std::endl
+		<< "y_cut          <y min.>     <y max.>"            << std::endl
+		<< "z_cut          <z min.>     <z max.>"            << std::endl
+		<< "ph_t_sq_cut    <ph_t² min.> <ph_t² max.>"        << std::endl
+		<< "phi_h_cut      <φ_h min.>   <φ_h max.>"          << std::endl
+		<< "phi_cut        <φ min.>     <φ max.>"            << std::endl
 		// TODO: We could add an intermediate method here that approximates
 		// the full 3-d integral over `rad_f` with a 2-d integral over
 		// `phi_k` and `tau` only.
-		<< "UNIMPLEMENTED OPTIONS"                         << std::endl
+		<< "UNIMPLEMENTED OPTIONS"                           << std::endl
 		<< "rc_method      <none, full>"                     << std::endl
 		<< "nrad_method    <none, ir_only, full>"            << std::endl
 		<< "soft_k_cut     <energy>"                         << std::endl
-		<< "sf_method      <ww>"                             << std::endl
-		<< "x_cut          <min> <max>"                      << std::endl
-		<< "Q2_cut         <min> <max>"                      << std::endl
-		<< "y_cut          <min> <max>"                      << std::endl
-		<< "z_cut          <min> <max>"                      << std::endl
-		<< "ph_t_cut       <min> <max>"                      << std::endl
-		<< "phi_h          <min> <max>"                      << std::endl
-		<< "phi            <min> <max>"                      << std::endl;
+		<< "sf_method      <ww>"                             << std::endl;
 	return SUCCESS;
 }
 

@@ -251,7 +251,13 @@ void Params::write_root(TFile& file) const {
 	WRITE_PARAM_ROOT(file, mass_threshold);
 	WRITE_PARAM_ROOT(file, target_pol);
 	WRITE_PARAM_ROOT(file, beam_pol);
-	WRITE_PARAM_ROOT(file, k0_cut);
+	WRITE_PARAM_ROOT(file, k_0_bar);
+	WRITE_PARAM_ROOT(file, x_cut);
+	WRITE_PARAM_ROOT(file, y_cut);
+	WRITE_PARAM_ROOT(file, z_cut);
+	WRITE_PARAM_ROOT(file, ph_t_sq_cut);
+	WRITE_PARAM_ROOT(file, phi_h_cut);
+	WRITE_PARAM_ROOT(file, phi_cut);
 }
 
 void Params::read_root(TFile& file) {
@@ -271,7 +277,13 @@ void Params::read_root(TFile& file) {
 	READ_PARAM_ROOT(file, mass_threshold);
 	READ_PARAM_ROOT(file, target_pol);
 	READ_PARAM_ROOT(file, beam_pol);
-	READ_PARAM_ROOT(file, k0_cut);
+	READ_PARAM_ROOT(file, k_0_bar);
+	READ_PARAM_ROOT(file, x_cut);
+	READ_PARAM_ROOT(file, y_cut);
+	READ_PARAM_ROOT(file, z_cut);
+	READ_PARAM_ROOT(file, ph_t_sq_cut);
+	READ_PARAM_ROOT(file, phi_h_cut);
+	READ_PARAM_ROOT(file, phi_cut);
 }
 
 void Params::write(std::ostream& file) const {
@@ -293,7 +305,13 @@ void Params::write(std::ostream& file) const {
 	WRITE_PARAM(file, mass_threshold);
 	WRITE_PARAM(file, target_pol);
 	WRITE_PARAM(file, beam_pol);
-	WRITE_PARAM(file, k0_cut);
+	WRITE_PARAM(file, k_0_bar);
+	WRITE_PARAM(file, x_cut);
+	WRITE_PARAM(file, y_cut);
+	WRITE_PARAM(file, z_cut);
+	WRITE_PARAM(file, ph_t_sq_cut);
+	WRITE_PARAM(file, phi_h_cut);
+	WRITE_PARAM(file, phi_cut);
 }
 void Params::read(std::istream& file) {
 	std::unordered_map<std::string, std::string> params;
@@ -327,7 +345,13 @@ void Params::read(std::istream& file) {
 	READ_PARAM(params, mass_threshold);
 	READ_PARAM(params, target_pol);
 	READ_PARAM(params, beam_pol);
-	READ_PARAM(params, k0_cut);
+	READ_PARAM(params, k_0_bar);
+	READ_PARAM(params, x_cut);
+	READ_PARAM(params, y_cut);
+	READ_PARAM(params, z_cut);
+	READ_PARAM(params, ph_t_sq_cut);
+	READ_PARAM(params, phi_h_cut);
+	READ_PARAM(params, phi_cut);
 
 	if (!params.empty()) {
 		std::ostringstream ss_err;
@@ -355,6 +379,18 @@ bool Params::compatible_foam(Params const& foam_params) const {
 		&& foam_params.target_pol.y == target_pol.y
 		&& foam_params.target_pol.z == target_pol.z
 		&& foam_params.beam_pol == beam_pol
-		&& foam_params.k0_cut == k0_cut;
+		&& foam_params.k_0_bar == k_0_bar
+		&& foam_params.x_cut.min() == x_cut.min()
+		&& foam_params.x_cut.max() == x_cut.max()
+		&& foam_params.y_cut.min() == y_cut.min()
+		&& foam_params.y_cut.max() == y_cut.max()
+		&& foam_params.z_cut.min() == z_cut.min()
+		&& foam_params.z_cut.max() == z_cut.max()
+		&& foam_params.ph_t_sq_cut.min() == ph_t_sq_cut.min()
+		&& foam_params.ph_t_sq_cut.max() == ph_t_sq_cut.max()
+		&& foam_params.phi_h_cut.min() == phi_h_cut.min()
+		&& foam_params.phi_h_cut.max() == phi_h_cut.max()
+		&& foam_params.phi_cut.min() == phi_cut.min()
+		&& foam_params.phi_cut.max() == phi_cut.max();
 }
 

@@ -38,7 +38,13 @@ struct Params {
 	sidis::Real mass_threshold;
 	sidis::math::Vec3 target_pol;
 	sidis::Real beam_pol;
-	sidis::Real k0_cut;
+	sidis::Real k_0_bar;
+	sidis::math::Bounds x_cut;
+	sidis::math::Bounds y_cut;
+	sidis::math::Bounds z_cut;
+	sidis::math::Bounds ph_t_sq_cut;
+	sidis::math::Bounds phi_h_cut;
+	sidis::math::Bounds phi_cut;
 
 	Params() :
 		version_major(SIDIS_PARAMS_VERSION_MAJOR),
@@ -57,7 +63,13 @@ struct Params {
 		mass_threshold(sidis::constant::MASS_P + sidis::constant::MASS_PI_0),
 		target_pol(0., 0., 0.),
 		beam_pol(0.),
-		k0_cut(0.01) { }
+		k_0_bar(0.01),
+		x_cut(sidis::math::Bounds::UNIT),
+		y_cut(sidis::math::Bounds::UNIT),
+		z_cut(sidis::math::Bounds::UNIT),
+		ph_t_sq_cut(sidis::math::Bounds::POSITIVE),
+		phi_h_cut(-sidis::constant::PI, sidis::constant::PI),
+		phi_cut(-sidis::constant::PI, sidis::constant::PI) { }
 
 	void write_root(TFile& file) const;
 	void read_root(TFile& file);
