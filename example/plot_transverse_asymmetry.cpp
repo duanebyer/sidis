@@ -39,7 +39,7 @@ struct RC {
 	}
 };
 
-sf::model::WW const model;
+sf::set::WW const sf_set;
 
 // Integrates the unpolarized cross-section over the azimuthal angles `phi` and
 // `phi_h`.
@@ -51,7 +51,7 @@ Real xs_uu_integ(
 	Real Q_sq = S * x * y;
 	// Calculate the structure functions ahead of time, because they are
 	// constant over the integrals we'll be doing.
-	sf::SfUU sf = model.sf_uu(ps.hadron, x, z, Q_sq, ph_t_sq);
+	sf::SfUU sf = sf_set.sf_uu(ps.hadron, x, z, Q_sq, ph_t_sq);
 	if (!rc_info.apply_rc) {
 		// Without radiative corrections, there is only the Born cross-section.
 		cubature::EstErr<Real> xs_born_integ;
@@ -87,26 +87,19 @@ Real xs_uu_integ(
 			rc_info.num_evals, 0., rc_info.prec);
 		xs_rad_f_integ = cubature::cubature(
 			[&](cubature::Point<4, Real> ph) {
-				Bounds phi_h_b(0., 2. * PI);
+				Bounds phi_h_b(-PI, PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
 				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, phase_space);
 
-				// Rescale the integral so it is evaluated on the unit 4-cube.
-				Bounds tau_b = tau_bounds(kin);
-				Real tau = tau_b.lerp(ph[1]);
-				Bounds phi_k_b(0., 2. * PI);
-				Real phi_k = phi_k_b.lerp(ph[2]);
-				Bounds R_b = R_bounds_soft(kin, tau, phi_k, rc_info.k0_cut);
-				Real R = R_b.lerp(ph[3]);
-				Real jacobian = phi_h_b.size()
-					* tau_b.size()
-					* phi_k_b.size()
-					* R_b.size();
+				KinematicsRad kin_rad;
+				Real jacobian;
+				Real ph_rad[3] = { ph[0], ph[1], ph[2] };
+				while (!cut::take(kin, ph_rad, &kin_rad, &jacobian)) { }
+				jacobian *= phi_h_b.size();
 
-				KinematicsRad kin_rad(kin, tau, phi_k, R);
 				xs::Rad b(kin_rad);
-				sf::SfUU shift_sf = model.sf_uu(
+				sf::SfUU shift_sf = sf_set.sf_uu(
 					ps.hadron,
 					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
 				lep::LepRadUU lep(kin_rad);
@@ -133,7 +126,7 @@ Real xs_ut_integ_h(
 		Real eta_2=0., int phi_h_coeff_2=0, int offset_2=0,
 		RC rc_info=RC::none()) {
 	Real Q_sq = S * x * y;
-	sf::SfUP sf = model.sf_up(ps.hadron, x, z, Q_sq, ph_t_sq);
+	sf::SfUP sf = sf_set.sf_up(ps.hadron, x, z, Q_sq, ph_t_sq);
 	if (!rc_info.apply_rc) {
 		cubature::EstErr<Real> xs_born_integ;
 		xs_born_integ = cubature::cubature(
@@ -180,20 +173,14 @@ Real xs_ut_integ_h(
 				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, phase_space);
 
-				Bounds tau_b = tau_bounds(kin);
-				Real tau = tau_b.lerp(ph[1]);
-				Bounds phi_k_b(-PI, PI);
-				Real phi_k = phi_k_b.lerp(ph[2]);
-				Bounds R_b = R_bounds_soft(kin, tau, phi_k, rc_info.k0_cut);
-				Real R = R_b.lerp(ph[3]);
-				Real jacobian = phi_h_b.size()
-					* tau_b.size()
-					* phi_k_b.size()
-					* R_b.size();
+				KinematicsRad kin_rad;
+				Real jacobian;
+				Real ph_rad[3] = { ph[0], ph[1], ph[2] };
+				while (!cut::take(kin, ph_rad, &kin_rad, &jacobian)) { }
+				jacobian *= phi_h_b.size();
 
-				KinematicsRad kin_rad(kin, tau, phi_k, R);
 				xs::Rad b(kin_rad);
-				sf::SfUP shift_sf = model.sf_up(
+				sf::SfUP shift_sf = sf_set.sf_up(
 					ps.hadron,
 					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
 				lep::LepRadUX lep(kin_rad);

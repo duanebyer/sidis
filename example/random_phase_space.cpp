@@ -6,7 +6,6 @@
 #include <string>
 
 #include <sidis/sidis.hpp>
-#include <sidis/extra/bounds.hpp>
 
 using namespace sidis;
 using namespace sidis::constant;
@@ -59,19 +58,15 @@ int main(int argc, char** argv) {
 	std::mt19937 rng(rd());
 	std::uniform_real_distribution<Real> dist(0., 1.);
 
-	Real x = x_bounds(ps, S).lerp(dist(rng));
-	Real y = y_bounds(ps, S, x).lerp(dist(rng));
-	Real z = z_bounds(ps, S, x, y).lerp(dist(rng));
-	Real ph_t_sq = ph_t_sq_bounds(ps, S, x, y, z).lerp(dist(rng));
-	Real phi_h = Bounds(-PI, PI).lerp(dist(rng));
-	Real phi = Bounds(-PI, PI).lerp(dist(rng));
-	PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
-	Kinematics kin(ps, S, phase_space);
-
-	Real tau = tau_bounds(kin).lerp(dist(rng));
-	Real phi_k = Bounds(-PI, PI).lerp(dist(rng));
-	Real R = R_bounds(kin, tau, phi_k).lerp(dist(rng));
-	KinematicsRad kin_rad(kin, tau, phi_k, R);
+	Real point[9] = {
+		dist(rng), dist(rng), dist(rng),
+		dist(rng), dist(rng), dist(rng),
+		dist(rng), dist(rng), dist(rng),
+	};
+	Kinematics kin;
+	KinematicsRad kin_rad;
+	while (!cut::take(ps, S, point, &kin, nullptr)) { }
+	while (!cut::take(kin, point + 6, &kin_rad, nullptr)) { }
 
 	std::cout << std::scientific << std::setprecision(16);
 

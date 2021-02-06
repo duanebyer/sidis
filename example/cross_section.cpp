@@ -61,11 +61,11 @@ int main(int argc, char** argv) {
 		}
 
 		if (set_idx == 0) {
-			sf.reset(new sf::model::WW());
+			sf.reset(new sf::set::WW());
 		} else if (set_idx <= -1 && set_idx >= -18) {
 			bool mask[18] = { false };
 			mask[-set_idx - 1] = true;
-			sf.reset(new sf::model::TestSfSet(target, mask));
+			sf.reset(new sf::set::TestSfSet(target, mask));
 		} else {
 			throw std::out_of_range(
 				"SF set index must be Prokudin (0) or Test (-18 to -1)");
@@ -117,15 +117,15 @@ int main(int argc, char** argv) {
 	Real S = 2. * ps.M * beam_energy;
 	PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
 	// Check that we are in valid kinematic region.
-	if (!(S >= S_min(ps))) {
+	if (!(S >= cut::S_min(ps))) {
 		throw std::out_of_range("Beam energy is below threshold");
-	} else if (!x_bounds(ps, S)(x)) {
+	} else if (!cut::x_bounds(ps, S).contains(x)) {
 		throw std::out_of_range("x is out of valid kinematic range");
-	} else if (!y_bounds(ps, S, x)(y)) {
+	} else if (!cut::y_bounds(ps, S, x).contains(y)) {
 		throw std::out_of_range("y is out of valid kinematic range");
-	} else if (!z_bounds(ps, S, x, y)(z)) {
+	} else if (!cut::z_bounds(ps, S, x, y).contains(z)) {
 		throw std::out_of_range("z is out of valid kinematic range");
-	} else if (!ph_t_sq_bounds(ps, S, x, y, z)(ph_t_sq)) {
+	} else if (!cut::ph_t_sq_bounds(ps, S, x, y, z).contains(ph_t_sq)) {
 		throw std::out_of_range("ph_t_sq is out of valid kinematic range");
 	}
 	// Do kinematics calculations.
@@ -151,9 +151,9 @@ int main(int argc, char** argv) {
 		std::cout << "σ_tot     = " << nrad + rad << std::endl;
 	} else {
 		// Do radiative kinematics checks.
-		if (!tau_bounds(kin)(tau)) {
+		if (!cut::tau_bounds(kin).contains(tau)) {
 			throw std::out_of_range("tau is out of valid kinematic range");
-		} else if (!R_bounds(kin, tau, phi_k)(R)) {
+		} else if (!cut::R_bounds(kin, tau, phi_k).contains(R)) {
 			throw std::out_of_range("R is out of valid kinematic range");
 		}
 		std::cout << std::scientific << std::setprecision(16);

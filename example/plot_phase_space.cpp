@@ -19,6 +19,7 @@
 
 using namespace sidis;
 using namespace sidis::constant;
+using namespace sidis::cut;
 using namespace sidis::kin;
 using namespace sidis::math;
 
@@ -108,19 +109,15 @@ int main(int argc, char** argv) {
 		num_points = 10000000;
 	}
 	for (std::size_t n = 0; n < num_points; ++n) {
-		Real x = x_bounds(ps, S).lerp(dist(rng));
-		Real y = y_bounds(ps, S, x).lerp(dist(rng));
-		Real z = z_bounds(ps, S, x, y).lerp(dist(rng));
-		Real ph_t_sq = ph_t_sq_bounds(ps, S, x, y, z).lerp(dist(rng));
-		Real phi_h = Bounds(-PI, PI).lerp(dist(rng));
-		Real phi = Bounds(-PI, PI).lerp(dist(rng));
-		PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
-		Kinematics kin(ps, S, phase_space);
-
-		Real tau = tau_bounds(kin).lerp(dist(rng));
-		Real phi_k = Bounds(-PI, PI).lerp(dist(rng));
-		Real R = R_bounds(kin, tau, phi_k).lerp(dist(rng));
-		KinematicsRad kin_rad(kin, tau, phi_k, R);
+		Real point[9] = {
+			dist(rng), dist(rng), dist(rng),
+			dist(rng), dist(rng), dist(rng),
+			dist(rng), dist(rng), dist(rng),
+		};
+		Kinematics kin;
+		KinematicsRad kin_rad;
+		while (!cut::take(ps, S, point, &kin, nullptr)) { }
+		while (!cut::take(kin, point + 6, &kin_rad, nullptr)) { }
 
 		for (std::size_t idx = 0; idx < axes.size(); ++idx) {
 			std::string axis_var = axes[idx];

@@ -26,7 +26,7 @@ int main() {
 	sidis::Real beam_pol = 0.;
 	sidis::math::Vec3 target_pol(0., 0., 0.);
 	// Compute structure functions with WW-type approximation.
-	sidis::sf::model::WW ww;
+	sidis::sf::set::WW ww;
 	sidis::Real born_xs = sidis::xs::born(beam_pol, target_pol, kin, ww);
 	std::cout << "Born unpolarized cross-section is " << born_xs << std::endl;
 	return 0;
