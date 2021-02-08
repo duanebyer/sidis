@@ -18,24 +18,26 @@ using namespace sidis::constant;
 using namespace sidis::math;
 
 #define WRITE_PARAM_ROOT(file, param) \
-	{ \
+	do { \
 		auto p = root_from_param(param); \
 		file.WriteObject(&p, #param); \
-	}
+	} while (false)
 
 #define READ_PARAM_ROOT(file, param) \
-	{ \
+	do { \
 		auto p = file.Get<decltype(root_from_param(param))>(#param); \
 		if (p != nullptr) { \
 			param = param_from_root<decltype(param)>(*p); \
 		} \
-	}
+	} while (false)
 
 #define WRITE_PARAM(file, param) \
-	file << #param << " " << param << std::endl;
+	do { \
+		file << #param << " " << param << std::endl; \
+	} while (false)
 
 #define READ_PARAM(params, param) \
-	{ \
+	do { \
 		auto p = params.find(#param); \
 		if (p != params.end()) { \
 			std::istringstream ss(p->second); \
@@ -45,7 +47,7 @@ using namespace sidis::math;
 				throw std::runtime_error("Failed to parse parameter '" #param "'"); \
 			} \
 		} \
-	}
+	} while (false)
 
 template<typename T>
 using is_scoped_enum = std::integral_constant<
