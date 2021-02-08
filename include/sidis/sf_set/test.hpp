@@ -17,7 +17,6 @@ namespace set {
  * not significantly affect the cross-section.
  */
 class TestSfSet final : public SfSet {
-private:
 	bool mask[18];
 
 public:

@@ -20,9 +20,11 @@ private:
 
 public:
 	ProkudinTmdSet();
+	ProkudinTmdSet(ProkudinTmdSet const&) = delete;
 	ProkudinTmdSet(ProkudinTmdSet&&) noexcept;
+	ProkudinTmdSet& operator=(ProkudinTmdSet const&) = delete;
 	ProkudinTmdSet& operator=(ProkudinTmdSet&& other) noexcept;
-	~ProkudinTmdSet();
+	virtual ~ProkudinTmdSet();
 
 	Real charge(unsigned fl) const;
 
