@@ -151,11 +151,11 @@ public:
 	Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 };
 
-class TmdSfSetWw final : public SfSet {
+class WwTmdSfSet final : public SfSet {
 public:
 	WwTmdSet const& tmd_set;
 
-	TmdSfSetWw(WwTmdSet const& tmd_set) :
+	WwTmdSfSet(WwTmdSet const& tmd_set) :
 		SfSet(tmd_set.target),
 		tmd_set(tmd_set) { }
 

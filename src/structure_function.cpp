@@ -496,70 +496,70 @@ Real GaussianTmdSfSet::F_LT_cos_phis(Hadron h, Real x, Real z, Real Q_sq, Real p
 }
 
 // WW-type approximation.
-Real TmdSfSetWw::F_UUL(Hadron, Real, Real, Real, Real) const {
+Real WwTmdSfSet::F_UUL(Hadron, Real, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdSfSetWw::F_UUT(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_UUT(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return CONVOLVE(W0, f1, D1);
 }
-Real TmdSfSetWw::F_UU_cos_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_UU_cos_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return (2.*mass(target)*x)/std::sqrt(Q_sq)*(
 		CONVOLVE(WA1, h, H1perp) - CONVOLVE(WB1, fperp, D1));
 }
-Real TmdSfSetWw::F_UU_cos_2phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_UU_cos_2phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return CONVOLVE(WAB2, h1perp, H1perp);
 }
 
-Real TmdSfSetWw::F_UL_sin_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_UL_sin_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return (2.*mass(target)*x)/std::sqrt(Q_sq)*CONVOLVE(WA1, hL, H1perp);
 }
-Real TmdSfSetWw::F_UL_sin_2phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_UL_sin_2phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return CONVOLVE(WAB2, h1Lperp, H1perp);
 }
 
-Real TmdSfSetWw::F_UTL_sin_phih_m_phis(Hadron, Real, Real, Real, Real) const {
+Real WwTmdSfSet::F_UTL_sin_phih_m_phis(Hadron, Real, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdSfSetWw::F_UTT_sin_phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_UTT_sin_phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return -CONVOLVE(WB1, f1Tperp, D1);
 }
-Real TmdSfSetWw::F_UT_sin_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_UT_sin_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return (2.*mass(target)*x)/std::sqrt(Q_sq)*(
 		0.5*CONVOLVE(WAB2, hT, H1perp)
 		+ 0.5*CONVOLVE(WAB2, hTperp, H1perp)
 		+ CONVOLVE(WC2, fTperp, D1));
 }
-Real TmdSfSetWw::F_UT_sin_3phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_UT_sin_3phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return CONVOLVE(W3, h1Tperp, H1perp);
 }
-Real TmdSfSetWw::F_UT_sin_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_UT_sin_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return (2.*mass(target)*x)/std::sqrt(Q_sq)*(
 		CONVOLVE(W0, fT, D1)
 		- 0.5*CONVOLVE(WB2, hT, H1perp)
 		+ 0.5*CONVOLVE(WB2, hTperp, H1perp));
 }
-Real TmdSfSetWw::F_UT_sin_phih_p_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_UT_sin_phih_p_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return CONVOLVE(WA1, h1, H1perp);
 }
 
-Real TmdSfSetWw::F_LU_sin_phih(Hadron, Real, Real, Real, Real) const {
+Real WwTmdSfSet::F_LU_sin_phih(Hadron, Real, Real, Real, Real) const {
 	return 0.;
 }
 
-Real TmdSfSetWw::F_LL(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_LL(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return CONVOLVE(W0, g1, D1);
 }
-Real TmdSfSetWw::F_LL_cos_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_LL_cos_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return -(2.*mass(target)*x)/std::sqrt(Q_sq)*CONVOLVE(WB1, gLperp, D1);
 }
 
-Real TmdSfSetWw::F_LT_cos_phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_LT_cos_phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return CONVOLVE(WB1, g1Tperp, D1);
 }
-Real TmdSfSetWw::F_LT_cos_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_LT_cos_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return -(2.*mass(target)*x)/std::sqrt(Q_sq)*CONVOLVE(WC2, gTperp, D1);
 }
-Real TmdSfSetWw::F_LT_cos_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WwTmdSfSet::F_LT_cos_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return -(2.*mass(target)*x)/std::sqrt(Q_sq)*CONVOLVE(W0, gT, D1);
 }
 
