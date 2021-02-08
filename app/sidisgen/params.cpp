@@ -242,6 +242,7 @@ void Params::write_root(TFile& file) const {
 	WRITE_PARAM_ROOT(file, event_file);
 	WRITE_PARAM_ROOT(file, foam_nrad_file);
 	WRITE_PARAM_ROOT(file, foam_rad_file);
+	WRITE_PARAM_ROOT(file, sf_set);
 	WRITE_PARAM_ROOT(file, num_events);
 	WRITE_PARAM_ROOT(file, num_init);
 	WRITE_PARAM_ROOT(file, seed);
@@ -268,6 +269,7 @@ void Params::read_root(TFile& file) {
 	READ_PARAM_ROOT(file, event_file);
 	READ_PARAM_ROOT(file, foam_nrad_file);
 	READ_PARAM_ROOT(file, foam_rad_file);
+	READ_PARAM_ROOT(file, sf_set);
 	READ_PARAM_ROOT(file, num_events);
 	READ_PARAM_ROOT(file, num_init);
 	READ_PARAM_ROOT(file, seed);
@@ -296,6 +298,7 @@ void Params::write(std::ostream& file) const {
 	WRITE_PARAM(file, event_file);
 	WRITE_PARAM(file, foam_nrad_file);
 	WRITE_PARAM(file, foam_rad_file);
+	WRITE_PARAM(file, sf_set);
 	WRITE_PARAM(file, num_events);
 	WRITE_PARAM(file, num_init);
 	WRITE_PARAM(file, seed);
@@ -336,6 +339,7 @@ void Params::read(std::istream& file) {
 	READ_PARAM(params, event_file);
 	READ_PARAM(params, foam_nrad_file);
 	READ_PARAM(params, foam_rad_file);
+	READ_PARAM(params, sf_set);
 	READ_PARAM(params, num_events);
 	READ_PARAM(params, num_init);
 	READ_PARAM(params, seed);
@@ -370,6 +374,7 @@ void Params::read(std::istream& file) {
 bool Params::compatible_foam(Params const& foam_params) const {
 	return foam_params.version_major == version_major
 		&& foam_params.version_minor <= version_minor
+		&& foam_params.sf_set == sf_set
 		&& foam_params.num_init >= num_init
 		&& (foam_params.seed_init == seed_init || 0 == seed_init)
 		&& foam_params.beam_energy == beam_energy

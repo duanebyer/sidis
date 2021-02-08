@@ -3,12 +3,14 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <string>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
 
 #include <TBranch.h>
+#include <TClass.h>
 #include <TError.h>
 #include <TFile.h>
 #include <TFoam.h>
@@ -16,12 +18,14 @@
 #include <TLorentzVector.h>
 #include <TParameter.h>
 #include <TRandom3.h>
+#include <TSystem.h>
 #include <TTree.h>
 
 #include <sidis/sidis.hpp>
 #include <sidis/extra/bounds.hpp>
 #include <sidis/extra/math.hpp>
 #include <sidis/extra/vector.hpp>
+#include <sidis/sf_set/test.hpp>
 #include <sidis/sf_set/ww.hpp>
 
 #include "params.hpp"
@@ -38,8 +42,8 @@ int const ERROR_FILE_NOT_CREATED = -3;
 int const ERROR_PARAMS_PARSE = -4;
 int const ERROR_FOAM_INCOMPATIBLE = -5;
 int const ERROR_FOAM_NOT_FOUND = -6;
+int const ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND = -7;
 
-sf::set::WW const ww;
 Real const PI = constant::PI;
 
 // Converts between the `sidis` 4-vector type and the `ROOT` 4-vector type.
@@ -47,17 +51,90 @@ TLorentzVector convert_vec4(math::Vec4 v) {
 	return TLorentzVector(v.x, v.y, v.z, v.t);
 }
 
+// Allocates the memory for the structure functions.
+int alloc_sf(
+		Params params,
+		std::unique_ptr<sf::SfSet>* sf_out,
+		std::unique_ptr<sf::TmdSet>* tmd_out) {
+	std::unique_ptr<sf::SfSet> sf;
+	std::unique_ptr<sf::TmdSet> tmd;
+	if (params.sf_set == "ww") {
+		std::cout << "Using Prokudin structure functions." << std::endl;
+		tmd_out->reset();
+		sf_out->reset(new sf::set::WW());
+	} else if (params.sf_set == "test") {
+		// TODO: Allow selection of any of the 18 test structure functions.
+		std::cout << "Using test structure functions." << std::endl;
+		bool mask[18] = { 0 };
+		mask[0] = true;
+		tmd_out->reset();
+		sf_out->reset(new sf::set::TestSfSet(params.target, mask));
+	} else {
+		std::string file_name = params.sf_set + ".so";
+		if (gSystem->Load(file_name.c_str()) != 0) {
+			std::cerr
+				<< "Failed to load structure function from shared library file '"
+				<< params.sf_set << ".so'." << std::endl;
+			return ERROR_FILE_NOT_FOUND;
+		}
+		TClass* sf_class = TClass::GetClass(params.sf_set.c_str());
+		if (sf_class->InheritsFrom("sidis::sf::SfSet")) {
+			std::cout
+				<< "Using structure functions from '"
+				<< params.sf_set << "'." << std::endl;
+			tmd_out->reset();
+			sf_out->reset(static_cast<sf::SfSet*>(sf_class->New()));
+		} else if (sf_class->InheritsFrom("sidis::sf::TmdSet")) {
+			std::cout
+				<< "Using TMDs and FFs from '"
+				<< params.sf_set << "'." << std::endl;
+			sf::TmdSet* tmd_ptr = static_cast<sf::TmdSet*>(sf_class->New());
+			tmd_out->reset(tmd_ptr);
+			sf_out->reset(new sf::TmdSfSet(*tmd_ptr));
+		} else if (sf_class->InheritsFrom("sidis::sf::GaussianTmdSet")) {
+			std::cout
+				<< "Using Gaussian TMDs and FFs from '"
+				<< params.sf_set << "'." << std::endl;
+			sf::GaussianTmdSet* tmd_ptr = static_cast<sf::GaussianTmdSet*>(sf_class->New());
+			tmd_out->reset(tmd_ptr);
+			sf_out->reset(new sf::GaussianTmdSfSet(*tmd_ptr));
+		} else if (sf_class->InheritsFrom("sidis::sf::WwTmdSet")) {
+			std::cout
+				<< "Using WW-type TMDs and FFs from '"
+				<< params.sf_set << "'." << std::endl;
+			sf::WwTmdSet* tmd_ptr = static_cast<sf::WwTmdSet*>(sf_class->New());
+			tmd_out->reset(tmd_ptr);
+			sf_out->reset(new sf::WwTmdSfSet(*tmd_ptr));
+		} else if (sf_class->InheritsFrom("sidis::sf::GaussianWwTmdSet")) {
+			std::cout
+				<< "Using Gaussian WW-type TMDs and FFs from '"
+				<< params.sf_set << "'." << std::endl;
+			sf::GaussianWwTmdSet* tmd_ptr = static_cast<sf::GaussianWwTmdSet*>(sf_class->New());
+			tmd_out->reset(tmd_ptr);
+			sf_out->reset(new sf::GaussianWwTmdSfSet(*tmd_ptr));
+		} else {
+			std::cerr
+				<< "Couldn't find structure functions in file '"
+				<< params.sf_set << ".so'" << std::endl;
+			return ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND;
+		}
+	}
+	return SUCCESS;
+}
+
 struct XsNRad : public TFoamIntegrand {
 	Params params;
 	cut::Cut cut;
 	kin::Particles ps;
 	Real S;
+	sf::SfSet const& sf;
 
-	explicit XsNRad(Params params) :
+	explicit XsNRad(Params params, sf::SfSet const& sf) :
 			params(params),
 			cut(),
 			ps(params.target, params.beam, params.hadron, params.mass_threshold),
-			S(2. * mass(params.target) * params.beam_energy) {
+			S(2. * mass(params.target) * params.beam_energy),
+			sf(sf) {
 		cut.x = params.x_cut;
 		cut.y = params.y_cut;
 		cut.z = params.z_cut;
@@ -82,7 +159,7 @@ struct XsNRad : public TFoamIntegrand {
 		// small, so it can be neglected. However, this must be balanced with
 		// choosing `k_0_bar` to be non-zero to avoid the infrared divergence in
 		// the radiative part of the cross-section.
-		Real xs = xs::nrad_ir(params.beam_pol, eta, kin, ww, params.k_0_bar);
+		Real xs = xs::nrad_ir(params.beam_pol, eta, kin, sf, params.k_0_bar);
 		// Some kinematic regions will be out of range for the structure
 		// functions, so return 0 in those cases.
 		if (std::isnan(xs)) {
@@ -99,13 +176,15 @@ struct XsRad : public TFoamIntegrand {
 	cut::CutRad cut_rad;
 	kin::Particles ps;
 	Real S;
+	sf::SfSet const& sf;
 
-	explicit XsRad(Params params) :
+	explicit XsRad(Params params, sf::SfSet const& sf) :
 			params(params),
 			cut(),
 			cut_rad(),
 			ps(params.target, params.beam, params.hadron, params.mass_threshold),
-			S(2. * mass(params.target) * params.beam_energy) {
+			S(2. * mass(params.target) * params.beam_energy),
+			sf(sf) {
 		cut.x = params.x_cut;
 		cut.y = params.y_cut;
 		cut.z = params.z_cut;
@@ -125,7 +204,7 @@ struct XsRad : public TFoamIntegrand {
 		}
 		kin::Kinematics kin = kin_rad.project();
 		math::Vec3 eta = frame::hadron_from_target(kin) * params.target_pol;
-		Real xs = xs::rad(params.beam_pol, eta, kin_rad, ww);
+		Real xs = xs::rad(params.beam_pol, eta, kin_rad, sf);
 		if (std::isnan(xs)) {
 			return 0.;
 		} else {
@@ -146,9 +225,10 @@ int command_help() {
 		<< std::endl
 		<< "Parameter file format summary (see docs):"     << std::endl
 		<< std::endl
+		<< "event_file     <ROOT file>"                      << std::endl
 		<< "foam_nrad_file <ROOT file>"                      << std::endl
 		<< "foam_rad_file  <ROOT file>"                      << std::endl
-		<< "event_file     <ROOT file>"                      << std::endl
+		<< "sf_set         <ww, test, ROOT dictionary>"      << std::endl
 		<< "num_events     <integer>"                        << std::endl
 		<< "num_init       <integer>"                        << std::endl
 		<< "seed           <integer>"                        << std::endl
@@ -173,8 +253,7 @@ int command_help() {
 		<< "UNIMPLEMENTED OPTIONS"                           << std::endl
 		<< "rc_method      <none, full>"                     << std::endl
 		<< "nrad_method    <none, ir_only, full>"            << std::endl
-		<< "soft_k_cut     <energy>"                         << std::endl
-		<< "sf_method      <ww>"                             << std::endl;
+		<< "soft_k_cut     <energy>"                         << std::endl;
 	return SUCCESS;
 }
 
@@ -230,6 +309,13 @@ int command_initialize(std::string params_file_name) {
 	UInt_t seed = params.seed_init >= 0 ? params.seed_init : 0;
 	TRandom3 random(seed);
 
+	std::unique_ptr<sf::SfSet> sf;
+	std::unique_ptr<sf::TmdSet> tmd;
+	int err = alloc_sf(params, &sf, &tmd);
+	if (err != SUCCESS) {
+		return err;
+	}
+
 	std::cout << "Creating non-radiative FOAM file." << std::endl;
 	TFile foam_nrad_file(params.foam_nrad_file.c_str(), "RECREATE");
 	if (foam_nrad_file.IsZombie()) {
@@ -243,7 +329,7 @@ int command_initialize(std::string params_file_name) {
 
 	std::cout << "Non-radiative FOAM initialization." << std::endl;
 	TFoam foam_nrad("FoamNRad");
-	XsNRad xs_nrad(params);
+	XsNRad xs_nrad(params, *sf);
 	foam_nrad.SetChat(0);
 	foam_nrad.SetkDim(6);
 	foam_nrad.SetRho(&xs_nrad);
@@ -266,7 +352,7 @@ int command_initialize(std::string params_file_name) {
 
 	std::cout << "Radiative FOAM initialization." << std::endl;
 	TFoam foam_rad("FoamRad");
-	XsRad xs_rad(params);
+	XsRad xs_rad(params, *sf);
 	foam_rad.SetChat(0);
 	foam_rad.SetkDim(9);
 	foam_rad.SetRho(&xs_rad);
@@ -367,11 +453,18 @@ int command_generate(std::string params_file_name) {
 	UInt_t seed = params.seed >= 0 ? params.seed : 0;
 	TRandom3 random(seed);
 
-	XsNRad xs_nrad(params);
+	std::unique_ptr<sf::SfSet> sf;
+	std::unique_ptr<sf::TmdSet> tmd;
+	int err = alloc_sf(params, &sf, &tmd);
+	if (err != SUCCESS) {
+		return err;
+	}
+
+	XsNRad xs_nrad(params, *sf);
 	foam_nrad->SetPseRan(&random);
 	foam_nrad->ResetRho(&xs_nrad);
 
-	XsRad xs_rad(params);
+	XsRad xs_rad(params, *sf);
 	foam_rad->SetPseRan(&random);
 	foam_rad->ResetRho(&xs_rad);
 

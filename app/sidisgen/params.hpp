@@ -27,6 +27,7 @@ struct Params {
 	std::string event_file;
 	std::string foam_nrad_file;
 	std::string foam_rad_file;
+	std::string sf_set;
 	Long_t num_events;
 	Long_t num_init;
 	Int_t seed;
@@ -52,6 +53,7 @@ struct Params {
 		event_file("gen.root"),
 		foam_nrad_file("foam-nrad.root"),
 		foam_rad_file("foam-rad.root"),
+		sf_set("ww"),
 		num_events(10000),
 		num_init(1000),
 		seed(0),
