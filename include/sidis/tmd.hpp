@@ -204,17 +204,17 @@ public:
 			target) { }
 	virtual ~WwTmdSet() = default;
 
-	virtual Real xf1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
-	virtual Real xf1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
-	virtual Real xg1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
-	virtual Real xg1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
-	virtual Real xh1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
-	virtual Real xh1perp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
-	virtual Real xh1Lperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
-	virtual Real xh1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
+	virtual Real xf1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
+	virtual Real xf1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
+	virtual Real xg1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
+	virtual Real xg1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
+	virtual Real xh1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
+	virtual Real xh1perp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
+	virtual Real xh1Lperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
+	virtual Real xh1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 
-	virtual Real D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
-	virtual Real H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
+	virtual Real D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	virtual Real H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 
 	Real xf1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	Real xg1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
@@ -268,17 +268,17 @@ public:
 		Real mean_H1perp);
 	virtual ~GaussianWwTmdSet() = default;
 
-	virtual Real xf1(unsigned fl, Real x, Real Q_sq) const;
-	virtual Real xf1Tperp(unsigned fl, Real x, Real Q_sq) const;
-	virtual Real xg1(unsigned fl, Real x, Real Q_sq) const;
-	virtual Real xg1Tperp(unsigned fl, Real x, Real Q_sq) const;
-	virtual Real xh1(unsigned fl, Real x, Real Q_sq) const;
-	virtual Real xh1perp(unsigned fl, Real x, Real Q_sq) const;
-	virtual Real xh1Lperp(unsigned fl, Real x, Real Q_sq) const;
-	virtual Real xh1Tperp(unsigned fl, Real x, Real Q_sq) const;
+	virtual Real xf1(unsigned fl, Real x, Real Q_sq) const override;
+	virtual Real xf1Tperp(unsigned fl, Real x, Real Q_sq) const override;
+	virtual Real xg1(unsigned fl, Real x, Real Q_sq) const override;
+	virtual Real xg1Tperp(unsigned fl, Real x, Real Q_sq) const override;
+	virtual Real xh1(unsigned fl, Real x, Real Q_sq) const override;
+	virtual Real xh1perp(unsigned fl, Real x, Real Q_sq) const override;
+	virtual Real xh1Lperp(unsigned fl, Real x, Real Q_sq) const override;
+	virtual Real xh1Tperp(unsigned fl, Real x, Real Q_sq) const override;
 
-	virtual Real D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const;
-	virtual Real H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const;
+	virtual Real D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	virtual Real H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
 
 	Real xf1TperpM1(unsigned fl, Real x, Real Q_sq) const;
 	Real xg1TperpM1(unsigned fl, Real x, Real Q_sq) const;
