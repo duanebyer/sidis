@@ -103,7 +103,7 @@ class DataFileNotFound final : public std::exception {
 public:
 	std::string file_name;
 
-	DataFileNotFound(std::string file_name);
+	DataFileNotFound(char const* file_name);
 	char const* what() const noexcept override {
 		return _what.c_str();
 	}
@@ -118,7 +118,7 @@ class DataFileParseError final : public std::exception {
 public:
 	std::string file_name;
 
-	DataFileParseError(std::string file_name);
+	DataFileParseError(char const* file_name);
 	char const* what() const noexcept override {
 		return _what.c_str();
 	}

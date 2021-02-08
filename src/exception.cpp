@@ -47,13 +47,13 @@ HadronOutOfRange::HadronOutOfRange(Hadron hadron) :
 		+ "' is not supported by FF"),
 	hadron(hadron) { }
 
-DataFileNotFound::DataFileNotFound(std::string file_name) :
+DataFileNotFound::DataFileNotFound(char const* file_name) :
 	_what(
-		"Could not open data file '" + file_name + "'"),
+		std::string("Could not open data file '") + file_name + "'"),
 	file_name(file_name) { }
 
-DataFileParseError::DataFileParseError(std::string file_name) :
+DataFileParseError::DataFileParseError(char const* file_name) :
 	_what(
-		"Could not parse data file '" + file_name + "'"),
+		std::string("Could not parse data file '") + file_name + "'"),
 	file_name(file_name) { }
 
