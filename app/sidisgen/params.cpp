@@ -2,12 +2,15 @@
 
 #include <algorithm>
 #include <cctype>
+#include <ios>
+#include <limits>
 #include <stdexcept>
 #include <sstream>
-#include <string>
 #include <type_traits>
 #include <unordered_map>
 
+#include <TArrayD.h>
+#include <TArrayI.h>
 #include <TObjString.h>
 #include <TParameter.h>
 #include <TString.h>
@@ -17,107 +20,262 @@ using namespace sidis;
 using namespace sidis::constant;
 using namespace sidis::math;
 
-#define WRITE_PARAM_ROOT(file, param) \
-	do { \
-		auto p = root_from_param(param); \
-		file.WriteObject(&p, #param); \
-	} while (false)
+namespace {
 
-#define READ_PARAM_ROOT(file, param) \
-	do { \
-		auto p = file.Get<decltype(root_from_param(param))>(#param); \
-		if (p != nullptr) { \
-			param = param_from_root<decltype(param)>(*p); \
-		} \
-	} while (false)
+template<typename T, typename=void>
+struct RootParser {
+	static void write_root(TFile&, Param<T> const&) {
+	}
+	static void read_root(TFile&, Param<T>&) {
+	}
+};
 
-#define WRITE_PARAM(file, param) \
-	do { \
-		file << #param << " " << param << std::endl; \
-	} while (false)
+std::string trim(std::string str) {
+	auto not_whitespace = [](char c) {
+		return !std::isspace(c);
+	};
+	str.erase(str.begin(), std::find_if(str.begin(), str.end(), not_whitespace));
+	str.erase(std::find_if(str.rbegin(), str.rend(), not_whitespace).base(), str.end());
+	return str;
+}
 
-#define READ_PARAM(params, param) \
-	do { \
-		auto p = params.find(#param); \
-		if (p != params.end()) { \
-			std::istringstream ss(p->second); \
-			params.erase(p); \
-			ss >> param; \
-			if (!ss) { \
-				throw std::runtime_error("Failed to parse parameter '" #param "'"); \
-			} \
-		} \
-	} while (false)
+template<typename T>
+void write_param_root(TFile& file, Param<T> const& param) {
+	if (param.occupied()) {
+		RootParser<T>::write_root(file, param);
+	}
+}
+template<typename T>
+void read_param_root(TFile& file, Param<T>& param) {
+	RootParser<T>::read_root(file, param);
+}
 
+template<typename T>
+void write_param_stream(std::ostream& os, Param<T> const& param, bool force=false) {
+	if (param.occupied() || force) {
+		os << param.name() << " " << *param << std::endl;
+	}
+	if (!os) {
+		throw std::runtime_error(
+			std::string("Could not write parameter '")
+			+ param.name() + "' to stream.");
+	}
+}
+
+template<typename T>
+void read_param_stream(std::istream& is, Param<T>& param) {
+	T value{};
+	is >> value;
+	param.reset(value);
+	if (!is) {
+		throw std::runtime_error(
+			std::string("Could not read parameter '")
+			+ param.name() + "' from stream.");
+	}
+}
+
+template<typename T>
+void consume_param_from_map(
+		std::unordered_map<std::string, std::string>& map,
+		Param<T>& param) {
+	param.reset();
+	auto p = map.find(param.name());
+	if (p != map.end()) {
+		std::istringstream ss(p->second);
+		map.erase(p);
+		try {
+			read_param_stream(ss, param);
+			std::string rem;
+			std::getline(ss, rem);
+			rem = trim(rem);
+			if (!rem.empty() && rem[0] != '#') {
+				throw std::runtime_error("");
+			}
+		} catch (std::exception const& e) {
+			throw std::runtime_error(
+				std::string("Failed to parse parameter '")
+				+ param.name() + "' from stream.");
+		}
+	}
+}
+
+// Parsers for input and output of various types to ROOT files.
+// Version.
+template<>
+struct RootParser<Version> {
+	static void write_root(TFile& file, Param<Version> const& param) {
+		Int_t vals[2] = { param->major, param->minor };
+		TArrayI object(2, vals);
+		Int_t result = file.WriteObject<TArrayI>(&object, param.name());
+		if (result == 0) {
+			throw std::runtime_error(
+				std::string("Could not write parameter '")
+				+ param.name() + "' to ROOT file.");
+		}
+	}
+	static void read_root(TFile& file, Param<Version>& param) {
+		auto* object = file.Get<TArrayI>(param.name());
+		if (object != nullptr && object->GetSize() == 2) {
+			param.reset(Version(object->At(0), object->At(1)));
+		} else {
+			param.reset();
+		}
+	}
+};
+// Number types.
+template<typename T>
+struct RootParser<T, typename std::enable_if<std::is_arithmetic<T>::value>::type> {
+	static void write_root(TFile& file, Param<T> const& param) {
+		TParameter<T> object("", *param);
+		Int_t result = file.WriteObject<TParameter<T> >(&object, param.name());
+		if (result == 0) {
+			throw std::runtime_error(
+				std::string("Could not write parameter '")
+				+ param.name() + "' to ROOT file.");
+		}
+	}
+	static void read_root(TFile& file, Param<T>& param) {
+		auto* object = file.Get<TParameter<T> >(param.name());
+		if (object != nullptr) {
+			param.reset(object->GetVal());
+		} else {
+			param.reset();
+		}
+	}
+};
+// Enums.
 template<typename T>
 using is_scoped_enum = std::integral_constant<
 	bool,
 	std::is_enum<T>::value && !std::is_convertible<T, int>::value>;
+template<typename T>
+struct RootParser<T, typename std::enable_if<is_scoped_enum<T>::value>::type> {
+	using Integral = typename std::underlying_type<T>::type;
+	static void write_root(TFile& file, Param<T> const& param) {
+		TParameter<Integral> object("", static_cast<Integral>(*param));
+		Int_t result = file.WriteObject<decltype(object)>(&object, param.name());
+		if (result == 0) {
+			throw std::runtime_error(
+				std::string("Could not write parameter '")
+				+ param.name() + "' to ROOT file.");
+		}
+	}
+	static void read_root(TFile& file, Param<T>& param) {
+		auto object = file.Get<TParameter<Integral> >(param.name());
+		if (object != nullptr) {
+			param.reset(static_cast<T>(object->GetVal()));
+		} else {
+			param.reset();
+		}
+	}
+};
+// Strings.
+template<>
+struct RootParser<std::string> {
+	static void write_root(TFile& file, Param<std::string> const& param) {
+		TObjString object(param->c_str());
+		Int_t result = file.WriteObject<TObjString>(&object, param.name());
+		if (result == 0) {
+			throw std::runtime_error(
+				std::string("Could not write parameter '")
+				+ param.name() + "' to ROOT file.");
+		}
+	}
+	static void read_root(TFile& file, Param<std::string>& param) {
+		auto object = file.Get<TObjString>(param.name());
+		if (object != nullptr) {
+			param.reset(object->GetString().Data());
+		} else {
+			param.reset();
+		}
+	}
+};
+// Math types.
+template<>
+struct RootParser<Vec3> {
+	static void write_root(TFile& file, Param<Vec3> const& param) {
+		TVector3 object(param->x, param->y, param->z);
+		Int_t result = file.WriteObject<TVector3>(&object, param.name());
+		if (result == 0) {
+			throw std::runtime_error(
+				std::string("Could not write parameter '")
+				+ param.name() + "' to ROOT file.");
+		}
+	}
+	static void read_root(TFile& file, Param<Vec3>& param) {
+		auto object = file.Get<TVector3>(param.name());
+		if (object != nullptr) {
+			param.reset(Vec3(object->X(), object->Y(), object->Z()));
+		} else {
+			param.reset();
+		}
+	}
+};
+template<>
+struct RootParser<Bounds> {
+	static void write_root(TFile& file, Param<Bounds> const& param) {
+		Double_t vals[2] = { param->min(), param->max() };
+		TArrayD object(2, vals);
+		Int_t result = file.WriteObject<TArrayD>(&object, param.name());
+		if (result == 0) {
+			throw std::runtime_error(
+				std::string("Could not write parameter '")
+				+ param.name() + "' to ROOT file.");
+		}
+	}
+	static void read_root(TFile& file, Param<Bounds>& param) {
+		auto object = file.Get<TArrayD>(param.name());
+		if (object != nullptr && object->GetSize() == 2 && object->At(0) <= object->At(1)) {
+			param.reset(Bounds(object->At(0), object->At(1)));
+		} else {
+			param.reset();
+		}
+	}
+};
 
-template<typename T, typename R>
-T param_from_root(R const& in) {
-	throw std::runtime_error("Unsupported parameter conversion");
+// Parsers for streams.
+// Version.
+std::ostream& operator<<(std::ostream& os, Version const& version) {
+	return os << version.major << "." << version.minor;
 }
-template<>
-Int_t param_from_root<Int_t>(TParameter<Int_t> const& in) {
-	return in.GetVal();
+std::istream& operator>>(std::istream& is, Version& version) {
+	is >> version.major;
+	char period;
+	is >> period;
+	if (period != '.') {
+		is.setstate(std::ios_base::failbit);
+	}
+	is >> version.minor;
+	return is;
 }
-template<>
-Long_t param_from_root<Long_t>(TParameter<Long_t> const& in) {
-	return in.GetVal();
+// Enums.
+std::ostream& operator<<(std::ostream& os, RcMethod const& rc_method) {
+	switch (rc_method) {
+	case RcMethod::NONE:
+		return os << "none";
+	case RcMethod::APPROX:
+		return os << "approx";
+	case RcMethod::EXACT:
+		return os << "exact";
+	default:
+		os.setstate(std::ios_base::failbit);
+		return os;
+	}
 }
-template<>
-Real param_from_root<Real>(TParameter<Real> const& in) {
-	return in.GetVal();
+std::istream& operator>>(std::istream& is, RcMethod& rc_method) {
+	std::string name;
+	is >> name;
+	if (name == "none") {
+		rc_method = RcMethod::NONE;
+	} else if (name == "approx") {
+		rc_method = RcMethod::APPROX;
+	} else if (name == "exact") {
+		rc_method = RcMethod::EXACT;
+	} else {
+		is.setstate(std::ios_base::failbit);
+	}
+	return is;
 }
-template<>
-Nucleus param_from_root<Nucleus>(TParameter<int> const& in) {
-	return static_cast<Nucleus>(in.GetVal());
-}
-template<>
-Lepton param_from_root<Lepton>(TParameter<int> const& in) {
-	return static_cast<Lepton>(in.GetVal());
-}
-template<>
-Hadron param_from_root<Hadron>(TParameter<int> const& in) {
-	return static_cast<Hadron>(in.GetVal());
-}
-template<>
-std::string param_from_root<std::string>(TObjString const& in) {
-	return in.GetString().Data();
-}
-template<>
-Vec3 param_from_root<Vec3>(TVector3 const& in) {
-	return Vec3(in.X(), in.Y(), in.Z());
-}
-template<>
-Bounds param_from_root<Bounds>(TVector2 const& in) {
-	return Bounds(in.X(), in.Y());
-}
-
-template<
-	typename T,
-	typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
-TParameter<T> root_from_param(T const& in) {
-	return TParameter<T>("", in);
-}
-template<
-	typename T,
-	typename = typename std::enable_if<is_scoped_enum<T>::value>::type>
-TParameter<typename std::underlying_type<T>::type> root_from_param(T const& in) {
-	return TParameter<typename std::underlying_type<T>::type>(
-		"", static_cast<typename std::underlying_type<T>::type>(in));
-}
-TObjString root_from_param(std::string const& str) {
-	return TObjString(str.c_str());
-}
-TVector3 root_from_param(Vec3 const& vec) {
-	return TVector3(vec.x, vec.y, vec.z);
-}
-TVector2 root_from_param(Bounds const& bounds) {
-	return TVector2(bounds.min(), bounds.max());
-}
-
 std::ostream& operator<<(std::ostream& os, Nucleus const& nucleus) {
 	switch (nucleus) {
 	case Nucleus::P:
@@ -145,7 +303,6 @@ std::istream& operator>>(std::istream& is, Nucleus& nucleus) {
 	}
 	return is;
 }
-
 std::ostream& operator<<(std::ostream& os, Lepton const& lepton) {
 	switch (lepton) {
 	case Lepton::E:
@@ -173,7 +330,6 @@ std::istream& operator>>(std::istream& is, Lepton& lepton) {
 	}
 	return is;
 }
-
 std::ostream& operator<<(std::ostream& os, Hadron const& hadron) {
 	switch (hadron) {
 	case Hadron::PI_0:
@@ -213,16 +369,14 @@ std::istream& operator>>(std::istream& is, Hadron& hadron) {
 	}
 	return is;
 }
-
+// Math types.
 std::ostream& operator<<(std::ostream& os, Vec3 const& vec) {
-	os << vec.x << " " << vec.y << " " << vec.z;
-	return os;
+	return os << vec.x << " " << vec.y << " " << vec.z;
 }
 std::istream& operator>>(std::istream& is, Vec3& vec) {
 	is >> vec.x >> vec.y >> vec.z;
 	return is;
 }
-
 std::ostream& operator<<(std::ostream& os, Bounds const& bounds) {
 	os << bounds.min() << " " << bounds.max();
 	return os;
@@ -231,173 +385,396 @@ std::istream& operator>>(std::istream& is, Bounds& bounds) {
 	Real min;
 	Real max;
 	is >> min >> max;
-	bounds = Bounds(min, max);
+	if (min <= max) {
+		bounds = Bounds(min, max);
+	} else {
+		is.setstate(std::ios_base::failbit);
+	}
 	return is;
+}
+
 }
 
 void Params::write_root(TFile& file) const {
 	file.cd();
-	WRITE_PARAM_ROOT(file, version_major);
-	WRITE_PARAM_ROOT(file, version_minor);
-	WRITE_PARAM_ROOT(file, event_file);
-	WRITE_PARAM_ROOT(file, foam_nrad_file);
-	WRITE_PARAM_ROOT(file, foam_rad_file);
-	WRITE_PARAM_ROOT(file, sf_set);
-	WRITE_PARAM_ROOT(file, num_events);
-	WRITE_PARAM_ROOT(file, num_init);
-	WRITE_PARAM_ROOT(file, seed);
-	WRITE_PARAM_ROOT(file, seed_init);
-	WRITE_PARAM_ROOT(file, beam_energy);
-	WRITE_PARAM_ROOT(file, beam);
-	WRITE_PARAM_ROOT(file, target);
-	WRITE_PARAM_ROOT(file, hadron);
-	WRITE_PARAM_ROOT(file, mass_threshold);
-	WRITE_PARAM_ROOT(file, target_pol);
-	WRITE_PARAM_ROOT(file, beam_pol);
-	WRITE_PARAM_ROOT(file, k_0_bar);
-	WRITE_PARAM_ROOT(file, x_cut);
-	WRITE_PARAM_ROOT(file, y_cut);
-	WRITE_PARAM_ROOT(file, z_cut);
-	WRITE_PARAM_ROOT(file, ph_t_sq_cut);
-	WRITE_PARAM_ROOT(file, phi_h_cut);
-	WRITE_PARAM_ROOT(file, phi_cut);
+	write_param_root(file, version);
+	write_param_root(file, event_file);
+	write_param_root(file, rc_method);
+	write_param_root(file, gen_nrad);
+	write_param_root(file, gen_rad);
+	write_param_root(file, write_photon);
+	write_param_root(file, foam_nrad_file);
+	write_param_root(file, foam_rad_file);
+	write_param_root(file, sf_set);
+	write_param_root(file, num_events);
+	write_param_root(file, num_init);
+	write_param_root(file, seed);
+	write_param_root(file, seed_init);
+	write_param_root(file, beam_energy);
+	write_param_root(file, beam);
+	write_param_root(file, target);
+	write_param_root(file, hadron);
+	write_param_root(file, mass_threshold);
+	write_param_root(file, target_pol);
+	write_param_root(file, beam_pol);
+	write_param_root(file, k_0_bar);
+	write_param_root(file, x_cut);
+	write_param_root(file, y_cut);
+	write_param_root(file, z_cut);
+	write_param_root(file, ph_t_sq_cut);
+	write_param_root(file, phi_h_cut);
+	write_param_root(file, phi_cut);
+	write_param_root(file, tau_cut);
+	write_param_root(file, phi_k_cut);
+	write_param_root(file, k_0_bar_cut);
 }
 
 void Params::read_root(TFile& file) {
-	READ_PARAM_ROOT(file, version_major);
-	READ_PARAM_ROOT(file, version_minor);
-	READ_PARAM_ROOT(file, event_file);
-	READ_PARAM_ROOT(file, foam_nrad_file);
-	READ_PARAM_ROOT(file, foam_rad_file);
-	READ_PARAM_ROOT(file, sf_set);
-	READ_PARAM_ROOT(file, num_events);
-	READ_PARAM_ROOT(file, num_init);
-	READ_PARAM_ROOT(file, seed);
-	READ_PARAM_ROOT(file, seed_init);
-	READ_PARAM_ROOT(file, beam_energy);
-	READ_PARAM_ROOT(file, beam);
-	READ_PARAM_ROOT(file, target);
-	READ_PARAM_ROOT(file, hadron);
-	READ_PARAM_ROOT(file, mass_threshold);
-	READ_PARAM_ROOT(file, target_pol);
-	READ_PARAM_ROOT(file, beam_pol);
-	READ_PARAM_ROOT(file, k_0_bar);
-	READ_PARAM_ROOT(file, x_cut);
-	READ_PARAM_ROOT(file, y_cut);
-	READ_PARAM_ROOT(file, z_cut);
-	READ_PARAM_ROOT(file, ph_t_sq_cut);
-	READ_PARAM_ROOT(file, phi_h_cut);
-	READ_PARAM_ROOT(file, phi_cut);
+	read_param_root(file, version);
+	if (version->major != SIDIS_PARAMS_VERSION_MAJOR
+			|| version->minor > SIDIS_PARAMS_VERSION_MINOR) {
+		throw std::runtime_error(
+			std::string("Cannot read parameters from version ")
+			+ std::to_string(version->major) + "."
+			+ std::to_string(version->minor) + ".");
+	}
+	read_param_root(file, event_file);
+	read_param_root(file, rc_method);
+	read_param_root(file, gen_nrad);
+	read_param_root(file, gen_rad);
+	read_param_root(file, write_photon);
+	read_param_root(file, foam_nrad_file);
+	read_param_root(file, foam_rad_file);
+	read_param_root(file, sf_set);
+	read_param_root(file, num_events);
+	read_param_root(file, num_init);
+	read_param_root(file, seed);
+	read_param_root(file, seed_init);
+	read_param_root(file, beam_energy);
+	read_param_root(file, beam);
+	read_param_root(file, target);
+	read_param_root(file, hadron);
+	read_param_root(file, mass_threshold);
+	read_param_root(file, target_pol);
+	read_param_root(file, beam_pol);
+	read_param_root(file, k_0_bar);
+	read_param_root(file, x_cut);
+	read_param_root(file, y_cut);
+	read_param_root(file, z_cut);
+	read_param_root(file, ph_t_sq_cut);
+	read_param_root(file, phi_h_cut);
+	read_param_root(file, phi_cut);
+	read_param_root(file, tau_cut);
+	read_param_root(file, phi_k_cut);
+	read_param_root(file, k_0_bar_cut);
 }
 
-void Params::write(std::ostream& file) const {
-	// TODO: Set floating point precision so that all digits are kept, then
-	// unset after.
-	WRITE_PARAM(file, version_major);
-	WRITE_PARAM(file, version_minor);
-	WRITE_PARAM(file, event_file);
-	WRITE_PARAM(file, foam_nrad_file);
-	WRITE_PARAM(file, foam_rad_file);
-	WRITE_PARAM(file, sf_set);
-	WRITE_PARAM(file, num_events);
-	WRITE_PARAM(file, num_init);
-	WRITE_PARAM(file, seed);
-	WRITE_PARAM(file, seed_init);
-	WRITE_PARAM(file, beam_energy);
-	WRITE_PARAM(file, beam);
-	WRITE_PARAM(file, target);
-	WRITE_PARAM(file, hadron);
-	WRITE_PARAM(file, mass_threshold);
-	WRITE_PARAM(file, target_pol);
-	WRITE_PARAM(file, beam_pol);
-	WRITE_PARAM(file, k_0_bar);
-	WRITE_PARAM(file, x_cut);
-	WRITE_PARAM(file, y_cut);
-	WRITE_PARAM(file, z_cut);
-	WRITE_PARAM(file, ph_t_sq_cut);
-	WRITE_PARAM(file, phi_h_cut);
-	WRITE_PARAM(file, phi_cut);
+void Params::write_stream(std::ostream& file) const {
+	write_param_stream(file, version, true);
+	write_param_stream(file, event_file);
+	write_param_stream(file, rc_method);
+	write_param_stream(file, gen_nrad);
+	write_param_stream(file, gen_rad);
+	write_param_stream(file, write_photon);
+	write_param_stream(file, foam_nrad_file);
+	write_param_stream(file, foam_rad_file);
+	write_param_stream(file, sf_set);
+	write_param_stream(file, num_events);
+	write_param_stream(file, num_init);
+	write_param_stream(file, seed);
+	write_param_stream(file, seed_init);
+	write_param_stream(file, beam_energy);
+	write_param_stream(file, beam);
+	write_param_stream(file, target);
+	write_param_stream(file, hadron);
+	write_param_stream(file, mass_threshold);
+	write_param_stream(file, target_pol);
+	write_param_stream(file, beam_pol);
+	write_param_stream(file, k_0_bar);
+	write_param_stream(file, x_cut);
+	write_param_stream(file, y_cut);
+	write_param_stream(file, z_cut);
+	write_param_stream(file, ph_t_sq_cut);
+	write_param_stream(file, phi_h_cut);
+	write_param_stream(file, phi_cut);
+	write_param_stream(file, tau_cut);
+	write_param_stream(file, phi_k_cut);
+	write_param_stream(file, k_0_bar_cut);
 }
-void Params::read(std::istream& file) {
-	std::unordered_map<std::string, std::string> params;
+void Params::read_stream(std::istream& file) {
+	std::unordered_map<std::string, std::string> map;
 	while (file) {
 		std::string key;
 		std::string value;
 		file >> key;
-		auto whitespace = [](char c) {
-			return std::isspace(c);
-		};
-		if (std::all_of(key.begin(), key.end(), whitespace)) {
-			continue;
-		}
 		std::getline(file, value);
-		params[key] = value;
+		key = trim(key);
+		if (!key.empty() && key[0] != '#') {
+			if (map.find(key) != map.end()) {
+				throw std::runtime_error("Duplicate parameter '" + key + "'.");
+			}
+			map[key] = value;
+		}
 	}
 
-	READ_PARAM(params, version_major);
-	READ_PARAM(params, version_minor);
-	READ_PARAM(params, event_file);
-	READ_PARAM(params, foam_nrad_file);
-	READ_PARAM(params, foam_rad_file);
-	READ_PARAM(params, sf_set);
-	READ_PARAM(params, num_events);
-	READ_PARAM(params, num_init);
-	READ_PARAM(params, seed);
-	READ_PARAM(params, seed_init);
-	READ_PARAM(params, beam_energy);
-	READ_PARAM(params, beam);
-	READ_PARAM(params, target);
-	READ_PARAM(params, hadron);
-	READ_PARAM(params, mass_threshold);
-	READ_PARAM(params, target_pol);
-	READ_PARAM(params, beam_pol);
-	READ_PARAM(params, k_0_bar);
-	READ_PARAM(params, x_cut);
-	READ_PARAM(params, y_cut);
-	READ_PARAM(params, z_cut);
-	READ_PARAM(params, ph_t_sq_cut);
-	READ_PARAM(params, phi_h_cut);
-	READ_PARAM(params, phi_cut);
+	consume_param_from_map(map, version);
+	version.get_or_insert(Version());
+	if (version->major != SIDIS_PARAMS_VERSION_MAJOR
+			|| version->minor > SIDIS_PARAMS_VERSION_MINOR) {
+		throw std::runtime_error(
+			std::string("Cannot read parameters from version ")
+			+ std::to_string(version->major) + "."
+			+ std::to_string(version->minor) + ".");
+	}
+	consume_param_from_map(map, event_file);
+	consume_param_from_map(map, rc_method);
+	consume_param_from_map(map, gen_nrad);
+	consume_param_from_map(map, gen_rad);
+	consume_param_from_map(map, write_photon);
+	consume_param_from_map(map, foam_nrad_file);
+	consume_param_from_map(map, foam_rad_file);
+	consume_param_from_map(map, sf_set);
+	consume_param_from_map(map, num_events);
+	consume_param_from_map(map, num_init);
+	consume_param_from_map(map, seed);
+	consume_param_from_map(map, seed_init);
+	consume_param_from_map(map, beam_energy);
+	consume_param_from_map(map, beam);
+	consume_param_from_map(map, target);
+	consume_param_from_map(map, hadron);
+	consume_param_from_map(map, mass_threshold);
+	consume_param_from_map(map, target_pol);
+	consume_param_from_map(map, beam_pol);
+	consume_param_from_map(map, k_0_bar);
+	consume_param_from_map(map, x_cut);
+	consume_param_from_map(map, y_cut);
+	consume_param_from_map(map, z_cut);
+	consume_param_from_map(map, ph_t_sq_cut);
+	consume_param_from_map(map, phi_h_cut);
+	consume_param_from_map(map, phi_cut);
+	consume_param_from_map(map, tau_cut);
+	consume_param_from_map(map, phi_k_cut);
+	consume_param_from_map(map, k_0_bar_cut);
 
-	if (!params.empty()) {
+	if (!map.empty()) {
 		std::ostringstream ss_err;
 		ss_err << "Unrecognized parameters";
-		while (!params.empty()) {
-			auto p = params.begin();
+		while (!map.empty()) {
+			auto p = map.begin();
 			ss_err << " '" << p->first << "'";
-			params.erase(p);
+			map.erase(p);
 		}
 		throw std::runtime_error(ss_err.str());
 	}
 }
 
-bool Params::compatible_foam(Params const& foam_params) const {
-	return foam_params.version_major == version_major
-		&& foam_params.version_minor <= version_minor
-		&& foam_params.sf_set == sf_set
-		&& foam_params.num_init >= num_init
-		&& (foam_params.seed_init == seed_init || 0 == seed_init)
-		&& foam_params.beam_energy == beam_energy
-		&& foam_params.beam == beam
-		&& foam_params.target == target
-		&& foam_params.hadron == hadron
-		&& foam_params.mass_threshold == mass_threshold
-		&& foam_params.target_pol.x == target_pol.x
-		&& foam_params.target_pol.y == target_pol.y
-		&& foam_params.target_pol.z == target_pol.z
-		&& foam_params.beam_pol == beam_pol
-		&& foam_params.k_0_bar == k_0_bar
-		&& foam_params.x_cut.min() == x_cut.min()
-		&& foam_params.x_cut.max() == x_cut.max()
-		&& foam_params.y_cut.min() == y_cut.min()
-		&& foam_params.y_cut.max() == y_cut.max()
-		&& foam_params.z_cut.min() == z_cut.min()
-		&& foam_params.z_cut.max() == z_cut.max()
-		&& foam_params.ph_t_sq_cut.min() == ph_t_sq_cut.min()
-		&& foam_params.ph_t_sq_cut.max() == ph_t_sq_cut.max()
-		&& foam_params.phi_h_cut.min() == phi_h_cut.min()
-		&& foam_params.phi_h_cut.max() == phi_h_cut.max()
-		&& foam_params.phi_cut.min() == phi_cut.min()
-		&& foam_params.phi_cut.max() == phi_cut.max();
+void Params::make_valid(bool strict) {
+	// This function is somewhat complicated because it tries to consider many
+	// possible combinations of options and sort through them to produce a
+	// "normalized" form of any parameter file.
+	version.get_or_insert(Version());
+	if (!num_events.occupied()) {
+		throw std::runtime_error("Must specify number of events to generate.");
+	}
+	if (!beam_energy.occupied()) {
+		throw std::runtime_error("Must specify beam energy.");
+	}
+	if (!beam.occupied()) {
+		throw std::runtime_error("Must specify beam lepton flavor.");
+	}
+	if (!target.occupied()) {
+		throw std::runtime_error("Must specify target nucleus.");
+	}
+	if (!hadron.occupied()) {
+		throw std::runtime_error("Must specify leading hadron.");
+	}
+	if (!mass_threshold.occupied()) {
+		throw std::runtime_error("Must specify mass threshold.");
+	}
+	if (!sf_set.occupied()) {
+		throw std::runtime_error("Must specify structure function set.");
+	}
+	event_file.get_or_insert("gen.root");
+	rc_method.get_or_insert(RcMethod::APPROX);
+	num_init.get_or_insert(1000);
+	seed.get_or_insert(0);
+	seed_init.get_or_insert(0);
+	target_pol.get_or_insert(Vec3::ZERO);
+	beam_pol.get_or_insert(0.);
+	// RC methods.
+	// The process for determining whether radiative and non-radiative events
+	// are generated looks something like this:
+	//  * If RC are disabled, then no radiative events are generated.
+	//  * If `k_0_bar_cut` is above the soft threshold, then only radiative
+	//    events are generated.
+	//  * `k_0_bar_cut` cannot be partway between zero and the soft threshold,
+	//    because it is impossible to generate events according to that.
+	if (*rc_method == RcMethod::APPROX || *rc_method == RcMethod::EXACT) {
+		gen_rad.get_or_insert(true);
+		k_0_bar.get_or_insert(0.01);
+		k_0_bar_cut.get_or_insert(Bounds::POSITIVE);
+	} else {
+		if (gen_rad.occupied() && *gen_rad) {
+			if (strict) {
+				throw std::runtime_error(
+					"Cannot generate radiative events without "
+					"radiative corrections enabled.");
+			}
+		}
+		gen_rad.reset(false);
+	}
+	if (*gen_rad) {
+		if (k_0_bar_cut->min() <= 0.) {
+			gen_nrad.get_or_insert(true);
+		} else if (*k_0_bar < k_0_bar_cut->min()) {
+			if (gen_nrad.occupied() && *gen_nrad) {
+				if (strict) {
+					throw std::runtime_error(
+						"Cannot generate non-radiative events with "
+						"`k-0-bar >= k-0-bar-cut min.`.");
+				}
+			}
+			gen_nrad.reset(false);
+		} else {
+			throw std::runtime_error(
+				"Invalid `k-0-bar-cut`: minimum must be zero "
+				"or larger than `k-0-bar`.");
+		}
+	} else {
+		gen_nrad.get_or_insert(true);
+	}
+	if (!*gen_nrad && !*gen_rad) {
+		throw std::runtime_error(
+			"Cannot disable all event types `(nrad, rad)`.");
+	}
+	// Basic options associated with radiative and non-radiative events in
+	// particular.
+	if (*gen_nrad) {
+		foam_nrad_file.get_or_insert("foam-nrad.root");
+	} else if (foam_nrad_file.occupied()) {
+		if (strict) {
+			throw std::runtime_error(
+				"Cannot provide `foam-nrad-file` when no "
+				"non-radiative events are being generated.");
+		} else {
+			foam_nrad_file.reset();
+		}
+	}
+	if (*gen_rad) {
+		foam_rad_file.get_or_insert("foam-rad.root");
+		write_photon.get_or_insert(true);
+	} else {
+		if (foam_rad_file.occupied()) {
+			if (strict) {
+				throw std::runtime_error(
+					"Cannot provide `foam-rad-file` when no "
+					"radiative events are being generated.");
+			} else {
+				foam_rad_file.reset();
+			}
+		}
+		if (write_photon.occupied()) {
+			if (strict) {
+				throw std::runtime_error(
+					"Cannot enable `write-photon` when no "
+					"radiative events are being generated.");
+			} else {
+				write_photon.reset();
+			}
+		}
+	}
+	// Cuts.
+	if (*gen_rad && *gen_nrad) {
+		if (tau_cut.occupied() || phi_k_cut.occupied()) {
+			throw std::runtime_error(
+				"Cannot apply radiative cuts to non-radiative events.");
+		}
+	}
+}
+
+void Params::compatible_with_foam(Params const& foam_params) const {
+	if (version->major != foam_params.version->major
+			|| version->minor > foam_params.version->minor) {
+		throw std::runtime_error("Incompatible versions.");
+	} else if (*foam_params.rc_method != *rc_method) {
+		throw std::runtime_error("Different RC methods.");
+	} else if (*gen_nrad && !*foam_params.gen_nrad) {
+		throw std::runtime_error("No non-radiative FOAM available.");
+	} else if (*gen_rad && !*foam_params.gen_rad) {
+		throw std::runtime_error("No radiative FOAM available.");
+	} else if (*sf_set != *foam_params.sf_set) {
+		throw std::runtime_error("Different SF set.");
+	} else if (*num_init < *foam_params.num_init) {
+		throw std::runtime_error("Insufficient initialization sampling.");
+	} else if (*seed_init != 0 && *foam_params.seed_init != *seed_init) {
+		throw std::runtime_error("Different initialization seed.");
+	} else if (*beam_energy != *foam_params.beam_energy) {
+		throw std::runtime_error("Different beam energies.");
+	} else if (*beam != *foam_params.beam) {
+		throw std::runtime_error("Different beam lepton type.");
+	} else if (*target != *foam_params.target) {
+		throw std::runtime_error("Different target nucleus type.");
+	} else if (*hadron != *foam_params.hadron) {
+		throw std::runtime_error("Different leading hadron type.");
+	} else if (*mass_threshold != *foam_params.mass_threshold) {
+		throw std::runtime_error("Different mass thresholds.");
+	} else if (*target_pol != *foam_params.target_pol) {
+		throw std::runtime_error("Different target polarizations.");
+	} else if (*beam_pol != *foam_params.beam_pol) {
+		throw std::runtime_error("Different beam polarizations.");
+	} else if (*k_0_bar != *foam_params.k_0_bar) {
+		throw std::runtime_error("Different soft photon cutoffs.");
+	} else if (x_cut.get_or(Bounds::UNIT) != foam_params.x_cut.get_or(Bounds::UNIT)) {
+		throw std::runtime_error("Different cuts on x.");
+	} else if (y_cut.get_or(Bounds::UNIT) != foam_params.y_cut.get_or(Bounds::UNIT)) {
+		throw std::runtime_error("Different cuts on y.");
+	} else if (z_cut.get_or(Bounds::UNIT) != foam_params.z_cut.get_or(Bounds::UNIT)) {
+		throw std::runtime_error("Different cuts on z.");
+	} else if (ph_t_sq_cut != foam_params.ph_t_sq_cut) {
+		throw std::runtime_error("Different cuts on ph_t².");
+	} else if (phi_h_cut != foam_params.phi_h_cut) {
+		throw std::runtime_error("Different cuts on φ_h.");
+	} else if (phi_cut != foam_params.phi_cut) {
+		throw std::runtime_error("Different cuts on φ.");
+	} else if (*gen_rad && tau_cut != foam_params.tau_cut) {
+		throw std::runtime_error("Different cuts on τ.");
+	} else if (*gen_rad && phi_k_cut != foam_params.phi_k_cut) {
+		throw std::runtime_error("Different cuts on φ_k.");
+	} else if (*gen_rad && k_0_bar_cut != foam_params.k_0_bar_cut) {
+		throw std::runtime_error("Different cuts on radiated photon energy.");
+	}
+}
+
+bool Params::operator==(Params const& rhs) const {
+	return version == rhs.version
+		&& event_file == rhs.event_file
+		&& rc_method == rhs.rc_method
+		&& gen_nrad == rhs.gen_nrad
+		&& gen_rad == rhs.gen_rad
+		&& write_photon == rhs.write_photon
+		&& foam_nrad_file == rhs.foam_nrad_file
+		&& foam_rad_file == rhs.foam_rad_file
+		&& sf_set == rhs.sf_set
+		&& num_events == rhs.num_events
+		&& num_init == rhs.num_init
+		&& seed == rhs.seed
+		&& seed_init == rhs.seed_init
+		&& beam_energy == rhs.beam_energy
+		&& beam == rhs.beam
+		&& target == rhs.target
+		&& hadron == rhs.hadron
+		&& mass_threshold == rhs.mass_threshold
+		&& target_pol == rhs.target_pol
+		&& beam_pol == rhs.beam_pol
+		&& k_0_bar == rhs.k_0_bar
+		&& x_cut == rhs.x_cut
+		&& y_cut == rhs.y_cut
+		&& z_cut == rhs.z_cut
+		&& ph_t_sq_cut == rhs.ph_t_sq_cut
+		&& phi_h_cut == rhs.phi_h_cut
+		&& phi_cut == rhs.phi_cut
+		&& tau_cut == rhs.tau_cut
+		&& phi_k_cut == rhs.phi_k_cut
+		&& k_0_bar_cut == rhs.k_0_bar_cut;
 }
 

@@ -13,13 +13,16 @@ The `sidisgen` generator uses a parameter file. The allowed options are listed
 by `sidisgen --help`. As an example:
 
 ```csv
-num_events  10000
-beam_energy 10.6
-beam        e
-target      p
-hadron      pi+
-beam_pol    0
-target_pol  0 0 0
+num-events     10000
+sf-set         prokudin
+rc-method      approx
+beam-energy    10.6
+beam           e
+target         p
+hadron         pi+
+mass-threshold 1.073249081
+beam-pol       0
+target-pol     0 0 0
 ```
 
 Then, initialize a FOAM to approximate the differential cross-section in the
@@ -110,6 +113,7 @@ The following CMake configuration options may be of use:
 * `Sidis_BUILD_TESTS`: Whether to build the tests.
 * `Sidis_BUILD_EXAMPLES`: Whether to build the examples.
 * `Sidis_BUILD_APPS`: Whether to build the `sidisgen` binary.
+* `Sidis_IPO_ENABLED`: Whether to build with interprocedural optimization.
 
 ## Acknowledgements
 

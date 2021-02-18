@@ -3,6 +3,7 @@
 
 #include <istream>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 
 #include <TFile.h>
@@ -15,73 +16,218 @@
 // Within a major version, there is forward compatibility (e.x. 1.4 is
 // forward-compatible with 1.5). Between major versions, there is no
 // compatibility.
-#define SIDIS_PARAMS_VERSION_MAJOR 1
-#define SIDIS_PARAMS_VERSION_MINOR 2
+#define SIDIS_PARAMS_VERSION_MAJOR 2
+#define SIDIS_PARAMS_VERSION_MINOR 0
+
+// TODO: We could add an intermediate method here that approximates the full
+// 3-d integral over `rad_f` with a 2-d integral over `phi_k` and `tau` only.
+enum class RcMethod {
+	NONE,
+	APPROX,
+	EXACT,
+};
+
+struct Version {
+	int major;
+	int minor;
+	Version(
+		int major=SIDIS_PARAMS_VERSION_MAJOR,
+		int minor=SIDIS_PARAMS_VERSION_MINOR) :
+		major(major),
+		minor(minor) { }
+	bool operator==(Version const& rhs) const {
+		return major == rhs.major && minor == rhs.minor;
+	}
+	bool operator!=(Version const& rhs) const {
+		return !(*this == rhs);
+	}
+};
+
+// Represents a single parameter for the generator. Stores a name, and an
+// optional value.
+template<typename T>
+class Param {
+	std::string const _name;
+	T _value;
+	bool _occupied;
+
+public:
+	Param(std::string name, T const& value) :
+		_name(name),
+		_value(value),
+		_occupied(true) { }
+	Param(std::string name) :
+		_name(name),
+		_value(),
+		_occupied(false) { }
+
+	T const& operator*() const {
+		if (!_occupied) {
+			throw std::runtime_error(
+				"No value to get from parameter '" + _name + "'.");
+		} else {
+			return _value;
+		}
+	}
+	T& operator*() {
+		if (!_occupied) {
+			throw std::runtime_error(
+				"No value to get from parameter '" + _name + "'.");
+		} else {
+			return _value;
+		}
+	}
+	T const* operator->() const {
+		return &(operator*());
+	}
+	T* operator->() {
+		return &(operator*());
+	}
+	T const& get() const {
+		return operator*();
+	}
+	T& get() {
+		return operator*();
+	}
+	T const& get_or(T const& default_value) const {
+		if (_occupied) {
+			return _value;
+		} else {
+			return default_value;
+		}
+	}
+	T& get_or_insert(T const& default_value) {
+		if (!_occupied) {
+			_value = default_value;
+			_occupied = true;
+		}
+		return _value;
+	}
+	void reset() {
+		_value = T();
+		_occupied = false;
+	}
+	void reset(T const& value) {
+		_value = value;
+		_occupied = true;
+	}
+
+	char const* name() const {
+		return _name.c_str();
+	}
+	bool occupied() const {
+		return _occupied;
+	}
+	operator bool() const {
+		return _occupied;
+	}
+
+	bool operator==(Param<T> const& rhs) const {
+		if (_occupied && rhs._occupied) {
+			return _value == rhs._value;
+		} else {
+			return _occupied == rhs._occupied;
+		}
+	}
+	bool operator!=(Param<T> const& rhs) const {
+		return !(*this == rhs);
+	}
+};
 
 // Keeps track of the various parameters that can be used for a run of the
 // generator. This structure can be read/written to both a ROOT file or a plain
 // text file.
 struct Params {
-	Int_t version_major;
-	Int_t version_minor;
-	std::string event_file;
-	std::string foam_nrad_file;
-	std::string foam_rad_file;
-	std::string sf_set;
-	Long_t num_events;
-	Long_t num_init;
-	Int_t seed;
-	Int_t seed_init;
-	sidis::Real beam_energy;
-	sidis::constant::Lepton beam;
-	sidis::constant::Nucleus target;
-	sidis::constant::Hadron hadron;
-	sidis::Real mass_threshold;
-	sidis::math::Vec3 target_pol;
-	sidis::Real beam_pol;
-	sidis::Real k_0_bar;
-	sidis::math::Bounds x_cut;
-	sidis::math::Bounds y_cut;
-	sidis::math::Bounds z_cut;
-	sidis::math::Bounds ph_t_sq_cut;
-	sidis::math::Bounds phi_h_cut;
-	sidis::math::Bounds phi_cut;
+	Param<Version> version;
+	Param<std::string> event_file;
+	Param<RcMethod> rc_method;
+	Param<bool> gen_nrad;
+	Param<bool> gen_rad;
+	Param<bool> write_photon;
+	Param<std::string> foam_nrad_file;
+	Param<std::string> foam_rad_file;
+	Param<std::string> sf_set;
+	Param<Long_t> num_events;
+	Param<Long_t> num_init;
+	Param<Int_t> seed;
+	Param<Int_t> seed_init;
+	Param<sidis::Real> beam_energy;
+	Param<sidis::constant::Lepton> beam;
+	Param<sidis::constant::Nucleus> target;
+	Param<sidis::constant::Hadron> hadron;
+	Param<sidis::Real> mass_threshold;
+	Param<sidis::math::Vec3> target_pol;
+	Param<sidis::Real> beam_pol;
+	Param<sidis::Real> k_0_bar;
+	Param<sidis::math::Bounds> x_cut;
+	Param<sidis::math::Bounds> y_cut;
+	Param<sidis::math::Bounds> z_cut;
+	Param<sidis::math::Bounds> ph_t_sq_cut;
+	Param<sidis::math::Bounds> phi_h_cut;
+	Param<sidis::math::Bounds> phi_cut;
+	Param<sidis::math::Bounds> tau_cut;
+	Param<sidis::math::Bounds> phi_k_cut;
+	Param<sidis::math::Bounds> k_0_bar_cut;
 
 	Params() :
-		version_major(SIDIS_PARAMS_VERSION_MAJOR),
-		version_minor(SIDIS_PARAMS_VERSION_MINOR),
-		event_file("gen.root"),
-		foam_nrad_file("foam-nrad.root"),
-		foam_rad_file("foam-rad.root"),
-		sf_set("ww"),
-		num_events(10000),
-		num_init(1000),
-		seed(0),
-		seed_init(0),
-		beam_energy(10.),
-		beam(sidis::constant::Lepton::E),
-		target(sidis::constant::Nucleus::P),
-		hadron(sidis::constant::Hadron::PI_P),
-		mass_threshold(sidis::constant::MASS_P + sidis::constant::MASS_PI_0),
-		target_pol(0., 0., 0.),
-		beam_pol(0.),
-		k_0_bar(0.01),
-		x_cut(sidis::math::Bounds::UNIT),
-		y_cut(sidis::math::Bounds::UNIT),
-		z_cut(sidis::math::Bounds::UNIT),
-		ph_t_sq_cut(sidis::math::Bounds::POSITIVE),
-		phi_h_cut(-sidis::constant::PI, sidis::constant::PI),
-		phi_cut(-sidis::constant::PI, sidis::constant::PI) { }
+		version("version"),
+		event_file("event_file"),
+		rc_method("rc-method"),
+		gen_nrad("gen-nrad"),
+		gen_rad("gen-rad"),
+		write_photon("write-photon"),
+		foam_nrad_file("foam-nrad-file"),
+		foam_rad_file("foam-rad-file"),
+		sf_set("sf-set"),
+		num_events("num-events"),
+		num_init("num-init"),
+		seed("seed"),
+		seed_init("seed-init"),
+		beam_energy("beam-energy"),
+		beam("beam"),
+		target("target"),
+		hadron("hadron"),
+		mass_threshold("mass-threshold"),
+		target_pol("target-pol"),
+		beam_pol("beam-pol"),
+		k_0_bar("soft-threshold"),
+		x_cut("x-cut"),
+		y_cut("y-cut"),
+		z_cut("z-cut"),
+		ph_t_sq_cut("ph-t-sq-cut"),
+		phi_h_cut("phi-h-cut"),
+		phi_cut("phi-cut"),
+		tau_cut("tau-cut"),
+		phi_k_cut("phi-k-cut"),
+		k_0_bar_cut("k-0-bar-cut") { }
 
 	void write_root(TFile& file) const;
 	void read_root(TFile& file);
 
-	void write(std::ostream& file) const;
-	void read(std::istream& file);
+	void write_stream(std::ostream& file) const;
+	void read_stream(std::istream& file);
+
+	// Takes the supplied parameters and fills in missing ones to make a valid
+	// run card. If unable to do so, throw an exception. If `strict` is enabled,
+	// then `make_valid` will never change a parameter that has been set by the
+	// user (for example, disabling `write-photon` when no radiative corrections
+	// are being applied).
+	void make_valid(bool strict=true);
+	bool valid() const {
+		Params other = *this;
+		other.make_valid();
+		return other == *this;
+	}
 
 	// Check whether a `TFoam` generated for one set of parameters can be used
-	// for another set.
-	bool compatible_foam(Params const& foam_params) const;
+	// for another set. If not compatible, throws an exception with a message
+	// describing the incompatibility.
+	void compatible_with_foam(Params const& foam_params) const;
+
+	bool operator==(Params const& rhs) const;
+	bool operator!=(Params const& rhs) const {
+		return !(*this == rhs);
+	}
 };
 
 #endif

@@ -1,6 +1,7 @@
 #include <cmath>
 #include <fstream>
 #include <iomanip>
+#include <ios>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -9,6 +10,7 @@
 #include <stdexcept>
 #include <utility>
 
+#include <TArrayD.h>
 #include <TBranch.h>
 #include <TClass.h>
 #include <TError.h>
@@ -40,15 +42,55 @@ int const ERROR_ARG_PARSE = -1;
 int const ERROR_FILE_NOT_FOUND = -2;
 int const ERROR_FILE_NOT_CREATED = -3;
 int const ERROR_PARAMS_PARSE = -4;
-int const ERROR_FOAM_INCOMPATIBLE = -5;
-int const ERROR_FOAM_NOT_FOUND = -6;
-int const ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND = -7;
+int const ERROR_PARAMS_INVALID = -5;
+int const ERROR_FOAM_INCOMPATIBLE = -6;
+int const ERROR_FOAM_NOT_FOUND = -7;
+int const ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND = -8;
+
+// In the future, more types of events (such as exclusive) may be included.
+enum class EventType {
+	NRAD,
+	RAD,
+};
+
+// All of the relevant information about one kind of event.
+struct EventStats {
+	EventType type;
+	std::unique_ptr<TFile> foam_file;
+	std::unique_ptr<TFoamIntegrand> rho;
+	TFoam* foam;
+	Double_t xs;
+	Double_t xs_err;
+	ULong_t num_events;
+};
 
 Real const PI = constant::PI;
 
 // Converts between the `sidis` 4-vector type and the `ROOT` 4-vector type.
 TLorentzVector convert_vec4(math::Vec4 v) {
 	return TLorentzVector(v.x, v.y, v.z, v.t);
+}
+
+// Fills out cuts from parameters.
+void cuts(Params params, cut::Cut* cut_out, cut::CutRad* cut_rad_out) {
+	if (cut_out != nullptr) {
+		*cut_out = cut::Cut();
+		cut_out->x = params.x_cut.get_or(cut_out->x);
+		cut_out->y = params.y_cut.get_or(cut_out->y);
+		cut_out->z = params.z_cut.get_or(cut_out->z);
+		cut_out->ph_t_sq = params.ph_t_sq_cut.get_or(cut_out->ph_t_sq);
+		cut_out->phi_h = params.phi_h_cut.get_or(cut_out->phi_h);
+		cut_out->phi = params.phi_cut.get_or(cut_out->phi);
+	}
+	if (cut_rad_out != nullptr) {
+		*cut_rad_out = cut::CutRad();
+		if (*params.gen_rad) {
+			cut_rad_out->tau = params.tau_cut.get_or(cut_rad_out->tau);
+			cut_rad_out->phi_k = params.phi_k_cut.get_or(cut_rad_out->phi_k);
+			// The `k_0_bar` cut is mandatory.
+			cut_rad_out->k_0_bar = *params.k_0_bar_cut;
+		}
+	}
 }
 
 // Allocates the memory for the structure functions.
@@ -58,64 +100,64 @@ int alloc_sf(
 		std::unique_ptr<sf::TmdSet>* tmd_out) {
 	std::unique_ptr<sf::SfSet> sf;
 	std::unique_ptr<sf::TmdSet> tmd;
-	if (params.sf_set == "ww") {
+	if (*params.sf_set == "prokudin") {
 		std::cout << "Using Prokudin structure functions." << std::endl;
 		tmd_out->reset();
 		sf_out->reset(new sf::set::WW());
-	} else if (params.sf_set == "test") {
+	} else if (*params.sf_set == "test") {
 		// TODO: Allow selection of any of the 18 test structure functions.
 		std::cout << "Using test structure functions." << std::endl;
 		bool mask[18] = { 0 };
 		mask[0] = true;
 		tmd_out->reset();
-		sf_out->reset(new sf::set::TestSfSet(params.target, mask));
+		sf_out->reset(new sf::set::TestSfSet(*params.target, mask));
 	} else {
-		std::string file_name = params.sf_set + ".so";
+		std::string file_name = *params.sf_set + ".so";
 		if (gSystem->Load(file_name.c_str()) != 0) {
 			std::cerr
 				<< "Failed to load structure function from shared library file '"
-				<< params.sf_set << ".so'." << std::endl;
+				<< *params.sf_set << ".so'." << std::endl;
 			return ERROR_FILE_NOT_FOUND;
 		}
-		TClass* sf_class = TClass::GetClass(params.sf_set.c_str());
+		TClass* sf_class = TClass::GetClass(params.sf_set->c_str());
 		if (sf_class->InheritsFrom("sidis::sf::SfSet")) {
 			std::cout
 				<< "Using structure functions from '"
-				<< params.sf_set << "'." << std::endl;
+				<< *params.sf_set << "'." << std::endl;
 			tmd_out->reset();
 			sf_out->reset(static_cast<sf::SfSet*>(sf_class->New()));
 		} else if (sf_class->InheritsFrom("sidis::sf::TmdSet")) {
 			std::cout
 				<< "Using TMDs and FFs from '"
-				<< params.sf_set << "'." << std::endl;
+				<< *params.sf_set << "'." << std::endl;
 			sf::TmdSet* tmd_ptr = static_cast<sf::TmdSet*>(sf_class->New());
 			tmd_out->reset(tmd_ptr);
 			sf_out->reset(new sf::TmdSfSet(*tmd_ptr));
 		} else if (sf_class->InheritsFrom("sidis::sf::GaussianTmdSet")) {
 			std::cout
 				<< "Using Gaussian TMDs and FFs from '"
-				<< params.sf_set << "'." << std::endl;
+				<< *params.sf_set << "'." << std::endl;
 			sf::GaussianTmdSet* tmd_ptr = static_cast<sf::GaussianTmdSet*>(sf_class->New());
 			tmd_out->reset(tmd_ptr);
 			sf_out->reset(new sf::GaussianTmdSfSet(*tmd_ptr));
 		} else if (sf_class->InheritsFrom("sidis::sf::WwTmdSet")) {
 			std::cout
 				<< "Using WW-type TMDs and FFs from '"
-				<< params.sf_set << "'." << std::endl;
+				<< *params.sf_set << "'." << std::endl;
 			sf::WwTmdSet* tmd_ptr = static_cast<sf::WwTmdSet*>(sf_class->New());
 			tmd_out->reset(tmd_ptr);
 			sf_out->reset(new sf::WwTmdSfSet(*tmd_ptr));
 		} else if (sf_class->InheritsFrom("sidis::sf::GaussianWwTmdSet")) {
 			std::cout
 				<< "Using Gaussian WW-type TMDs and FFs from '"
-				<< params.sf_set << "'." << std::endl;
+				<< *params.sf_set << "'." << std::endl;
 			sf::GaussianWwTmdSet* tmd_ptr = static_cast<sf::GaussianWwTmdSet*>(sf_class->New());
 			tmd_out->reset(tmd_ptr);
 			sf_out->reset(new sf::GaussianWwTmdSfSet(*tmd_ptr));
 		} else {
 			std::cerr
 				<< "Couldn't find structure functions in file '"
-				<< params.sf_set << ".so'" << std::endl;
+				<< *params.sf_set << ".so'" << std::endl;
 			return ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND;
 		}
 	}
@@ -129,19 +171,12 @@ struct XsNRad : public TFoamIntegrand {
 	Real S;
 	sf::SfSet const& sf;
 
-	explicit XsNRad(Params params, sf::SfSet const& sf) :
-			params(params),
-			cut(),
-			ps(params.target, params.beam, params.hadron, params.mass_threshold),
-			S(2. * mass(params.target) * params.beam_energy),
-			sf(sf) {
-		cut.x = params.x_cut;
-		cut.y = params.y_cut;
-		cut.z = params.z_cut;
-		cut.ph_t_sq = params.ph_t_sq_cut;
-		cut.phi_h = params.phi_h_cut;
-		cut.phi = params.phi_cut;
-	}
+	explicit XsNRad(Params params, cut::Cut cut, sf::SfSet const& sf) :
+		params(params),
+		cut(cut),
+		ps(*params.target, *params.beam, *params.hadron, *params.mass_threshold),
+		S(2. * mass(*params.target) * *params.beam_energy),
+		sf(sf) { }
 
 	Double_t Density(int dim, Double_t* vec) override {
 		if (dim != 6) {
@@ -152,14 +187,27 @@ struct XsNRad : public TFoamIntegrand {
 		if (!cut::take(cut, ps, S, vec, &kin, &jacobian)) {
 			return 0.;
 		}
-		math::Vec3 eta = frame::hadron_from_target(kin) * params.target_pol;
+		math::Vec3 eta = frame::hadron_from_target(kin) * *params.target_pol;
 		// TODO: Evaluate when it is a good approximation to say that
 		// `nrad ~ nrad_ir`. This happens because for small `k_0_bar`, the
 		// contribution of `rad_f` integrated up to `k_0_bar` becomes vanishingly
 		// small, so it can be neglected. However, this must be balanced with
 		// choosing `k_0_bar` to be non-zero to avoid the infrared divergence in
 		// the radiative part of the cross-section.
-		Real xs = xs::nrad_ir(params.beam_pol, eta, kin, sf, params.k_0_bar);
+		Real xs;
+		switch (*params.rc_method) {
+		case RcMethod::NONE:
+			xs = xs::born(*params.beam_pol, eta, kin, sf);
+			break;
+		case RcMethod::APPROX:
+			xs = xs::nrad_ir(*params.beam_pol, eta, kin, sf, *params.k_0_bar);
+			break;
+		case RcMethod::EXACT:
+			xs = xs::nrad(*params.beam_pol, eta, kin, sf, *params.k_0_bar);
+			break;
+		default:
+			xs = 0.;
+		}
 		// Some kinematic regions will be out of range for the structure
 		// functions, so return 0 in those cases.
 		if (std::isnan(xs)) {
@@ -178,19 +226,17 @@ struct XsRad : public TFoamIntegrand {
 	Real S;
 	sf::SfSet const& sf;
 
-	explicit XsRad(Params params, sf::SfSet const& sf) :
-			params(params),
-			cut(),
-			cut_rad(),
-			ps(params.target, params.beam, params.hadron, params.mass_threshold),
-			S(2. * mass(params.target) * params.beam_energy),
-			sf(sf) {
-		cut.x = params.x_cut;
-		cut.y = params.y_cut;
-		cut.z = params.z_cut;
-		cut.ph_t_sq = params.ph_t_sq_cut;
-		cut.phi_h = params.phi_h_cut;
-		cut.phi = params.phi_cut;
+	explicit XsRad(
+		Params params,
+		cut::Cut cut,
+		cut::CutRad cut_rad,
+		sf::SfSet const& sf) :
+		params(params),
+		cut(cut),
+		cut_rad(cut_rad),
+		ps(*params.target, *params.beam, *params.hadron, *params.mass_threshold),
+		S(2. * mass(*params.target) * *params.beam_energy),
+		sf(sf) {
 	}
 
 	Double_t Density(int dim, Double_t* vec) override {
@@ -203,8 +249,8 @@ struct XsRad : public TFoamIntegrand {
 			return 0.;
 		}
 		kin::Kinematics kin = kin_rad.project();
-		math::Vec3 eta = frame::hadron_from_target(kin) * params.target_pol;
-		Real xs = xs::rad(params.beam_pol, eta, kin_rad, sf);
+		math::Vec3 eta = frame::hadron_from_target(kin) * *params.target_pol;
+		Real xs = xs::rad(*params.beam_pol, eta, kin_rad, sf);
 		if (std::isnan(xs)) {
 			return 0.;
 		} else {
@@ -215,45 +261,45 @@ struct XsRad : public TFoamIntegrand {
 
 int command_help() {
 	std::cout
-		<< "Usage:"                                        << std::endl
-		<< "  Prepare FOAM for Monte-Carlo generation"     << std::endl
-		<< "    sidisgen --initialize <parameter file>"    << std::endl
-		<< "  Generate events"                             << std::endl
-		<< "    sidisgen --generate <parameter file>"      << std::endl
-		<< "  List parameters used to produce file"        << std::endl
-		<< "    sidisgen --inspect <output file>"          << std::endl
+		<< "Usage:"                                          << std::endl
+		<< "  Prepare FOAM for Monte-Carlo generation"       << std::endl
+		<< "    sidisgen --initialize <parameter file>"      << std::endl
+		<< "  Generate events"                               << std::endl
+		<< "    sidisgen --generate <parameter file>"        << std::endl
+		<< "  List parameters used to produce file"          << std::endl
+		<< "    sidisgen --inspect <output file>"            << std::endl
 		<< std::endl
-		<< "Parameter file format summary (see docs):"     << std::endl
+		<< "Parameter file format summary (see docs):"       << std::endl
 		<< std::endl
-		<< "event_file     <ROOT file>"                      << std::endl
-		<< "foam_nrad_file <ROOT file>"                      << std::endl
-		<< "foam_rad_file  <ROOT file>"                      << std::endl
-		<< "sf_set         <ww, test, ROOT dictionary>"      << std::endl
-		<< "num_events     <integer>"                        << std::endl
-		<< "num_init       <integer>"                        << std::endl
+		<< "event-file     <ROOT file>"                      << std::endl
+		<< "rc-method      <none, approx, exact>"            << std::endl
+		<< "gen-nrad       <true, false>"                    << std::endl
+		<< "gen-rad        <true, false>"                    << std::endl
+		<< "write-photon   <true, false>"                    << std::endl
+		<< "foam-nrad-file <ROOT file>"                      << std::endl
+		<< "foam-rad-file  <ROOT file>"                      << std::endl
+		<< "sf-set         <prokudin, test, ROOT dict.>"     << std::endl
+		<< "num-events     <integer>"                        << std::endl
+		<< "num-init       <integer>"                        << std::endl
 		<< "seed           <integer>"                        << std::endl
-		<< "seed_init      <integer>"                        << std::endl
-		<< "beam_energy    <energy (GeV)>"                   << std::endl
+		<< "seed-init      <integer>"                        << std::endl
+		<< "beam-energy    <energy (GeV)>"                   << std::endl
 		<< "beam           <pid>"                            << std::endl
 		<< "target         <pid>"                            << std::endl
-		<< "mass_threshold <mass (GeV)>"                     << std::endl
+		<< "mass-threshold <mass (GeV)>"                     << std::endl
 		<< "hadron         <pid>"                            << std::endl
-		<< "beam_pol       <real in [0, 1]>"                 << std::endl
-		<< "target_pol     <vector in unit sphere>"          << std::endl
-		<< "k_0_bar        <energy (GeV)>"                   << std::endl
-		<< "x_cut          <x min.>     <x max.>"            << std::endl
-		<< "y_cut          <y min.>     <y max.>"            << std::endl
-		<< "z_cut          <z min.>     <z max.>"            << std::endl
-		<< "ph_t_sq_cut    <ph_t² min.> <ph_t² max.>"        << std::endl
-		<< "phi_h_cut      <φ_h min.>   <φ_h max.>"          << std::endl
-		<< "phi_cut        <φ min.>     <φ max.>"            << std::endl
-		// TODO: We could add an intermediate method here that approximates
-		// the full 3-d integral over `rad_f` with a 2-d integral over
-		// `phi_k` and `tau` only.
-		<< "UNIMPLEMENTED OPTIONS"                           << std::endl
-		<< "rc_method      <none, full>"                     << std::endl
-		<< "nrad_method    <none, ir_only, full>"            << std::endl
-		<< "soft_k_cut     <energy>"                         << std::endl;
+		<< "beam-pol       <real in [0, 1]>"                 << std::endl
+		<< "target-pol     <vector in unit sphere>"          << std::endl
+		<< "soft-threshold <energy (GeV)>"                   << std::endl
+		<< "x-cut          <min> <max>"                      << std::endl
+		<< "y-cut          <min> <max>"                      << std::endl
+		<< "z-cut          <min> <max>"                      << std::endl
+		<< "ph-t-sq-cut    <min> <max>"                      << std::endl
+		<< "phi-h-cut      <min> <max>"                      << std::endl
+		<< "phi-cut        <min> <max>"                      << std::endl
+		<< "tau-cut        <min> <max>"                      << std::endl
+		<< "phi-k-cut      <min> <max>"                      << std::endl
+		<< "k-0-bar-cut    <min> <max>"                      << std::endl;
 	return SUCCESS;
 }
 
@@ -277,7 +323,12 @@ int command_inspect(std::string output_file_name) {
 		return ERROR_FILE_NOT_FOUND;
 	}
 	params.read_root(file);
-	params.write(std::cout);
+	std::ios_base::fmtflags flags(std::cout.flags());
+	std::cout
+		<< std::scientific
+		<< std::setprecision(std::numeric_limits<long double>::digits10 + 1);
+	params.write_stream(std::cout);
+	std::cout.flags(flags);
 	return SUCCESS;
 }
 
@@ -292,22 +343,34 @@ int command_initialize(std::string params_file_name) {
 	std::cout << "Reading parameter file '" << params_file_name << "'." << std::endl;
 	Params params;
 	try {
-		params.read(params_file);
-	} catch (std::runtime_error const& e) {
+		params.read_stream(params_file);
+	} catch (std::exception const& e) {
 		std::cerr
 			<< "Failed to parse parameter file '" << params_file_name << "': "
-			<< e.what() << "." << std::endl;
+			<< e.what() << std::endl;
 		return ERROR_PARAMS_PARSE;
 	}
 	std::cout << std::endl;
-	params.write(std::cout);
+	params.write_stream(std::cout);
 	std::cout << std::endl;
+	try {
+		params.make_valid();
+	} catch (std::exception const& e) {
+		std::cerr
+			<< "Invalid options in parameter file '" << params_file_name << "': "
+			<< e.what() << std::endl;
+		return ERROR_PARAMS_INVALID;
+	}
 
-	ULong_t N_init_nrad = params.num_init >= 1 ? params.num_init : 1;
-	ULong_t N_init_rad  = params.num_init >= 1 ? params.num_init : 1;
+	ULong_t N_init_nrad = *params.num_init >= 1 ? *params.num_init : 1;
+	ULong_t N_init_rad  = *params.num_init >= 1 ? *params.num_init : 1;
 	// Note that `TRandom3` uses the time as the seed if zero is provided.
-	UInt_t seed = params.seed_init >= 0 ? params.seed_init : 0;
+	UInt_t seed = *params.seed_init >= 0 ? *params.seed_init : 0;
 	TRandom3 random(seed);
+
+	cut::Cut cut;
+	cut::CutRad cut_rad;
+	cuts(params, &cut, &cut_rad);
 
 	std::unique_ptr<sf::SfSet> sf;
 	std::unique_ptr<sf::TmdSet> tmd;
@@ -316,51 +379,53 @@ int command_initialize(std::string params_file_name) {
 		return err;
 	}
 
-	std::cout << "Creating non-radiative FOAM file." << std::endl;
-	TFile foam_nrad_file(params.foam_nrad_file.c_str(), "RECREATE");
-	if (foam_nrad_file.IsZombie()) {
-		std::cerr
-			<< "Couldn't open or create file '" << params.foam_nrad_file
-			<< "'." << std::endl;
-		return ERROR_FILE_NOT_CREATED;
+	if (*params.gen_nrad) {
+		std::cout << "Creating non-radiative FOAM file." << std::endl;
+		TFile foam_nrad_file(params.foam_nrad_file->c_str(), "RECREATE");
+		if (foam_nrad_file.IsZombie()) {
+			std::cerr
+				<< "Couldn't open or create file '" << *params.foam_nrad_file
+				<< "'." << std::endl;
+			return ERROR_FILE_NOT_CREATED;
+		}
+		foam_nrad_file.cd();
+		params.write_root(foam_nrad_file);
+
+		std::cout << "Non-radiative FOAM initialization." << std::endl;
+		TFoam foam_nrad("FoamNRad");
+		XsNRad xs_nrad(params, cut, *sf);
+		foam_nrad.SetChat(0);
+		foam_nrad.SetkDim(6);
+		foam_nrad.SetRho(&xs_nrad);
+		foam_nrad.SetPseRan(&random);
+		foam_nrad.SetnSampl(N_init_nrad);
+		foam_nrad.Initialize();
+		foam_nrad.Write("FoamNRad");
 	}
-	foam_nrad_file.cd();
-	params.write_root(foam_nrad_file);
 
-	std::cout << "Non-radiative FOAM initialization." << std::endl;
-	TFoam foam_nrad("FoamNRad");
-	XsNRad xs_nrad(params, *sf);
-	foam_nrad.SetChat(0);
-	foam_nrad.SetkDim(6);
-	foam_nrad.SetRho(&xs_nrad);
-	foam_nrad.SetPseRan(&random);
-	foam_nrad.SetnSampl(N_init_nrad);
-	foam_nrad.Initialize();
-	foam_nrad.Write("FoamNRad");
-	foam_nrad_file.Close();
+	if (*params.gen_rad && *params.rc_method != RcMethod::NONE) {
+		std::cout << "Creating radiative FOAM file." << std::endl;
+		TFile foam_rad_file(params.foam_rad_file->c_str(), "RECREATE");
+		if (foam_rad_file.IsZombie()) {
+			std::cerr
+				<< "Couldn't open or create file '" << *params.foam_rad_file
+				<< "'." << std::endl;
+			return ERROR_FILE_NOT_CREATED;
+		}
+		foam_rad_file.cd();
+		params.write_root(foam_rad_file);
 
-	std::cout << "Creating radiative FOAM file." << std::endl;
-	TFile foam_rad_file(params.foam_rad_file.c_str(), "RECREATE");
-	if (foam_rad_file.IsZombie()) {
-		std::cerr
-			<< "Couldn't open or create file '" << params.foam_rad_file
-			<< "'." << std::endl;
-		return ERROR_FILE_NOT_CREATED;
+		std::cout << "Radiative FOAM initialization." << std::endl;
+		TFoam foam_rad("FoamRad");
+		XsRad xs_rad(params, cut, cut_rad, *sf);
+		foam_rad.SetChat(0);
+		foam_rad.SetkDim(9);
+		foam_rad.SetRho(&xs_rad);
+		foam_rad.SetPseRan(&random);
+		foam_rad.SetnSampl(N_init_rad);
+		foam_rad.Initialize();
+		foam_rad.Write("FoamRad");
 	}
-	foam_rad_file.cd();
-	params.write_root(foam_rad_file);
-
-	std::cout << "Radiative FOAM initialization." << std::endl;
-	TFoam foam_rad("FoamRad");
-	XsRad xs_rad(params, *sf);
-	foam_rad.SetChat(0);
-	foam_rad.SetkDim(9);
-	foam_rad.SetRho(&xs_rad);
-	foam_rad.SetPseRan(&random);
-	foam_rad.SetnSampl(N_init_rad);
-	foam_rad.Initialize();
-	foam_rad.Write("FoamRad");
-	foam_rad_file.Close();
 
 	std::cout << "Finished!" << std::endl;
 	return SUCCESS;
@@ -377,82 +442,31 @@ int command_generate(std::string params_file_name) {
 	std::cout << "Reading parameter file '" << params_file_name << "'." << std::endl;
 	Params params;
 	try {
-		params.read(params_file);
-	} catch (std::runtime_error const& e) {
+		params.read_stream(params_file);
+	} catch (std::exception const& e) {
 		std::cerr
 			<< "Failed to parse parameter file '" << params_file_name << "': "
-			<< e.what() << "." << std::endl;
+			<< e.what() << std::endl;
 		return ERROR_PARAMS_PARSE;
 	}
 	std::cout << std::endl;
-	params.write(std::cout);
+	params.write_stream(std::cout);
 	std::cout << std::endl;
-
-	TFile event_file(params.event_file.c_str(), "RECREATE");
-	if (event_file.IsZombie()) {
+	try {
+		params.make_valid();
+	} catch (std::exception const& e) {
 		std::cerr
-			<< "Couldn't create file '" << params.event_file
-			<< "'." << std::endl;
-		return ERROR_FILE_NOT_CREATED;
-	}
-	TFile foam_nrad_file(params.foam_nrad_file.c_str(), "OPEN");
-	if (foam_nrad_file.IsZombie()) {
-		std::cerr
-			<< "Couldn't open file '" << params.foam_nrad_file
-			<< "'." << std::endl;
-		return ERROR_FILE_NOT_CREATED;
-	}
-	TFile foam_rad_file(params.foam_rad_file.c_str(), "OPEN");
-	if (foam_rad_file.IsZombie()) {
-		std::cerr
-			<< "Couldn't open file '" << params.foam_rad_file
-			<< "'." << std::endl;
-		return ERROR_FILE_NOT_CREATED;
+			<< "Invalid options in parameter file '" << params_file_name << "': "
+			<< e.what() << std::endl;
+		return ERROR_PARAMS_INVALID;
 	}
 
-	std::cout << "Verifying FOAMs use the same parameters." << std::endl;
-	Params foam_nrad_params;
-	foam_nrad_params.read_root(foam_nrad_file);
-	if (!params.compatible_foam(foam_nrad_params)) {
-		std::cerr
-			<< "Couldn't use non-radiative FOAM from '" << params.foam_nrad_file
-			<< "' because it was generated with parameters incompatible with "
-			<< "the provided parameter file '" << params_file_name
-			<< "'." << std::endl;
-		return ERROR_FOAM_INCOMPATIBLE;
-	}
-	Params foam_rad_params;
-	foam_rad_params.read_root(foam_rad_file);
-	if (!params.compatible_foam(foam_rad_params)) {
-		std::cerr
-			<< "Couldn't use radiative FOAM from '" << params.foam_rad_file
-			<< "' because it was generated with different parameters than "
-			<< "provided parameter file '" << params_file_name
-			<< "'." << std::endl;
-		return ERROR_FOAM_INCOMPATIBLE;
-	}
+	// Fill out cut information.
+	cut::Cut cut;
+	cut::CutRad cut_rad;
+	cuts(params, &cut, &cut_rad);
 
-	std::cout << "Reading non-radiative FOAM from file." << std::endl;
-	TFoam* foam_nrad = foam_nrad_file.Get<TFoam>("FoamNRad");
-	if (foam_nrad == nullptr) {
-		std::cerr
-			<< "Failed to load non-radiative FOAM from file '"
-			<< params.foam_nrad_file << "'.";
-		return ERROR_FOAM_NOT_FOUND;
-	}
-
-	std::cout << "Reading radiative FOAM from file." << std::endl;
-	TFoam* foam_rad = foam_rad_file.Get<TFoam>("FoamRad");
-	if (foam_rad == nullptr) {
-		std::cerr
-			<< "Failed to load radiative FOAM from file '"
-			<< params.foam_rad_file << "'.";
-		return ERROR_FOAM_NOT_FOUND;
-	}
-
-	UInt_t seed = params.seed >= 0 ? params.seed : 0;
-	TRandom3 random(seed);
-
+	// Load the structure functions.
 	std::unique_ptr<sf::SfSet> sf;
 	std::unique_ptr<sf::TmdSet> tmd;
 	int err = alloc_sf(params, &sf, &tmd);
@@ -460,39 +474,139 @@ int command_generate(std::string params_file_name) {
 		return err;
 	}
 
-	XsNRad xs_nrad(params, *sf);
-	foam_nrad->SetPseRan(&random);
-	foam_nrad->ResetRho(&xs_nrad);
+	std::cout
+		<< "Opening event output file '" << *params.event_file
+		<< "'." << std::endl;
+	TFile event_file(params.event_file->c_str(), "RECREATE");
+	if (event_file.IsZombie()) {
+		std::cerr
+			<< "Couldn't create file '" << *params.event_file
+			<< "'." << std::endl;
+		return ERROR_FILE_NOT_CREATED;
+	}
 
-	XsRad xs_rad(params, *sf);
-	foam_rad->SetPseRan(&random);
-	foam_rad->ResetRho(&xs_rad);
+	UInt_t seed = *params.seed >= 0 ? *params.seed : 0;
+	TRandom3 random(seed);
 
-	constant::Nucleus target = params.target;
-	constant::Lepton beam = params.beam;
-	constant::Hadron hadron = params.hadron;
-	math::Vec3 target_pol = params.target_pol;
-	kin::Particles ps(target, beam, hadron, params.mass_threshold);
-	Real S = 2.*params.beam_energy*ps.M;
+	// Fill out the information for each type of event.
+	std::vector<EventStats> event_stats;
+	if (*params.gen_nrad) {
+		std::cout
+			<< "Reading non-radiative FOAM from file '" << *params.foam_nrad_file
+			<< "'." << std::endl;
+		std::unique_ptr<TFile> foam_nrad_file(
+			new TFile(params.foam_nrad_file->c_str(), "OPEN"));
+		if (foam_nrad_file->IsZombie()) {
+			std::cerr
+				<< "Couldn't open file '" << *params.foam_nrad_file
+				<< "'." << std::endl;
+			return ERROR_FILE_NOT_CREATED;
+		}
+		Params foam_nrad_params;
+		foam_nrad_params.read_root(*foam_nrad_file);
+		try {
+			if (!foam_nrad_params.valid()) {
+				throw std::runtime_error("Invalid FOAM parameters.");
+			}
+			params.compatible_with_foam(foam_nrad_params);
+		} catch (std::exception const& e) {
+			std::cerr
+				<< "Couldn't use non-radiative FOAM from '" << *params.foam_nrad_file
+				<< "' because it uses parameters incompatible with the "
+				<< "provided parameter file '" << params_file_name
+				<< "': " << e.what() << std::endl;
+			return ERROR_FOAM_INCOMPATIBLE;
+		}
+		TFoam* foam_nrad = foam_nrad_file->Get<TFoam>("FoamNRad");
+		if (foam_nrad == nullptr) {
+			std::cerr
+				<< "Failed to load non-radiative FOAM from file '"
+				<< *params.foam_nrad_file << "'.";
+			return ERROR_FOAM_NOT_FOUND;
+		}
+		std::unique_ptr<TFoamIntegrand> rho(new XsNRad(params, cut, *sf));
+		foam_nrad->SetPseRan(&random);
+		foam_nrad->ResetRho(rho.get());
+		event_stats.push_back({
+			EventType::NRAD,
+			std::move(foam_nrad_file),
+			std::move(rho),
+			foam_nrad,
+			0.,
+			0.,
+			0,
+		});
+	}
 
-	kin::Initial initial_state(ps, params.beam_energy);
-	ULong_t N_gen = params.num_events >= 0 ? params.num_events : 0;
-	// These keep track of how many radiative/non-radiative events have been
-	// generated so far, so that the ratio of radiative to non-radiative events
-	// generated can be kept roughly the same as the ratio of the total
-	// radiative/non-radiative cross-sections.
-	ULong_t N_gen_nrad = 0;
-	ULong_t N_gen_rad = 0;
+	if (*params.gen_rad) {
+		std::cout
+			<< "Reading radiative FOAM from file '" << *params.foam_rad_file
+			<< "'." << std::endl;
+		std::unique_ptr<TFile> foam_rad_file(
+			new TFile(params.foam_rad_file->c_str(), "OPEN"));
+		if (foam_rad_file->IsZombie()) {
+			std::cerr
+				<< "Couldn't open file '" << *params.foam_rad_file
+				<< "'." << std::endl;
+			return ERROR_FILE_NOT_CREATED;
+		}
+		Params foam_rad_params;
+		foam_rad_params.read_root(*foam_rad_file);
+		try {
+			if (!foam_rad_params.valid()) {
+				throw std::runtime_error("Invalid FOAM parameters.");
+			}
+			params.compatible_with_foam(foam_rad_params);
+		} catch (std::exception const& e) {
+			std::cerr
+				<< "Couldn't use radiative FOAM from '" << *params.foam_rad_file
+				<< "' because it uses parameters incompatible with the "
+				<< "provided parameter file '" << params_file_name
+				<< "': " << e.what() << std::endl;
+			return ERROR_FOAM_INCOMPATIBLE;
+		}
+		TFoam* foam_rad = foam_rad_file->Get<TFoam>("FoamRad");
+		if (foam_rad == nullptr) {
+			std::cerr
+				<< "Failed to load radiative FOAM from file '"
+				<< *params.foam_rad_file << "'.";
+			return ERROR_FOAM_NOT_FOUND;
+		}
+		std::unique_ptr<TFoamIntegrand> rho(new XsRad(params, cut, cut_rad, *sf));
+		foam_rad->SetPseRan(&random);
+		foam_rad->ResetRho(rho.get());
+		event_stats.push_back({
+			EventType::RAD,
+			std::move(foam_rad_file),
+			std::move(rho),
+			foam_rad,
+			0.,
+			0.,
+			0,
+		});
+	}
+
+	constant::Nucleus target = *params.target;
+	constant::Lepton beam = *params.beam;
+	constant::Hadron hadron = *params.hadron;
+	math::Vec3 target_pol = *params.target_pol;
+	kin::Particles ps(target, beam, hadron, *params.mass_threshold);
+	Real S = 2.*(*params.beam_energy)*ps.M;
+
+	kin::Initial initial_state(ps, *params.beam_energy);
+	ULong_t N_gen = *params.num_events >= 0 ? *params.num_events : 0;
 
 	event_file.cd();
 	TTree events("Events", "Events");
-	Bool_t is_rad;
+	Int_t type;
 	Double_t weight;
+	Double_t jacobian;
 	Double_t x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R;
 	Double_t Q_sq;
 	TLorentzVector p, k1, q, k2, ph, k;
-	events.Branch("is_rad", &is_rad);
+	events.Branch("type", &type);
 	events.Branch("weight", &weight);
+	events.Branch("jacobian", &jacobian);
 	events.Branch("x", &x);
 	events.Branch("y", &y);
 	events.Branch("z", &z);
@@ -508,15 +622,12 @@ int command_generate(std::string params_file_name) {
 	events.Branch("q", "TLorentzVector", &q);
 	events.Branch("k2", "TLorentzVector", &k2);
 	events.Branch("ph", "TLorentzVector", &ph);
-	events.Branch("k", "TLorentzVector", &k);
-
-	std::cout << "Writing parameters." << std::endl;
+	if (*params.gen_rad && *params.write_photon) {
+		events.Branch("k", "TLorentzVector", &k);
+	}
 	params.write_root(event_file);
 
 	std::cout << "Generating events." << std::endl;
-	Double_t total_nrad, total_nrad_err;
-	Double_t total_rad, total_rad_err;
-
 	bool update_progress = true;
 	ULong_t percent = 0;
 	ULong_t next_percent_rem = N_gen % 100;
@@ -524,7 +635,7 @@ int command_generate(std::string params_file_name) {
 	for (ULong_t event_idx = 0; event_idx < N_gen; ++event_idx) {
 		while (event_idx >= next_percent + (next_percent_rem != 0)) {
 			percent += 1;
-			next_percent = math::prod_div(N_gen, percent, 100, next_percent_rem);
+			next_percent = math::prod_div(N_gen, percent + 1, 100, next_percent_rem);
 			update_progress = true;
 		}
 		if (update_progress) {
@@ -536,46 +647,53 @@ int command_generate(std::string params_file_name) {
 		// Estimate the total radiative and non-radiative cross-sections and
 		// generate a radiative/non-radiative event accordingly. The total
 		// cross-section estimates are improved as more events are generated.
-		foam_nrad->GetIntegMC(total_nrad, total_nrad_err);
-		foam_rad->GetIntegMC(total_rad, total_rad_err);
-		if (!std::isfinite(total_nrad) || total_nrad == 0.) {
-			total_nrad = 0.;
-			total_nrad_err = std::numeric_limits<Double_t>::max();
+		Double_t total_xs = 0.;
+		Double_t total_xs_err = 0.;
+		for (EventStats& stats : event_stats) {
+			stats.foam->GetIntegMC(stats.xs, stats.xs_err);
+			if (!std::isfinite(stats.xs) || stats.xs == 0.) {
+				stats.xs = 0.;
+				stats.xs_err = std::numeric_limits<Double_t>::max();
+			}
+			total_xs += stats.xs;
+			total_xs_err += stats.xs_err;
 		}
-		if (!std::isfinite(total_rad) || total_rad == 0.) {
-			total_rad = 0.;
-			total_rad_err = std::numeric_limits<Double_t>::max();
-		}
-		bool choose_nrad;
+		std::size_t choose_event_type;
 		if (event_idx == 0) {
 			// On the first event, we don't know anything about the total cross-
-			// sections, so always generate a non-radiative event (since the
-			// non-radiative cross-section is guaranteed non-zero).
-			choose_nrad = true;
+			// sections, so choose the event type arbitrarily.
+			choose_event_type = 0;
 		} else {
-			Double_t total_nrad_max = total_nrad + total_nrad_err;
-			Double_t total_rad_max = total_rad + total_rad_err;
-			Double_t target_ratio = total_nrad_max
-				/ (total_nrad_max + total_rad_max);
-			Double_t ratio = static_cast<Double_t>(N_gen_nrad)
-				/ (N_gen_nrad + N_gen_rad);
-			// The reason we choose whether to generate a radiative event in
-			// this way is because if the total radiative cross-section has a
-			// large uncertainty, it will cause radiative events to be generated
-			// more than they should be, which will in turn reduce the
-			// uncertainty in the total radiative cross-section to a reasonable
-			// size.
-			choose_nrad = (ratio < target_ratio);
+			// We choose the type of event to generate as that for which the
+			// # of events generated / total # of events is furthest from the
+			// cross-section ratio of the two event types.
+			Double_t ratio_min = std::numeric_limits<Double_t>::infinity();
+			for (std::size_t idx = 0; idx < event_stats.size(); ++idx) {
+				EventStats const& stats = event_stats[idx];
+				Double_t target = (stats.xs + stats.xs_err) / (total_xs + total_xs_err);
+				Double_t ratio = static_cast<Double_t>(stats.num_events) / event_idx
+					/ target;
+				if (ratio <= ratio_min) {
+					ratio_min = ratio;
+					choose_event_type = idx;
+				}
+			}
 		}
 
-		if (choose_nrad) {
-			// Generate a non-radiative event.
-			is_rad = false;
-			N_gen_nrad += 1;
-			Double_t event_vec[6];
-			weight = foam_nrad->MCgenerate(event_vec);
-			kin::Kinematics kin;
-			if (cut::take(xs_nrad.cut, ps, S, event_vec, &kin, nullptr)) {
+		// The event vector can store up to the number of dimensions of any of
+		// the FOAMs.
+		Double_t event_vec[9];
+		weight = event_stats[choose_event_type].foam->MCgenerate(event_vec);
+		type = static_cast<Int_t>(event_stats[choose_event_type].type);
+		event_stats[choose_event_type].num_events += 1;
+
+		// Fill in the branches.
+		kin::Kinematics kin;
+		kin::KinematicsRad kin_rad;
+		switch (event_stats[choose_event_type].type) {
+		case EventType::NRAD:
+			// Non-radiative event.
+			if (cut::take(cut, ps, S, event_vec, &kin, &jacobian)) {
 				kin::Final final_state(initial_state, target_pol, kin);
 				// Fill in branches.
 				x = kin.x;
@@ -594,26 +712,22 @@ int command_generate(std::string params_file_name) {
 				// Make sure invalid data isn't written to the events.
 				weight = 0.;
 			}
-		} else {
-			// Generate a radiative event.
-			is_rad = true;
-			N_gen_rad += 1;
-			Double_t event_vec[9];
-			weight = foam_rad->MCgenerate(event_vec);
-			kin::KinematicsRad kin;
-			if (!cut::take(xs_rad.cut, xs_rad.cut_rad, ps, S, event_vec, &kin, nullptr)) {
-				kin::FinalRad final_state(initial_state, target_pol, kin);
+			break;
+		case EventType::RAD:
+			// Radiative event.
+			if (cut::take(cut, cut_rad, ps, S, event_vec, &kin_rad, &jacobian)) {
+				kin::FinalRad final_state(initial_state, target_pol, kin_rad);
 				// Fill in branches.
-				x = kin.x;
-				y = kin.y;
-				z = kin.z;
-				ph_t_sq = kin.ph_t_sq;
-				phi_h = kin.phi_h;
-				phi = kin.phi;
-				tau = kin.tau;
-				phi_k = kin.phi_k;
-				R = kin.R;
-				Q_sq = kin.Q_sq;
+				x = kin_rad.x;
+				y = kin_rad.y;
+				z = kin_rad.z;
+				ph_t_sq = kin_rad.ph_t_sq;
+				phi_h = kin_rad.phi_h;
+				phi = kin_rad.phi;
+				tau = kin_rad.tau;
+				phi_k = kin_rad.phi_k;
+				R = kin_rad.R;
+				Q_sq = kin_rad.Q_sq;
 				p = convert_vec4(initial_state.p);
 				k1 = convert_vec4(initial_state.k1);
 				q = convert_vec4(final_state.q);
@@ -623,6 +737,9 @@ int command_generate(std::string params_file_name) {
 			} else {
 				weight = 0.;
 			}
+			break;
+		default:
+			throw std::runtime_error("Unrecognized event type.");
 		}
 		events.Fill();
 	}
@@ -632,31 +749,36 @@ int command_generate(std::string params_file_name) {
 	event_file.cd();
 	events.Write();
 
-	foam_nrad->GetIntegMC(total_nrad, total_nrad_err);
-	foam_rad->GetIntegMC(total_rad, total_rad_err);
+	std::cout << "Statistics:" << std::endl;
+	std::ios_base::fmtflags flags(std::cout.flags());
+	std::cout << std::scientific << std::setprecision(6);
+	TArrayD total_xs(2);
+	TArrayD total_xs_err(2);
+	for (EventStats& stats : event_stats) {
+		Int_t idx = static_cast<Int_t>(stats.type);
+		stats.foam->GetIntegMC(stats.xs, stats.xs_err);
+		total_xs.SetAt(idx, stats.xs);
+		total_xs_err.SetAt(idx, stats.xs_err);
+		switch (stats.type) {
+		case EventType::NRAD:
+			std::cout << "\tNon-radiative events:" << std::endl;
+			break;
+		case EventType::RAD:
+			std::cout << "\tRadiative events:" << std::endl;
+			break;
+		default:
+			throw std::runtime_error("Unrecognized event type.");
+		}
+		std::cout << "\t\tCount:         " << stats.num_events << std::endl;
+		std::cout << "\t\tCross-section: " << stats.xs << " ± " << stats.xs_err << std::endl;
+	}
+	std::cout.flags(flags);
 
 	// Write total cross-sections to file.
 	event_file.cd();
-	TParameter<Double_t> p_xs_total_nrad("xs_total_nrad", total_nrad);
-	TParameter<Double_t> p_xs_total_nrad_err("xs_total_nrad_err", total_nrad_err);
-	TParameter<Double_t> p_xs_total_rad("xs_total_rad", total_rad);
-	TParameter<Double_t> p_xs_total_rad_err("xs_total_rad_err", total_rad_err);
-	p_xs_total_nrad.Write();
-	p_xs_total_nrad_err.Write();
-	p_xs_total_rad.Write();
-	p_xs_total_rad_err.Write();
+	event_file.WriteObject(&total_xs, "xs_total");
+	event_file.WriteObject(&total_xs_err, "xs_total_err");
 
-	event_file.Close();
-	foam_nrad_file.Close();
-	foam_rad_file.Close();
-
-	std::cout << "Statistics:" << std::endl;
-	std::cout << "\tNumber of non-radiative events:    " << N_gen_nrad << std::endl;
-	std::cout << "\tNumber of radiative events:        " << N_gen_rad << std::endl;
-	std::cout << "\tTotal non-radiative cross-section: "
-		<< std::scientific << total_nrad << " ± " << total_nrad_err << std::endl;
-	std::cout << "\tTotal radiative cross-section:     "
-		<< std::scientific << total_rad << " ± " << total_rad_err << std::endl;
 	return SUCCESS;
 }
 
