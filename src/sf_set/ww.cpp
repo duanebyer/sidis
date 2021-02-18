@@ -6,6 +6,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <mstwpdf.h>
@@ -273,8 +274,10 @@ struct WW::Impl {
 };
 
 WW::WW(WW&& other) noexcept :
-	SfSet(Nucleus::P),
-	_impl(std::exchange(other._impl, nullptr)) { }
+		SfSet(Nucleus::P),
+		_impl(nullptr) {
+	std::swap(_impl, other._impl);
+}
 WW& WW::operator=(WW&& other) noexcept {
 	std::swap(_impl, other._impl);
 	return *this;
