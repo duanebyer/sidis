@@ -32,6 +32,10 @@ public:
 	constant::Nucleus const target;
 
 	SfSet(constant::Nucleus target) : target(target) { }
+	SfSet(SfSet const&) = delete;
+	SfSet(SfSet&&) = delete;
+	SfSet& operator=(SfSet const&) = delete;
+	SfSet& operator=(SfSet&&) = delete;
 	virtual ~SfSet() = default;
 
 	virtual Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
