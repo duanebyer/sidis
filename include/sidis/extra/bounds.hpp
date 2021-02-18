@@ -27,6 +27,7 @@ public:
 		return _max;
 	}
 
+	Bounds() : _min(0.), _max(0.) { }
 	Bounds(Real min, Real max);
 	bool contains(Real x) const {
 		return _min <= x && x < _max;
