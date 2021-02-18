@@ -375,11 +375,11 @@ bool cut::take(
 		Kinematics kin, const Real point[3],
 		PhaseSpaceRad* ph_space_out, Real* jacobian_out) {
 	Bounds tau_b = tau_bounds(kin);
-	Real tau = tau_b.lerp(point[6]);
+	Real tau = tau_b.lerp(point[0]);
 	Bounds phi_k_b = Bounds(-PI, PI);
-	Real phi_k = phi_k_b.lerp(point[7]);
+	Real phi_k = phi_k_b.lerp(point[1]);
 	Bounds R_b = R_bounds(kin, tau, phi_k);
-	Real R = R_b.lerp(point[8]);
+	Real R = R_b.lerp(point[2]);
 	if (ph_space_out != nullptr) {
 		*ph_space_out = {
 			kin.x, kin.y, kin.z,
@@ -411,11 +411,11 @@ bool cut::take(
 		CutRad cut, Kinematics kin, const Real point[3],
 		KinematicsRad* kin_out, Real* jacobian_out) {
 	Bounds tau_b = tau_bounds(cut, kin);
-	Real tau = tau_b.lerp(point[6]);
+	Real tau = tau_b.lerp(point[0]);
 	Bounds phi_k_b = cut.phi_k;
-	Real phi_k = phi_k_b.lerp(point[7]);
+	Real phi_k = phi_k_b.lerp(point[1]);
 	Bounds R_b = R_bounds(cut, kin, tau, phi_k);
-	Real R = R_b.lerp(point[8]);
+	Real R = R_b.lerp(point[2]);
 	KinematicsRad kin_rad(kin, tau, phi_k, R);
 	if (kin_out != nullptr) {
 		*kin_out = kin_rad;
