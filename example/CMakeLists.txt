@@ -1,7 +1,10 @@
 add_executable(cross_section cross_section.cpp)
 target_link_libraries(cross_section PRIVATE sidis)
 target_compile_features(cross_section PRIVATE cxx_std_11)
-set_target_properties(cross_section PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(
+	cross_section PROPERTIES
+	CXX_EXTENSIONS OFF
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 target_compile_options(
 	cross_section
 	PRIVATE
@@ -11,7 +14,10 @@ target_compile_options(
 add_executable(random_phase_space random_phase_space.cpp)
 target_link_libraries(random_phase_space PRIVATE sidis)
 target_compile_features(random_phase_space PRIVATE cxx_std_11)
-set_target_properties(random_phase_space PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(
+	random_phase_space PROPERTIES
+	CXX_EXTENSIONS OFF
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 target_compile_options(
 	random_phase_space
 	PRIVATE
@@ -21,7 +27,10 @@ target_compile_options(
 add_executable(quick_start quick_start.cpp)
 target_link_libraries(quick_start PRIVATE sidis)
 target_compile_features(quick_start PRIVATE cxx_std_11)
-set_target_properties(quick_start PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(
+	quick_start PROPERTIES
+	CXX_EXTENSIONS OFF
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 target_compile_options(
 	quick_start
 	PRIVATE
@@ -41,7 +50,10 @@ if(ROOT_FOUND)
 		cubature
 		ROOT::Core ROOT::Gpad ROOT::Graf)
 	target_compile_features(plot_transverse_asymmetry PRIVATE cxx_std_11)
-	set_target_properties(plot_transverse_asymmetry PROPERTIES CXX_EXTENSIONS OFF)
+	set_target_properties(
+		plot_transverse_asymmetry PROPERTIES
+		CXX_EXTENSIONS OFF
+		INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 	target_compile_options(
 		plot_transverse_asymmetry
 		PRIVATE

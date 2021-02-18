@@ -20,7 +20,10 @@ add_custom_command(
 		"${Sidis_SOURCE_DIR}/test/data"
 		"${Sidis_BINARY_DIR}/test/data")
 target_compile_features(sidistest PRIVATE cxx_std_11)
-set_target_properties(sidistest PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(
+	sidistest PROPERTIES
+	CXX_EXTENSIONS OFF
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 
 catch_discover_tests(sidistest)
 

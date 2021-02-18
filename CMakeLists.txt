@@ -9,6 +9,9 @@ project(
 	DESCRIPTION "Event generator for polarized SIDIS with radiative corrections"
 	HOMEPAGE_URL "https://github.com/duanebyer/sidis"
 	LANGUAGES CXX)
+if(NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+	message(FATAL_ERROR "Sidis does not support subproject build")
+endif()
 
 set(
 	Sidis_BUILD_TESTS TRUE
@@ -31,9 +34,18 @@ set_property(
 	PROPERTY STRINGS
 	"float" "double" "long double")
 
-if(NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-	message(FATAL_ERROR "Sidis does not support subproject build")
+set(IPO_SUPPORTED FALSE)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.9)
+	include(CheckIPOSupported)
+	check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_OUTPUT)
+	if (NOT IPO_SUPPORTED)
+		message(WARNING "IPO not supported: ${IPO_OUTPUT}")
+	endif()
 endif()
+set(
+	Sidis_IPO_ENABLED ${IPO_SUPPORTED}
+	CACHE BOOL
+	"should interprocess optimization be enabled")
 
 set(BUILD_TESTING ${Sidis_BUILD_TESTS})
 include(CTest)

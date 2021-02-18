@@ -4,7 +4,10 @@ target_link_libraries(sidisgen PRIVATE
 	sidis
 	ROOT::Core ROOT::Foam ROOT::Physics ROOT::Tree)
 target_compile_features(sidisgen PRIVATE cxx_std_11)
-set_target_properties(sidisgen PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(
+	sidisgen PROPERTIES
+	CXX_EXTENSIONS OFF
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 target_compile_options(
 	sidisgen
 	PRIVATE

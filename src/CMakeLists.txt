@@ -93,7 +93,10 @@ target_include_directories(
 	"${Sidis_SOURCE_DIR}/include"
 	"${Sidis_BINARY_DIR}/include")
 target_compile_features(sidis PUBLIC cxx_std_11)
-set_target_properties(sidis PROPERTIES CXX_EXTENSIONS OFF)
+set_target_properties(
+	sidis PROPERTIES
+	CXX_EXTENSIONS OFF
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 target_compile_options(
 	sidis
 	PRIVATE
