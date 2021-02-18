@@ -22,6 +22,14 @@ struct Vec3 {
 	Vec3() : x(0.), y(0.), z(0.) { }
 	Vec3(Real x, Real y, Real z) : x(x), y(y), z(z) { }
 
+	// Equality operations.
+	bool operator==(Vec3 const& rhs) const {
+		return x == rhs.x && y == rhs.y && z == rhs.z;
+	}
+	bool operator!=(Vec3 const& rhs) const {
+		return !(*this == rhs);
+	}
+
 	// Arithmetic operations.
 	Vec3& operator+=(Vec3 const& rhs) {
 		x += rhs.x;
@@ -117,6 +125,14 @@ struct Vec4 {
 
 	Vec3 r() const {
 		return Vec3(x, y, z);
+	}
+
+	// Equality operations.
+	bool operator==(Vec4 const& rhs) const {
+		return t == rhs.t && x == rhs.x && y == rhs.y && z == rhs.z;
+	}
+	bool operator!=(Vec4 const& rhs) const {
+		return !(*this == rhs);
 	}
 
 	// Arithmetic operations.

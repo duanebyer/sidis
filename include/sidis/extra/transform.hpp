@@ -48,6 +48,14 @@ struct Transform3 {
 	Real det() const;
 	Transform3 inv() const;
 
+	// Equality operations.
+	bool operator==(Transform3 const& rhs) const {
+		return x == rhs.x && y == rhs.y && z == rhs.z;
+	}
+	bool operator!=(Transform3 const& rhs) const {
+		return !(*this == rhs);
+	}
+
 	// Arithmetic operations.
 	Transform3& operator+=(Transform3 const& rhs) {
 		x += rhs.x;
@@ -200,6 +208,14 @@ struct Transform4 {
 	Real trace() const;
 	Real det() const;
 	Transform4 inv() const;
+
+	// Equality operations.
+	bool operator==(Transform4 const& rhs) const {
+		return t == rhs.t && x == rhs.x && y == rhs.y && z == rhs.z;
+	}
+	bool operator!=(Transform4 const& rhs) const {
+		return !(*this == rhs);
+	}
 
 	// Arithmetic operations.
 	Transform4& operator+=(Transform4 const& rhs) {

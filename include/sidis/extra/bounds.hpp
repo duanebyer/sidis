@@ -41,6 +41,14 @@ public:
 		return _max - _min;
 	}
 
+	// Equality operations.
+	bool operator==(Bounds const& rhs) const {
+		return _min == rhs._min && _max == rhs._max;
+	}
+	bool operator!=(Bounds const& rhs) const {
+		return !(*this == rhs);
+	}
+
 	// Combining bounds.
 	Bounds& operator&=(Bounds const& rhs);
 	Bounds& operator|=(Bounds const& rhs);
