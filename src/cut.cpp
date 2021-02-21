@@ -218,7 +218,7 @@ Bounds cut::R_bounds(CutRad cut, Kinematics kin, Real tau, Real phi_k) {
 				(2.*tau*sq(kin.M) - kin.S_x)*kin.ph_l/kin.M
 				- 2.*kin.M*kin.ph_t*std::cos(kin.phi_h - phi_k)*std::sqrt(
 					(tau - tau_b.min())*(tau_b.max() - tau)));
-		Bounds k_0_bar = 1./(1. + tau - mu)*(2.*kin.mx*cut.k_0_bar - sq(kin.Mth));
+		Bounds k_0_bar = (2.*kin.mx*cut.k_0_bar)/(1. + tau - mu);
 		result &= k_0_bar;
 	}
 	return result;

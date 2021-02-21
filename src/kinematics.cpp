@@ -234,7 +234,7 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 	k_0 = R/(2.*M);
 	k_t = (M*R*lambda_z_sqrt)/(lambda_1_sqrt*lambda_Y_sqrt);
 	k_l = lambda_RY/(2.*M*lambda_Y_sqrt);
-	k_0_bar = ((1. + tau - mu)*R + sq(Mth))/(2.*mx);
+	k_0_bar = ((1. + tau - mu)*R)/(2.*mx);
 
 	// Equation [1.B5].
 	F_22 = 1./sq(z_2);
