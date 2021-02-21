@@ -17,12 +17,31 @@ namespace kin {
 namespace cut {
 
 struct Cut {
+	// TODO: Cuts should be possible to enable or disable. (Bounds are options?)
+	// Base cuts.
 	math::Bounds x;
 	math::Bounds y;
 	math::Bounds z;
 	math::Bounds ph_t_sq;
 	math::Bounds phi_h;
 	math::Bounds phi;
+
+	// Kinematic variable cuts.
+	// TODO: Special cut.
+	math::Bounds Q_sq;
+	math::Bounds t;
+	math::Bounds w;
+
+	// Energy cuts.
+	math::Bounds mx_sq;
+	math::Bounds q_0;
+	math::Bounds k2_0;
+	math::Bounds ph_0;
+
+	// Angle cuts.
+	math::Bounds theta_q;
+	math::Bounds theta_k2;
+	math::Bounds theta_h;
 
 	Cut();
 };
@@ -31,6 +50,12 @@ struct CutRad {
 	math::Bounds tau;
 	math::Bounds phi_k;
 	math::Bounds k_0_bar;
+
+	// Energy cuts.
+	math::Bounds k_0;
+
+	// Angle cuts.
+	math::Bounds theta_k;
 
 	CutRad();
 };

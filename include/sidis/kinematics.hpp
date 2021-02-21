@@ -85,6 +85,7 @@ struct Kinematics {
 	Real Q_sq;
 	Real Q;
 	Real t;
+	Real w;
 	Real X;
 	Real S_x;
 	Real S_p;
@@ -159,6 +160,7 @@ struct KinematicsRad {
 	Real Q_sq;
 	Real Q;
 	Real t;
+	Real w;
 	Real X;
 	Real S_x;
 	Real S_p;
@@ -250,6 +252,7 @@ struct KinematicsRad {
 	Real shift_Q_sq;
 	Real shift_Q;
 	Real shift_t;
+	Real shift_w;
 	Real shift_S_x;
 	Real shift_V_m;
 

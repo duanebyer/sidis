@@ -165,9 +165,21 @@ struct Params {
 	Param<sidis::math::Bounds> ph_t_sq_cut;
 	Param<sidis::math::Bounds> phi_h_cut;
 	Param<sidis::math::Bounds> phi_cut;
+	Param<sidis::math::Bounds> Q_sq_cut;
+	Param<sidis::math::Bounds> t_cut;
+	Param<sidis::math::Bounds> w_cut;
+	Param<sidis::math::Bounds> mx_sq_cut;
+	Param<sidis::math::Bounds> q_0_cut;
+	Param<sidis::math::Bounds> k2_0_cut;
+	Param<sidis::math::Bounds> ph_0_cut;
+	Param<sidis::math::Bounds> theta_q_cut;
+	Param<sidis::math::Bounds> theta_k2_cut;
+	Param<sidis::math::Bounds> theta_h_cut;
 	Param<sidis::math::Bounds> tau_cut;
 	Param<sidis::math::Bounds> phi_k_cut;
 	Param<sidis::math::Bounds> k_0_bar_cut;
+	Param<sidis::math::Bounds> k_0_cut;
+	Param<sidis::math::Bounds> theta_k_cut;
 
 	Params() :
 		version("version"),
@@ -197,9 +209,21 @@ struct Params {
 		ph_t_sq_cut("ph-t-sq-cut"),
 		phi_h_cut("phi-h-cut"),
 		phi_cut("phi-cut"),
+		Q_sq_cut("Q-sq-cut"),
+		t_cut("t-cut"),
+		w_cut("w-cut"),
+		mx_sq_cut("mx-sq-cut"),
+		q_0_cut("q-0-cut"),
+		k2_0_cut("k2-0-cut"),
+		ph_0_cut("ph-0-cut"),
+		theta_q_cut("theta-q-cut"),
+		theta_k2_cut("theta-k2-cut"),
+		theta_h_cut("theta-h-cut"),
 		tau_cut("tau-cut"),
 		phi_k_cut("phi-k-cut"),
-		k_0_bar_cut("k-0-bar-cut") { }
+		k_0_bar_cut("k-0-bar-cut"),
+		k_0_cut("k-0-cut"),
+		theta_k_cut("theta-k-cut") { }
 
 	void write_root(TFile& file) const;
 	void read_root(TFile& file);

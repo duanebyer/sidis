@@ -111,6 +111,7 @@ Kinematics::Kinematics(Particles ps, Real S, PhaseSpace ph_space) {
 		lambda_Y_ratio - ph_ratio_sq*(1. + lambda_Y_ratio));
 
 	t = sq(mh) - Q_sq - 2.*V_m;
+	w = sq(M) + S_x - Q_sq;
 	mx_sq = sq(M) + t + (1. - z)*S_x;
 	mx = std::sqrt(mx_sq);
 
@@ -152,6 +153,7 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 		Q_sq(kin.Q_sq),
 		Q(kin.Q),
 		t(kin.t),
+		w(kin.w),
 		X(kin.X),
 		S_x(kin.S_x),
 		S_p(kin.S_p),
@@ -263,6 +265,8 @@ KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
 	shift_z = (2.*M*ph_0)/shift_S_x;
 	// TODO: Fill in equation number in derivations.
 	shift_t = t - R*tau + (z*R*S_x - lambda_RV)/(2.*sq(M));
+	// TODO: Add tests for `w` and `shift_w`.
+	shift_w = w - R*(1. + tau);
 
 	shift_lambda_Y = lambda_Y + sq(R) - 2.*lambda_RY;
 	shift_lambda_1 = lambda_1 + 1./(4.*sq(M))*(
@@ -362,6 +366,7 @@ Kinematics KinematicsRad::project() const {
 	kin.Q_sq = Q_sq;
 	kin.Q = Q;
 	kin.t = t;
+	kin.w = w;
 	kin.X = X;
 	kin.S_x = S_x;
 	kin.S_p = S_p;
@@ -431,6 +436,7 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.Q_sq = shift_Q_sq;
 	kin.Q = shift_Q;
 	kin.t = shift_t;
+	kin.w = shift_w;
 	kin.X = X;
 	kin.S_x = shift_S_x;
 	kin.S_p = S_p;

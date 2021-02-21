@@ -75,20 +75,32 @@ TLorentzVector convert_vec4(math::Vec4 v) {
 void cuts(Params params, cut::Cut* cut_out, cut::CutRad* cut_rad_out) {
 	if (cut_out != nullptr) {
 		*cut_out = cut::Cut();
-		cut_out->x = params.x_cut.get_or(cut_out->x);
-		cut_out->y = params.y_cut.get_or(cut_out->y);
-		cut_out->z = params.z_cut.get_or(cut_out->z);
-		cut_out->ph_t_sq = params.ph_t_sq_cut.get_or(cut_out->ph_t_sq);
-		cut_out->phi_h = params.phi_h_cut.get_or(cut_out->phi_h);
-		cut_out->phi = params.phi_cut.get_or(cut_out->phi);
+		cut_out->x = params.x_cut.get_or(math::Bounds::INVALID);
+		cut_out->y = params.y_cut.get_or(math::Bounds::INVALID);
+		cut_out->z = params.z_cut.get_or(math::Bounds::INVALID);
+		cut_out->ph_t_sq = params.ph_t_sq_cut.get_or(math::Bounds::INVALID);
+		cut_out->phi_h = params.phi_h_cut.get_or(math::Bounds::INVALID);
+		cut_out->phi = params.phi_cut.get_or(math::Bounds::INVALID);
+		cut_out->Q_sq = params.Q_sq_cut.get_or(math::Bounds::INVALID);
+		cut_out->t = params.t_cut.get_or(math::Bounds::INVALID);
+		cut_out->w = params.w_cut.get_or(math::Bounds::INVALID);
+		cut_out->mx_sq = params.mx_sq_cut.get_or(math::Bounds::INVALID);
+		cut_out->q_0 = params.q_0_cut.get_or(math::Bounds::INVALID);
+		cut_out->k2_0 = params.k2_0_cut.get_or(math::Bounds::INVALID);
+		cut_out->ph_0 = params.ph_0_cut.get_or(math::Bounds::INVALID);
+		cut_out->theta_q = params.theta_q_cut.get_or(math::Bounds::INVALID);
+		cut_out->theta_k2 = params.theta_k2_cut.get_or(math::Bounds::INVALID);
+		cut_out->theta_h = params.theta_h_cut.get_or(math::Bounds::INVALID);
 	}
 	if (cut_rad_out != nullptr) {
 		*cut_rad_out = cut::CutRad();
 		if (*params.gen_rad) {
-			cut_rad_out->tau = params.tau_cut.get_or(cut_rad_out->tau);
-			cut_rad_out->phi_k = params.phi_k_cut.get_or(cut_rad_out->phi_k);
+			cut_rad_out->tau = params.tau_cut.get_or(math::Bounds::INVALID);
+			cut_rad_out->phi_k = params.phi_k_cut.get_or(math::Bounds::INVALID);
 			// The `k_0_bar` cut is mandatory.
 			cut_rad_out->k_0_bar = *params.k_0_bar_cut;
+			cut_rad_out->k_0 = *params.k_0_cut;
+			cut_rad_out->theta_k = *params.theta_k_cut;
 		}
 	}
 }
@@ -291,6 +303,7 @@ int command_help() {
 		<< "beam-pol       <real in [0, 1]>"                 << std::endl
 		<< "target-pol     <vector in unit sphere>"          << std::endl
 		<< "soft-threshold <energy (GeV)>"                   << std::endl
+		<< "k-0-bar-cut    <min> <max>"                      << std::endl
 		<< "x-cut          <min> <max>"                      << std::endl
 		<< "y-cut          <min> <max>"                      << std::endl
 		<< "z-cut          <min> <max>"                      << std::endl
@@ -299,7 +312,18 @@ int command_help() {
 		<< "phi-cut        <min> <max>"                      << std::endl
 		<< "tau-cut        <min> <max>"                      << std::endl
 		<< "phi-k-cut      <min> <max>"                      << std::endl
-		<< "k-0-bar-cut    <min> <max>"                      << std::endl;
+		<< "Q-sq-cut       <min> <max>"                      << std::endl
+		<< "t-cut          <min> <max>"                      << std::endl
+		<< "w-cut          <min> <max>"                      << std::endl
+		<< "mx-sq-cut      <min> <max>"                      << std::endl
+		<< "q-0-cut        <min> <max>"                      << std::endl
+		<< "k2-0-cut       <min> <max>"                      << std::endl
+		<< "ph-0-cut       <min> <max>"                      << std::endl
+		<< "k-0-cut        <min> <max>"                      << std::endl
+		<< "theta-q-cut    <min> <max>"                      << std::endl
+		<< "theta-k2-cut   <min> <max>"                      << std::endl
+		<< "theta-ph-cut   <min> <max>"                      << std::endl
+		<< "theta-k-cut    <min> <max>"                      << std::endl;
 	return SUCCESS;
 }
 
@@ -616,6 +640,8 @@ int command_generate(std::string params_file_name) {
 	events.Branch("tau", &tau);
 	events.Branch("phi_k", &phi_k);
 	events.Branch("R", &R);
+	// TODO: Add option to parameters file for what additional kinematic
+	// variables should be logged.
 	events.Branch("Q_sq", &Q_sq);
 	events.Branch("p", "TLorentzVector", &p);
 	events.Branch("k1", "TLorentzVector", &k1);

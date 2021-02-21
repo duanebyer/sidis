@@ -424,9 +424,21 @@ void Params::write_root(TFile& file) const {
 	write_param_root(file, ph_t_sq_cut);
 	write_param_root(file, phi_h_cut);
 	write_param_root(file, phi_cut);
+	write_param_root(file, Q_sq_cut);
+	write_param_root(file, t_cut);
+	write_param_root(file, w_cut);
+	write_param_root(file, mx_sq_cut);
+	write_param_root(file, q_0_cut);
+	write_param_root(file, k2_0_cut);
+	write_param_root(file, ph_0_cut);
+	write_param_root(file, theta_q_cut);
+	write_param_root(file, theta_k2_cut);
+	write_param_root(file, theta_h_cut);
 	write_param_root(file, tau_cut);
 	write_param_root(file, phi_k_cut);
 	write_param_root(file, k_0_bar_cut);
+	write_param_root(file, k_0_cut);
+	write_param_root(file, theta_k_cut);
 }
 
 void Params::read_root(TFile& file) {
@@ -464,9 +476,21 @@ void Params::read_root(TFile& file) {
 	read_param_root(file, ph_t_sq_cut);
 	read_param_root(file, phi_h_cut);
 	read_param_root(file, phi_cut);
+	read_param_root(file, Q_sq_cut);
+	read_param_root(file, t_cut);
+	read_param_root(file, w_cut);
+	read_param_root(file, mx_sq_cut);
+	read_param_root(file, q_0_cut);
+	read_param_root(file, k2_0_cut);
+	read_param_root(file, ph_0_cut);
+	read_param_root(file, theta_q_cut);
+	read_param_root(file, theta_k2_cut);
+	read_param_root(file, theta_h_cut);
 	read_param_root(file, tau_cut);
 	read_param_root(file, phi_k_cut);
 	read_param_root(file, k_0_bar_cut);
+	read_param_root(file, k_0_cut);
+	read_param_root(file, theta_k_cut);
 }
 
 void Params::write_stream(std::ostream& file) const {
@@ -497,9 +521,21 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, ph_t_sq_cut);
 	write_param_stream(file, phi_h_cut);
 	write_param_stream(file, phi_cut);
+	write_param_stream(file, Q_sq_cut);
+	write_param_stream(file, t_cut);
+	write_param_stream(file, w_cut);
+	write_param_stream(file, mx_sq_cut);
+	write_param_stream(file, q_0_cut);
+	write_param_stream(file, k2_0_cut);
+	write_param_stream(file, ph_0_cut);
+	write_param_stream(file, theta_q_cut);
+	write_param_stream(file, theta_k2_cut);
+	write_param_stream(file, theta_h_cut);
 	write_param_stream(file, tau_cut);
 	write_param_stream(file, phi_k_cut);
 	write_param_stream(file, k_0_bar_cut);
+	write_param_stream(file, k_0_cut);
+	write_param_stream(file, theta_k_cut);
 }
 void Params::read_stream(std::istream& file) {
 	std::unordered_map<std::string, std::string> map;
@@ -552,9 +588,21 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, ph_t_sq_cut);
 	consume_param_from_map(map, phi_h_cut);
 	consume_param_from_map(map, phi_cut);
+	consume_param_from_map(map, Q_sq_cut);
+	consume_param_from_map(map, t_cut);
+	consume_param_from_map(map, w_cut);
+	consume_param_from_map(map, mx_sq_cut);
+	consume_param_from_map(map, q_0_cut);
+	consume_param_from_map(map, k2_0_cut);
+	consume_param_from_map(map, ph_0_cut);
+	consume_param_from_map(map, theta_q_cut);
+	consume_param_from_map(map, theta_k2_cut);
+	consume_param_from_map(map, theta_h_cut);
 	consume_param_from_map(map, tau_cut);
 	consume_param_from_map(map, phi_k_cut);
 	consume_param_from_map(map, k_0_bar_cut);
+	consume_param_from_map(map, k_0_cut);
+	consume_param_from_map(map, theta_k_cut);
 
 	if (!map.empty()) {
 		std::ostringstream ss_err;
@@ -685,7 +733,10 @@ void Params::make_valid(bool strict) {
 	}
 	// Cuts.
 	if (*gen_rad && *gen_nrad) {
-		if (tau_cut.occupied() || phi_k_cut.occupied()) {
+		if (tau_cut.occupied()
+				|| phi_k_cut.occupied()
+				|| k_0_cut.occupied()
+				|| theta_k_cut.occupied()) {
 			throw std::runtime_error(
 				"Cannot apply radiative cuts to non-radiative events.");
 		}
@@ -736,11 +787,35 @@ void Params::compatible_with_foam(Params const& foam_params) const {
 		throw std::runtime_error("Different cuts on φ_h.");
 	} else if (phi_cut != foam_params.phi_cut) {
 		throw std::runtime_error("Different cuts on φ.");
+	} else if (Q_sq_cut != foam_params.Q_sq_cut) {
+		throw std::runtime_error("Different cuts on Q².");
+	} else if (t_cut != foam_params.t_cut) {
+		throw std::runtime_error("Different cuts on t.");
+	} else if (w_cut != foam_params.w_cut) {
+		throw std::runtime_error("Different cuts on w.");
+	} else if (mx_sq_cut != foam_params.mx_sq_cut) {
+		throw std::runtime_error("Different cuts on mx².");
+	} else if (q_0_cut != foam_params.q_0_cut) {
+		throw std::runtime_error("Different cuts on q_0.");
+	} else if (k2_0_cut != foam_params.k2_0_cut) {
+		throw std::runtime_error("Different cuts on k2_0.");
+	} else if (ph_0_cut != foam_params.ph_0_cut) {
+		throw std::runtime_error("Different cuts on ph_0.");
+	} else if (theta_q_cut != foam_params.theta_q_cut) {
+		throw std::runtime_error("Different cuts on θ_q.");
+	} else if (theta_k2_cut != foam_params.theta_k2_cut) {
+		throw std::runtime_error("Different cuts on θ_k2.");
+	} else if (theta_h_cut != foam_params.theta_h_cut) {
+		throw std::runtime_error("Different cuts on θ_h.");
 	} else if (*gen_rad && tau_cut != foam_params.tau_cut) {
 		throw std::runtime_error("Different cuts on τ.");
 	} else if (*gen_rad && phi_k_cut != foam_params.phi_k_cut) {
 		throw std::runtime_error("Different cuts on φ_k.");
 	} else if (*gen_rad && k_0_bar_cut != foam_params.k_0_bar_cut) {
+		throw std::runtime_error("Different cuts on radiated photon energy.");
+	} else if (*gen_rad && k_0_cut != foam_params.k_0_cut) {
+		throw std::runtime_error("Different cuts on radiated photon energy.");
+	} else if (*gen_rad && theta_k_cut != foam_params.theta_k_cut) {
 		throw std::runtime_error("Different cuts on radiated photon energy.");
 	}
 }
@@ -773,8 +848,20 @@ bool Params::operator==(Params const& rhs) const {
 		&& ph_t_sq_cut == rhs.ph_t_sq_cut
 		&& phi_h_cut == rhs.phi_h_cut
 		&& phi_cut == rhs.phi_cut
+		&& Q_sq_cut == rhs.Q_sq_cut
+		&& t_cut == rhs.t_cut
+		&& w_cut == rhs.w_cut
+		&& mx_sq_cut == rhs.mx_sq_cut
+		&& q_0_cut == rhs.q_0_cut
+		&& k2_0_cut == rhs.k2_0_cut
+		&& ph_0_cut == rhs.ph_0_cut
+		&& theta_q_cut == rhs.theta_q_cut
+		&& theta_k2_cut == rhs.theta_k2_cut
+		&& theta_h_cut == rhs.theta_h_cut
 		&& tau_cut == rhs.tau_cut
 		&& phi_k_cut == rhs.phi_k_cut
+		&& k_0_cut == rhs.k_0_cut
+		&& theta_k_cut == rhs.theta_k_cut
 		&& k_0_bar_cut == rhs.k_0_bar_cut;
 }
 
