@@ -11,6 +11,7 @@ Bounds const Bounds::INVALID = Bounds(
 	std::numeric_limits<Real>::quiet_NaN());
 Bounds const Bounds::ZERO = Bounds(0., 0.);
 Bounds const Bounds::UNIT = Bounds(0., 1.);
+// TODO: Consider changing this to ±infinity.
 Bounds const Bounds::FULL = Bounds(
 	std::numeric_limits<Real>::lowest(),
 	std::numeric_limits<Real>::max());
