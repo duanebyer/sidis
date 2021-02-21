@@ -99,8 +99,8 @@ void cuts(Params params, cut::Cut* cut_out, cut::CutRad* cut_rad_out) {
 			cut_rad_out->phi_k = params.phi_k_cut.get_or(math::Bounds::INVALID);
 			// The `k_0_bar` cut is mandatory.
 			cut_rad_out->k_0_bar = *params.k_0_bar_cut;
-			cut_rad_out->k_0 = *params.k_0_cut;
-			cut_rad_out->theta_k = *params.theta_k_cut;
+			cut_rad_out->k_0 = params.k_0_cut.get_or(math::Bounds::INVALID);
+			cut_rad_out->theta_k = params.theta_k_cut.get_or(math::Bounds::INVALID);
 		}
 	}
 }
