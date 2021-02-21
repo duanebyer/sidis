@@ -132,7 +132,9 @@ Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, R
 			Real point[3] = { x[0], x[1], x[2] };
 			KinematicsRad kin_rad;
 			Real jacobian;
-			while (!take(cut, kin, point, &kin_rad, &jacobian)) { }
+			if (!take(cut, kin, point, &kin_rad, &jacobian)) {
+				return 0.;
+			}
 
 			Rad b(kin_rad);
 			LepRadXX lep(kin_rad);
@@ -162,7 +164,9 @@ Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Rea
 			Real point[3] = { x[0], x[1], x[2] };
 			KinematicsRad kin_rad;
 			Real jacobian;
-			while (!take(cut, kin, point, &kin_rad, &jacobian)) { }
+			if (!take(cut, kin, point, &kin_rad, &jacobian)) {
+				return 0.;
+			}
 
 			Rad b(kin_rad);
 			LepRadXX lep(kin_rad);
