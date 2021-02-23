@@ -13,7 +13,6 @@
 #include <sidis/sf_set/ww.hpp>
 
 using namespace sidis;
-using namespace sidis::constant;
 using namespace sidis::kin;
 using namespace sidis::math;
 
@@ -265,7 +264,11 @@ int main(int argc, char** argv) {
 	TApplication app("Transverse asymmetry plots", &argc, argv);
 
 	Real E_b = 10.6;
-	Particles ps(Nucleus::P, Lepton::E, Hadron::PI_P, MASS_P + MASS_PI_0);
+	Particles ps(
+		part::Nucleus::P,
+		part::Lepton::E,
+		part::Hadron::PI_P,
+		MASS_P + MASS_PI_0);
 	Real S = 2. * ps.M * E_b;
 	Real x = 0.2;
 	Real y = 0.754;

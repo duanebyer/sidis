@@ -2,10 +2,7 @@
 
 #include <cmath>
 
-#include "sidis/constant.hpp"
-
 using namespace sidis;
-using namespace sidis::constant;
 using namespace sidis::sf;
 
 namespace {
@@ -90,29 +87,29 @@ Real TmdSet::xeTperp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
 
-Real TmdSet::D1(Hadron, unsigned, Real, Real, Real) const {
+Real TmdSet::D1(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdSet::H1perp(Hadron, unsigned, Real, Real, Real) const {
+Real TmdSet::H1perp(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdSet::Dperp_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real TmdSet::Dperp_tilde(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdSet::H_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real TmdSet::H_tilde(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdSet::Gperp_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real TmdSet::Gperp_tilde(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real TmdSet::E_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real TmdSet::E_tilde(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
 
 // Gaussian approximation.
 GaussianTmdSet::GaussianTmdSet(
 	unsigned flavor_count,
-	constant::Nucleus target,
+	part::Nucleus target,
 	Real mean_f1,
 	Real mean_f1Tperp,
 	Real mean_fT,
@@ -248,22 +245,22 @@ Real GaussianTmdSet::xeTperp(unsigned, Real, Real) const {
 	return 0.;
 }
 
-Real GaussianTmdSet::D1(Hadron, unsigned, Real, Real) const {
+Real GaussianTmdSet::D1(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real GaussianTmdSet::H1perp(Hadron, unsigned, Real, Real) const {
+Real GaussianTmdSet::H1perp(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real GaussianTmdSet::Dperp_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianTmdSet::Dperp_tilde(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real GaussianTmdSet::H_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianTmdSet::H_tilde(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real GaussianTmdSet::Gperp_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianTmdSet::Gperp_tilde(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real GaussianTmdSet::E_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianTmdSet::E_tilde(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
 
@@ -340,22 +337,22 @@ Real GaussianTmdSet::xeTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) con
 	return xeTperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_eTperp);
 }
 
-Real GaussianTmdSet::D1(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::D1(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return D1(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_D1);
 }
-Real GaussianTmdSet::H1perp(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return H1perp(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_H1perp);
 }
-Real GaussianTmdSet::Dperp_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return Dperp_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_Dperp_tilde);
 }
-Real GaussianTmdSet::H_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return H_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_H_tilde);
 }
-Real GaussianTmdSet::Gperp_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return Gperp_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_Gperp_tilde);
 }
-Real GaussianTmdSet::E_tilde(Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
+Real GaussianTmdSet::E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
 	return E_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_E_tilde);
 }
 
@@ -385,10 +382,10 @@ Real WwTmdSet::xh1Tperp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
 
-Real WwTmdSet::D1(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::D1(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real WwTmdSet::H1perp(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::H1perp(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
 
@@ -462,23 +459,23 @@ Real WwTmdSet::xeTperp(unsigned, Real, Real, Real) const {
 	return 0.;
 }
 
-Real WwTmdSet::Dperp_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::Dperp_tilde(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real WwTmdSet::H_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::H_tilde(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real WwTmdSet::Gperp_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::Gperp_tilde(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
-Real WwTmdSet::E_tilde(Hadron, unsigned, Real, Real, Real) const {
+Real WwTmdSet::E_tilde(part::Hadron, unsigned, Real, Real, Real) const {
 	return 0.;
 }
 
 // Gaussian and WW-type approximation combined.
 GaussianWwTmdSet::GaussianWwTmdSet(
 	unsigned flavor_count,
-	constant::Nucleus target,
+	part::Nucleus target,
 	Real mean_f1,
 	Real mean_f1Tperp,
 	Real mean_fT,
@@ -570,10 +567,10 @@ Real GaussianWwTmdSet::xh1Tperp(unsigned, Real, Real) const {
 	return 0.;
 }
 
-Real GaussianWwTmdSet::D1(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::D1(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real GaussianWwTmdSet::H1perp(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::H1perp(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
 
@@ -651,16 +648,16 @@ Real GaussianWwTmdSet::xeTperp(unsigned, Real, Real) const {
 	return 0.;
 }
 
-Real GaussianWwTmdSet::Dperp_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::Dperp_tilde(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real GaussianWwTmdSet::H_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::H_tilde(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real GaussianWwTmdSet::Gperp_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::Gperp_tilde(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
-Real GaussianWwTmdSet::E_tilde(Hadron, unsigned, Real, Real) const {
+Real GaussianWwTmdSet::E_tilde(part::Hadron, unsigned, Real, Real) const {
 	return 0.;
 }
 

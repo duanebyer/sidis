@@ -4,8 +4,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "sidis/constant.hpp"
 #include "sidis/numeric.hpp"
+#include "sidis/particle.hpp"
 #include "sidis/structure_function.hpp"
 
 namespace sidis {
@@ -29,40 +29,40 @@ public:
 	WW& operator=(WW&& other) noexcept;
 
 	// Structure functions.
-	Real F_UUT(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UU_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UU_cos_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 
-	Real F_UL_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UL_sin_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UL_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UL_sin_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 
-	Real F_UTT_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UT_sin_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UT_sin_3phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UT_sin_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UT_sin_phih_p_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UTT_sin_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_3phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phih_p_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 
-	Real F_LL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_LL_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LL(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LL_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 
-	Real F_LT_cos_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_LT_cos_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 
 	// Fragmentation functions.
-	Real D1(constant::Hadron h, constant::Quark q, Real z, Real Q_sq) const;
-	Real H1perpM1(constant::Hadron h, constant::Quark q, Real z, Real Q_sq) const;
+	Real D1(part::Hadron h, part::Quark q, Real z, Real Q_sq) const;
+	Real H1perpM1(part::Hadron h, part::Quark q, Real z, Real Q_sq) const;
 
 	// Transverse momentum distributions.
-	Real xf1(constant::Quark q, Real x, Real Q_sq) const;
-	Real xf1TperpM1(constant::Quark q, Real x, Real Q_sq) const;
-	Real xg1(constant::Quark q, Real x, Real Q_sq) const;
-	Real xgT(constant::Quark q, Real x, Real Q_sq) const;
-	Real xh1(constant::Quark q, Real x, Real Q_sq) const;
-	Real xh1M1(constant::Quark q, Real x, Real Q_sq) const;
-	Real xh1LperpM1(constant::Quark q, Real x, Real Q_sq) const;
-	Real xh1TperpM2(constant::Quark q, Real x, Real Q_sq) const;
-	Real xh1perpM1(constant::Quark q, Real x, Real Q_sq) const;
+	Real xf1(part::Quark q, Real x, Real Q_sq) const;
+	Real xf1TperpM1(part::Quark q, Real x, Real Q_sq) const;
+	Real xg1(part::Quark q, Real x, Real Q_sq) const;
+	Real xgT(part::Quark q, Real x, Real Q_sq) const;
+	Real xh1(part::Quark q, Real x, Real Q_sq) const;
+	Real xh1M1(part::Quark q, Real x, Real Q_sq) const;
+	Real xh1LperpM1(part::Quark q, Real x, Real Q_sq) const;
+	Real xh1TperpM2(part::Quark q, Real x, Real Q_sq) const;
+	Real xh1perpM1(part::Quark q, Real x, Real Q_sq) const;
 };
 
 }

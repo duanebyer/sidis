@@ -37,8 +37,8 @@ public:
 	Real xh1Lperp(unsigned fl, Real x, Real Q_sq) const override;
 	Real xh1Tperp(unsigned fl, Real x, Real Q_sq) const override;
 
-	Real D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
-	Real H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
 };
 
 }

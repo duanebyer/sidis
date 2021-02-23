@@ -104,11 +104,11 @@ TEST_CASE(
 
 	math::Transform3 rotate_x = math::Transform3::rotate(
 		math::Vec3(1., 0., 0.),
-		constant::PI / 2.);
+		PI / 2.);
 	math::Vec3 dir(1., 1., 0.);
 	math::Transform3 rotate_dir = math::Transform3::rotate(
 		dir,
-		-constant::PI / 3.);
+		-PI / 3.);
 
 	// Apply simple `x` rotation to some vectors.
 	test = rotate_x * math::Vec3::X;

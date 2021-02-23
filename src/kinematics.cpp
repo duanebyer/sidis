@@ -10,14 +10,13 @@
 #include "sidis/extra/math.hpp"
 
 using namespace sidis;
-using namespace sidis::constant;
 using namespace sidis::kin;
 using namespace sidis::math;
 
 Particles::Particles(
-		Nucleus target,
-		Lepton beam,
-		Hadron hadron,
+		part::Nucleus target,
+		part::Lepton beam,
+		part::Hadron hadron,
 		Real Mth) :
 		target(target),
 		beam(beam),

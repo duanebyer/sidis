@@ -9,6 +9,7 @@
 #include <sidis/constant.hpp>
 #include <sidis/frame.hpp>
 #include <sidis/kinematics.hpp>
+#include <sidis/particle.hpp>
 #include <sidis/transform.hpp>
 #include <sidis/vector.hpp>
 #include <sidis/extra/math.hpp>
@@ -250,17 +251,17 @@ TEST_CASE(
 			std::move(std::ifstream("data/phase_space_vals.dat")),
 			true));
 	Real E_b = input.beam_energy;
-	Real M = constant::MASS_P;
-	constant::Lepton lep;
+	Real M = MASS_P;
+	part::Lepton lep;
 	if (input.particle_id == 'e') {
-		lep = constant::Lepton::E;
+		lep = part::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		lep = constant::Lepton::MU;
+		lep = part::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		lep = constant::Lepton::TAU;
+		lep = part::Lepton::TAU;
 	}
-	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real Mth = MASS_P + MASS_PI_0;
+	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial initial_state(ps, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
@@ -290,17 +291,17 @@ TEST_CASE(
 			std::move(std::ifstream("data/phase_space_rad_vals.dat")),
 			true));
 	Real E_b = input.beam_energy;
-	Real M = constant::MASS_P;
-	constant::Lepton lep;
+	Real M = MASS_P;
+	part::Lepton lep;
 	if (input.particle_id == 'e') {
-		lep = constant::Lepton::E;
+		lep = part::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		lep = constant::Lepton::MU;
+		lep = part::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		lep = constant::Lepton::TAU;
+		lep = part::Lepton::TAU;
 	}
-	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real Mth = MASS_P + MASS_PI_0;
+	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial initial_state(ps, E_b);
 	kin::PhaseSpaceRad phase_space = input.phase_space;
@@ -336,10 +337,10 @@ TEST_CASE(
 	// Generate a random point just outside the phase space boundary, then check
 	// that it is not kinematically valid.
 	Real E_b = 3.;
-	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	constant::Nucleus target = constant::Nucleus::P;
-	constant::Lepton lepton = constant::Lepton::TAU;
-	constant::Hadron hadron = constant::Hadron::PI_P;
+	Real Mth = MASS_P + MASS_PI_0;
+	part::Nucleus target = part::Nucleus::P;
+	part::Lepton lepton = part::Lepton::TAU;
+	part::Hadron hadron = part::Hadron::PI_P;
 	kin::Particles ps(target, lepton, hadron, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial initial_state(ps, E_b);
@@ -367,10 +368,10 @@ TEST_CASE(
 	// Generate a random point just inside phase space boundary, then check that
 	// it is kinematically valid.
 	Real E_b = 3.;
-	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	constant::Nucleus target = constant::Nucleus::P;
-	constant::Lepton lepton = constant::Lepton::TAU;
-	constant::Hadron hadron = constant::Hadron::PI_P;
+	Real Mth = MASS_P + MASS_PI_0;
+	part::Nucleus target = part::Nucleus::P;
+	part::Lepton lepton = part::Lepton::TAU;
+	part::Hadron hadron = part::Hadron::PI_P;
 	kin::Particles ps(target, lepton, hadron, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial initial_state(ps, E_b);
@@ -399,10 +400,10 @@ TEST_CASE(
 	// We choose these conditions to ensure that the phase space is explored
 	// even in the region between non-relativistic and ultra-relativistic.
 	Real E_b = 3.;
-	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	constant::Nucleus target = constant::Nucleus::P;
-	constant::Lepton lepton = constant::Lepton::TAU;
-	constant::Hadron hadron = constant::Hadron::PI_P;
+	Real Mth = MASS_P + MASS_PI_0;
+	part::Nucleus target = part::Nucleus::P;
+	part::Lepton lepton = part::Lepton::TAU;
+	part::Hadron hadron = part::Hadron::PI_P;
 	kin::Particles ps(target, lepton, hadron, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial initial_state(ps, E_b);
@@ -433,17 +434,17 @@ TEST_CASE(
 			std::move(std::ifstream("data/phase_space_rad_vals.dat")),
 			true));
 	Real E_b = input.beam_energy;
-	Real M = constant::MASS_P;
-	constant::Lepton lep;
+	Real M = MASS_P;
+	part::Lepton lep;
 	if (input.particle_id == 'e') {
-		lep = constant::Lepton::E;
+		lep = part::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		lep = constant::Lepton::MU;
+		lep = part::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		lep = constant::Lepton::TAU;
+		lep = part::Lepton::TAU;
 	}
-	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real Mth = MASS_P + MASS_PI_0;
+	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial initial_state(ps, E_b);
 	kin::PhaseSpaceRad phase_space = input.phase_space;
@@ -597,10 +598,10 @@ TEST_CASE(
 	math::Vec3 k1(0.4, -2.2, 0.2);
 	math::Vec3 pol(0.2, 0.1, -0.3);
 	kin::Particles ps(
-		constant::Nucleus::P,
-		constant::Lepton::MU,
-		constant::Hadron::PI_P,
-		constant::MASS_P + constant::MASS_PI_0);
+		part::Nucleus::P,
+		part::Lepton::MU,
+		part::Hadron::PI_P,
+		MASS_P + MASS_PI_0);
 	kin::Initial initial_state(ps, p, k1);
 
 	// Construct the frames.
@@ -635,7 +636,7 @@ TEST_CASE(
 	// Check transforming `p` and `k1` correctly.
 	math::Vec4 p_target = target_from_lab * initial_state.p;
 	math::Vec4 k1_target = target_from_lab * initial_state.k1;
-	CHECK_THAT(p_target.t, RelMatcher<Real>(constant::MASS_P, prec));
+	CHECK_THAT(p_target.t, RelMatcher<Real>(MASS_P, prec));
 	CHECK_THAT(p_target.x, AbsMatcher<Real>(0., prec));
 	CHECK_THAT(p_target.y, AbsMatcher<Real>(0., prec));
 	CHECK_THAT(p_target.z, AbsMatcher<Real>(0., prec));
@@ -643,7 +644,7 @@ TEST_CASE(
 	CHECK_THAT(k1_target.x, AbsMatcher<Real>(0., prec));
 	CHECK_THAT(k1_target.y, AbsMatcher<Real>(0., prec));
 	CHECK(k1_target.z > 0.);
-	CHECK_THAT(k1_target.norm(), RelMatcher<Real>(constant::MASS_MU, prec));
+	CHECK_THAT(k1_target.norm(), RelMatcher<Real>(MASS_MU, prec));
 
 	// Check transforming polarization correctly. Remember that polarization is
 	// given in the proton rest frame, so first have to boost it into proton
@@ -691,10 +692,10 @@ TEST_CASE(
 		"Default target to lab frame checks",
 		"[frame]") {
 	kin::Particles ps(
-		constant::Nucleus::P,
-		constant::Lepton::MU,
-		constant::Hadron::PI_P,
-		constant::MASS_P + constant::MASS_PI_0);
+		part::Nucleus::P,
+		part::Lepton::MU,
+		part::Hadron::PI_P,
+		MASS_P + MASS_PI_0);
 	kin::Initial initial_state(ps, 8.2);
 
 	// Construct the frames.
@@ -738,17 +739,17 @@ TEST_CASE(
 			true));
 
 	Real E_b = input.beam_energy;
-	Real M = constant::MASS_P;
-	constant::Lepton lep;
+	Real M = MASS_P;
+	part::Lepton lep;
 	if (input.particle_id == 'e') {
-		lep = constant::Lepton::E;
+		lep = part::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		lep = constant::Lepton::MU;
+		lep = part::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		lep = constant::Lepton::TAU;
+		lep = part::Lepton::TAU;
 	}
-	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real Mth = MASS_P + MASS_PI_0;
+	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial initial_state(ps, E_b);
 	kin::PhaseSpace phase_space = input.phase_space;
@@ -882,17 +883,17 @@ TEST_CASE(
 			true));
 
 	Real E_b = input.beam_energy;
-	Real M = constant::MASS_P;
-	constant::Lepton lep;
+	Real M = MASS_P;
+	part::Lepton lep;
 	if (input.particle_id == 'e') {
-		lep = constant::Lepton::E;
+		lep = part::Lepton::E;
 	} else if (input.particle_id == 'm') {
-		lep = constant::Lepton::MU;
+		lep = part::Lepton::MU;
 	} else if (input.particle_id == 't') {
-		lep = constant::Lepton::TAU;
+		lep = part::Lepton::TAU;
 	}
-	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real Mth = MASS_P + MASS_PI_0;
+	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial initial_state(ps, E_b);
 	kin::PhaseSpaceRad phase_space = input.phase_space;

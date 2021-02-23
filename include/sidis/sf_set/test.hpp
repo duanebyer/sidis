@@ -20,31 +20,31 @@ class TestSfSet final : public SfSet {
 	bool mask[18];
 
 public:
-	TestSfSet(constant::Nucleus target, const bool (&mask)[18]);
+	TestSfSet(part::Nucleus target, const bool (&mask)[18]);
 
-	Real F_UUL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UUT(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UU_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UU_cos_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UUL(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UU_cos_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 
-	Real F_UL_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UL_sin_2phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UL_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UL_sin_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 
-	Real F_UTL_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UTT_sin_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UT_sin_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UT_sin_3phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_UT_sin_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	Real F_UT_sin_phih_p_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UTL_sin_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UTT_sin_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_3phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_UT_sin_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	Real F_UT_sin_phih_p_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 
-	Real F_LU_sin_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LU_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 
-	Real F_LL(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_LL_cos_phih(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LL(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LL_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 
-	Real F_LT_cos_phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_LT_cos_2phih_m_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
-	Real F_LT_cos_phis(constant::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	Real F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 };
 
 }

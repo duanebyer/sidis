@@ -48,14 +48,14 @@ found in the `examples` folder. To get started quickly:
 #include <sidis/sidis.hpp>
 #include <sidis/sf_set/ww.hpp>
 
-sidis::Real const PI = sidis::constant::PI;
-sidis::Real const M_TH = sidis::constant::MASS_P + sidis::constant::MASS_PI_0;
+sidis::Real const PI = sidis::PI;
+sidis::Real const M_TH = sidis::MASS_P + sidis::MASS_PI_0;
 
 int main() {
 	sidis::kin::Particles particles(
-		sidis::constant::Nucleus::P,   // Target nucleus.
-		sidis::constant::Lepton::E,    // Beam lepton.
-		sidis::constant::Hadron::PI_P, // Leading hadron.
+		sidis::part::Nucleus::P,   // Target nucleus.
+		sidis::part::Lepton::E,    // Beam lepton.
+		sidis::part::Hadron::PI_P, // Leading hadron.
 		M_TH                           // Threshold mass of undetected part.
 	);
 	sidis::Real S = 2. * 10.6 * particles.M; // Kinematic variable `S = 2 p k1`.

@@ -19,7 +19,6 @@
 #include "sidis/extra/integrate.hpp"
 
 using namespace sidis;
-using namespace sidis::constant;
 using namespace sidis::cut;
 using namespace sidis::had;
 using namespace sidis::integ;

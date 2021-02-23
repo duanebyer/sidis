@@ -149,9 +149,9 @@ struct Params {
 	Param<Int_t> seed;
 	Param<Int_t> seed_init;
 	Param<sidis::Real> beam_energy;
-	Param<sidis::constant::Lepton> beam;
-	Param<sidis::constant::Nucleus> target;
-	Param<sidis::constant::Hadron> hadron;
+	Param<sidis::part::Lepton> beam;
+	Param<sidis::part::Nucleus> target;
+	Param<sidis::part::Hadron> hadron;
 	Param<sidis::Real> mass_threshold;
 	Param<sidis::math::Vec3> target_pol;
 	Param<sidis::Real> beam_pol;

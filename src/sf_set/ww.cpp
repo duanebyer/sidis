@@ -20,7 +20,6 @@
 #define PROKUDIN_DIR "prokudin"
 
 using namespace sidis;
-using namespace sidis::constant;
 using namespace sidis::interp;
 using namespace sidis::math;
 using namespace sidis::sf;
@@ -164,24 +163,24 @@ std::array<Grid<T, N>, K> load_grids(char const* file_name) {
 }
 
 // Set of quarks that we use for structure function calculations.
-std::array<Quark, 6> const QUARKS = {
-	Quark::U, Quark::D, Quark::S, Quark::U_B, Quark::D_B, Quark::S_B,
+std::array<part::Quark, 6> const QUARKS = {
+	part::Quark::U, part::Quark::D, part::Quark::S, part::Quark::U_B, part::Quark::D_B, part::Quark::S_B,
 };
 
 // The index used for the different quarks in arrays.
-unsigned quark_idx(Quark q) {
+unsigned quark_idx(part::Quark q) {
 	switch (q) {
-	case Quark::U:
+	case part::Quark::U:
 		return 0;
-	case Quark::D:
+	case part::Quark::D:
 		return 1;
-	case Quark::S:
+	case part::Quark::S:
 		return 2;
-	case Quark::U_B:
+	case part::Quark::U_B:
 		return 3;
-	case Quark::D_B:
+	case part::Quark::D_B:
 		return 4;
-	case Quark::S_B:
+	case part::Quark::S_B:
 		return 5;
 	default:
 		throw std::domain_error("Invalid quark");
@@ -274,7 +273,7 @@ struct WW::Impl {
 };
 
 WW::WW(WW&& other) noexcept :
-		SfSet(Nucleus::P),
+		SfSet(part::Nucleus::P),
 		_impl(nullptr) {
 	std::swap(_impl, other._impl);
 }
@@ -283,7 +282,7 @@ WW& WW::operator=(WW&& other) noexcept {
 	return *this;
 }
 
-WW::WW() : SfSet(Nucleus::P) {
+WW::WW() : SfSet(part::Nucleus::P) {
 	_impl = new Impl();
 }
 
@@ -293,57 +292,57 @@ WW::~WW() {
 	}
 }
 
-Real WW::F_UUT(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.1a].
 	Real result = 0.;
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q)) * xf1(q, x, Q_sq) * D1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, F1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return G(ph_t_sq, l) * result;
 }
-Real WW::F_UU_cos_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UU_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.9a].
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
 	// Uses a WW-type approximation to rewrite in terms of `xf1`.
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q)) * xf1(q, x, Q_sq) * D1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, F1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2. * F1_MEAN_K_PERP_SQ / Q * ph_t * (z / l) * G(ph_t_sq, l) * result;
 }
-Real WW::F_UU_cos_2phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UU_cos_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.9a].
 	Real mh = mass(h);
 	Real result = 0.;
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q)) * xh1perpM1(q, x, Q_sq) * H1perpM1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, BM_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 4. * M * mh * ph_t_sq * sq(z / l) * G(ph_t_sq, l) * result;
 }
 
-Real WW::F_UL_sin_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UL_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.6a].
 	Real mh = mass(h);
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
 	// Use WW-type approximation to rewrite in terms of `xh1LperpM1`.
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q)) * xh1LperpM1(q, x, Q_sq) * H1perpM1(h, q, z, Q_sq);
 	}
 	// Approximate width with `H1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return -8. * M * mh * z * ph_t / (Q * l) * G(ph_t_sq, l) * result;
 }
-Real WW::F_UL_sin_2phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UL_sin_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.6.2a].
 	Real mh = mass(h);
 	Real result = 0.;
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q)) * xh1LperpM1(q, x, Q_sq) * H1perpM1(h, q, z, Q_sq);
 	}
 	// Approximate width with `H1_MEAN_K_PERP_SQ`.
@@ -351,28 +350,28 @@ Real WW::F_UL_sin_2phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const
 	return 4. * M * mh * ph_t_sq * sq(z / l) * G(ph_t_sq, l) * result;
 }
 
-Real WW::F_UTT_sin_phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UTT_sin_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.7a].
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q)) * xf1TperpM1(q, x, Q_sq) * D1(h, q, z, Q_sq);
 	}
 	Real l = lambda(z, SIVERS_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2. * M * z * ph_t / l * G(ph_t_sq, l) * result;
 }
-Real WW::F_UT_sin_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UT_sin_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.8a].
 	Real mh = mass(h);
 	Real Q = std::sqrt(Q_sq);
 	Real result_1 = 0.;
 	// Use WW-type approximation to rewrite in terms of `xf1TperpM1`.
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result_1 += sq(charge(q)) * xf1TperpM1(q, x, Q_sq) * D1(h, q, z, Q_sq);
 	}
 	Real result_2 = 0.;
 	// Use WW-type approximation to rewrite in terms of `h1TperpM2`.
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result_2 += sq(charge(q)) * xh1TperpM2(q, x, Q_sq) * H1perpM1(h, q, z, Q_sq);
 	}
 	// Approximate width with `SIVERS_MEAN_K_PERP_SQ`.
@@ -386,12 +385,12 @@ Real WW::F_UT_sin_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq
 		SIVERS_MEAN_K_PERP_SQ * sq(z / l_1) * G(ph_t_sq, l_1) * result_1
 		- 2. * M * mh * sq(z / l_2) * G(ph_t_sq, l_2) * result_2);
 }
-Real WW::F_UT_sin_3phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UT_sin_3phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.10a].
 	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q))
 			* xh1TperpM2(q, x, Q_sq)
 			* H1perpM1(h, q, z, Q_sq);
@@ -399,13 +398,13 @@ Real WW::F_UT_sin_3phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq
 	Real l = lambda(z, PRETZ_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 2. * sq(M) * mh * std::pow(z * ph_t / l, 3) * G(ph_t_sq, l) * result;
 }
-Real WW::F_UT_sin_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UT_sin_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.7a].
 	Real mh = mass(h);
 	Real Q = std::sqrt(Q_sq);
 	Real result = 0.;
 	// WW-type approximation used here (see [2] for details).
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q))
 			* xh1M1(q, x, Q_sq)
 			* H1perpM1(h, q, z, Q_sq);
@@ -414,12 +413,12 @@ Real WW::F_UT_sin_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const 
 	return 8. * sq(M) * mh * sq(z) / (Q * l) * (1. - ph_t_sq / l)
 		* G(ph_t_sq, l) * result;
 }
-Real WW::F_UT_sin_phih_p_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_UT_sin_phih_p_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.8a].
 	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q))
 			* xh1(q, x, Q_sq)
 			* H1perpM1(h, q, z, Q_sq);
@@ -428,10 +427,10 @@ Real WW::F_UT_sin_phih_p_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq)
 	return 2. * mh * z * ph_t / l * G(ph_t_sq, l) * result;
 }
 
-Real WW::F_LL(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_LL(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.5a].
 	Real result = 0.;
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q))
 			* xg1(q, x, Q_sq)
 			* D1(h, q, z, Q_sq);
@@ -439,13 +438,13 @@ Real WW::F_LL(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return G(ph_t_sq, l) * result;
 }
-Real WW::F_LL_cos_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_LL_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.5a].
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
 	// Uses a WW-type approximation to rewrite in terms of `xg1`.
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q))
 			* xg1(q, x, Q_sq)
 			* D1(h, q, z, Q_sq);
@@ -455,12 +454,12 @@ Real WW::F_LL_cos_phih(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const 
 	return -2. * G1_MEAN_K_PERP_SQ * z * ph_t / (Q * l) * G(ph_t_sq, l) * result;
 }
 
-Real WW::F_LT_cos_phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_LT_cos_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.6.1a].
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
 	// Uses a WW-type approximation to rewrite in terms of `xgT`.
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q))
 			* xgT(q, x, Q_sq)
 			* D1(h, q, z, Q_sq);
@@ -469,12 +468,12 @@ Real WW::F_LT_cos_phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq)
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return 2. * M * x * z * ph_t / l * G(ph_t_sq, l) * result;
 }
-Real WW::F_LT_cos_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.4a].
 	Real Q = std::sqrt(Q_sq);
 	Real result = 0.;
 	// Uses a WW-type approximation to rewrite in terms of `xgT`.
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q))
 			* xgT(q, x, Q_sq)
 			* D1(h, q, z, Q_sq);
@@ -484,11 +483,11 @@ Real WW::F_LT_cos_2phih_m_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq
 	return -2. * G1_MEAN_K_PERP_SQ * M * x * ph_t_sq * sq(z / l) / Q
 		* G(ph_t_sq, l) * result;
 }
-Real WW::F_LT_cos_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+Real WW::F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.2a].
 	Real Q = std::sqrt(Q_sq);
 	Real result = 0.;
-	for (Quark q : QUARKS) {
+	for (part::Quark q : QUARKS) {
 		result += sq(charge(q))
 			* xgT(q, x, Q_sq)
 			* D1(h, q, z, Q_sq);
@@ -499,30 +498,30 @@ Real WW::F_LT_cos_phis(Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const 
 }
 
 // Fragmentation functions.
-Real WW::D1(Hadron h, Quark q, Real z, Real Q_sq) const {
+Real WW::D1(part::Hadron h, part::Quark q, Real z, Real Q_sq) const {
 	unsigned q_idx = quark_idx(q);
 	switch (h) {
-	case Hadron::PI_P:
+	case part::Hadron::PI_P:
 		return _impl->interp_D1_pi_plus[q_idx]({ z, Q_sq });
-	case Hadron::PI_M:
+	case part::Hadron::PI_M:
 		return _impl->interp_D1_pi_minus[q_idx]({ z, Q_sq });
 	default:
 		throw std::domain_error("Invalid hadron");
 	}
 }
-Real WW::H1perpM1(Hadron h, Quark q, Real z, Real Q_sq) const {
+Real WW::H1perpM1(part::Hadron h, part::Quark q, Real z, Real Q_sq) const {
 	Real mh = mass(h);
 	Real collins_coeff = 0.;
-	if (h == Hadron::PI_P) {
-		if (q == Quark::U || q == Quark::D_B) {
+	if (h == part::Hadron::PI_P) {
+		if (q == part::Quark::U || q == part::Quark::D_B) {
 			collins_coeff = COLLINS_N_FAV;
-		} else if (q == Quark::D || q == Quark::U_B) {
+		} else if (q == part::Quark::D || q == part::Quark::U_B) {
 			collins_coeff = COLLINS_N_DISFAV;
 		}
-	} else if (h == Hadron::PI_M) {
-		if (q == Quark::D || q == Quark::U_B) {
+	} else if (h == part::Hadron::PI_M) {
+		if (q == part::Quark::D || q == part::Quark::U_B) {
 			collins_coeff = COLLINS_N_FAV;
-		} else if (q == Quark::U || q == Quark::D_B) {
+		} else if (q == part::Quark::U || q == part::Quark::D_B) {
 			collins_coeff = COLLINS_N_DISFAV;
 		}
 	} else {
@@ -539,20 +538,20 @@ Real WW::H1perpM1(Hadron h, Quark q, Real z, Real Q_sq) const {
 }
 
 // Parton distribution functions.
-Real WW::xf1(Quark q, Real x, Real Q_sq) const {
+Real WW::xf1(part::Quark q, Real x, Real Q_sq) const {
 	Real Q = std::sqrt(Q_sq);
 	switch (q) {
-	case Quark::U:
+	case part::Quark::U:
 		return _impl->pdf.parton(8, x, Q) + _impl->pdf.parton(-2, x, Q);
-	case Quark::D:
+	case part::Quark::D:
 		return _impl->pdf.parton(7, x, Q) + _impl->pdf.parton(-1, x, Q);
-	case Quark::S:
+	case part::Quark::S:
 		return _impl->pdf.parton(3, x, Q);
-	case Quark::U_B:
+	case part::Quark::U_B:
 		return _impl->pdf.parton(-2, x, Q);
-	case Quark::D_B:
+	case part::Quark::D_B:
 		return _impl->pdf.parton(-1, x, Q);
-	case Quark::S_B:
+	case part::Quark::S_B:
 		return _impl->pdf.parton(-3, x, Q);
 	default:
 		throw std::domain_error("Invalid quark");
@@ -560,7 +559,7 @@ Real WW::xf1(Quark q, Real x, Real Q_sq) const {
 }
 
 // Transverse momentum distributions.
-Real WW::xf1TperpM1(Quark q, Real x, Real Q_sq) const {
+Real WW::xf1TperpM1(part::Quark q, Real x, Real Q_sq) const {
 	// Equation [2.A.4].
 	unsigned q_idx = quark_idx(q);
 	return -std::sqrt(E / 2.) / (M * SIVERS_M_1)
@@ -573,13 +572,13 @@ Real WW::xf1TperpM1(Quark q, Real x, Real Q_sq) const {
 		* std::pow(SIVERS_BETA[q_idx], -SIVERS_BETA[q_idx])
 		* xf1(q, x, Q_sq);
 }
-Real WW::xg1(Quark q, Real x, Real Q_sq) const {
+Real WW::xg1(part::Quark q, Real x, Real Q_sq) const {
 	return x * _impl->interp_g1[quark_idx(q)]({ x, Q_sq });
 }
-Real WW::xgT(Quark q, Real x, Real Q_sq) const {
+Real WW::xgT(part::Quark q, Real x, Real Q_sq) const {
 	return _impl->interp_xgT[quark_idx(q)]({ x, Q_sq });
 }
-Real WW::xh1(Quark q, Real x, Real Q_sq) const {
+Real WW::xh1(part::Quark q, Real x, Real Q_sq) const {
 	// Use the Soffer bound to get an upper limit on transversity (Equation
 	// [2.A.7]).
 	int q_idx = quark_idx(q);
@@ -590,17 +589,17 @@ Real WW::xh1(Quark q, Real x, Real Q_sq) const {
 		* std::pow(H1_BETA, -H1_BETA)
 		* _impl->interp_sb[q_idx]({ x, Q_sq });
 }
-Real WW::xh1M1(Quark q, Real x, Real Q_sq) const {
+Real WW::xh1M1(part::Quark q, Real x, Real Q_sq) const {
 	return H1_MEAN_K_PERP_SQ / (2. * sq(M)) * xh1(q, x, Q_sq);
 }
-Real WW::xh1LperpM1(Quark q, Real x, Real Q_sq) const {
-	if (q != Quark::U && q != Quark::D) {
+Real WW::xh1LperpM1(part::Quark q, Real x, Real Q_sq) const {
+	if (q != part::Quark::U && q != part::Quark::D) {
 		return 0.;
 	} else {
 		return _impl->interp_xh1LperpM1[quark_idx(q)]({ x, Q_sq });
 	}
 }
-Real WW::xh1TperpM2(Quark q, Real x, Real Q_sq) const {
+Real WW::xh1TperpM2(part::Quark q, Real x, Real Q_sq) const {
 	// Equation [2.A.24].
 	unsigned q_idx = quark_idx(q);
 	return E / (2. * sq(M) * PRETZ_M_TT_SQ)
@@ -612,7 +611,7 @@ Real WW::xh1TperpM2(Quark q, Real x, Real Q_sq) const {
 		* std::pow(PRETZ_BETA, -PRETZ_BETA)
 		* (xf1(q, x, Q_sq) - xg1(q, x, Q_sq));
 }
-Real WW::xh1perpM1(Quark q, Real x, Real Q_sq) const {
+Real WW::xh1perpM1(part::Quark q, Real x, Real Q_sq) const {
 	// Equation [2.A.18].
 	unsigned q_idx = quark_idx(q);
 	return -std::sqrt(E / 2.) / (M * BM_M_1)

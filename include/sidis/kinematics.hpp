@@ -1,8 +1,8 @@
 #ifndef SIDIS_KINEMATICS_HPP
 #define SIDIS_KINEMATICS_HPP
 
-#include "sidis/constant.hpp"
 #include "sidis/numeric.hpp"
+#include "sidis/particle.hpp"
 #include "sidis/vector.hpp"
 
 namespace sidis {
@@ -14,18 +14,18 @@ namespace math {
 namespace kin {
 
 struct Particles {
-	constant::Nucleus target;
-	constant::Lepton beam;
-	constant::Hadron hadron;
+	part::Nucleus target;
+	part::Lepton beam;
+	part::Hadron hadron;
 	Real M;
 	Real m;
 	Real mh;
 	Real Mth;
 
 	Particles(
-		constant::Nucleus target,
-		constant::Lepton beam,
-		constant::Hadron hadron,
+		part::Nucleus target,
+		part::Lepton beam,
+		part::Hadron hadron,
 		Real Mth);
 };
 
@@ -56,9 +56,9 @@ struct PhaseSpaceRad {
 };
 
 struct Kinematics {
-	constant::Nucleus target;
-	constant::Lepton beam;
-	constant::Hadron hadron;
+	part::Nucleus target;
+	part::Lepton beam;
+	part::Hadron hadron;
 
 	Real S;
 	Real M;
@@ -131,9 +131,9 @@ struct Kinematics {
 
 struct KinematicsRad {
 	// Base set of kinematic variables.
-	constant::Nucleus target;
-	constant::Lepton beam;
-	constant::Hadron hadron;
+	part::Nucleus target;
+	part::Lepton beam;
+	part::Hadron hadron;
 
 	Real S;
 	Real M;
@@ -301,8 +301,8 @@ struct KinematicsRad {
 };
 
 struct Initial {
-	constant::Nucleus target;
-	constant::Lepton beam;
+	part::Nucleus target;
+	part::Lepton beam;
 	math::Vec4 p;
 	math::Vec4 k1;
 
@@ -321,8 +321,8 @@ struct Initial {
 };
 
 struct Final {
-	constant::Lepton beam;
-	constant::Hadron hadron;
+	part::Lepton beam;
+	part::Hadron hadron;
 	math::Vec4 q;
 	math::Vec4 k2;
 	math::Vec4 ph;
@@ -331,8 +331,8 @@ struct Final {
 };
 
 struct FinalRad {
-	constant::Lepton beam;
-	constant::Hadron hadron;
+	part::Lepton beam;
+	part::Hadron hadron;
 	math::Vec4 q;
 	math::Vec4 k2;
 	math::Vec4 ph;

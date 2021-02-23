@@ -1,7 +1,7 @@
 #ifndef SIDIS_Tmd_HPP
 #define SIDIS_Tmd_HPP
 
-#include "sidis/constant.hpp"
+#include "sidis/particle.hpp"
 
 namespace sidis {
 namespace sf {
@@ -9,9 +9,9 @@ namespace sf {
 class TmdSet {
 public:
 	unsigned const flavor_count;
-	constant::Nucleus const target;
+	part::Nucleus const target;
 
-	TmdSet(unsigned flavor_count, constant::Nucleus target) :
+	TmdSet(unsigned flavor_count, part::Nucleus target) :
 		flavor_count(flavor_count),
 		target(target) { }
 	virtual ~TmdSet() = default;
@@ -47,12 +47,12 @@ public:
 	virtual Real xeTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 
 	// Fragmentation functions (FFs).
-	virtual Real D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
-	virtual Real H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
-	virtual Real Dperp_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
-	virtual Real H_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
-	virtual Real Gperp_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
-	virtual Real E_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
+	virtual Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
+	virtual Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
+	virtual Real Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
+	virtual Real H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
+	virtual Real Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
+	virtual Real E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
 };
 
 class GaussianTmdSet : public TmdSet {
@@ -94,7 +94,7 @@ public:
 
 	GaussianTmdSet(
 		unsigned flavor_count,
-		constant::Nucleus target,
+		part::Nucleus target,
 		Real mean_f1,
 		Real mean_f1Tperp,
 		Real mean_fT,
@@ -154,12 +154,12 @@ public:
 	virtual Real xeTperp(unsigned fl, Real x, Real Q_sq) const;
 
 	// Reduced FFs (without `p_perp` dependence).
-	virtual Real D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const;
-	virtual Real H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const;
-	virtual Real Dperp_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const;
-	virtual Real H_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const;
-	virtual Real Gperp_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const;
-	virtual Real E_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const;
+	virtual Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
+	virtual Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
+	virtual Real Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
+	virtual Real H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
+	virtual Real Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
+	virtual Real E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
 
 	Real xf1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xf1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
@@ -186,19 +186,19 @@ public:
 	Real xeT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xeTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 
-	Real D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
-	Real H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
-	Real Dperp_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
-	Real H_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
-	Real Gperp_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
-	Real E_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	Real Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	Real H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	Real Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	Real E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 };
 
 class WwTmdSet : public TmdSet {
 public:
 	WwTmdSet(
 		unsigned flavor_count,
-		constant::Nucleus target) :
+		part::Nucleus target) :
 		TmdSet(
 			flavor_count,
 			target) { }
@@ -213,8 +213,8 @@ public:
 	virtual Real xh1Lperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	virtual Real xh1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 
-	virtual Real D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
-	virtual Real H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	virtual Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	virtual Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 
 	Real xf1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	Real xg1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
@@ -239,17 +239,17 @@ public:
 	Real xeT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xeTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 
-	Real Dperp_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
-	Real H_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
-	Real Gperp_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
-	Real E_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	Real Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	Real H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	Real Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	Real E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 };
 
 class GaussianWwTmdSet : public GaussianTmdSet {
 public:
 	GaussianWwTmdSet(
 		unsigned flavor_count,
-		constant::Nucleus target,
+		part::Nucleus target,
 		Real mean_f1,
 		Real mean_f1Tperp,
 		Real mean_fT,
@@ -277,8 +277,8 @@ public:
 	virtual Real xh1Lperp(unsigned fl, Real x, Real Q_sq) const override;
 	virtual Real xh1Tperp(unsigned fl, Real x, Real Q_sq) const override;
 
-	virtual Real D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
-	virtual Real H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	virtual Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	virtual Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
 
 	Real xf1TperpM1(unsigned fl, Real x, Real Q_sq) const;
 	Real xg1TperpM1(unsigned fl, Real x, Real Q_sq) const;
@@ -303,10 +303,10 @@ public:
 	Real xeT(unsigned fl, Real x, Real Q_sq) const override;
 	Real xeTperp(unsigned fl, Real x, Real Q_sq) const override;
 
-	Real Dperp_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
-	Real H_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
-	Real Gperp_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
-	Real E_tilde(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	Real Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	Real H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	Real Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	Real E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
 };
 
 }

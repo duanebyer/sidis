@@ -7,7 +7,6 @@
 #include <utility>
 
 #include <sidis/sidis.hpp>
-#include <sidis/vector.hpp>
 #include <sidis/sf_set/test.hpp>
 #include <sidis/sf_set/ww.hpp>
 
@@ -148,20 +147,20 @@ TEST_CASE(
 	} else {
 		bool mask[18] = { false };
 		mask[-input.sf_set_idx - 1] = true;
-		sf.reset(new sf::set::TestSfSet(constant::Nucleus::P, mask));
+		sf.reset(new sf::set::TestSfSet(part::Nucleus::P, mask));
 	}
 
 	// Set up the input to the cross-section calculation.
-	constant::Lepton lep;
+	part::Lepton lep;
 	if (input.beam_id == 0) {
-		lep = constant::Lepton::E;
+		lep = part::Lepton::E;
 	} else if (input.beam_id == 1) {
-		lep = constant::Lepton::MU;
+		lep = part::Lepton::MU;
 	} else if (input.beam_id == 2) {
-		lep = constant::Lepton::TAU;
+		lep = part::Lepton::TAU;
 	}
-	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real Mth = MASS_P + MASS_PI_0;
+	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	kin::PhaseSpace phase_space = input.phase_space;
 	kin::Kinematics kin(ps, input.S, phase_space);
 	// Get beam and target polarizations.
@@ -176,7 +175,7 @@ TEST_CASE(
 	std::stringstream ss;
 	ss
 		<< "sf_set_idx = " << input.sf_set_idx    << std::endl
-		<< "pid        = " << constant::name(lep) << std::endl
+		<< "pid        = " << part::name(lep) << std::endl
 		<< "S          = " << input.S             << std::endl
 		<< "x          = " << phase_space.x       << std::endl
 		<< "y          = " << phase_space.y       << std::endl
@@ -219,20 +218,20 @@ TEST_CASE(
 	} else {
 		bool mask[18] = { false };
 		mask[-input.sf_set_idx - 1] = true;
-		sf.reset(new sf::set::TestSfSet(constant::Nucleus::P, mask));
+		sf.reset(new sf::set::TestSfSet(part::Nucleus::P, mask));
 	}
 
 	// Set up the input to the cross-section calculation.
-	constant::Lepton lep;
+	part::Lepton lep;
 	if (input.beam_id == 0) {
-		lep = constant::Lepton::E;
+		lep = part::Lepton::E;
 	} else if (input.beam_id == 1) {
-		lep = constant::Lepton::MU;
+		lep = part::Lepton::MU;
 	} else if (input.beam_id == 2) {
-		lep = constant::Lepton::TAU;
+		lep = part::Lepton::TAU;
 	}
-	Real Mth = constant::MASS_P + constant::MASS_PI_0;
-	kin::Particles ps(constant::Nucleus::P, lep, constant::Hadron::PI_P, Mth);
+	Real Mth = MASS_P + MASS_PI_0;
+	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	kin::PhaseSpaceRad phase_space = input.phase_space;
 	kin::KinematicsRad kin(ps, input.S, phase_space);
 	// Get beam and target polarizations.
@@ -246,7 +245,7 @@ TEST_CASE(
 	std::stringstream ss;
 	ss
 		<< "sf_set_idx = " << input.sf_set_idx    << std::endl
-		<< "pid        = " << constant::name(lep) << std::endl
+		<< "pid        = " << part::name(lep) << std::endl
 		<< "S          = " << input.S             << std::endl
 		<< "x          = " << phase_space.x       << std::endl
 		<< "y          = " << phase_space.y       << std::endl

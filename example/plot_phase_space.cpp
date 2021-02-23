@@ -17,7 +17,6 @@
 #include <sidis/sidis.hpp>
 
 using namespace sidis;
-using namespace sidis::constant;
 using namespace sidis::cut;
 using namespace sidis::kin;
 using namespace sidis::math;
@@ -28,9 +27,9 @@ int main(int argc, char** argv) {
 	int argc_root = 1;
 
 	Real Mth = MASS_P + MASS_PI_0;
-	Lepton beam = Lepton::E;
-	Nucleus target = Nucleus::P;
-	Hadron hadron = Hadron::PI_P;
+	part::Lepton beam = part::Lepton::E;
+	part::Nucleus target = part::Nucleus::P;
+	part::Hadron hadron = part::Hadron::PI_P;
 
 	// Parse command line arguments.
 	Real beam_energy;

@@ -19,7 +19,6 @@
 #define PROKUDIN_DIR "prokudin"
 
 using namespace sidis;
-using namespace sidis::constant;
 using namespace sidis::interp;
 using namespace sidis::math;
 using namespace sidis::sf;
@@ -245,7 +244,7 @@ struct ProkudinTmdSet::Impl {
 ProkudinTmdSet::ProkudinTmdSet() :
 	GaussianWwTmdSet(
 		6,
-		constant::Nucleus::P,
+		part::Nucleus::P,
 		// `mean_f1`.
 		F1_MEAN_K_PERP_SQ,
 		// `mean_f1Tperp`.
@@ -426,28 +425,28 @@ Real ProkudinTmdSet::xh1Tperp(unsigned fl, Real x, Real Q_sq) const {
 		*(xf1(fl, x, Q_sq) - xg1(fl, x, Q_sq));
 }
 
-Real ProkudinTmdSet::D1(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const {
+Real ProkudinTmdSet::D1(part::Hadron h, unsigned fl, Real z, Real Q_sq) const {
 	switch (h) {
-	case Hadron::PI_P:
+	case part::Hadron::PI_P:
 		return _impl->interp_D1_pi_plus[fl]({ z, Q_sq });
-	case Hadron::PI_M:
+	case part::Hadron::PI_M:
 		return _impl->interp_D1_pi_minus[fl]({ z, Q_sq });
 	default:
 		throw HadronOutOfRange(h);
 	}
 }
 
-Real ProkudinTmdSet::H1perp(constant::Hadron h, unsigned fl, Real z, Real Q_sq) const {
+Real ProkudinTmdSet::H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq) const {
 	Real mh = mass(h);
 	Real collins_coeff = 0.;
 	// Favored or dis-favored depending on charge of the quark.
-	if (h == Hadron::PI_P) {
+	if (h == part::Hadron::PI_P) {
 		if (fl == 0 || fl == 4) {
 			collins_coeff = COLLINS_N_FAV;
 		} else if (fl == 1 || fl == 3) {
 			collins_coeff = COLLINS_N_DISFAV;
 		}
-	} else if (h == Hadron::PI_M) {
+	} else if (h == part::Hadron::PI_M) {
 		if (fl == 1 || fl == 3) {
 			collins_coeff = COLLINS_N_FAV;
 		} else if (fl == 0 || fl == 4) {

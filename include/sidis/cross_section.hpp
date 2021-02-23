@@ -63,19 +63,19 @@ namespace sf {
 namespace xs {
 
 Real born(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& sf); Real amm(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& sf);
-Real nrad_ir(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& sf, Real k_0_bar=constant::INF);
-Real nrad(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& sf, Real k_0_bar=constant::INF);
+Real nrad_ir(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& sf, Real k_0_bar=INF);
+Real nrad(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& sf, Real k_0_bar=INF);
 Real rad_f(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::SfSet const& sf);
 Real rad(Real lambda_e, math::Vec3 eta, kin::KinematicsRad kin, sf::SfSet const& sf);
 
 // TODO: Include a precision argument, which determines how accurately the
 // integrated cross-section is to be calculated.
-Real rad_f_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& sf, Real k_0_bar=constant::INF);
-Real rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& sf, Real k_0_bar=constant::INF);
+Real rad_f_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& sf, Real k_0_bar=INF);
+Real rad_integ(Real lambda_e, math::Vec3 eta, kin::Kinematics kin, sf::SfSet const& sf, Real k_0_bar=INF);
 
 // Various corrections to Born cross-section.
-Real delta_vert_rad_ir(kin::Kinematics kin, Real k_0_bar=constant::INF);
-Real delta_rad_ir_hard(kin::Kinematics kin, Real k_0_bar=constant::INF);
+Real delta_vert_rad_ir(kin::Kinematics kin, Real k_0_bar=INF);
+Real delta_rad_ir_hard(kin::Kinematics kin, Real k_0_bar=INF);
 Real delta_vac_lep(kin::Kinematics kin);
 Real delta_vac_had(kin::Kinematics kin);
 

@@ -5,7 +5,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "sidis/constant.hpp"
 #include "sidis/frame.hpp"
 #include "sidis/kinematics.hpp"
 #include "sidis/structure_function.hpp"
@@ -14,7 +13,6 @@
 #include "sidis/extra/math.hpp"
 
 using namespace sidis;
-using namespace sidis::constant;
 using namespace sidis::had;
 using namespace sidis::kin;
 using namespace sidis::math;
@@ -31,19 +29,6 @@ Vec3 diff_R(Real R, Real delta_R, Vec3 f_0, Vec3 f_1, Vec3 f_2) {
 	Real R_rel = R/delta_R;
 	return 1./(2.*delta_R)*((R_rel - 3.)*f_0 - 2.*(R_rel - 2.)*f_1 + (R_rel - 1.)*f_2);
 }
-
-struct SfNucleusMismatchException : public std::runtime_error {
-	Nucleus expected;
-	Nucleus provided;
-	SfNucleusMismatchException(Nucleus expected, Nucleus provided) :
-		std::runtime_error(
-			std::string("Target nucleus is ")
-			+ name(expected)
-			+ ", structure functions are for nucleus "
-			+ name(provided)),
-		expected(expected),
-		provided(provided) { }
-};
 
 }
 

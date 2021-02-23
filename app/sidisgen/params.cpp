@@ -17,7 +17,6 @@
 #include <TVector3.h>
 
 using namespace sidis;
-using namespace sidis::constant;
 using namespace sidis::math;
 
 namespace {
@@ -276,94 +275,94 @@ std::istream& operator>>(std::istream& is, RcMethod& rc_method) {
 	}
 	return is;
 }
-std::ostream& operator<<(std::ostream& os, Nucleus const& nucleus) {
+std::ostream& operator<<(std::ostream& os, part::Nucleus const& nucleus) {
 	switch (nucleus) {
-	case Nucleus::P:
+	case part::Nucleus::P:
 		return os << "p";
-	case Nucleus::N:
+	case part::Nucleus::N:
 		return os << "n";
-	case Nucleus::D:
+	case part::Nucleus::D:
 		return os << "d";
 	default:
 		os.setstate(std::ios_base::failbit);
 		return os;
 	}
 }
-std::istream& operator>>(std::istream& is, Nucleus& nucleus) {
+std::istream& operator>>(std::istream& is, part::Nucleus& nucleus) {
 	std::string name;
 	is >> name;
 	if (name == "p" || name == "proton") {
-		nucleus = Nucleus::P;
+		nucleus = part::Nucleus::P;
 	} else if (name == "n" || name == "neutron") {
-		nucleus = Nucleus::N;
+		nucleus = part::Nucleus::N;
 	} else if (name == "d" || name == "deuteron") {
-		nucleus = Nucleus::D;
+		nucleus = part::Nucleus::D;
 	} else {
 		is.setstate(std::ios_base::failbit);
 	}
 	return is;
 }
-std::ostream& operator<<(std::ostream& os, Lepton const& lepton) {
+std::ostream& operator<<(std::ostream& os, part::Lepton const& lepton) {
 	switch (lepton) {
-	case Lepton::E:
+	case part::Lepton::E:
 		return os << "e";
-	case Lepton::MU:
+	case part::Lepton::MU:
 		return os << "mu";
-	case Lepton::TAU:
+	case part::Lepton::TAU:
 		return os << "tau";
 	default:
 		os.setstate(std::ios_base::failbit);
 		return os;
 	}
 }
-std::istream& operator>>(std::istream& is, Lepton& lepton) {
+std::istream& operator>>(std::istream& is, part::Lepton& lepton) {
 	std::string name;
 	is >> name;
 	if (name == "e" || name == "electron") {
-		lepton = Lepton::E;
+		lepton = part::Lepton::E;
 	} else if (name == "mu" || name == "muon") {
-		lepton = Lepton::MU;
+		lepton = part::Lepton::MU;
 	} else if (name == "tau" || name == "tauon") {
-		lepton = Lepton::TAU;
+		lepton = part::Lepton::TAU;
 	} else {
 		is.setstate(std::ios_base::failbit);
 	}
 	return is;
 }
-std::ostream& operator<<(std::ostream& os, Hadron const& hadron) {
+std::ostream& operator<<(std::ostream& os, part::Hadron const& hadron) {
 	switch (hadron) {
-	case Hadron::PI_0:
+	case part::Hadron::PI_0:
 		return os << "pi0";
-	case Hadron::PI_P:
+	case part::Hadron::PI_P:
 		return os << "pi+";
-	case Hadron::PI_M:
+	case part::Hadron::PI_M:
 		return os << "pi-";
-	case Hadron::K_0:
+	case part::Hadron::K_0:
 		return os << "K0";
-	case Hadron::K_P:
+	case part::Hadron::K_P:
 		return os << "K+";
-	case Hadron::K_M:
+	case part::Hadron::K_M:
 		return os << "K-";
 	default:
 		os.setstate(std::ios_base::failbit);
 		return os;
 	}
 }
-std::istream& operator>>(std::istream& is, Hadron& hadron) {
+std::istream& operator>>(std::istream& is, part::Hadron& hadron) {
 	std::string name;
 	is >> name;
 	if (name == "pi0" || name == "pion0") {
-		hadron = Hadron::PI_0;
+		hadron = part::Hadron::PI_0;
 	} else if (name == "pi+" || name == "pion+") {
-		hadron = Hadron::PI_P;
+		hadron = part::Hadron::PI_P;
 	} else if (name == "pi-" || name == "pion-") {
-		hadron = Hadron::PI_M;
+		hadron = part::Hadron::PI_M;
 	} else if (name == "K0" || name == "kaon0") {
-		hadron = Hadron::K_0;
+		hadron = part::Hadron::K_0;
 	} else if (name == "K+" || name == "kaon+") {
-		hadron = Hadron::K_P;
+		hadron = part::Hadron::K_P;
 	} else if (name == "K-" || name == "kaon-") {
-		hadron = Hadron::K_M;
+		hadron = part::Hadron::K_M;
 	} else {
 		is.setstate(std::ios_base::failbit);
 	}

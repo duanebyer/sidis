@@ -62,8 +62,6 @@ struct EventStats {
 	ULong_t num_events;
 };
 
-Real const PI = constant::PI;
-
 // Converts between the `sidis` 4-vector type and the `ROOT` 4-vector type.
 TLorentzVector convert_vec4(math::Vec4 v) {
 	return TLorentzVector(v.x, v.y, v.z, v.t);
@@ -608,9 +606,9 @@ int command_generate(std::string params_file_name) {
 		});
 	}
 
-	constant::Nucleus target = *params.target;
-	constant::Lepton beam = *params.beam;
-	constant::Hadron hadron = *params.hadron;
+	part::Nucleus target = *params.target;
+	part::Lepton beam = *params.beam;
+	part::Hadron hadron = *params.hadron;
 	math::Vec3 target_pol = *params.target_pol;
 	kin::Particles ps(target, beam, hadron, *params.mass_threshold);
 	Real S = 2.*(*params.beam_energy)*ps.M;

@@ -4,8 +4,8 @@
 #include <exception>
 #include <string>
 
-#include "sidis/constant.hpp"
 #include "sidis/numeric.hpp"
+#include "sidis/particle.hpp"
 
 namespace sidis {
 
@@ -49,10 +49,10 @@ class TargetMismatch final : public std::exception {
 	std::string _what;
 
 public:
-	constant::Nucleus target;
-	constant::Nucleus target_expected;
+	part::Nucleus target;
+	part::Nucleus target_expected;
 
-	TargetMismatch(constant::Nucleus target, constant::Nucleus target_expected);
+	TargetMismatch(part::Nucleus target, part::Nucleus target_expected);
 	char const* what() const noexcept override {
 		return _what.c_str();
 	}
@@ -86,9 +86,9 @@ class HadronOutOfRange final : public std::exception {
 	std::string _what;
 
 public:
-	constant::Hadron hadron;
+	part::Hadron hadron;
 
-	HadronOutOfRange(constant::Hadron hadron);
+	HadronOutOfRange(part::Hadron hadron);
 	char const* what() const noexcept override {
 		return _what.c_str();
 	}
