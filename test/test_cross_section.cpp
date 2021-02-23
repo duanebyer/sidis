@@ -24,7 +24,7 @@ struct Input {
 	Real S;
 	Real beam_pol;
 	math::Vec3 target_pol;
-	kin::PhaseSpace phase_space;
+	kin::PhaseSpace ph_space;
 };
 
 struct Output {
@@ -48,7 +48,7 @@ struct InputRad {
 	Real S;
 	Real beam_pol;
 	math::Vec3 target_pol;
-	kin::PhaseSpaceRad phase_space;
+	kin::PhaseSpaceRad ph_space;
 };
 
 struct OutputRad {
@@ -80,12 +80,12 @@ std::istream& operator>>(std::istream& in, TestPair& pair) {
 	input.target_pol.x = 0.;
 	in >> input.target_pol.y;
 	in >> input.target_pol.z;
-	in >> input.phase_space.x;
-	in >> input.phase_space.y;
-	in >> input.phase_space.z;
-	in >> input.phase_space.ph_t_sq;
-	in >> input.phase_space.phi_h;
-	in >> input.phase_space.phi;
+	in >> input.ph_space.x;
+	in >> input.ph_space.y;
+	in >> input.ph_space.z;
+	in >> input.ph_space.ph_t_sq;
+	in >> input.ph_space.phi_h;
+	in >> input.ph_space.phi;
 	in >> output.born;
 	in >> output.err_born;
 	in >> output.amm;
@@ -112,15 +112,15 @@ std::istream& operator>>(std::istream& in, TestPairRad& pair) {
 	input.target_pol.x = 0.;
 	in >> input.target_pol.y;
 	in >> input.target_pol.z;
-	in >> input.phase_space.x;
-	in >> input.phase_space.y;
-	in >> input.phase_space.z;
-	in >> input.phase_space.ph_t_sq;
-	in >> input.phase_space.phi_h;
-	in >> input.phase_space.phi;
-	in >> input.phase_space.tau;
-	in >> input.phase_space.phi_k;
-	in >> input.phase_space.R;
+	in >> input.ph_space.x;
+	in >> input.ph_space.y;
+	in >> input.ph_space.z;
+	in >> input.ph_space.ph_t_sq;
+	in >> input.ph_space.phi_h;
+	in >> input.ph_space.phi;
+	in >> input.ph_space.tau;
+	in >> input.ph_space.phi_k;
+	in >> input.ph_space.R;
 	in >> output.rad_f;
 	in >> output.err_rad_f;
 	in >> output.rad;
@@ -161,8 +161,8 @@ TEST_CASE(
 	}
 	Real Mth = MASS_P + MASS_PI_0;
 	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
-	kin::PhaseSpace phase_space = input.phase_space;
-	kin::Kinematics kin(ps, input.S, phase_space);
+	kin::PhaseSpace ph_space = input.ph_space;
+	kin::Kinematics kin(ps, input.S, ph_space);
 	// Get beam and target polarizations.
 	Real beam_pol = input.beam_pol;
 	math::Vec3 eta = frame::hadron_from_target(kin) * input.target_pol;
@@ -177,12 +177,12 @@ TEST_CASE(
 		<< "sf_set_idx = " << input.sf_set_idx    << std::endl
 		<< "pid        = " << part::name(lep) << std::endl
 		<< "S          = " << input.S             << std::endl
-		<< "x          = " << phase_space.x       << std::endl
-		<< "y          = " << phase_space.y       << std::endl
-		<< "z          = " << phase_space.z       << std::endl
-		<< "ph_t²      = " << phase_space.ph_t_sq << std::endl
-		<< "φ_h        = " << phase_space.phi_h   << std::endl
-		<< "φ          = " << phase_space.phi     << std::endl
+		<< "x          = " << ph_space.x       << std::endl
+		<< "y          = " << ph_space.y       << std::endl
+		<< "z          = " << ph_space.z       << std::endl
+		<< "ph_t²      = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h        = " << ph_space.phi_h   << std::endl
+		<< "φ          = " << ph_space.phi     << std::endl
 		<< "λ_e        = " << beam_pol            << std::endl
 		<< "η_1        = " << eta.x               << std::endl
 		<< "η_2        = " << eta.y               << std::endl
@@ -232,8 +232,8 @@ TEST_CASE(
 	}
 	Real Mth = MASS_P + MASS_PI_0;
 	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
-	kin::PhaseSpaceRad phase_space = input.phase_space;
-	kin::KinematicsRad kin(ps, input.S, phase_space);
+	kin::PhaseSpaceRad ph_space = input.ph_space;
+	kin::KinematicsRad kin(ps, input.S, ph_space);
 	// Get beam and target polarizations.
 	Real beam_pol = input.beam_pol;
 	math::Vec3 eta = frame::hadron_from_target(kin.project()) * input.target_pol;
@@ -247,12 +247,12 @@ TEST_CASE(
 		<< "sf_set_idx = " << input.sf_set_idx    << std::endl
 		<< "pid        = " << part::name(lep) << std::endl
 		<< "S          = " << input.S             << std::endl
-		<< "x          = " << phase_space.x       << std::endl
-		<< "y          = " << phase_space.y       << std::endl
-		<< "z          = " << phase_space.z       << std::endl
-		<< "ph_t²      = " << phase_space.ph_t_sq << std::endl
-		<< "φ_h        = " << phase_space.phi_h   << std::endl
-		<< "φ          = " << phase_space.phi     << std::endl
+		<< "x          = " << ph_space.x       << std::endl
+		<< "y          = " << ph_space.y       << std::endl
+		<< "z          = " << ph_space.z       << std::endl
+		<< "ph_t²      = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h        = " << ph_space.phi_h   << std::endl
+		<< "φ          = " << ph_space.phi     << std::endl
 		<< "λ_e        = " << beam_pol            << std::endl
 		<< "η_1        = " << eta.x               << std::endl
 		<< "η_2        = " << eta.y               << std::endl

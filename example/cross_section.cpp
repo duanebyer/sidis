@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
 	// Set up the initial state particles.
 	Particles ps(target, beam, hadron, Mth);
 	Real S = 2. * ps.M * beam_energy;
-	PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, phi };
+	PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, phi };
 	// Check that we are in valid kinematic region.
 	if (!(S >= cut::S_min(ps))) {
 		throw std::out_of_range("Beam energy is below threshold");
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
 		throw std::out_of_range("ph_t_sq is out of valid kinematic range");
 	}
 	// Do kinematics calculations.
-	Kinematics kin(ps, S, phase_space);
+	Kinematics kin(ps, S, ph_space);
 	// Get the target polarization in the hadron frame.
 	Vec3 eta = frame::hadron_from_target(kin) * target_pol;
 

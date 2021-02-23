@@ -26,13 +26,13 @@ namespace {
 struct Input {
 	char particle_id;
 	Real beam_energy;
-	kin::PhaseSpace phase_space;
+	kin::PhaseSpace ph_space;
 };
 
 struct InputRad {
 	char particle_id;
 	Real beam_energy;
-	kin::PhaseSpaceRad phase_space;
+	kin::PhaseSpaceRad ph_space;
 };
 
 std::istream& operator>>(std::istream& in, Input& input) {
@@ -43,12 +43,12 @@ std::istream& operator>>(std::istream& in, Input& input) {
 		in.setstate(std::ios_base::failbit);
 	}
 	in >> input.beam_energy;
-	in >> input.phase_space.x;
-	in >> input.phase_space.y;
-	in >> input.phase_space.z;
-	in >> input.phase_space.ph_t_sq;
-	in >> input.phase_space.phi_h;
-	in >> input.phase_space.phi;
+	in >> input.ph_space.x;
+	in >> input.ph_space.y;
+	in >> input.ph_space.z;
+	in >> input.ph_space.ph_t_sq;
+	in >> input.ph_space.phi_h;
+	in >> input.ph_space.phi;
 	return in;
 }
 
@@ -60,15 +60,15 @@ std::istream& operator>>(std::istream& in, InputRad& input) {
 		in.setstate(std::ios_base::failbit);
 	}
 	in >> input.beam_energy;
-	in >> input.phase_space.x;
-	in >> input.phase_space.y;
-	in >> input.phase_space.z;
-	in >> input.phase_space.ph_t_sq;
-	in >> input.phase_space.phi_h;
-	in >> input.phase_space.phi;
-	in >> input.phase_space.tau;
-	in >> input.phase_space.R;
-	in >> input.phase_space.phi_k;
+	in >> input.ph_space.x;
+	in >> input.ph_space.y;
+	in >> input.ph_space.z;
+	in >> input.ph_space.ph_t_sq;
+	in >> input.ph_space.phi_h;
+	in >> input.ph_space.phi;
+	in >> input.ph_space.tau;
+	in >> input.ph_space.R;
+	in >> input.ph_space.phi_k;
 	return in;
 }
 
@@ -77,17 +77,17 @@ Real norm_euc(math::Vec4 vec) {
 }
 
 void test_kin_nrad(
-		kin::Initial initial_state,
+		kin::Initial init,
 		kin::Kinematics kin,
 		bool complete,
 		Real rel_prec=1e4) {
-	kin::Final final_state(initial_state, math::Vec3::Y, kin);
+	kin::Final fin(init, math::Vec3::Y, kin);
 	// Get 4-momenta of particles.
-	math::Vec4 p = initial_state.p;
-	math::Vec4 k1 = initial_state.k1;
-	math::Vec4 q = final_state.q;
-	math::Vec4 k2 = final_state.k2;
-	math::Vec4 ph = final_state.ph;
+	math::Vec4 p = init.p;
+	math::Vec4 k1 = init.k1;
+	math::Vec4 q = fin.q;
+	math::Vec4 k2 = fin.k2;
+	math::Vec4 ph = fin.ph;
 	math::Vec4 px = (p + k1) - (k2 + ph);
 	// Basis vectors for angle checks.
 	math::Vec3 e_y = cross(q.r(), k1.r()).unit();
@@ -263,24 +263,24 @@ TEST_CASE(
 	Real Mth = MASS_P + MASS_PI_0;
 	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
-	kin::Initial initial_state(ps, E_b);
-	kin::PhaseSpace phase_space = input.phase_space;
-	kin::Kinematics kin(ps, S, phase_space);
+	kin::Initial init(ps, E_b);
+	kin::PhaseSpace ph_space = input.ph_space;
+	kin::Kinematics kin(ps, S, ph_space);
 
 	// Print state information.
 	std::stringstream ss;
 	ss
 		<< "pid   = " << input.particle_id   << std::endl
 		<< "E_b   = " << E_b                 << std::endl
-		<< "x     = " << phase_space.x       << std::endl
-		<< "y     = " << phase_space.y       << std::endl
-		<< "z     = " << phase_space.z       << std::endl
-		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
-		<< "φ_h   = " << phase_space.phi_h   << std::endl
-		<< "φ     = " << phase_space.phi     << std::endl;
+		<< "x     = " << ph_space.x       << std::endl
+		<< "y     = " << ph_space.y       << std::endl
+		<< "z     = " << ph_space.z       << std::endl
+		<< "ph_t² = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h   = " << ph_space.phi_h   << std::endl
+		<< "φ     = " << ph_space.phi     << std::endl;
 	INFO(ss.str());
 
-	test_kin_nrad(initial_state, kin, true);
+	test_kin_nrad(init, kin, true);
 }
 
 TEST_CASE(
@@ -303,27 +303,27 @@ TEST_CASE(
 	Real Mth = MASS_P + MASS_PI_0;
 	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
-	kin::Initial initial_state(ps, E_b);
-	kin::PhaseSpaceRad phase_space = input.phase_space;
-	kin::KinematicsRad kin(ps, S, phase_space);
+	kin::Initial init(ps, E_b);
+	kin::PhaseSpaceRad ph_space = input.ph_space;
+	kin::KinematicsRad kin(ps, S, ph_space);
 
 	// Print state information.
 	std::stringstream ss;
 	ss
 		<< "pid   = " << input.particle_id   << std::endl
 		<< "E_b   = " << E_b                 << std::endl
-		<< "x     = " << phase_space.x       << std::endl
-		<< "y     = " << phase_space.y       << std::endl
-		<< "z     = " << phase_space.z       << std::endl
-		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
-		<< "φ_h   = " << phase_space.phi_h   << std::endl
-		<< "φ     = " << phase_space.phi     << std::endl
-		<< "τ     = " << phase_space.tau     << std::endl
-		<< "R     = " << phase_space.R       << std::endl
-		<< "φ_k   = " << phase_space.phi_k   << std::endl;
+		<< "x     = " << ph_space.x       << std::endl
+		<< "y     = " << ph_space.y       << std::endl
+		<< "z     = " << ph_space.z       << std::endl
+		<< "ph_t² = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h   = " << ph_space.phi_h   << std::endl
+		<< "φ     = " << ph_space.phi     << std::endl
+		<< "τ     = " << ph_space.tau     << std::endl
+		<< "R     = " << ph_space.R       << std::endl
+		<< "φ_k   = " << ph_space.phi_k   << std::endl;
 	INFO(ss.str());
 
-	test_kin_nrad(initial_state, kin.project_shift(), false);
+	test_kin_nrad(init, kin.project_shift(), false);
 }
 
 // The following `[kin-rand]` tests will likely have a handful of failures,
@@ -343,20 +343,20 @@ TEST_CASE(
 	part::Hadron hadron = part::Hadron::PI_P;
 	kin::Particles ps(target, lepton, hadron, Mth);
 	Real S = 2.*ps.M*E_b;
-	kin::Initial initial_state(ps, E_b);
-	kin::PhaseSpace phase_space = GENERATE_COPY(
+	kin::Initial init(ps, E_b);
+	kin::PhaseSpace ph_space = GENERATE_COPY(
 		take(1000000, gen_phase_space_surface(ps, S, -0.0001)));
-	kin::Kinematics kin(ps, S, phase_space);
+	kin::Kinematics kin(ps, S, ph_space);
 
 	std::stringstream ss;
 	ss
 		<< "E_b   = " << E_b                 << std::endl
-		<< "x     = " << phase_space.x       << std::endl
-		<< "y     = " << phase_space.y       << std::endl
-		<< "z     = " << phase_space.z       << std::endl
-		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
-		<< "φ_h   = " << phase_space.phi_h   << std::endl
-		<< "φ     = " << phase_space.phi     << std::endl;
+		<< "x     = " << ph_space.x       << std::endl
+		<< "y     = " << ph_space.y       << std::endl
+		<< "z     = " << ph_space.z       << std::endl
+		<< "ph_t² = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h   = " << ph_space.phi_h   << std::endl
+		<< "φ     = " << ph_space.phi     << std::endl;
 	INFO(ss.str());
 
 	CHECK(!cut::valid(kin));
@@ -374,24 +374,24 @@ TEST_CASE(
 	part::Hadron hadron = part::Hadron::PI_P;
 	kin::Particles ps(target, lepton, hadron, Mth);
 	Real S = 2.*ps.M*E_b;
-	kin::Initial initial_state(ps, E_b);
-	kin::PhaseSpace phase_space = GENERATE_COPY(
+	kin::Initial init(ps, E_b);
+	kin::PhaseSpace ph_space = GENERATE_COPY(
 		take(1000000, gen_phase_space_surface(ps, S, 0.0001)));
-	kin::Kinematics kin(ps, S, phase_space);
+	kin::Kinematics kin(ps, S, ph_space);
 
 	std::stringstream ss;
 	ss
 		<< "E_b   = " << E_b                 << std::endl
-		<< "x     = " << phase_space.x       << std::endl
-		<< "y     = " << phase_space.y       << std::endl
-		<< "z     = " << phase_space.z       << std::endl
-		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
-		<< "φ_h   = " << phase_space.phi_h   << std::endl
-		<< "φ     = " << phase_space.phi     << std::endl;
+		<< "x     = " << ph_space.x       << std::endl
+		<< "y     = " << ph_space.y       << std::endl
+		<< "z     = " << ph_space.z       << std::endl
+		<< "ph_t² = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h   = " << ph_space.phi_h   << std::endl
+		<< "φ     = " << ph_space.phi     << std::endl;
 	INFO(ss.str());
 
 	REQUIRE(cut::valid(kin));
-	test_kin_nrad(initial_state, kin, true, 1e6);
+	test_kin_nrad(init, kin, true, 1e6);
 }
 
 TEST_CASE(
@@ -406,24 +406,24 @@ TEST_CASE(
 	part::Hadron hadron = part::Hadron::PI_P;
 	kin::Particles ps(target, lepton, hadron, Mth);
 	Real S = 2.*ps.M*E_b;
-	kin::Initial initial_state(ps, E_b);
-	kin::PhaseSpace phase_space = GENERATE_COPY(
+	kin::Initial init(ps, E_b);
+	kin::PhaseSpace ph_space = GENERATE_COPY(
 		take(1000000, gen_phase_space(ps, S)));
-	kin::Kinematics kin(ps, S, phase_space);
+	kin::Kinematics kin(ps, S, ph_space);
 
 	std::stringstream ss;
 	ss
 		<< "pid   = " << name(lepton)        << std::endl
 		<< "E_b   = " << E_b                 << std::endl
-		<< "x     = " << phase_space.x       << std::endl
-		<< "y     = " << phase_space.y       << std::endl
-		<< "z     = " << phase_space.z       << std::endl
-		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
-		<< "φ_h   = " << phase_space.phi_h   << std::endl
-		<< "φ     = " << phase_space.phi     << std::endl;
+		<< "x     = " << ph_space.x       << std::endl
+		<< "y     = " << ph_space.y       << std::endl
+		<< "z     = " << ph_space.z       << std::endl
+		<< "ph_t² = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h   = " << ph_space.phi_h   << std::endl
+		<< "φ     = " << ph_space.phi     << std::endl;
 	INFO(ss.str());
 
-	test_kin_nrad(initial_state, kin, true, 1e6);
+	test_kin_nrad(init, kin, true, 1e6);
 }
 
 TEST_CASE(
@@ -446,17 +446,17 @@ TEST_CASE(
 	Real Mth = MASS_P + MASS_PI_0;
 	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
-	kin::Initial initial_state(ps, E_b);
-	kin::PhaseSpaceRad phase_space = input.phase_space;
-	kin::KinematicsRad kin(ps, S, phase_space);
-	kin::FinalRad final_state(initial_state, math::Vec3::ZERO, kin);
+	kin::Initial init(ps, E_b);
+	kin::PhaseSpaceRad ph_space = input.ph_space;
+	kin::KinematicsRad kin(ps, S, ph_space);
+	kin::FinalRad fin(init, math::Vec3::ZERO, kin);
 	// Get 4-momenta of particles.
-	math::Vec4 p = initial_state.p;
-	math::Vec4 k1 = initial_state.k1;
-	math::Vec4 q = final_state.q;
-	math::Vec4 k2 = final_state.k2;
-	math::Vec4 k = final_state.k;
-	math::Vec4 ph = final_state.ph;
+	math::Vec4 p = init.p;
+	math::Vec4 k1 = init.k1;
+	math::Vec4 q = fin.q;
+	math::Vec4 k2 = fin.k2;
+	math::Vec4 k = fin.k;
+	math::Vec4 ph = fin.ph;
 	math::Vec4 px = (p + k1) - (k2 + ph);
 	// Basis vectors for angle checks.
 	math::Vec3 e_y = cross(k1.r(), k2.r()).unit();
@@ -469,15 +469,15 @@ TEST_CASE(
 	ss
 		<< "pid   = " << input.particle_id   << std::endl
 		<< "E_b   = " << E_b                 << std::endl
-		<< "x     = " << phase_space.x       << std::endl
-		<< "y     = " << phase_space.y       << std::endl
-		<< "z     = " << phase_space.z       << std::endl
-		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
-		<< "φ_h   = " << phase_space.phi_h   << std::endl
-		<< "φ     = " << phase_space.phi     << std::endl
-		<< "τ     = " << phase_space.tau     << std::endl
-		<< "R     = " << phase_space.R       << std::endl
-		<< "φ_k   = " << phase_space.phi_k   << std::endl;
+		<< "x     = " << ph_space.x       << std::endl
+		<< "y     = " << ph_space.y       << std::endl
+		<< "z     = " << ph_space.z       << std::endl
+		<< "ph_t² = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h   = " << ph_space.phi_h   << std::endl
+		<< "φ     = " << ph_space.phi     << std::endl
+		<< "τ     = " << ph_space.tau     << std::endl
+		<< "R     = " << ph_space.R       << std::endl
+		<< "φ_k   = " << ph_space.phi_k   << std::endl;
 	INFO(ss.str());
 
 	// Do comparisons.
@@ -602,11 +602,11 @@ TEST_CASE(
 		part::Lepton::MU,
 		part::Hadron::PI_P,
 		MASS_P + MASS_PI_0);
-	kin::Initial initial_state(ps, p, k1);
+	kin::Initial init(ps, p, k1);
 
 	// Construct the frames.
-	math::Transform4 target_from_lab = frame::target_from_lab(initial_state, pol);
-	math::Transform4 lab_from_target = frame::lab_from_target(initial_state, pol);
+	math::Transform4 target_from_lab = frame::target_from_lab(init, pol);
+	math::Transform4 lab_from_target = frame::lab_from_target(init, pol);
 	math::Transform4 lab_from_lab = lab_from_target * target_from_lab;
 
 	Real prec = 1e4 * std::numeric_limits<Real>::epsilon();
@@ -634,8 +634,8 @@ TEST_CASE(
 	CHECK_THAT(lab_from_target.det(), RelMatcher<Real>(1., prec));
 
 	// Check transforming `p` and `k1` correctly.
-	math::Vec4 p_target = target_from_lab * initial_state.p;
-	math::Vec4 k1_target = target_from_lab * initial_state.k1;
+	math::Vec4 p_target = target_from_lab * init.p;
+	math::Vec4 k1_target = target_from_lab * init.k1;
 	CHECK_THAT(p_target.t, RelMatcher<Real>(MASS_P, prec));
 	CHECK_THAT(p_target.x, AbsMatcher<Real>(0., prec));
 	CHECK_THAT(p_target.y, AbsMatcher<Real>(0., prec));
@@ -654,8 +654,8 @@ TEST_CASE(
 		0., 0., -pol.z, pol.y,
 		0., pol.z, 0., -pol.x,
 		0., -pol.y, pol.x, 0.);
-	math::Transform4 boost = math::Transform4::boost_to(initial_state.p);
-	math::Vec4 k1_boost = boost.transpose() * initial_state.k1;
+	math::Transform4 boost = math::Transform4::boost_to(init.p);
+	math::Vec4 k1_boost = boost.transpose() * init.k1;
 	math::Transform4 pol_lab_bv = boost.transform(pol_bv);
 	math::Transform4 pol_target_bv = target_from_lab.transform(pol_lab_bv);
 	math::Vec3 pol_target(
@@ -696,7 +696,7 @@ TEST_CASE(
 		part::Lepton::MU,
 		part::Hadron::PI_P,
 		MASS_P + MASS_PI_0);
-	kin::Initial initial_state(ps, 8.2);
+	kin::Initial init(ps, 8.2);
 
 	// Construct the frames.
 	math::Vec3 pol = GENERATE(
@@ -705,8 +705,8 @@ TEST_CASE(
 		math::Vec3(0., 1e-9, 1e-8),
 		math::Vec3(0.1, -0.2, 0.3),
 		math::Vec3(0., 0., -0.4));
-	math::Transform4 target_from_lab = frame::target_from_lab(initial_state, pol);
-	math::Transform4 lab_from_target = frame::lab_from_target(initial_state, pol);
+	math::Transform4 target_from_lab = frame::target_from_lab(init, pol);
+	math::Transform4 lab_from_target = frame::lab_from_target(init, pol);
 	math::Transform4 lab_from_lab = lab_from_target * target_from_lab;
 
 	Real prec = 1e4 * std::numeric_limits<Real>::epsilon();
@@ -751,32 +751,32 @@ TEST_CASE(
 	Real Mth = MASS_P + MASS_PI_0;
 	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
-	kin::Initial initial_state(ps, E_b);
-	kin::PhaseSpace phase_space = input.phase_space;
-	kin::Kinematics kin(ps, S, phase_space);
-	kin::Final final_state(initial_state, math::Vec3::Y, kin);
+	kin::Initial init(ps, E_b);
+	kin::PhaseSpace ph_space = input.ph_space;
+	kin::Kinematics kin(ps, S, ph_space);
+	kin::Final fin(init, math::Vec3::Y, kin);
 	// Reference frames.
 	math::Transform4 target_from_lepton = frame::target_from_lepton(kin);
 	math::Transform4 target_from_hadron = frame::target_from_hadron(kin);
 	math::Transform4 target_from_virt_photon = frame::target_from_virt_photon(kin);
 	// Get 4-momenta of particles.
-	math::Vec4 p = initial_state.p;
-	math::Vec4 k1 = initial_state.k1;
-	math::Vec4 q = final_state.q;
-	math::Vec4 k2 = final_state.k2;
-	math::Vec4 ph = final_state.ph;
+	math::Vec4 p = init.p;
+	math::Vec4 k1 = init.k1;
+	math::Vec4 q = fin.q;
+	math::Vec4 k2 = fin.k2;
+	math::Vec4 ph = fin.ph;
 
 	// Print state information.
 	std::stringstream ss;
 	ss
 		<< "pid   = " << input.particle_id   << std::endl
 		<< "E_b   = " << E_b                 << std::endl
-		<< "x     = " << phase_space.x       << std::endl
-		<< "y     = " << phase_space.y       << std::endl
-		<< "z     = " << phase_space.z       << std::endl
-		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
-		<< "φ_h   = " << phase_space.phi_h   << std::endl
-		<< "φ     = " << phase_space.phi     << std::endl;
+		<< "x     = " << ph_space.x       << std::endl
+		<< "y     = " << ph_space.y       << std::endl
+		<< "z     = " << ph_space.z       << std::endl
+		<< "ph_t² = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h   = " << ph_space.phi_h   << std::endl
+		<< "φ     = " << ph_space.phi     << std::endl;
 	INFO(ss.str());
 
 	Real prec = 1e4 * std::numeric_limits<Real>::epsilon();
@@ -895,36 +895,36 @@ TEST_CASE(
 	Real Mth = MASS_P + MASS_PI_0;
 	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
-	kin::Initial initial_state(ps, E_b);
-	kin::PhaseSpaceRad phase_space = input.phase_space;
-	kin::KinematicsRad kin(ps, S, phase_space);
-	kin::FinalRad final_state(initial_state, math::Vec3::Y, kin);
+	kin::Initial init(ps, E_b);
+	kin::PhaseSpaceRad ph_space = input.ph_space;
+	kin::KinematicsRad kin(ps, S, ph_space);
+	kin::FinalRad fin(init, math::Vec3::Y, kin);
 	// Reference frames.
 	math::Transform4 target_from_shift = frame::target_from_shift(kin);
 	math::Transform4 target_from_hadron = frame::target_from_hadron(kin.project_shift());
 	math::Transform4 target_from_real_photon = frame::target_from_real_photon(kin);
 	// Get 4-momenta of particles.
-	math::Vec4 p = initial_state.p;
-	math::Vec4 k1 = initial_state.k1;
-	math::Vec4 q = final_state.q;
-	math::Vec4 k2 = final_state.k2;
-	math::Vec4 k = final_state.k;
-	math::Vec4 ph = final_state.ph;
+	math::Vec4 p = init.p;
+	math::Vec4 k1 = init.k1;
+	math::Vec4 q = fin.q;
+	math::Vec4 k2 = fin.k2;
+	math::Vec4 k = fin.k;
+	math::Vec4 ph = fin.ph;
 
 	// Print state information.
 	std::stringstream ss;
 	ss
 		<< "pid   = " << input.particle_id   << std::endl
 		<< "E_b   = " << E_b                 << std::endl
-		<< "x     = " << phase_space.x       << std::endl
-		<< "y     = " << phase_space.y       << std::endl
-		<< "z     = " << phase_space.z       << std::endl
-		<< "ph_t² = " << phase_space.ph_t_sq << std::endl
-		<< "φ_h   = " << phase_space.phi_h   << std::endl
-		<< "φ     = " << phase_space.phi     << std::endl
-		<< "τ     = " << phase_space.tau     << std::endl
-		<< "R     = " << phase_space.R       << std::endl
-		<< "φ_k   = " << phase_space.phi_k   << std::endl;
+		<< "x     = " << ph_space.x       << std::endl
+		<< "y     = " << ph_space.y       << std::endl
+		<< "z     = " << ph_space.z       << std::endl
+		<< "ph_t² = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h   = " << ph_space.phi_h   << std::endl
+		<< "φ     = " << ph_space.phi     << std::endl
+		<< "τ     = " << ph_space.tau     << std::endl
+		<< "R     = " << ph_space.R       << std::endl
+		<< "φ_k   = " << ph_space.phi_k   << std::endl;
 	INFO(ss.str());
 
 	Real prec = 1e4 * std::numeric_limits<Real>::epsilon();

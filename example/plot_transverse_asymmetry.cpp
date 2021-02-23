@@ -54,8 +54,8 @@ Real xs_uu_integ(
 		cubature::EstErr<Real> xs_born_integ;
 		xs_born_integ = cubature::cubature(
 			[&](Real phi_h) {
-				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, phase_space);
+				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(ps, S, ph_space);
 				xs::Born born(kin);
 				lep::LepBornUU lep(kin);
 				had::HadUU had(kin, sf);
@@ -72,8 +72,8 @@ Real xs_uu_integ(
 		// freedom.
 		xs_nrad_ir_integ = cubature::cubature(
 			[&](Real phi_h) {
-				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, phase_space);
+				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(ps, S, ph_space);
 				xs::NRadIR b(kin, rc_info.k0_cut);
 				lep::LepBornUU lep_born(kin);
 				lep::LepAmmUU lep_amm(kin);
@@ -86,8 +86,8 @@ Real xs_uu_integ(
 			[&](cubature::Point<4, Real> ph) {
 				Bound phi_h_b(-PI, PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
-				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, phase_space);
+				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(ps, S, ph_space);
 
 				KinematicsRad kin_rad;
 				Real jacobian;
@@ -130,8 +130,8 @@ Real xs_ut_integ_h(
 		cubature::EstErr<Real> xs_born_integ;
 		xs_born_integ = cubature::cubature(
 			[&](Real phi_h) {
-				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, phase_space);
+				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(ps, S, ph_space);
 				xs::Born b(kin);
 				lep::LepBornUX lep(kin);
 				had::HadUP had(kin, sf);
@@ -150,8 +150,8 @@ Real xs_ut_integ_h(
 		cubature::EstErr<Real> xs_rad_f_integ;
 		xs_nrad_ir_integ = cubature::cubature(
 			[&](Real phi_h) {
-				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, phase_space);
+				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(ps, S, ph_space);
 				xs::NRadIR b(kin, rc_info.k0_cut);
 				lep::LepBornUX lep_born(kin);
 				lep::LepAmmUX lep_amm(kin);
@@ -169,8 +169,8 @@ Real xs_ut_integ_h(
 			[&](cubature::Point<4, Real> ph) {
 				Bound phi_h_b(-PI, PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
-				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, phase_space);
+				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
+				Kinematics kin(ps, S, ph_space);
 
 				KinematicsRad kin_rad;
 				Real jacobian;

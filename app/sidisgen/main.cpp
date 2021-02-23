@@ -613,7 +613,7 @@ int command_generate(std::string params_file_name) {
 	kin::Particles ps(target, beam, hadron, *params.mass_threshold);
 	Real S = 2.*(*params.beam_energy)*ps.M;
 
-	kin::Initial initial_state(ps, *params.beam_energy);
+	kin::Initial init(ps, *params.beam_energy);
 	ULong_t N_gen = *params.num_events >= 0 ? *params.num_events : 0;
 
 	event_file.cd();
@@ -716,7 +716,7 @@ int command_generate(std::string params_file_name) {
 		case EventType::NRAD:
 			// Non-radiative event.
 			if (cut::take(cut, ps, S, event_vec, &kin, &jacobian)) {
-				kin::Final final_state(initial_state, target_pol, kin);
+				kin::Final fin(init, target_pol, kin);
 				// Fill in branches.
 				x = kin.x;
 				y = kin.y;
@@ -725,11 +725,11 @@ int command_generate(std::string params_file_name) {
 				phi_h = kin.phi_h;
 				phi = kin.phi;
 				Q_sq = kin.Q_sq;
-				p = convert_vec4(initial_state.p);
-				k1 = convert_vec4(initial_state.k1);
-				q = convert_vec4(final_state.q);
-				k2 = convert_vec4(final_state.k2);
-				ph = convert_vec4(final_state.ph);
+				p = convert_vec4(init.p);
+				k1 = convert_vec4(init.k1);
+				q = convert_vec4(fin.q);
+				k2 = convert_vec4(fin.k2);
+				ph = convert_vec4(fin.ph);
 			} else {
 				// Make sure invalid data isn't written to the events.
 				weight = 0.;
@@ -738,7 +738,7 @@ int command_generate(std::string params_file_name) {
 		case EventType::RAD:
 			// Radiative event.
 			if (cut::take(cut, cut_rad, ps, S, event_vec, &kin_rad, &jacobian)) {
-				kin::FinalRad final_state(initial_state, target_pol, kin_rad);
+				kin::FinalRad fin(init, target_pol, kin_rad);
 				// Fill in branches.
 				x = kin_rad.x;
 				y = kin_rad.y;
@@ -750,12 +750,12 @@ int command_generate(std::string params_file_name) {
 				phi_k = kin_rad.phi_k;
 				R = kin_rad.R;
 				Q_sq = kin_rad.Q_sq;
-				p = convert_vec4(initial_state.p);
-				k1 = convert_vec4(initial_state.k1);
-				q = convert_vec4(final_state.q);
-				k2 = convert_vec4(final_state.k2);
-				ph = convert_vec4(final_state.ph);
-				k = convert_vec4(final_state.k);
+				p = convert_vec4(init.p);
+				k1 = convert_vec4(init.k1);
+				q = convert_vec4(fin.q);
+				k2 = convert_vec4(fin.k2);
+				ph = convert_vec4(fin.ph);
+				k = convert_vec4(fin.k);
 			} else {
 				weight = 0.;
 			}
