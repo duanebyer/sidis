@@ -27,11 +27,6 @@ enum class Hadron {
 	J_PSI,
 };
 
-enum class Quark {
-	U, D, S, C, B, T,
-	U_B, D_B, S_B, C_B, B_B, T_B,
-};
-
 inline Real mass(Lepton lepton) {
 	switch (lepton) {
 	case Lepton::E:
@@ -114,28 +109,6 @@ inline Real charge(Hadron hadron) {
 	return 0.;
 }
 
-inline Real charge(Quark quark) {
-	switch (quark) {
-	case Quark::U:
-	case Quark::C:
-	case Quark::T:
-		return +2./3.;
-	case Quark::D:
-	case Quark::S:
-	case Quark::B:
-		return -1./3.;
-	case Quark::U_B:
-	case Quark::C_B:
-	case Quark::T_B:
-		return -2./3.;
-	case Quark::D_B:
-	case Quark::S_B:
-	case Quark::B_B:
-		return +1./3.;
-	}
-	return 0.;
-}
-
 inline char const* name(Lepton lepton) {
 	switch (lepton) {
 	case Lepton::E:
@@ -178,36 +151,6 @@ inline char const* name(Hadron hadron) {
 		return "φ";
 	case Hadron::J_PSI:
 		return "J/ψ";
-	}
-	return "<error>";
-}
-
-inline char const* name(Quark quark) {
-	switch (quark) {
-	case Quark::U:
-		return "u";
-	case Quark::D:
-		return "d";
-	case Quark::S:
-		return "s";
-	case Quark::C:
-		return "c";
-	case Quark::B:
-		return "b";
-	case Quark::T:
-		return "t";
-	case Quark::U_B:
-		return "u bar";
-	case Quark::D_B:
-		return "d bar";
-	case Quark::S_B:
-		return "s bar";
-	case Quark::C_B:
-		return "c bar";
-	case Quark::B_B:
-		return "b bar";
-	case Quark::T_B:
-		return "t bar";
 	}
 	return "<error>";
 }
