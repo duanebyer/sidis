@@ -6,6 +6,7 @@
 
 #include <cubature.hpp>
 
+#include "sidis/bound.hpp"
 #include "sidis/constant.hpp"
 #include "sidis/cut.hpp"
 #include "sidis/frame.hpp"
@@ -13,10 +14,9 @@
 #include "sidis/kinematics.hpp"
 #include "sidis/leptonic_coeff.hpp"
 #include "sidis/structure_function.hpp"
-#include "sidis/extra/bound.hpp"
+#include "sidis/vector.hpp"
 #include "sidis/extra/math.hpp"
 #include "sidis/extra/integrate.hpp"
-#include "sidis/extra/vector.hpp"
 
 using namespace sidis;
 using namespace sidis::constant;

@@ -1,6 +1,7 @@
 #ifndef SIDIS_SIDIS_HPP
 #define SIDIS_SIDIS_HPP
 
+#include "sidis/bound.hpp"
 #include "sidis/constant.hpp"
 #include "sidis/cross_section.hpp"
 #include "sidis/cut.hpp"
@@ -11,6 +12,8 @@
 #include "sidis/numeric.hpp"
 #include "sidis/structure_function.hpp"
 #include "sidis/tmd.hpp"
+#include "sidis/transform.hpp"
+#include "sidis/vector.hpp"
 #include "sidis/version.hpp"
 
 #endif

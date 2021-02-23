@@ -47,7 +47,6 @@ found in the `examples` folder. To get started quickly:
 #include <iostream>
 #include <sidis/sidis.hpp>
 #include <sidis/sf_set/ww.hpp>
-#include <sidis/extra/vector.hpp>
 
 sidis::Real const PI = sidis::constant::PI;
 sidis::Real const M_TH = sidis::constant::MASS_P + sidis::constant::MASS_PI_0;

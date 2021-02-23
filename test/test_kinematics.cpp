@@ -9,9 +9,9 @@
 #include <sidis/constant.hpp>
 #include <sidis/frame.hpp>
 #include <sidis/kinematics.hpp>
+#include <sidis/transform.hpp>
+#include <sidis/vector.hpp>
 #include <sidis/extra/math.hpp>
-#include <sidis/extra/transform.hpp>
-#include <sidis/extra/vector.hpp>
 
 #include "abs_matcher.hpp"
 #include "phase_space_generator.hpp"

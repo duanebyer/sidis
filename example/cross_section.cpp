@@ -9,7 +9,6 @@
 #include <sidis/sf_set/prokudin.hpp>
 #include <sidis/sf_set/test.hpp>
 #include <sidis/sf_set/ww.hpp>
-#include <sidis/extra/vector.hpp>
 
 using namespace sidis;
 using namespace sidis::constant;

@@ -4,8 +4,7 @@
 #include "sidis/kinematics.hpp"
 #include "sidis/numeric.hpp"
 #include "sidis/structure_function.hpp"
-#include "sidis/extra/transform.hpp"
-#include "sidis/extra/vector.hpp"
+#include "sidis/vector.hpp"
 
 namespace sidis {
 namespace had {

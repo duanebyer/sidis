@@ -10,8 +10,6 @@
 #include <TFile.h>
 
 #include <sidis/sidis.hpp>
-#include <sidis/extra/bound.hpp>
-#include <sidis/extra/vector.hpp>
 #include <sidis/sf_set/ww.hpp>
 
 using namespace sidis;

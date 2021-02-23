@@ -24,9 +24,7 @@
 #include <TTree.h>
 
 #include <sidis/sidis.hpp>
-#include <sidis/extra/bound.hpp>
 #include <sidis/extra/math.hpp>
-#include <sidis/extra/vector.hpp>
 #include <sidis/sf_set/test.hpp>
 #include <sidis/sf_set/ww.hpp>
 

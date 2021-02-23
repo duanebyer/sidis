@@ -1,23 +1,23 @@
 set(
 	HEADER_LIST_BASE
 	"sidis/sidis.hpp"
+	"sidis/bound.hpp"
 	"sidis/constant.hpp"
 	"sidis/cross_section.hpp"
 	"sidis/cut.hpp"
 	"sidis/frame.hpp"
 	"sidis/kinematics.hpp"
 	"sidis/tmd.hpp"
+	"sidis/transform.hpp"
+	"sidis/vector.hpp"
 	"sidis/sf_set/prokudin.hpp"
 	"sidis/sf_set/test.hpp"
 	"sidis/sf_set/ww.hpp"
-	"sidis/extra/bound.hpp"
 	"sidis/extra/exception.hpp"
 	"sidis/extra/integrate.hpp"
 	"sidis/extra/interpolate.hpp"
 	"sidis/extra/interpolate.ipp"
-	"sidis/extra/math.hpp"
-	"sidis/extra/transform.hpp"
-	"sidis/extra/vector.hpp")
+	"sidis/extra/math.hpp")
 set(
 	HEADER_LIST_GENERATE
 	"sidis/hadronic_coeff.hpp"

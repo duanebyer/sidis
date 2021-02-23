@@ -8,10 +8,7 @@
 
 #include <TFile.h>
 
-#include <sidis/numeric.hpp>
-#include <sidis/constant.hpp>
-#include <sidis/extra/bound.hpp>
-#include <sidis/extra/vector.hpp>
+#include <sidis/sidis.hpp>
 
 // Within a major version, there is forward compatibility (e.x. 1.4 is
 // forward-compatible with 1.5). Between major versions, there is no

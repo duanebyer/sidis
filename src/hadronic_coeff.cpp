@@ -9,6 +9,7 @@
 #include "sidis/frame.hpp"
 #include "sidis/kinematics.hpp"
 #include "sidis/structure_function.hpp"
+#include "sidis/transform.hpp"
 #include "sidis/extra/exception.hpp"
 #include "sidis/extra/math.hpp"
 

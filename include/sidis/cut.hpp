@@ -1,8 +1,8 @@
 #ifndef SIDIS_CUT_HPP
 #define SIDIS_CUT_HPP
 
+#include "sidis/bound.hpp"
 #include "sidis/numeric.hpp"
-#include "sidis/extra/bound.hpp"
 
 namespace sidis {
 

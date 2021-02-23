@@ -2,7 +2,7 @@
 
 #include <random>
 
-#include <sidis/extra/bound.hpp>
+#include <sidis/bound.hpp>
 #include <sidis/extra/math.hpp>
 
 using namespace sidis;
