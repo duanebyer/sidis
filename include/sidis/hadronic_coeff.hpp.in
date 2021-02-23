@@ -49,7 +49,7 @@ gen_struct.generate_structs_pol(
 	},
 	constructors=[
 		[["kin::Kinematics", "kin"], ["sf::SfXX", "sf"]],
-		[["kin::Kinematics", "kin"], ["sf::SfSet const&", "sf"]],
+		[["kin::Kinematics", "kin"], ["sf::SfSet", "sf"]],
 	],
 	generate_target_p=True
 )
@@ -88,7 +88,7 @@ gen_struct.generate_structs_pol(
 	},
 	constructors=[
 		[["kin::KinematicsRad", "kin"], ["sf::SfXX", "shift_sf"]],
-		[["kin::KinematicsRad", "kin"], ["sf::SfSet const&", "sf"]],
+		[["kin::KinematicsRad", "kin"], ["sf::SfSet", "sf"]],
 	],
 	generate_target_p=False
 )
@@ -141,8 +141,8 @@ gen_struct.generate_structs_pol(
 	},
 	constructors=[
 		[["kin::KinematicsRad", "kin"], ["sf::SfXX", "sf"], ["sf::SfXX", "shift_sf"]],
-		[["kin::KinematicsRad", "kin"], ["sf::SfSet const&", "sf"]],
-		[["kin::KinematicsRad", "kin"], ["sf::SfSet const&", "sf"], ["had::HadXX", "had_0"]],
+		[["kin::KinematicsRad", "kin"], ["sf::SfSet", "sf"]],
+		[["kin::KinematicsRad", "kin"], ["sf::SfSet", "sf"], ["had::HadXX", "had_0"]],
 	],
 	generate_target_p=False
 )

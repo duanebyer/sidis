@@ -33,7 +33,7 @@ Vec3 diff_R(Real R, Real delta_R, Vec3 f_0, Vec3 f_1, Vec3 f_2) {
 }
 
 // Standard hadronic coefficients. Equation [1.14].
-HadUU::HadUU(Kinematics kin, SfUU sf) {
+HadUU::HadUU(Kinematics const& kin, SfUU const& sf) {
 	Real H_00 = kin.C_1*sf.F_UUL;
 	Real H_01 = -kin.C_1*sf.F_UU_cos_phih;
 	Real H_11 = kin.C_1*(sf.F_UU_cos_2phih + sf.F_UUT);
@@ -49,7 +49,7 @@ HadUU::HadUU(Kinematics kin, SfUU sf) {
 		kin.lambda_3*kin.S_x*(H_22 - H_11)
 		+ kin.ph_t*kin.Q*kin.lambda_Y_sqrt*H_01);
 }
-HadUL::HadUL(Kinematics kin, SfUL sf) {
+HadUL::HadUL(Kinematics const& kin, SfUL const& sf) {
 	Real H_023 = kin.C_1*sf.F_UL_sin_phih;
 	Real H_123 = -kin.C_1*sf.F_UL_sin_2phih;
 	H_63 = 4./(std::pow(kin.lambda_Y_sqrt, 3)*kin.ph_t_sq)*(
@@ -57,7 +57,7 @@ HadUL::HadUL(Kinematics kin, SfUL sf) {
 		- kin.lambda_3*kin.S_x*H_123);
 	H_83 = 2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_123;
 }
-HadUT::HadUT(Kinematics kin, SfUT sf) {
+HadUT::HadUT(Kinematics const& kin, SfUT const& sf) {
 	Real H_002 = kin.C_1*sf.F_UTL_sin_phih_m_phis;
 	Real H_012 = kin.C_1*(sf.F_UT_sin_phis - sf.F_UT_sin_2phih_m_phis);
 	Real H_021 = kin.C_1*(sf.F_UT_sin_2phih_m_phis + sf.F_UT_sin_phis);
@@ -79,11 +79,11 @@ HadUT::HadUT(Kinematics kin, SfUT sf) {
 		- kin.lambda_3*kin.S_x*H_121);
 	H_81 = 2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_121;
 }
-HadLU::HadLU(Kinematics kin, SfLU sf) {
+HadLU::HadLU(Kinematics const& kin, SfLU const& sf) {
 	Real H_01 = -kin.C_1*sf.F_LU_sin_phih;
 	H_50 = (2.*kin.Q)/(kin.ph_t*kin.lambda_Y_sqrt)*H_01;
 }
-HadLL::HadLL(Kinematics kin, SfLL sf) {
+HadLL::HadLL(Kinematics const& kin, SfLL const& sf) {
 	Real H_023 = -kin.C_1*sf.F_LL_cos_phih;
 	Real H_123 = kin.C_1*sf.F_LL;
 	H_73 = 4./(std::pow(kin.lambda_Y_sqrt, 3)*kin.ph_t_sq)*(
@@ -91,7 +91,7 @@ HadLL::HadLL(Kinematics kin, SfLL sf) {
 		- kin.lambda_3*kin.S_x*H_123);
 	H_93 = 2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_123;
 }
-HadLT::HadLT(Kinematics kin, SfLT sf) {
+HadLT::HadLT(Kinematics const& kin, SfLT const& sf) {
 	Real H_012 = -kin.C_1*(sf.F_LT_cos_phis - sf.F_LT_cos_2phih_m_phis);
 	Real H_021 = -kin.C_1*(sf.F_LT_cos_2phih_m_phis + sf.F_LT_cos_phis);
 	Real H_121 = kin.C_1*sf.F_LT_cos_phih_m_phis;
@@ -101,42 +101,42 @@ HadLT::HadLT(Kinematics kin, SfLT sf) {
 		- kin.lambda_3*kin.S_x*H_121);
 	H_91 = 2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_121;
 }
-HadUU::HadUU(Kinematics kin, SfSet const& sf) : HadUU(
+HadUU::HadUU(Kinematics const& kin, SfSet const& sf) : HadUU(
 		kin,
 		sf.sf_uu(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadUL::HadUL(Kinematics kin, SfSet const& sf) : HadUL(
+HadUL::HadUL(Kinematics const& kin, SfSet const& sf) : HadUL(
 		kin,
 		sf.sf_ul(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadUT::HadUT(Kinematics kin, SfSet const& sf) : HadUT(
+HadUT::HadUT(Kinematics const& kin, SfSet const& sf) : HadUT(
 		kin,
 		sf.sf_ut(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadLU::HadLU(Kinematics kin, SfSet const& sf) : HadLU(
+HadLU::HadLU(Kinematics const& kin, SfSet const& sf) : HadLU(
 		kin,
 		sf.sf_lu(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadLL::HadLL(Kinematics kin, SfSet const& sf) : HadLL(
+HadLL::HadLL(Kinematics const& kin, SfSet const& sf) : HadLL(
 		kin,
 		sf.sf_ll(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadLT::HadLT(Kinematics kin, SfSet const& sf) : HadLT(
+HadLT::HadLT(Kinematics const& kin, SfSet const& sf) : HadLT(
 		kin,
 		sf.sf_lt(kin.hadron, kin.x, kin.z, kin.Q_sq, kin.ph_t_sq)) {
 	if (sf.target != kin.target) {
@@ -149,7 +149,7 @@ HadLT::HadLT(Kinematics kin, SfSet const& sf) : HadLT(
 // instead. Also, since the shifted version of the polarization vector is
 // involved, all polarized components get mixed into each other, meaning that we
 // can't compute, for instance, `HadRadUL`, but must use `HadRadUP`.
-HadRadUU::HadRadUU(KinematicsRad kin, SfUU shift_sf) {
+HadRadUU::HadRadUU(KinematicsRad const& kin, SfUU const& shift_sf) {
 	Real H_00 = kin.shift_C_1*shift_sf.F_UUL;
 	Real H_01 = -kin.shift_C_1*shift_sf.F_UU_cos_phih;
 	Real H_11 = kin.shift_C_1*(shift_sf.F_UU_cos_2phih + shift_sf.F_UUT);
@@ -165,7 +165,7 @@ HadRadUU::HadRadUU(KinematicsRad kin, SfUU shift_sf) {
 		kin.shift_lambda_3*kin.shift_S_x*(H_22 - H_11)
 		+ kin.shift_ph_t*kin.shift_Q*kin.shift_lambda_Y_sqrt*H_01);
 }
-HadRadUP::HadRadUP(KinematicsRad kin, SfUP shift_sf) {
+HadRadUP::HadRadUP(KinematicsRad const& kin, SfUP const& shift_sf) {
 	// TODO: Can we fix `shift_rot` being needlessly calculated twice in both
 	// `UP` and `LP` versions of `HadRad`?
 	Transform3 shift_rot = frame::hadron_from_shift(kin);
@@ -212,11 +212,11 @@ HadRadUP::HadRadUP(KinematicsRad kin, SfUP shift_sf) {
 		0.,
 		2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_123));
 }
-HadRadLU::HadRadLU(KinematicsRad kin, SfLU shift_sf) {
+HadRadLU::HadRadLU(KinematicsRad const& kin, SfLU const& shift_sf) {
 	Real H_01 = -kin.shift_C_1*shift_sf.F_LU_sin_phih;
 	H_50 = (2.*kin.shift_Q)/(kin.shift_ph_t*kin.shift_lambda_Y_sqrt)*H_01;
 }
-HadRadLP::HadRadLP(KinematicsRad kin, SfLP shift_sf) {
+HadRadLP::HadRadLP(KinematicsRad const& kin, SfLP const& shift_sf) {
 	Transform3 shift_rot = frame::hadron_from_shift(kin);
 	Real H_012 = -kin.shift_C_1*(shift_sf.F_LT_cos_phis - shift_sf.F_LT_cos_2phih_m_phis);
 	Real H_021 = -kin.shift_C_1*(shift_sf.F_LT_cos_2phih_m_phis + shift_sf.F_LT_cos_phis);
@@ -240,28 +240,28 @@ HadRadLP::HadRadLP(KinematicsRad kin, SfLP shift_sf) {
 		0.,
 		2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_123));
 }
-HadRadUU::HadRadUU(KinematicsRad kin, SfSet const& sf) : HadRadUU(
+HadRadUU::HadRadUU(KinematicsRad const& kin, SfSet const& sf) : HadRadUU(
 		kin,
 		sf.sf_uu(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadRadUP::HadRadUP(KinematicsRad kin, SfSet const& sf) : HadRadUP(
+HadRadUP::HadRadUP(KinematicsRad const& kin, SfSet const& sf) : HadRadUP(
 		kin,
 		sf.sf_up(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadRadLU::HadRadLU(KinematicsRad kin, SfSet const& sf) : HadRadLU(
+HadRadLU::HadRadLU(KinematicsRad const& kin, SfSet const& sf) : HadRadLU(
 		kin,
 		sf.sf_lu(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
 }
-HadRadLP::HadRadLP(KinematicsRad kin, SfSet const& sf) : HadRadLP(
+HadRadLP::HadRadLP(KinematicsRad const& kin, SfSet const& sf) : HadRadLP(
 		kin,
 		sf.sf_lp(kin.hadron, kin.shift_x, kin.shift_z, kin.shift_Q_sq, kin.shift_ph_t_sq)) {
 	if (sf.target != kin.target) {
@@ -276,7 +276,7 @@ HadRadLP::HadRadLP(KinematicsRad kin, SfSet const& sf) : HadRadLP(
 // appropriate constructors, the infrared-divergent-free radiative coefficients
 // can be accurately computed using the diffative of the full radiative
 // coefficients near `R=0`.
-HadRadFUU::HadRadFUU(KinematicsRad kin, SfUU sf, SfUU shift_sf) {
+HadRadFUU::HadRadFUU(KinematicsRad const& kin, SfUU const& sf, SfUU const& shift_sf) {
 	HadRadUU had(kin, shift_sf);
 	HadUU had_0(kin.project(), sf);
 	H_10 = had.H_10;
@@ -288,7 +288,7 @@ HadRadFUU::HadRadFUU(KinematicsRad kin, SfUU sf, SfUU shift_sf) {
 	H_30_diff = (had.H_30 - had_0.H_30)/kin.R;
 	H_40_diff = (had.H_40 - had_0.H_40)/kin.R;
 }
-HadRadFUP::HadRadFUP(KinematicsRad kin, SfUP sf, SfUP shift_sf) {
+HadRadFUP::HadRadFUP(KinematicsRad const& kin, SfUP const& sf, SfUP const& shift_sf) {
 	HadRadUP had(kin, shift_sf);
 	HadUP had_0(kin.project(), sf);
 	H_1 = had.H_1;
@@ -304,13 +304,13 @@ HadRadFUP::HadRadFUP(KinematicsRad kin, SfUP sf, SfUP shift_sf) {
 	H_6_diff = (had.H_6 - Vec3(had_0.H_61, 0., had_0.H_63))/kin.R;
 	H_8_diff = (had.H_8 - Vec3(had_0.H_81, 0., had_0.H_83))/kin.R;
 }
-HadRadFLU::HadRadFLU(KinematicsRad kin, SfLU sf, SfLU shift_sf) {
+HadRadFLU::HadRadFLU(KinematicsRad const& kin, SfLU const& sf, SfLU const& shift_sf) {
 	HadRadLU had(kin, shift_sf);
 	HadLU had_0(kin.project(), sf);
 	H_50 = had.H_50;
 	H_50_diff = (had.H_50 - had_0.H_50)/kin.R;
 }
-HadRadFLP::HadRadFLP(KinematicsRad kin, SfLP sf, SfLP shift_sf) {
+HadRadFLP::HadRadFLP(KinematicsRad const& kin, SfLP const& sf, SfLP const& shift_sf) {
 	HadRadLP had(kin, shift_sf);
 	HadLP had_0(kin.project(), sf);
 	H_5 = had.H_5;
@@ -320,7 +320,7 @@ HadRadFLP::HadRadFLP(KinematicsRad kin, SfLP sf, SfLP shift_sf) {
 	H_7_diff = (had.H_7 - Vec3(had_0.H_71, 0., had_0.H_73))/kin.R;
 	H_9_diff = (had.H_9 - Vec3(had_0.H_91, 0., had_0.H_93))/kin.R;
 }
-HadRadFUU::HadRadFUU(KinematicsRad kin, SfSet const& sf, HadUU had_0) {
+HadRadFUU::HadRadFUU(KinematicsRad const& kin, SfSet const& sf, HadUU const& had_0) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
@@ -348,7 +348,7 @@ HadRadFUU::HadRadFUU(KinematicsRad kin, SfSet const& sf, HadUU had_0) {
 		H_40_diff = (had.H_40 - had_0.H_40)/kin.R;
 	}
 }
-HadRadFUP::HadRadFUP(KinematicsRad kin, SfSet const& sf, HadUP had_0) {
+HadRadFUP::HadRadFUP(KinematicsRad const& kin, SfSet const& sf, HadUP const& had_0) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
@@ -388,7 +388,7 @@ HadRadFUP::HadRadFUP(KinematicsRad kin, SfSet const& sf, HadUP had_0) {
 		H_8_diff = (had.H_8 - had_0_H_8)/kin.R;
 	}
 }
-HadRadFLU::HadRadFLU(KinematicsRad kin, SfSet const& sf, HadLU had_0) {
+HadRadFLU::HadRadFLU(KinematicsRad const& kin, SfSet const& sf, HadLU const& had_0) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
@@ -407,7 +407,7 @@ HadRadFLU::HadRadFLU(KinematicsRad kin, SfSet const& sf, HadLU had_0) {
 		H_50_diff = (had.H_50 - had_0.H_50)/kin.R;
 	}
 }
-HadRadFLP::HadRadFLP(KinematicsRad kin, SfSet const& sf, HadLP had_0) {
+HadRadFLP::HadRadFLP(KinematicsRad const& kin, SfSet const& sf, HadLP const& had_0) {
 	if (sf.target != kin.target) {
 		throw TargetMismatch(kin.target, sf.target);
 	}
@@ -435,12 +435,12 @@ HadRadFLP::HadRadFLP(KinematicsRad kin, SfSet const& sf, HadLP had_0) {
 		H_9_diff = (had.H_9 - had_0_H_9)/kin.R;
 	}
 }
-HadRadFUU::HadRadFUU(KinematicsRad kin, SfSet const& sf) :
+HadRadFUU::HadRadFUU(KinematicsRad const& kin, SfSet const& sf) :
 	HadRadFUU(kin, sf, HadUU(kin.project(), sf)) { }
-HadRadFUP::HadRadFUP(KinematicsRad kin, SfSet const& sf) :
+HadRadFUP::HadRadFUP(KinematicsRad const& kin, SfSet const& sf) :
 	HadRadFUP(kin, sf, HadUP(kin.project(), sf)) { }
-HadRadFLU::HadRadFLU(KinematicsRad kin, SfSet const& sf) :
+HadRadFLU::HadRadFLU(KinematicsRad const& kin, SfSet const& sf) :
 	HadRadFLU(kin, sf, HadLU(kin.project(), sf)) { }
-HadRadFLP::HadRadFLP(KinematicsRad kin, SfSet const& sf) :
+HadRadFLP::HadRadFLP(KinematicsRad const& kin, SfSet const& sf) :
 	HadRadFLP(kin, sf, HadLP(kin.project(), sf)) { }
 

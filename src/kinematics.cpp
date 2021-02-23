@@ -30,7 +30,7 @@ Particles::Particles(
 	}
 }
 
-Kinematics::Kinematics(Particles ps, Real S, PhaseSpace ph_space) {
+Kinematics::Kinematics(Particles const& ps, Real S, PhaseSpace const& ph_space) {
 	x = ph_space.x;
 	y = ph_space.y;
 	z = ph_space.z;
@@ -126,7 +126,7 @@ Kinematics::Kinematics(Particles ps, Real S, PhaseSpace ph_space) {
 	C_1 = (4.*M*ph_l*(Q_sq + 2.*x*sq(M)))/sq(sq(Q_sq));
 }
 
-KinematicsRad::KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R) :
+KinematicsRad::KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R) :
 		target(kin.target),
 		beam(kin.beam),
 		hadron(kin.hadron),
@@ -473,7 +473,7 @@ Kinematics KinematicsRad::project_shift() const {
 	return kin;
 }
 
-Final::Final(Initial init, Vec3 target_pol, Kinematics kin) {
+Final::Final(Initial const& init, Vec3 target_pol, Kinematics const& kin) {
 	beam = kin.beam;
 	hadron = kin.hadron;
 	Transform4 lab_from_target = frame::lab_from_target(init, target_pol);
@@ -490,7 +490,7 @@ Final::Final(Initial init, Vec3 target_pol, Kinematics kin) {
 	ph = lab_from_hadron * Vec4(kin.ph_0, kin.ph_t, 0., kin.ph_l);
 }
 
-FinalRad::FinalRad(Initial init, Vec3 target_pol, KinematicsRad kin) {
+FinalRad::FinalRad(Initial const& init, Vec3 target_pol, KinematicsRad const& kin) {
 	beam = kin.beam;
 	hadron = kin.hadron;
 	Transform4 lab_from_target = frame::lab_from_target(init, target_pol);

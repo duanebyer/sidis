@@ -9,20 +9,20 @@ using namespace sidis::math;
 using namespace sidis::kin;
 
 // Born coefficients. Equation [1.16].
-LepBornUU::LepBornUU(Kinematics kin) {
+LepBornUU::LepBornUU(Kinematics const& kin) {
 	theta_1 = kin.Q_sq - 2.*sq(kin.m);
 	theta_2 = 0.5*(kin.S*kin.X - sq(kin.M)*kin.Q_sq);
 	theta_3 = 0.5*(kin.V_1*kin.V_2 - sq(kin.mh)*kin.Q_sq);
 	theta_4 = 0.5*(kin.S*kin.V_2 + kin.X*kin.V_1 - kin.z*kin.Q_sq*kin.S_x);
 }
-LepBornUP::LepBornUP(Kinematics kin) {
+LepBornUP::LepBornUP(Kinematics const& kin) {
 	theta_6 = -kin.S_p*kin.vol_phi_h;
 	theta_8 = -2.*kin.V_p*kin.vol_phi_h;
 }
-LepBornLU::LepBornLU(Kinematics kin) {
+LepBornLU::LepBornLU(Kinematics const& kin) {
 	theta_5 = (2.*kin.S*kin.vol_phi_h)/kin.lambda_S_sqrt;
 }
-LepBornLP::LepBornLP(Kinematics kin) {
+LepBornLP::LepBornLP(Kinematics const& kin) {
 	theta_7 = kin.S/(4.*kin.lambda_S_sqrt)*(
 		kin.lambda_Y*kin.V_p
 		- kin.S_p*kin.S_x*(kin.z*kin.Q_sq + kin.V_m));
@@ -37,22 +37,22 @@ LepBornLP::LepBornLP(Kinematics kin) {
 }
 
 // AMM coefficients. Equation [1.54].
-LepAmmUU::LepAmmUU(Kinematics kin) {
+LepAmmUU::LepAmmUU(Kinematics const& kin) {
 	theta_1 = 6.;
 	theta_2 = -kin.lambda_Y/(2.*kin.Q_sq);
 	theta_3 = -2.*sq(kin.mh) - 2.*sq(kin.V_m)/kin.Q_sq;
 	theta_4 = -2.*kin.S_x*(kin.z + kin.V_m/kin.Q_sq);
 }
-LepAmmUP::LepAmmUP(Kinematics kin) {
+LepAmmUP::LepAmmUP(Kinematics const& kin) {
 	static_cast<void>(kin);
 	theta_6 = 0.;
 	theta_8 = 0.;
 }
-LepAmmLU::LepAmmLU(Kinematics kin) {
+LepAmmLU::LepAmmLU(Kinematics const& kin) {
 	theta_5 = (2.*(2.*kin.S + kin.S_x)*kin.vol_phi_h)
 		/(kin.lambda_S_sqrt*kin.Q_sq);
 }
-LepAmmLP::LepAmmLP(Kinematics kin) {
+LepAmmLP::LepAmmLP(Kinematics const& kin) {
 	theta_7 = (2.*kin.S + kin.S_x)/(4.*kin.lambda_S_sqrt*kin.Q_sq)*(
 		kin.S_x*(kin.S*kin.V_2 - kin.X*kin.V_1 - kin.z*kin.S_p*kin.Q_sq)
 		+ 4.*sq(kin.M)*kin.Q_sq*kin.V_p);
@@ -69,7 +69,7 @@ LepAmmLP::LepAmmLP(Kinematics kin) {
 }
 
 // Radiative coefficients. Equations [1.B1] and [1.B2].
-LepRadUU::LepRadUU(KinematicsRad kin) {
+LepRadUU::LepRadUU(KinematicsRad const& kin) {
 	LepBornUU lep_born(kin.project());
 	theta_011 = 4.*kin.F_IR*lep_born.theta_1;
 	theta_012 = 4.*kin.tau*kin.F_IR;
@@ -109,8 +109,7 @@ LepRadUU::LepRadUU(KinematicsRad kin) {
 		- kin.F_1p*(kin.mu*kin.S_p + 2.*kin.V_p)
 		+ 4.*kin.z*kin.S_x);
 }
-
-LepRadUP::LepRadUP(KinematicsRad kin) {
+LepRadUP::LepRadUP(KinematicsRad const& kin) {
 	LepBornUP lep_born(kin.project());
 	theta_061 = 4.*kin.F_IR*lep_born.theta_6;
 	theta_062 = 1./(2.*kin.lambda_1)*(
@@ -308,8 +307,7 @@ LepRadUP::LepRadUP(KinematicsRad kin) {
 					- kin.X*kin.V_1
 					- kin.z*kin.S_p*kin.Q_sq))));
 }
-
-LepRadLU::LepRadLU(KinematicsRad kin) {
+LepRadLU::LepRadLU(KinematicsRad const& kin) {
 	LepBornLU lep_born(kin.project());
 	theta_051 = 4.*kin.F_IR*lep_born.theta_5;
 	theta_052 = kin.S/(kin.lambda_1*kin.lambda_S_sqrt)*(
@@ -410,8 +408,7 @@ LepRadLU::LepRadLU(KinematicsRad kin) {
 					- kin.X*kin.V_1
 					- kin.z*kin.Q_sq*kin.S_x))));
 }
-
-LepRadLP::LepRadLP(KinematicsRad kin) {
+LepRadLP::LepRadLP(KinematicsRad const& kin) {
 	LepBornLP lep_born(kin.project());
 	theta_071 = 4.*kin.F_IR*lep_born.theta_7;
 	theta_072 = kin.S/(2.*kin.lambda_S_sqrt)*(

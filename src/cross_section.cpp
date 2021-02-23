@@ -30,7 +30,7 @@ using namespace sidis::xs;
 
 namespace {
 
-Real delta_vert_rad_0(Kinematics kin) {
+Real delta_vert_rad_0(Kinematics const& kin) {
 	// Equation [1.3].
 	Real Q_m_sq = kin.Q_sq + 2.*sq(kin.m);
 	Real S_prime = kin.S - kin.Q_sq - kin.V_1;
@@ -78,21 +78,21 @@ Real delta_vert_rad_0(Kinematics kin) {
 
 }
 
-Real xs::born(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf) {
+Real xs::born(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf) {
 	Born b(kin);
 	LepBornXX lep(kin);
 	HadXX had(kin, sf);
 	return born_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::amm(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf) {
+Real xs::amm(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf) {
 	Amm b(kin);
 	LepAmmXX lep(kin);
 	HadXX had(kin, sf);
 	return amm_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::nrad_ir(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Real k_0_bar) {
+Real xs::nrad_ir(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar) {
 	NRadIR b(kin, k_0_bar);
 	LepBornXX lep_born(kin);
 	LepAmmXX lep_amm(kin);
@@ -100,21 +100,21 @@ Real xs::nrad_ir(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Real 
 	return nrad_ir_xx_base(lambda_e, eta, b, lep_born, lep_amm, had);
 }
 
-Real xs::rad(Real lambda_e, Vec3 eta, KinematicsRad kin, SfSet const& sf) {
+Real xs::rad(Real lambda_e, Vec3 eta, KinematicsRad const& kin, SfSet const& sf) {
 	Rad b(kin);
 	LepRadXX lep(kin);
 	HadRadXX had(kin, sf);
 	return rad_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::rad_f(Real lambda_e, Vec3 eta, KinematicsRad kin, SfSet const& sf) {
+Real xs::rad_f(Real lambda_e, Vec3 eta, KinematicsRad const& kin, SfSet const& sf) {
 	Rad b(kin);
 	LepRadXX lep(kin);
 	HadRadFXX had(kin, sf);
 	return rad_f_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Real k_0_bar) {
+Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar) {
 	// The soft part of the radiative cross-section (below `k_0_bar`) is bundled
 	// into the return value here.
 	Real xs_nrad_ir = nrad_ir(lambda_e, eta, kin, sf, k_0_bar);
@@ -122,7 +122,7 @@ Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Real k_0
 	return xs_nrad_ir + xs_rad_f;
 }
 
-Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Real k_0_bar) {
+Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar) {
 	HadXX had_0(kin, sf);
 	CutRad cut;
 	cut.k_0_bar = Bound(0., k_0_bar);
@@ -155,7 +155,7 @@ Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, R
 	return xs_integ.val;
 }
 
-Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Real k_0_bar) {
+Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar) {
 	CutRad cut;
 	cut.k_0_bar = Bound(k_0_bar, INF);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
@@ -185,7 +185,7 @@ Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Rea
 }
 
 // Radiative corrections to Born cross-section.
-Real xs::delta_vert_rad_ir(Kinematics kin, Real k_0_bar) {
+Real xs::delta_vert_rad_ir(Kinematics const& kin, Real k_0_bar) {
 	// Paragraph following equation [1.C17].
 	Real k0_max = (kin.mx_sq - sq(kin.Mth))/(2.*kin.mx);
 	if (!(k_0_bar > 0.)) {
@@ -206,7 +206,7 @@ Real xs::delta_vert_rad_ir(Kinematics kin, Real k_0_bar) {
 		(kin.mx_sq - sq(kin.Mth))/(kin.m*kin.mx));
 	return delta_0 + delta_shift;
 }
-Real xs::delta_rad_ir_hard(Kinematics kin, Real k_0_bar) {
+Real xs::delta_rad_ir_hard(Kinematics const& kin, Real k_0_bar) {
 	Real k0_max = (kin.mx_sq - sq(kin.Mth))/(2.*kin.mx);
 	if (!(k_0_bar > 0.)) {
 		return INFINITY;
@@ -225,7 +225,7 @@ Real xs::delta_rad_ir_hard(Kinematics kin, Real k_0_bar) {
 	return delta;
 }
 
-Real xs::delta_vac_lep(Kinematics kin) {
+Real xs::delta_vac_lep(Kinematics const& kin) {
 	// Equation [1.50].
 	Real ms[3] = { MASS_E, MASS_MU, MASS_TAU };
 	Real delta = 0.;
@@ -243,7 +243,7 @@ Real xs::delta_vac_lep(Kinematics kin) {
 	return delta;
 }
 
-Real xs::delta_vac_had(Kinematics kin) {
+Real xs::delta_vac_had(Kinematics const& kin) {
 	if (kin.Q_sq < 1.) {
 		return -(2.*PI)/ALPHA*(-1.345e-9 - 2.302e-3*std::log(1. + 4.091*kin.Q_sq));
 	} else if (kin.Q_sq < 64.) {
@@ -254,11 +254,11 @@ Real xs::delta_vac_had(Kinematics kin) {
 }
 
 // Born base functions.
-Born::Born(Kinematics kin) :
+Born::Born(Kinematics const& kin) :
 	// Equation [1.15]. The `Q^4` factor has been absorbed into `C_1`.
 	coeff((sq(ALPHA)*kin.S*sq(kin.S_x))/(8.*kin.M*kin.ph_l*kin.lambda_S)) { }
 
-Real xs::born_xx_base(Real lambda_e, Vec3 eta, Born b, LepBornXX lep, HadXX had) {
+Real xs::born_xx_base(Real lambda_e, Vec3 eta, Born const& b, LepBornXX const& lep, HadXX const& had) {
 	Real uu = born_uu_base(b, lep, had);
 	Vec3 up(
 		born_ut1_base(b, lep, had),
@@ -271,41 +271,41 @@ Real xs::born_xx_base(Real lambda_e, Vec3 eta, Born b, LepBornXX lep, HadXX had)
 		born_ll_base(b, lep, had));
 	return uu + dot(eta, up) + lambda_e * (lu + dot(eta, lp));
 }
-Real xs::born_uu_base(Born b, LepBornUU lep, HadUU had) {
+Real xs::born_uu_base(Born const& b, LepBornUU const& lep, HadUU const& had) {
 	return b.coeff*(
 		lep.theta_1*had.H_10
 		+ lep.theta_2*had.H_20
 		+ lep.theta_3*had.H_30
 		+ lep.theta_4*had.H_40);
 }
-Real xs::born_ul_base(Born b, LepBornUP lep, HadUL had) {
+Real xs::born_ul_base(Born const& b, LepBornUP const& lep, HadUL const& had) {
 	return b.coeff*(lep.theta_6*had.H_63 + lep.theta_8*had.H_83);
 }
-Real xs::born_ut1_base(Born b, LepBornUP lep, HadUT had) {
+Real xs::born_ut1_base(Born const& b, LepBornUP const& lep, HadUT const& had) {
 	return b.coeff*(lep.theta_6*had.H_61 + lep.theta_8*had.H_81);
 }
-Real xs::born_ut2_base(Born b, LepBornUU lep, HadUT had) {
+Real xs::born_ut2_base(Born const& b, LepBornUU const& lep, HadUT const& had) {
 	return b.coeff*(
 		lep.theta_1*had.H_12
 		+ lep.theta_2*had.H_22
 		+ lep.theta_3*had.H_32
 		+ lep.theta_4*had.H_42);
 }
-Real xs::born_lu_base(Born b, LepBornLU lep, HadLU had) {
+Real xs::born_lu_base(Born const& b, LepBornLU const& lep, HadLU const& had) {
 	return b.coeff*lep.theta_5*had.H_50;
 }
-Real xs::born_ll_base(Born b, LepBornLP lep, HadLL had) {
+Real xs::born_ll_base(Born const& b, LepBornLP const& lep, HadLL const& had) {
 	return b.coeff*(lep.theta_7*had.H_73 + lep.theta_9*had.H_93);
 }
-Real xs::born_lt1_base(Born b, LepBornLP lep, HadLT had) {
+Real xs::born_lt1_base(Born const& b, LepBornLP const& lep, HadLT const& had) {
 	return b.coeff*(lep.theta_7*had.H_71 + lep.theta_9*had.H_91);
 }
-Real xs::born_lt2_base(Born b, LepBornLU lep, HadLT had) {
+Real xs::born_lt2_base(Born const& b, LepBornLU const& lep, HadLT const& had) {
 	return b.coeff*lep.theta_5*had.H_52;
 }
 
 // AMM base functions.
-Amm::Amm(Kinematics kin) {
+Amm::Amm(Kinematics const& kin) {
 	// Equation [1.53]. The `Q^4` factor has been absorbed into `C_1`.
 	Real lambda_m = kin.Q_sq*(kin.Q_sq + 4.*sq(kin.m));
 	Real lambda_m_sqrt = std::sqrt(lambda_m);
@@ -316,7 +316,7 @@ Amm::Amm(Kinematics kin) {
 		/(16.*PI*kin.M*kin.ph_l*kin.lambda_S);
 }
 
-Real xs::amm_xx_base(Real lambda_e, Vec3 eta, Amm b, LepAmmXX lep, HadXX had) {
+Real xs::amm_xx_base(Real lambda_e, Vec3 eta, Amm const& b, LepAmmXX const& lep, HadXX const& had) {
 	Real uu = amm_uu_base(b, lep, had);
 	Vec3 up(
 		amm_ut1_base(b, lep, had),
@@ -329,41 +329,41 @@ Real xs::amm_xx_base(Real lambda_e, Vec3 eta, Amm b, LepAmmXX lep, HadXX had) {
 		amm_ll_base(b, lep, had));
 	return uu + dot(eta, up) + lambda_e * (lu + dot(eta, lp));
 }
-Real xs::amm_uu_base(Amm b, LepAmmUU lep, HadUU had) {
+Real xs::amm_uu_base(Amm const& b, LepAmmUU const& lep, HadUU const& had) {
 	return b.coeff*(
 		lep.theta_1*had.H_10
 		+ lep.theta_2*had.H_20
 		+ lep.theta_3*had.H_30
 		+ lep.theta_4*had.H_40);
 }
-Real xs::amm_ul_base(Amm b, LepAmmUP lep, HadUL had) {
+Real xs::amm_ul_base(Amm const& b, LepAmmUP const& lep, HadUL const& had) {
 	return b.coeff*(lep.theta_6*had.H_63 + lep.theta_8*had.H_83);
 }
-Real xs::amm_ut1_base(Amm b, LepAmmUP lep, HadUT had) {
+Real xs::amm_ut1_base(Amm const& b, LepAmmUP const& lep, HadUT const& had) {
 	return b.coeff*(lep.theta_6*had.H_61 + lep.theta_8*had.H_81);
 }
-Real xs::amm_ut2_base(Amm b, LepAmmUU lep, HadUT had) {
+Real xs::amm_ut2_base(Amm const& b, LepAmmUU const& lep, HadUT const& had) {
 	return b.coeff*(
 		lep.theta_1*had.H_12
 		+ lep.theta_2*had.H_22
 		+ lep.theta_3*had.H_32
 		+ lep.theta_4*had.H_42);
 }
-Real xs::amm_lu_base(Amm b, LepAmmLU lep, HadLU had) {
+Real xs::amm_lu_base(Amm const& b, LepAmmLU const& lep, HadLU const& had) {
 	return b.coeff*lep.theta_5*had.H_50;
 }
-Real xs::amm_ll_base(Amm b, LepAmmLP lep, HadLL had) {
+Real xs::amm_ll_base(Amm const& b, LepAmmLP const& lep, HadLL const& had) {
 	return b.coeff*(lep.theta_7*had.H_73 + lep.theta_9*had.H_93);
 }
-Real xs::amm_lt1_base(Amm b, LepAmmLP lep, HadLT had) {
+Real xs::amm_lt1_base(Amm const& b, LepAmmLP const& lep, HadLT const& had) {
 	return b.coeff*(lep.theta_7*had.H_71 + lep.theta_9*had.H_91);
 }
-Real xs::amm_lt2_base(Amm b, LepAmmLU lep, HadLT had) {
+Real xs::amm_lt2_base(Amm const& b, LepAmmLU const& lep, HadLT const& had) {
 	return b.coeff*lep.theta_5*had.H_52;
 }
 
 // Non-radiative infrared-divergence-free base functions.
-NRadIR::NRadIR(Kinematics kin, Real k_0_bar) {
+NRadIR::NRadIR(Kinematics const& kin, Real k_0_bar) {
 	Born born(kin);
 	Amm amm(kin);
 	Real born_factor = 1. + ALPHA/PI*(
@@ -374,7 +374,7 @@ NRadIR::NRadIR(Kinematics kin, Real k_0_bar) {
 	coeff_amm = amm.coeff;
 }
 
-Real xs::nrad_ir_xx_base(Real lambda_e, math::Vec3 eta, NRadIR b, LepBornXX lep_born, LepAmmXX lep_amm, HadXX had) {
+Real xs::nrad_ir_xx_base(Real lambda_e, math::Vec3 eta, NRadIR const& b, LepBornXX const& lep_born, LepAmmXX const& lep_amm, HadXX const& had) {
 	Real uu = nrad_ir_uu_base(b, lep_born, lep_amm, had);
 	Vec3 up(
 		nrad_ir_ut1_base(b, lep_born, lep_amm, had),
@@ -387,63 +387,63 @@ Real xs::nrad_ir_xx_base(Real lambda_e, math::Vec3 eta, NRadIR b, LepBornXX lep_
 		nrad_ir_ll_base(b, lep_born, lep_amm, had));
 	return uu + dot(eta, up) + lambda_e * (lu + dot(eta, lp));
 }
-Real xs::nrad_ir_uu_base(NRadIR b, LepBornUU lep_born, LepAmmUU lep_amm, HadUU had) {
+Real xs::nrad_ir_uu_base(NRadIR const& b, LepBornUU const& lep_born, LepAmmUU const& lep_amm, HadUU const& had) {
 	return
 		(b.coeff_born*lep_born.theta_1 + b.coeff_amm*lep_amm.theta_1)*had.H_10
 		+ (b.coeff_born*lep_born.theta_2 + b.coeff_amm*lep_amm.theta_2)*had.H_20
 		+ (b.coeff_born*lep_born.theta_3 + b.coeff_amm*lep_amm.theta_3)*had.H_30
 		+ (b.coeff_born*lep_born.theta_4 + b.coeff_amm*lep_amm.theta_4)*had.H_40;
 }
-Real xs::nrad_ir_ul_base(NRadIR b, LepBornUP lep_born, LepAmmUP lep_amm, HadUL had) {
+Real xs::nrad_ir_ul_base(NRadIR const& b, LepBornUP const& lep_born, LepAmmUP const& lep_amm, HadUL const& had) {
 	return
 		(b.coeff_born*lep_born.theta_6 + b.coeff_amm*lep_amm.theta_6)*had.H_63
 		+ (b.coeff_born*lep_born.theta_8 + b.coeff_amm*lep_amm.theta_8)*had.H_83;
 }
-Real xs::nrad_ir_ut1_base(NRadIR b, LepBornUP lep_born, LepAmmUP lep_amm, HadUT had) {
+Real xs::nrad_ir_ut1_base(NRadIR const& b, LepBornUP const& lep_born, LepAmmUP const& lep_amm, HadUT const& had) {
 	return
 		(b.coeff_born*lep_born.theta_6 + b.coeff_amm*lep_amm.theta_6)*had.H_61
 		+ (b.coeff_born*lep_born.theta_8 + b.coeff_amm*lep_amm.theta_8)*had.H_81;
 }
-Real xs::nrad_ir_ut2_base(NRadIR b, LepBornUU lep_born, LepAmmUU lep_amm, HadUT had) {
+Real xs::nrad_ir_ut2_base(NRadIR const& b, LepBornUU const& lep_born, LepAmmUU const& lep_amm, HadUT const& had) {
 	return
 		(b.coeff_born*lep_born.theta_1 + b.coeff_amm*lep_amm.theta_1)*had.H_12
 		+ (b.coeff_born*lep_born.theta_2 + b.coeff_amm*lep_amm.theta_2)*had.H_22
 		+ (b.coeff_born*lep_born.theta_3 + b.coeff_amm*lep_amm.theta_3)*had.H_32
 		+ (b.coeff_born*lep_born.theta_4 + b.coeff_amm*lep_amm.theta_4)*had.H_42;
 }
-Real xs::nrad_ir_lu_base(NRadIR b, LepBornLU lep_born, LepAmmLU lep_amm, HadLU had) {
+Real xs::nrad_ir_lu_base(NRadIR const& b, LepBornLU const& lep_born, LepAmmLU const& lep_amm, HadLU const& had) {
 	return (b.coeff_born*lep_born.theta_5 + b.coeff_amm*lep_amm.theta_5)*had.H_50;
 }
-Real xs::nrad_ir_ll_base(NRadIR b, LepBornLP lep_born, LepAmmLP lep_amm, HadLL had) {
+Real xs::nrad_ir_ll_base(NRadIR const& b, LepBornLP const& lep_born, LepAmmLP const& lep_amm, HadLL const& had) {
 	return
 		(b.coeff_born*lep_born.theta_7 + b.coeff_amm*lep_amm.theta_7)*had.H_73
 		+ (b.coeff_born*lep_born.theta_9 + b.coeff_amm*lep_amm.theta_9)*had.H_93;
 }
-Real xs::nrad_ir_lt1_base(NRadIR b, LepBornLP lep_born, LepAmmLP lep_amm, HadLT had) {
+Real xs::nrad_ir_lt1_base(NRadIR const& b, LepBornLP const& lep_born, LepAmmLP const& lep_amm, HadLT const& had) {
 	return
 		(b.coeff_born*lep_born.theta_7 + b.coeff_amm*lep_amm.theta_7)*had.H_71
 		+ (b.coeff_born*lep_born.theta_9 + b.coeff_amm*lep_amm.theta_9)*had.H_91;
 }
-Real xs::nrad_ir_lt2_base(NRadIR b, LepBornLU lep_born, LepAmmLU lep_amm, HadLT had) {
+Real xs::nrad_ir_lt2_base(NRadIR const& b, LepBornLU const& lep_born, LepAmmLU const& lep_amm, HadLT const& had) {
 	return (b.coeff_born*lep_born.theta_5 + b.coeff_amm*lep_amm.theta_5)*had.H_52;
 }
 
 // Radiative base functions.
-Rad::Rad(KinematicsRad kin) {
+Rad::Rad(KinematicsRad const& kin) {
 	// Equation [1.43].
 	coeff = -(std::pow(ALPHA, 3)*kin.S*sq(kin.S_x))
 		/(64.*sq(PI)*kin.M*kin.ph_l*kin.lambda_S*kin.lambda_Y_sqrt);
 	R = kin.R;
 }
 
-Real xs::rad_xx_base(Real lambda_e, Vec3 eta, Rad b, LepRadXX lep, HadRadXX had) {
+Real xs::rad_xx_base(Real lambda_e, Vec3 eta, Rad const& b, LepRadXX const& lep, HadRadXX const& had) {
 	Real uu = rad_uu_base(b, lep, had);
 	Vec3 up = rad_up_base(b, lep, had);
 	Real lu = rad_lu_base(b, lep, had);
 	Vec3 lp = rad_lp_base(b, lep, had);
 	return uu + dot(eta, up) + lambda_e * (lu + dot(eta, lp));
 }
-Real xs::rad_uu_base(Rad b, LepRadUU lep, HadRadUU had) {
+Real xs::rad_uu_base(Rad const& b, LepRadUU const& lep, HadRadUU const& had) {
 	return b.coeff*(
 		1./b.R*(
 			lep.theta_011*had.H_10
@@ -461,7 +461,7 @@ Real xs::rad_uu_base(Rad b, LepRadUU lep, HadRadUU had) {
 			+ lep.theta_033*had.H_30
 			+ lep.theta_043*had.H_40));
 }
-Vec3 xs::rad_up_base(Rad b, LepRadUX lep, HadRadUP had) {
+Vec3 xs::rad_up_base(Rad const& b, LepRadUX const& lep, HadRadUP const& had) {
 	return b.coeff*(
 		1./b.R*(
 			lep.theta_011*had.H_1
@@ -488,13 +488,13 @@ Vec3 xs::rad_up_base(Rad b, LepRadUX lep, HadRadUP had) {
 			lep.theta_064*had.H_6
 			+ lep.theta_084*had.H_8));
 }
-Real xs::rad_lu_base(Rad b, LepRadLU lep, HadRadLU had) {
+Real xs::rad_lu_base(Rad const& b, LepRadLU const& lep, HadRadLU const& had) {
 	return b.coeff*(
 		1./b.R*(lep.theta_051 + lep.theta_151)*had.H_50
 		+ (lep.theta_052 + lep.theta_152)*had.H_50
 		+ b.R*(lep.theta_053 + lep.theta_153)*had.H_50);
 }
-Vec3 xs::rad_lp_base(Rad b, LepRadLX lep, HadRadLP had) {
+Vec3 xs::rad_lp_base(Rad const& b, LepRadLX const& lep, HadRadLP const& had) {
 	return b.coeff*(
 		1./b.R*(
 			(lep.theta_051 + lep.theta_151)*had.H_5
@@ -513,14 +513,14 @@ Vec3 xs::rad_lp_base(Rad b, LepRadLX lep, HadRadLP had) {
 			+ (lep.theta_094 + lep.theta_194)*had.H_9));
 }
 
-Real xs::rad_f_xx_base(Real lambda_e, Vec3 eta, Rad b, LepRadXX lep, HadRadFXX had) {
+Real xs::rad_f_xx_base(Real lambda_e, Vec3 eta, Rad const& b, LepRadXX const& lep, HadRadFXX const& had) {
 	Real uu = rad_f_uu_base(b, lep, had);
 	Vec3 up = rad_f_up_base(b, lep, had);
 	Real lu = rad_f_lu_base(b, lep, had);
 	Vec3 lp = rad_f_lp_base(b, lep, had);
 	return uu + dot(eta, up) + lambda_e * (lu + dot(eta, lp));
 }
-Real xs::rad_f_uu_base(Rad b, LepRadUU lep, HadRadFUU had) {
+Real xs::rad_f_uu_base(Rad const& b, LepRadUU const& lep, HadRadFUU const& had) {
 	return b.coeff*(
 		(
 			lep.theta_011*had.H_10_diff
@@ -538,7 +538,7 @@ Real xs::rad_f_uu_base(Rad b, LepRadUU lep, HadRadFUU had) {
 			+ lep.theta_033*had.H_30
 			+ lep.theta_043*had.H_40));
 }
-Vec3 xs::rad_f_up_base(Rad b, LepRadUX lep, HadRadFUP had) {
+Vec3 xs::rad_f_up_base(Rad const& b, LepRadUX const& lep, HadRadFUP const& had) {
 	return b.coeff*(
 		(
 			lep.theta_011*had.H_1_diff
@@ -565,13 +565,13 @@ Vec3 xs::rad_f_up_base(Rad b, LepRadUX lep, HadRadFUP had) {
 			lep.theta_064*had.H_6
 			+ lep.theta_084*had.H_8));
 }
-Real xs::rad_f_lu_base(Rad b, LepRadLU lep, HadRadFLU had) {
+Real xs::rad_f_lu_base(Rad const& b, LepRadLU const& lep, HadRadFLU const& had) {
 	return b.coeff*(
 		(lep.theta_051 + lep.theta_151)*had.H_50_diff
 		+ (lep.theta_052 + lep.theta_152)*had.H_50
 		+ b.R*(lep.theta_053 + lep.theta_153)*had.H_50);
 }
-Vec3 xs::rad_f_lp_base(Rad b, LepRadLX lep, HadRadFLP had) {
+Vec3 xs::rad_f_lp_base(Rad const& b, LepRadLX const& lep, HadRadFLP const& had) {
 	return b.coeff*(
 		(
 			(lep.theta_051 + lep.theta_151)*had.H_5_diff

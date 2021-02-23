@@ -126,7 +126,7 @@ struct Kinematics {
 	Real C_1;
 
 	Kinematics() { }
-	Kinematics(Particles ps, Real S, PhaseSpace ph_space);
+	Kinematics(Particles const& ps, Real S, PhaseSpace const& ph_space);
 };
 
 struct KinematicsRad {
@@ -281,7 +281,7 @@ struct KinematicsRad {
 	Kinematics project_shift() const;
 
 	KinematicsRad() { }
-	KinematicsRad(Particles ps, Real S, PhaseSpaceRad ph_space) :
+	KinematicsRad(Particles const& ps, Real S, PhaseSpaceRad const& ph_space) :
 		KinematicsRad(
 			Kinematics(
 				ps,
@@ -297,7 +297,7 @@ struct KinematicsRad {
 			ph_space.tau,
 			ph_space.phi_k,
 			ph_space.R) { }
-	KinematicsRad(Kinematics kin, Real tau, Real phi_k, Real R);
+	KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R);
 };
 
 struct Initial {
@@ -307,13 +307,13 @@ struct Initial {
 	math::Vec4 k1;
 
 	Initial(
-		Particles ps, math::Vec3 p, math::Vec3 k1) :
+		Particles const& ps, math::Vec3 p, math::Vec3 k1) :
 		target(ps.target),
 		beam(ps.beam),
 		p(math::Vec4::from_length_and_r(ps.M, p)),
 		k1(math::Vec4::from_length_and_r(ps.m, k1)) { }
 
-	Initial(Particles ps, Real beam_energy) :
+	Initial(Particles const& ps, Real beam_energy) :
 		target(ps.target),
 		beam(ps.beam),
 		p(math::Vec4(ps.M, 0., 0., 0.)),
@@ -327,7 +327,7 @@ struct Final {
 	math::Vec4 k2;
 	math::Vec4 ph;
 
-	Final(Initial init, math::Vec3 target_pol, Kinematics kin);
+	Final(Initial const& init, math::Vec3 target_pol, Kinematics const& kin);
 };
 
 struct FinalRad {
@@ -338,7 +338,7 @@ struct FinalRad {
 	math::Vec4 ph;
 	math::Vec4 k;
 
-	FinalRad(Initial init, math::Vec3 target_pol, KinematicsRad kin);
+	FinalRad(Initial const& init, math::Vec3 target_pol, KinematicsRad const& kin);
 };
 
 }

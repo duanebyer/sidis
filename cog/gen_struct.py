@@ -3,6 +3,14 @@
 import cog
 import re
 
+# Which types will be passed by value (instead of by reference).
+POD_TYPES = [
+    "Real", "float", "double", "long double",
+    "bool", "char", "unsigned char",
+    "short", "unsigned short", "int", "unsigned",
+    "long", "unsigned long", "long long", "unsigned long long",
+    "math::Vec3", "math::Bound"]
+
 def mask_find_all(mask, beam_pols, target_pols):
     result = []
     for beam_pol in beam_pols:
@@ -43,6 +51,15 @@ class Field(object):
         self.pol = list(pol)
         self.typ = str(typ)
         self.name = str(name)
+    def declare_as_field(self):
+        return "{} {}".format(self.typ, self.name)
+    def declare_as_arg(self):
+        if self.typ in POD_TYPES:
+            return "{} {}".format(self.typ, self.name)
+        else:
+            return "{} const& {}".format(self.typ, self.name)
+    def use(self):
+        return self.name
 
 class Arg(object):
     def __init__(self, typ, name):
@@ -56,6 +73,14 @@ class Arg(object):
         if typ[-1] == "X":
             typ = typ[:-1] + pol[1]
         return typ
+    def declare(self, pol):
+        typ_fit = self.type_fit(pol)
+        if typ_fit in POD_TYPES:
+            return "{} {}".format(typ_fit, self.name)
+        else:
+            return "{} const& {}".format(typ_fit, self.name)
+    def use(self):
+        return self.name
 
 class ConstructorCompose(object):
     def __init__(self, owner, child_pols):
@@ -65,7 +90,7 @@ class ConstructorCompose(object):
         results = []
         for child_pol in self.child_pols:
             child_struct_name = struct_name(self.owner.base_name, child_pol)
-            results.append("{} {}".format(
+            results.append("{} const& {}".format(
                 child_struct_name,
                 camel_to_snake(child_struct_name)))
         return ",\n".join(results)
@@ -95,7 +120,7 @@ class ConstructorDecompose(object):
     def _args_declare(self):
         results = []
         parent_struct_name = struct_name(self.owner.base_name, self.parent_pol)
-        return "{} {}".format(
+        return "{} const& {}".format(
             parent_struct_name,
             camel_to_snake(parent_struct_name))
     def declare(self):
@@ -120,14 +145,12 @@ class ConstructorDelegate(object):
     def _args_declare(self):
         results = []
         for arg in self.args:
-            results.append("{} {}".format(
-                arg.type_fit(self.owner.pol),
-                arg.name))
+            results.append(arg.declare(self.owner.pol))
         return ", ".join(results)
     def _args_use(self):
         results = []
         for arg in self.args:
-            results.append(arg.name)
+            results.append(arg.use())
         return ", ".join(results)
     def declare(self):
         return "explicit {}({});\n".format(
@@ -153,14 +176,12 @@ class ConstructorBase(object):
     def _args_declare(self):
         results = []
         for arg in self.args:
-            results.append("{} {}".format(
-                arg.type_fit(self.owner.pol),
-                arg.name))
+            results.append(arg.declare(self.owner.pol))
         return ", ".join(results)
     def _args_use(self):
         results = []
         for arg in self.args:
-            results.append(arg.name)
+            results.append(arg.use())
         return ", ".join(results)
     def declare(self):
         return "explicit {}({});\n".format(
@@ -175,7 +196,7 @@ class ConstructorFields(object):
     def _args_declare(self):
         results = []
         for field in self.owner.fields:
-            results.append("{} {}".format(field.typ, field.name))
+            results.append(field.declare_as_arg())
         return ",\n".join(results)
     def declare(self):
         return "{}(\n{});\n".format(
@@ -184,7 +205,7 @@ class ConstructorFields(object):
     def define(self):
         results = []
         for field in self.owner.fields:
-            results.append("{0}({0})".format(field.name))
+            results.append("{0}({0})".format(field.use()))
         return "inline {0}::{0}(\n{1}) :\n{2} {{ }}\n".format(
             self.owner.name(),
             indent(self._args_declare()),
@@ -212,7 +233,7 @@ class Struct(object):
         result = ""
         result += "struct {} {{\n".format(self.name())
         for field in self.fields:
-            result += indent("{} {};\n".format(field.typ, field.name))
+            result += indent("{};\n".format(field.declare_as_field()))
         for cons in self.constructor_compose:
             result += indent(cons.declare())
         for cons in self.constructor_decompose:
