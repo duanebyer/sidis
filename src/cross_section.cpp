@@ -234,10 +234,10 @@ Real xs::delta_vac_lep(Kinematics const& kin) {
 		Real lambda_sqrt = std::sqrt(kin.Q_sq*(kin.Q_sq + 4.*sq(m)));
 		Real diff_m = sqrt1p_1m((4.*sq(m))/kin.Q_sq);
 		Real sum_m = 2. + diff_m;
-		Real L_m = 1/lambda_sqrt*std::log(sum_m/diff_m);
-		delta += 2./3.*(kin.Q_sq
+		Real L_m = 1./lambda_sqrt*std::log(sum_m/diff_m);
+		delta += 2./3.L*(kin.Q_sq
 			+ 2.*sq(m))*L_m
-			- 10./9.
+			- 10./9.L
 			+ (8.*sq(m))/(3.*kin.Q_sq)*(1. - 2.*sq(m)*L_m);
 	}
 	return delta;
@@ -245,11 +245,11 @@ Real xs::delta_vac_lep(Kinematics const& kin) {
 
 Real xs::delta_vac_had(Kinematics const& kin) {
 	if (kin.Q_sq < 1.) {
-		return -(2.*PI)/ALPHA*(-1.345e-9 - 2.302e-3*std::log(1. + 4.091*kin.Q_sq));
+		return -(2.*PI)/ALPHA*(-1.345e-9L - 2.302e-3L*std::log(1. + 4.091L*kin.Q_sq));
 	} else if (kin.Q_sq < 64.) {
-		return -(2.*PI)/ALPHA*(-1.512e-3 - 2.822e-3*std::log(1. + 1.218*kin.Q_sq));
+		return -(2.*PI)/ALPHA*(-1.512e-3L - 2.822e-3L*std::log(1. + 1.218L*kin.Q_sq));
 	} else {
-		return -(2.*PI)/ALPHA*(-1.1344-3 - 3.0680-3*std::log(1. + 0.99992*kin.Q_sq));
+		return -(2.*PI)/ALPHA*(-1.1344e-3L - 3.0680e-3L*std::log(1. + 0.99992L*kin.Q_sq));
 	}
 }
 
