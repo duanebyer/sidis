@@ -95,7 +95,9 @@ Real xs_uu_integ(
 				KinematicsRad kin_rad;
 				Real jacobian;
 				Real ph_rad[3] = { ph[0], ph[1], ph[2] };
-				while (!cut::take(kin, ph_rad, &kin_rad, &jacobian)) { }
+				if (!cut::take(kin, ph_rad, &kin_rad, &jacobian)) {
+					return 0.;
+				}
 				jacobian *= phi_h_b.size();
 
 				xs::Rad b(kin_rad);
@@ -176,7 +178,9 @@ Real xs_ut_integ_h(
 				KinematicsRad kin_rad;
 				Real jacobian;
 				Real ph_rad[3] = { ph[0], ph[1], ph[2] };
-				while (!cut::take(kin, ph_rad, &kin_rad, &jacobian)) { }
+				if (!cut::take(kin, ph_rad, &kin_rad, &jacobian)) {
+					return 0.;
+				}
 				jacobian *= phi_h_b.size();
 
 				xs::Rad b(kin_rad);
