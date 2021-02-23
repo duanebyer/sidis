@@ -18,11 +18,8 @@ static_assert(
 		&& Limits::min_exponent <= -382 && Limits::max_exponent >= 385),
 	"long double has insufficient exponent range");
 static_assert(
-	Limits::has_infinity,
-	"long double has no infinity");
-static_assert(
-	Limits::has_quiet_NaN,
-	"long double has no NaN");
+	Limits::is_iec559,
+	"long double does not satisfy IEEE 754");
 
 int main(int argc, char** argv) {
 	return 0;

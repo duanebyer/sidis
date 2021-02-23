@@ -18,11 +18,8 @@ static_assert(
 		&& Limits::min_exponent <= -94 && Limits::max_exponent >= 97),
 	"float has insufficient exponent range");
 static_assert(
-	Limits::has_infinity,
-	"float has no infinity");
-static_assert(
-	Limits::has_quiet_NaN,
-	"float has no NaN");
+	Limits::is_iec559,
+	"float does not satisfy IEEE 754");
 
 int main(int argc, char** argv) {
 	return 0;
