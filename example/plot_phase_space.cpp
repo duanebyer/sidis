@@ -15,7 +15,6 @@
 #include <TH3D.h>
 
 #include <sidis/sidis.hpp>
-#include <sidis/extra/bounds.hpp>
 
 using namespace sidis;
 using namespace sidis::constant;

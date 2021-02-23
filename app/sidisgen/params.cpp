@@ -212,8 +212,8 @@ struct RootParser<Vec3> {
 	}
 };
 template<>
-struct RootParser<Bounds> {
-	static void write_root(TFile& file, Param<Bounds> const& param) {
+struct RootParser<Bound> {
+	static void write_root(TFile& file, Param<Bound> const& param) {
 		Double_t vals[2] = { param->min(), param->max() };
 		TArrayD object(2, vals);
 		Int_t result = file.WriteObject<TArrayD>(&object, param.name());
@@ -223,10 +223,10 @@ struct RootParser<Bounds> {
 				+ param.name() + "' to ROOT file.");
 		}
 	}
-	static void read_root(TFile& file, Param<Bounds>& param) {
+	static void read_root(TFile& file, Param<Bound>& param) {
 		auto object = file.Get<TArrayD>(param.name());
 		if (object != nullptr && object->GetSize() == 2 && object->At(0) <= object->At(1)) {
-			param.reset(Bounds(object->At(0), object->At(1)));
+			param.reset(Bound(object->At(0), object->At(1)));
 		} else {
 			param.reset();
 		}
@@ -377,16 +377,16 @@ std::istream& operator>>(std::istream& is, Vec3& vec) {
 	is >> vec.x >> vec.y >> vec.z;
 	return is;
 }
-std::ostream& operator<<(std::ostream& os, Bounds const& bounds) {
+std::ostream& operator<<(std::ostream& os, Bound const& bounds) {
 	os << bounds.min() << " " << bounds.max();
 	return os;
 }
-std::istream& operator>>(std::istream& is, Bounds& bounds) {
+std::istream& operator>>(std::istream& is, Bound& bounds) {
 	Real min;
 	Real max;
 	is >> min >> max;
 	if (min <= max) {
-		bounds = Bounds(min, max);
+		bounds = Bound(min, max);
 	} else {
 		is.setstate(std::ios_base::failbit);
 	}
@@ -660,7 +660,7 @@ void Params::make_valid(bool strict) {
 	if (*rc_method == RcMethod::APPROX || *rc_method == RcMethod::EXACT) {
 		gen_rad.get_or_insert(true);
 		k_0_bar.get_or_insert(0.01);
-		k_0_bar_cut.get_or_insert(Bounds::POSITIVE);
+		k_0_bar_cut.get_or_insert(Bound::POSITIVE);
 	} else {
 		if (gen_rad.occupied() && *gen_rad) {
 			if (strict) {
@@ -775,11 +775,11 @@ void Params::compatible_with_foam(Params const& foam_params) const {
 		throw std::runtime_error("Different beam polarizations.");
 	} else if (*k_0_bar != *foam_params.k_0_bar) {
 		throw std::runtime_error("Different soft photon cutoffs.");
-	} else if (x_cut.get_or(Bounds::UNIT) != foam_params.x_cut.get_or(Bounds::UNIT)) {
+	} else if (x_cut.get_or(Bound::UNIT) != foam_params.x_cut.get_or(Bound::UNIT)) {
 		throw std::runtime_error("Different cuts on x.");
-	} else if (y_cut.get_or(Bounds::UNIT) != foam_params.y_cut.get_or(Bounds::UNIT)) {
+	} else if (y_cut.get_or(Bound::UNIT) != foam_params.y_cut.get_or(Bound::UNIT)) {
 		throw std::runtime_error("Different cuts on y.");
-	} else if (z_cut.get_or(Bounds::UNIT) != foam_params.z_cut.get_or(Bounds::UNIT)) {
+	} else if (z_cut.get_or(Bound::UNIT) != foam_params.z_cut.get_or(Bound::UNIT)) {
 		throw std::runtime_error("Different cuts on z.");
 	} else if (ph_t_sq_cut != foam_params.ph_t_sq_cut) {
 		throw std::runtime_error("Different cuts on ph_t².");

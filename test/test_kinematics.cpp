@@ -9,7 +9,6 @@
 #include <sidis/constant.hpp>
 #include <sidis/frame.hpp>
 #include <sidis/kinematics.hpp>
-#include <sidis/extra/bounds.hpp>
 #include <sidis/extra/math.hpp>
 #include <sidis/extra/transform.hpp>
 #include <sidis/extra/vector.hpp>

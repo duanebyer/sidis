@@ -10,7 +10,7 @@ set(
 	"sidis/sf_set/prokudin.hpp"
 	"sidis/sf_set/test.hpp"
 	"sidis/sf_set/ww.hpp"
-	"sidis/extra/bounds.hpp"
+	"sidis/extra/bound.hpp"
 	"sidis/extra/exception.hpp"
 	"sidis/extra/integrate.hpp"
 	"sidis/extra/interpolate.hpp"
@@ -69,7 +69,7 @@ endforeach(HEADER)
 
 add_library(
 	sidis
-	bounds.cpp
+	bound.cpp
 	constant.cpp
 	cross_section.cpp
 	cut.cpp

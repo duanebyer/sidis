@@ -13,7 +13,7 @@
 #include "sidis/kinematics.hpp"
 #include "sidis/leptonic_coeff.hpp"
 #include "sidis/structure_function.hpp"
-#include "sidis/extra/bounds.hpp"
+#include "sidis/extra/bound.hpp"
 #include "sidis/extra/math.hpp"
 #include "sidis/extra/integrate.hpp"
 #include "sidis/extra/vector.hpp"
@@ -126,7 +126,7 @@ Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Real k_0
 Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Real k_0_bar) {
 	HadXX had_0(kin, sf);
 	CutRad cut;
-	cut.k_0_bar = Bounds(0., k_0_bar);
+	cut.k_0_bar = Bound(0., k_0_bar);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
 		[&](cubature::Point<3, Real> x) {
 			Real point[3] = { x[0], x[1], x[2] };
@@ -158,7 +158,7 @@ Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, R
 
 Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics kin, SfSet const& sf, Real k_0_bar) {
 	CutRad cut;
-	cut.k_0_bar = Bounds(k_0_bar, INF);
+	cut.k_0_bar = Bound(k_0_bar, INF);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
 		[&](cubature::Point<3, Real> x) {
 			Real point[3] = { x[0], x[1], x[2] };

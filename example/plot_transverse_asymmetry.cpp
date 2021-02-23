@@ -10,7 +10,7 @@
 #include <TFile.h>
 
 #include <sidis/sidis.hpp>
-#include <sidis/extra/bounds.hpp>
+#include <sidis/extra/bound.hpp>
 #include <sidis/extra/vector.hpp>
 #include <sidis/sf_set/ww.hpp>
 
@@ -87,7 +87,7 @@ Real xs_uu_integ(
 			rc_info.num_evals, 0., rc_info.prec);
 		xs_rad_f_integ = cubature::cubature(
 			[&](cubature::Point<4, Real> ph) {
-				Bounds phi_h_b(-PI, PI);
+				Bound phi_h_b(-PI, PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
 				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, phase_space);
@@ -170,7 +170,7 @@ Real xs_ut_integ_h(
 			rc_info.num_evals, 0., rc_info.prec);
 		xs_rad_f_integ = cubature::cubature(
 			[&](cubature::Point<4, Real> ph) {
-				Bounds phi_h_b(-PI, PI);
+				Bound phi_h_b(-PI, PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
 				PhaseSpace phase_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, phase_space);

@@ -2,7 +2,7 @@
 #define SIDIS_CUT_HPP
 
 #include "sidis/numeric.hpp"
-#include "sidis/extra/bounds.hpp"
+#include "sidis/extra/bound.hpp"
 
 namespace sidis {
 
@@ -17,64 +17,64 @@ namespace kin {
 namespace cut {
 
 struct Cut {
-	// TODO: Cuts should be possible to enable or disable. (Bounds are options?)
+	// TODO: Cuts should be possible to enable or disable. (Bound are options?)
 	// Base cuts.
-	math::Bounds x;
-	math::Bounds y;
-	math::Bounds z;
-	math::Bounds ph_t_sq;
-	math::Bounds phi_h;
-	math::Bounds phi;
+	math::Bound x;
+	math::Bound y;
+	math::Bound z;
+	math::Bound ph_t_sq;
+	math::Bound phi_h;
+	math::Bound phi;
 
 	// Kinematic variable cuts.
 	// TODO: Special cut.
-	math::Bounds Q_sq;
-	math::Bounds t;
-	math::Bounds w;
+	math::Bound Q_sq;
+	math::Bound t;
+	math::Bound w;
 
 	// Energy cuts.
-	math::Bounds mx_sq;
-	math::Bounds q_0;
-	math::Bounds k2_0;
-	math::Bounds ph_0;
+	math::Bound mx_sq;
+	math::Bound q_0;
+	math::Bound k2_0;
+	math::Bound ph_0;
 
 	// Angle cuts.
-	math::Bounds theta_q;
-	math::Bounds theta_k2;
-	math::Bounds theta_h;
+	math::Bound theta_q;
+	math::Bound theta_k2;
+	math::Bound theta_h;
 
 	Cut();
 };
 
 struct CutRad {
-	math::Bounds tau;
-	math::Bounds phi_k;
-	math::Bounds k_0_bar;
+	math::Bound tau;
+	math::Bound phi_k;
+	math::Bound k_0_bar;
 
 	// Energy cuts.
-	math::Bounds k_0;
+	math::Bound k_0;
 
 	// Angle cuts.
-	math::Bounds theta_k;
+	math::Bound theta_k;
 
 	CutRad();
 };
 
 Real S_min(kin::Particles ps);
 
-math::Bounds x_bounds(kin::Particles ps, Real S);
-math::Bounds y_bounds(kin::Particles ps, Real S, Real x);
-math::Bounds z_bounds(kin::Particles ps, Real S, Real x, Real y);
-math::Bounds ph_t_sq_bounds(kin::Particles ps, Real S, Real x, Real y, Real z);
-math::Bounds tau_bounds(kin::Kinematics kin);
-math::Bounds R_bounds(kin::Kinematics kin, Real tau, Real phi_k);
+math::Bound x_bounds(kin::Particles ps, Real S);
+math::Bound y_bounds(kin::Particles ps, Real S, Real x);
+math::Bound z_bounds(kin::Particles ps, Real S, Real x, Real y);
+math::Bound ph_t_sq_bounds(kin::Particles ps, Real S, Real x, Real y, Real z);
+math::Bound tau_bounds(kin::Kinematics kin);
+math::Bound R_bounds(kin::Kinematics kin, Real tau, Real phi_k);
 
-math::Bounds x_bounds(Cut cut, kin::Particles ps, Real S);
-math::Bounds y_bounds(Cut cut, kin::Particles ps, Real S, Real x);
-math::Bounds z_bounds(Cut cut, kin::Particles ps, Real S, Real x, Real y);
-math::Bounds ph_t_sq_bounds(Cut cut, kin::Particles ps, Real S, Real x, Real y, Real z);
-math::Bounds tau_bounds(CutRad cut, kin::Kinematics kin);
-math::Bounds R_bounds(CutRad cut, kin::Kinematics kin, Real tau, Real phi_k);
+math::Bound x_bounds(Cut cut, kin::Particles ps, Real S);
+math::Bound y_bounds(Cut cut, kin::Particles ps, Real S, Real x);
+math::Bound z_bounds(Cut cut, kin::Particles ps, Real S, Real x, Real y);
+math::Bound ph_t_sq_bounds(Cut cut, kin::Particles ps, Real S, Real x, Real y, Real z);
+math::Bound tau_bounds(CutRad cut, kin::Kinematics kin);
+math::Bound R_bounds(CutRad cut, kin::Kinematics kin, Real tau, Real phi_k);
 
 bool valid(kin::Kinematics kin);
 bool valid(kin::KinematicsRad kin);

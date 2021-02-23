@@ -10,7 +10,7 @@
 
 #include <sidis/numeric.hpp>
 #include <sidis/constant.hpp>
-#include <sidis/extra/bounds.hpp>
+#include <sidis/extra/bound.hpp>
 #include <sidis/extra/vector.hpp>
 
 // Within a major version, there is forward compatibility (e.x. 1.4 is
@@ -159,27 +159,27 @@ struct Params {
 	Param<sidis::math::Vec3> target_pol;
 	Param<sidis::Real> beam_pol;
 	Param<sidis::Real> k_0_bar;
-	Param<sidis::math::Bounds> x_cut;
-	Param<sidis::math::Bounds> y_cut;
-	Param<sidis::math::Bounds> z_cut;
-	Param<sidis::math::Bounds> ph_t_sq_cut;
-	Param<sidis::math::Bounds> phi_h_cut;
-	Param<sidis::math::Bounds> phi_cut;
-	Param<sidis::math::Bounds> Q_sq_cut;
-	Param<sidis::math::Bounds> t_cut;
-	Param<sidis::math::Bounds> w_cut;
-	Param<sidis::math::Bounds> mx_sq_cut;
-	Param<sidis::math::Bounds> q_0_cut;
-	Param<sidis::math::Bounds> k2_0_cut;
-	Param<sidis::math::Bounds> ph_0_cut;
-	Param<sidis::math::Bounds> theta_q_cut;
-	Param<sidis::math::Bounds> theta_k2_cut;
-	Param<sidis::math::Bounds> theta_h_cut;
-	Param<sidis::math::Bounds> tau_cut;
-	Param<sidis::math::Bounds> phi_k_cut;
-	Param<sidis::math::Bounds> k_0_bar_cut;
-	Param<sidis::math::Bounds> k_0_cut;
-	Param<sidis::math::Bounds> theta_k_cut;
+	Param<sidis::math::Bound> x_cut;
+	Param<sidis::math::Bound> y_cut;
+	Param<sidis::math::Bound> z_cut;
+	Param<sidis::math::Bound> ph_t_sq_cut;
+	Param<sidis::math::Bound> phi_h_cut;
+	Param<sidis::math::Bound> phi_cut;
+	Param<sidis::math::Bound> Q_sq_cut;
+	Param<sidis::math::Bound> t_cut;
+	Param<sidis::math::Bound> w_cut;
+	Param<sidis::math::Bound> mx_sq_cut;
+	Param<sidis::math::Bound> q_0_cut;
+	Param<sidis::math::Bound> k2_0_cut;
+	Param<sidis::math::Bound> ph_0_cut;
+	Param<sidis::math::Bound> theta_q_cut;
+	Param<sidis::math::Bound> theta_k2_cut;
+	Param<sidis::math::Bound> theta_h_cut;
+	Param<sidis::math::Bound> tau_cut;
+	Param<sidis::math::Bound> phi_k_cut;
+	Param<sidis::math::Bound> k_0_bar_cut;
+	Param<sidis::math::Bound> k_0_cut;
+	Param<sidis::math::Bound> theta_k_cut;
 
 	Params() :
 		version("version"),
