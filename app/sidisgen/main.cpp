@@ -25,8 +25,8 @@
 
 #include <sidis/sidis.hpp>
 #include <sidis/extra/math.hpp>
+#include <sidis/sf_set/prokudin.hpp>
 #include <sidis/sf_set/test.hpp>
-#include <sidis/sf_set/ww.hpp>
 
 #include "params.hpp"
 #include "utility.hpp"
@@ -111,7 +111,7 @@ int alloc_sf(
 	if (*params.sf_set == "prokudin") {
 		std::cout << "Using Prokudin structure functions." << std::endl;
 		tmd_out->reset();
-		sf_out->reset(new sf::set::WW());
+		sf_out->reset(new sf::set::ProkudinSfSet());
 	} else if (*params.sf_set == "test") {
 		// TODO: Allow selection of any of the 18 test structure functions.
 		std::cout << "Using test structure functions." << std::endl;

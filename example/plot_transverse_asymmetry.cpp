@@ -10,7 +10,7 @@
 #include <TFile.h>
 
 #include <sidis/sidis.hpp>
-#include <sidis/sf_set/ww.hpp>
+#include <sidis/sf_set/prokudin.hpp>
 
 using namespace sidis;
 using namespace sidis::kin;
@@ -36,7 +36,7 @@ struct RC {
 	}
 };
 
-sf::set::WW const sf_set;
+sf::set::ProkudinSfSet const sf_set;
 
 // Integrates the unpolarized cross-section over the azimuthal angles `phi` and
 // `phi_h`.

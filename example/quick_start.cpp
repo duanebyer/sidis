@@ -1,6 +1,6 @@
 #include <iostream>
 #include <sidis/sidis.hpp>
-#include <sidis/sf_set/ww.hpp>
+#include <sidis/sf_set/prokudin.hpp>
 
 sidis::Real const PI = sidis::PI;
 sidis::Real const M_TH = sidis::MASS_P + sidis::MASS_PI_0;
@@ -25,8 +25,8 @@ int main() {
 	sidis::Real beam_pol = 0.;
 	sidis::math::Vec3 target_pol(0., 0., 0.);
 	// Compute structure functions with WW-type approximation.
-	sidis::sf::set::WW ww;
-	sidis::Real born_xs = sidis::xs::born(beam_pol, target_pol, kin, ww);
+	sidis::sf::set::ProkudinSfSet sf;
+	sidis::Real born_xs = sidis::xs::born(beam_pol, target_pol, kin, sf);
 	std::cout << "Born unpolarized cross-section is " << born_xs << std::endl;
 	return 0;
 }

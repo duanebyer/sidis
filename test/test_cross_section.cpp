@@ -7,8 +7,8 @@
 #include <utility>
 
 #include <sidis/sidis.hpp>
+#include <sidis/sf_set/prokudin.hpp>
 #include <sidis/sf_set/test.hpp>
-#include <sidis/sf_set/ww.hpp>
 
 #include "rel_matcher.hpp"
 #include "stream_generator.hpp"
@@ -143,7 +143,7 @@ TEST_CASE(
 
 	std::unique_ptr<sf::SfSet> sf;
 	if (input.sf_set_idx == 0) {
-		sf.reset(new sf::set::WW());
+		sf.reset(new sf::set::ProkudinSfSet());
 	} else {
 		bool mask[18] = { false };
 		mask[-input.sf_set_idx - 1] = true;
@@ -214,7 +214,7 @@ TEST_CASE(
 
 	std::unique_ptr<sf::SfSet> sf;
 	if (input.sf_set_idx == 0) {
-		sf.reset(new sf::set::WW());
+		sf.reset(new sf::set::ProkudinSfSet());
 	} else {
 		bool mask[18] = { false };
 		mask[-input.sf_set_idx - 1] = true;

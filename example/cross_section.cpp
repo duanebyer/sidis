@@ -8,7 +8,6 @@
 #include <sidis/sidis.hpp>
 #include <sidis/sf_set/prokudin.hpp>
 #include <sidis/sf_set/test.hpp>
-#include <sidis/sf_set/ww.hpp>
 
 using namespace sidis;
 using namespace sidis::kin;
@@ -58,7 +57,7 @@ int main(int argc, char** argv) {
 		}
 
 		if (set_idx == 0) {
-			sf.reset(new sf::set::WW());
+			sf.reset(new sf::set::ProkudinSfSet());
 		} else if (set_idx <= -1 && set_idx >= -18) {
 			bool mask[18] = { false };
 			mask[-set_idx - 1] = true;

@@ -13,7 +13,6 @@ set(
 	"sidis/vector.hpp"
 	"sidis/sf_set/prokudin.hpp"
 	"sidis/sf_set/test.hpp"
-	"sidis/sf_set/ww.hpp"
 	"sidis/extra/exception.hpp"
 	"sidis/extra/integrate.hpp"
 	"sidis/extra/interpolate.hpp"
@@ -86,7 +85,6 @@ add_library(
 	vector.cpp
 	sf_set/prokudin.cpp
 	sf_set/test.cpp
-	sf_set/ww.cpp
 	${HEADER_LIST_SOURCE})
 target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature)
 target_include_directories(
