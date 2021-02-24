@@ -72,7 +72,7 @@ int main() {
 	sidis::math::Vec3 target_pol(0., 0., 0.);
 	// Compute structure functions with WW-type approximation.
 	sidis::sf::set::ProkudinSfSet sf;
-	sidis::Real born_xs = sidis::xs::born(beam_pol, target_pol, kin, sf);
+	sidis::Real born_xs = sidis::xs::born(kin, sf, beam_pol, target_pol);
 	std::cout << "Born unpolarized cross-section is " << born_xs << std::endl;
 	return 0;
 }

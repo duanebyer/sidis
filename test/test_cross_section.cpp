@@ -167,9 +167,9 @@ TEST_CASE(
 	Real beam_pol = input.beam_pol;
 	math::Vec3 eta = frame::hadron_from_target(kin) * input.target_pol;
 	// Compute the cross-sections.
-	Real born = xs::born(beam_pol, eta, kin, *sf);
-	Real amm = xs::amm(beam_pol, eta, kin, *sf);
-	Real nrad = xs::nrad_ir(beam_pol, eta, kin, *sf, input.k0_cut);
+	Real born = xs::born(kin, *sf, beam_pol, eta);
+	Real amm = xs::amm(kin, *sf, beam_pol, eta);
+	Real nrad = xs::nrad_ir(kin, *sf, beam_pol, eta, input.k0_cut);
 
 	// Print state information.
 	std::stringstream ss;
@@ -238,8 +238,8 @@ TEST_CASE(
 	Real beam_pol = input.beam_pol;
 	math::Vec3 eta = frame::hadron_from_target(kin.project()) * input.target_pol;
 	// Compute the cross-sections.
-	Real rad_f = xs::rad_f(beam_pol, eta, kin, *sf);
-	Real rad = xs::rad(beam_pol, eta, kin, *sf);
+	Real rad_f = xs::rad_f(kin, *sf, beam_pol, eta);
+	Real rad = xs::rad(kin, *sf, beam_pol, eta);
 
 	// Print state information.
 	std::stringstream ss;

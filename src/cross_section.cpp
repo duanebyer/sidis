@@ -78,51 +78,51 @@ Real delta_vert_rad_0(Kinematics const& kin) {
 
 }
 
-Real xs::born(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf) {
+Real xs::born(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
 	Born b(kin);
 	LepBornXX lep(kin);
 	HadXX had(kin, sf);
-	return born_xx_base(lambda_e, eta, b, lep, had);
+	return born_xx_base(b, lep, had, lambda_e, eta);
 }
 
-Real xs::amm(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf) {
+Real xs::amm(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
 	Amm b(kin);
 	LepAmmXX lep(kin);
 	HadXX had(kin, sf);
-	return amm_xx_base(lambda_e, eta, b, lep, had);
+	return amm_xx_base(b, lep, had, lambda_e, eta);
 }
 
-Real xs::nrad_ir(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar) {
+Real xs::nrad_ir(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar) {
 	NRadIR b(kin, k_0_bar);
 	LepBornXX lep_born(kin);
 	LepAmmXX lep_amm(kin);
 	HadXX had(kin, sf);
-	return nrad_ir_xx_base(lambda_e, eta, b, lep_born, lep_amm, had);
+	return nrad_ir_xx_base(b, lep_born, lep_amm, had, lambda_e, eta);
 }
 
-Real xs::rad(Real lambda_e, Vec3 eta, KinematicsRad const& kin, SfSet const& sf) {
+Real xs::rad(KinematicsRad const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
 	Rad b(kin);
 	LepRadXX lep(kin);
 	HadRadXX had(kin, sf);
-	return rad_xx_base(lambda_e, eta, b, lep, had);
+	return rad_xx_base(b, lep, had, lambda_e, eta);
 }
 
-Real xs::rad_f(Real lambda_e, Vec3 eta, KinematicsRad const& kin, SfSet const& sf) {
+Real xs::rad_f(KinematicsRad const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
 	Rad b(kin);
 	LepRadXX lep(kin);
 	HadRadFXX had(kin, sf);
-	return rad_f_xx_base(lambda_e, eta, b, lep, had);
+	return rad_f_xx_base(b, lep, had, lambda_e, eta);
 }
 
-Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar, unsigned max_evals, Real prec) {
+Real xs::nrad(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
 	// The soft part of the radiative cross-section (below `k_0_bar`) is bundled
 	// into the return value here.
-	Real xs_nrad_ir = nrad_ir(lambda_e, eta, kin, sf, k_0_bar);
-	Real xs_rad_f = rad_f_integ(lambda_e, eta, kin, sf, k_0_bar, max_evals, prec);
+	Real xs_nrad_ir = nrad_ir(kin, sf, lambda_e, eta, k_0_bar);
+	Real xs_rad_f = rad_f_integ(kin, sf, lambda_e, eta, k_0_bar, max_evals, prec);
 	return xs_nrad_ir + xs_rad_f;
 }
 
-Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar, unsigned max_evals, Real prec) {
+Real xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
 	HadXX had_0(kin, sf);
 	CutRad cut;
 	cut.k_0_bar = Bound(0., k_0_bar);
@@ -138,7 +138,7 @@ Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const
 			Rad b(kin_rad);
 			LepRadXX lep(kin_rad);
 			HadRadFXX had(kin_rad, sf, had_0);
-			Real xs = rad_f_xx_base(lambda_e, eta, b, lep, had);
+			Real xs = rad_f_xx_base(b, lep, had, lambda_e, eta);
 			if (std::isnan(xs)) {
 				// If the result is `NaN`, it most likely means we went out of
 				// the allowed region for the structure function grids (or we
@@ -155,7 +155,7 @@ Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const
 	return xs_integ.val;
 }
 
-Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar, unsigned max_evals, Real prec) {
+Real xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
 	CutRad cut;
 	cut.k_0_bar = Bound(k_0_bar, INF);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
@@ -170,7 +170,7 @@ Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& 
 			Rad b(kin_rad);
 			LepRadXX lep(kin_rad);
 			HadRadXX had(kin_rad, sf);
-			Real xs = rad_xx_base(lambda_e, eta, b, lep, had);
+			Real xs = rad_xx_base(b, lep, had, lambda_e, eta);
 			if (std::isnan(xs)) {
 				return 0.;
 			} else {
@@ -257,7 +257,7 @@ Born::Born(Kinematics const& kin) :
 	// Equation [1.15]. The `Q^4` factor has been absorbed into `C_1`.
 	coeff((sq(ALPHA)*kin.S*sq(kin.S_x))/(8.*kin.M*kin.ph_l*kin.lambda_S)) { }
 
-Real xs::born_xx_base(Real lambda_e, Vec3 eta, Born const& b, LepBornXX const& lep, HadXX const& had) {
+Real xs::born_xx_base(Born const& b, LepBornXX const& lep, HadXX const& had, Real lambda_e, Vec3 eta) {
 	Real uu = born_uu_base(b, lep, had);
 	Vec3 up(
 		born_ut1_base(b, lep, had),
@@ -315,7 +315,7 @@ Amm::Amm(Kinematics const& kin) {
 		/(16.*PI*kin.M*kin.ph_l*kin.lambda_S);
 }
 
-Real xs::amm_xx_base(Real lambda_e, Vec3 eta, Amm const& b, LepAmmXX const& lep, HadXX const& had) {
+Real xs::amm_xx_base(Amm const& b, LepAmmXX const& lep, HadXX const& had, Real lambda_e, Vec3 eta) {
 	Real uu = amm_uu_base(b, lep, had);
 	Vec3 up(
 		amm_ut1_base(b, lep, had),
@@ -373,7 +373,7 @@ NRadIR::NRadIR(Kinematics const& kin, Real k_0_bar) {
 	coeff_amm = amm.coeff;
 }
 
-Real xs::nrad_ir_xx_base(Real lambda_e, math::Vec3 eta, NRadIR const& b, LepBornXX const& lep_born, LepAmmXX const& lep_amm, HadXX const& had) {
+Real xs::nrad_ir_xx_base(NRadIR const& b, LepBornXX const& lep_born, LepAmmXX const& lep_amm, HadXX const& had, Real lambda_e, math::Vec3 eta) {
 	Real uu = nrad_ir_uu_base(b, lep_born, lep_amm, had);
 	Vec3 up(
 		nrad_ir_ut1_base(b, lep_born, lep_amm, had),
@@ -435,7 +435,7 @@ Rad::Rad(KinematicsRad const& kin) {
 	R = kin.R;
 }
 
-Real xs::rad_xx_base(Real lambda_e, Vec3 eta, Rad const& b, LepRadXX const& lep, HadRadXX const& had) {
+Real xs::rad_xx_base(Rad const& b, LepRadXX const& lep, HadRadXX const& had, Real lambda_e, Vec3 eta) {
 	Real uu = rad_uu_base(b, lep, had);
 	Vec3 up = rad_up_base(b, lep, had);
 	Real lu = rad_lu_base(b, lep, had);
@@ -512,7 +512,7 @@ Vec3 xs::rad_lp_base(Rad const& b, LepRadLX const& lep, HadRadLP const& had) {
 			+ (lep.theta_094 + lep.theta_194)*had.H_9));
 }
 
-Real xs::rad_f_xx_base(Real lambda_e, Vec3 eta, Rad const& b, LepRadXX const& lep, HadRadFXX const& had) {
+Real xs::rad_f_xx_base(Rad const& b, LepRadXX const& lep, HadRadFXX const& had, Real lambda_e, Vec3 eta) {
 	Real uu = rad_f_uu_base(b, lep, had);
 	Vec3 up = rad_f_up_base(b, lep, had);
 	Real lu = rad_f_lu_base(b, lep, had);

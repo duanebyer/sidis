@@ -132,17 +132,17 @@ int main(int argc, char** argv) {
 	// Compute cross-sections.
 	if (!radiative) {
 		std::cout << std::scientific << std::setprecision(16);
-		Real born = xs::born(beam_pol, eta, kin, *sf);
+		Real born = xs::born(kin, *sf, beam_pol, eta);
 		std::cout << "σ_B       = " << born << std::endl;
-		Real amm = xs::amm(beam_pol, eta, kin, *sf);
+		Real amm = xs::amm(kin, *sf, beam_pol, eta);
 		std::cout << "σ_AMM     = " << amm << std::endl;
-		Real nrad_ir = xs::nrad_ir(beam_pol, eta, kin, *sf, k0_cut);
+		Real nrad_ir = xs::nrad_ir(kin, *sf, beam_pol, eta, k0_cut);
 		std::cout << "σ_nrad_ir = " << nrad_ir << std::endl;
-		Real rad_f = xs::rad_f_integ(beam_pol, eta, kin, *sf, k0_cut);
+		Real rad_f = xs::rad_f_integ(kin, *sf, beam_pol, eta, k0_cut);
 		std::cout << "σ_rad_f   = " << rad_f << std::endl;
-		Real nrad = xs::nrad(beam_pol, eta, kin, *sf, k0_cut);
+		Real nrad = xs::nrad(kin, *sf, beam_pol, eta, k0_cut);
 		std::cout << "σ_nrad    = " << nrad << std::endl;
-		Real rad = xs::rad_integ(beam_pol, eta, kin, *sf, k0_cut);
+		Real rad = xs::rad_integ(kin, *sf, beam_pol, eta, k0_cut);
 		std::cout << "σ_rad     = " << rad << std::endl;
 		std::cout << "σ_tot     = " << nrad + rad << std::endl;
 	} else {
@@ -154,9 +154,9 @@ int main(int argc, char** argv) {
 		}
 		std::cout << std::scientific << std::setprecision(16);
 		KinematicsRad kin_rad(kin, tau, phi_k, R);
-		Real rad_f = xs::rad_f(beam_pol, eta, kin_rad, *sf);
+		Real rad_f = xs::rad_f(kin_rad, *sf, beam_pol, eta);
 		std::cout << "σ_rad_f = " << rad_f << std::endl;
-		Real rad = xs::rad(beam_pol, eta, kin_rad, *sf);
+		Real rad = xs::rad(kin_rad, *sf, beam_pol, eta);
 		std::cout << "σ_rad   = " << rad << std::endl;
 	}
 

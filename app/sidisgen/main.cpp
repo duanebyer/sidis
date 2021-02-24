@@ -214,13 +214,13 @@ struct XsNRad : public TFoamIntegrand {
 		Real xs;
 		switch (*params.rc_method) {
 		case RcMethod::NONE:
-			xs = xs::born(*params.beam_pol, eta, kin, sf);
+			xs = xs::born(kin, sf, *params.beam_pol, eta);
 			break;
 		case RcMethod::APPROX:
-			xs = xs::nrad_ir(*params.beam_pol, eta, kin, sf, *params.k_0_bar);
+			xs = xs::nrad_ir(kin, sf, *params.beam_pol, eta, *params.k_0_bar);
 			break;
 		case RcMethod::EXACT:
-			xs = xs::nrad(*params.beam_pol, eta, kin, sf, *params.k_0_bar);
+			xs = xs::nrad(kin, sf, *params.beam_pol, eta, *params.k_0_bar);
 			break;
 		default:
 			xs = 0.;
@@ -267,7 +267,7 @@ struct XsRad : public TFoamIntegrand {
 		}
 		kin::Kinematics kin = kin_rad.project();
 		math::Vec3 eta = frame::hadron_from_target(kin) * *params.target_pol;
-		Real xs = xs::rad(*params.beam_pol, eta, kin_rad, sf);
+		Real xs = xs::rad(kin_rad, sf, *params.beam_pol, eta);
 		if (std::isnan(xs)) {
 			return 0.;
 		} else {
