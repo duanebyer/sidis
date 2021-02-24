@@ -57,9 +57,6 @@ public:
 
 class GaussianTmdSet : public TmdSet {
 public:
-	// TODO: For now, the widths of the Gaussian approximations are required to
-	// be independent of flavor, but support for flavor-dependent widths may be
-	// added later.
 	Real const mean_f1;
 	Real const mean_f1Tperp;
 	Real const mean_fT;

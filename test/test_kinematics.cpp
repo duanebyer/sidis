@@ -117,6 +117,11 @@ void test_kin_nrad(
 		AbsMatcher<Real>(
 			kin.t,
 			6.*prec*std::hypot(q.t, ph.t)*norm_euc(q - ph)));
+	CHECK_THAT(
+		(q + p).norm_sq(),
+		AbsMatcher<Real>(
+			kin.w,
+			6.*prec*std::hypot(q.t, p.t)*norm_euc(q + p)));
 
 	CHECK_THAT(
 		2.*dot(p, k1),

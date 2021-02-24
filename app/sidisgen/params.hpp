@@ -16,8 +16,6 @@
 #define SIDIS_PARAMS_VERSION_MAJOR 2
 #define SIDIS_PARAMS_VERSION_MINOR 0
 
-// TODO: We could add an intermediate method here that approximates the full
-// 3-d integral over `rad_f` with a 2-d integral over `phi_k` and `tau` only.
 enum class RcMethod {
 	NONE,
 	APPROX,
@@ -165,6 +163,7 @@ struct Params {
 	Param<sidis::math::Bound> Q_sq_cut;
 	Param<sidis::math::Bound> t_cut;
 	Param<sidis::math::Bound> w_cut;
+	Param<sidis::math::Bound> r_cut;
 	Param<sidis::math::Bound> mx_sq_cut;
 	Param<sidis::math::Bound> q_0_cut;
 	Param<sidis::math::Bound> k2_0_cut;
@@ -209,6 +208,7 @@ struct Params {
 		Q_sq_cut("Q-sq-cut"),
 		t_cut("t-cut"),
 		w_cut("w-cut"),
+		r_cut("r-cut"),
 		mx_sq_cut("mx-sq-cut"),
 		q_0_cut("q-0-cut"),
 		k2_0_cut("k2-0-cut"),

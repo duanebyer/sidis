@@ -166,8 +166,6 @@ HadRadUU::HadRadUU(KinematicsRad const& kin, SfUU const& shift_sf) {
 		+ kin.shift_ph_t*kin.shift_Q*kin.shift_lambda_Y_sqrt*H_01);
 }
 HadRadUP::HadRadUP(KinematicsRad const& kin, SfUP const& shift_sf) {
-	// TODO: Can we fix `shift_rot` being needlessly calculated twice in both
-	// `UP` and `LP` versions of `HadRad`?
 	Transform3 shift_rot = frame::hadron_from_shift(kin);
 	Real H_002 = kin.shift_C_1*shift_sf.F_UTL_sin_phih_m_phis;
 	Real H_012 = kin.shift_C_1*(shift_sf.F_UT_sin_phis - shift_sf.F_UT_sin_2phih_m_phis);

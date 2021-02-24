@@ -22,6 +22,7 @@ Cut::Cut() :
 	Q_sq(Bound::INVALID),
 	t(Bound::INVALID),
 	w(Bound::INVALID),
+	r(Bound::INVALID),
 	mx_sq(Bound::INVALID),
 	q_0(Bound::INVALID),
 	k2_0(Bound::INVALID),
@@ -304,6 +305,8 @@ bool cut::valid(Cut const& cut, Kinematics const& kin) {
 	} else if (cut.t.valid() && !cut.t.contains(kin.t)) {
 		return false;
 	} else if (cut.w.valid() && !cut.w.contains(kin.w)) {
+		return false;
+	} else if (cut.r.valid() && !cut.r.contains(kin.V_2/kin.V_1)) {
 		return false;
 	} else if (cut.mx_sq.valid() && !cut.mx_sq.contains(kin.mx_sq)) {
 		return false;

@@ -114,15 +114,15 @@ Real xs::rad_f(Real lambda_e, Vec3 eta, KinematicsRad const& kin, SfSet const& s
 	return rad_f_xx_base(lambda_e, eta, b, lep, had);
 }
 
-Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar) {
+Real xs::nrad(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar, unsigned max_evals, Real prec) {
 	// The soft part of the radiative cross-section (below `k_0_bar`) is bundled
 	// into the return value here.
 	Real xs_nrad_ir = nrad_ir(lambda_e, eta, kin, sf, k_0_bar);
-	Real xs_rad_f = rad_f_integ(lambda_e, eta, kin, sf, k_0_bar);
+	Real xs_rad_f = rad_f_integ(lambda_e, eta, kin, sf, k_0_bar, max_evals, prec);
 	return xs_nrad_ir + xs_rad_f;
 }
 
-Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar) {
+Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar, unsigned max_evals, Real prec) {
 	HadXX had_0(kin, sf);
 	CutRad cut;
 	cut.k_0_bar = Bound(0., k_0_bar);
@@ -141,9 +141,9 @@ Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const
 			Real xs = rad_f_xx_base(lambda_e, eta, b, lep, had);
 			if (std::isnan(xs)) {
 				// If the result is `NaN`, it most likely means we went out of
-				// the allowed region for the structure function grids. In that
-				// case, just return zero.
-				// TODO: Handle this case in a more correct way.
+				// the allowed region for the structure function grids (or we
+				// are in a kinematically disallowed region). In that case, just
+				// return zero.
 				return 0.;
 			} else {
 				return jacobian * xs;
@@ -151,11 +151,11 @@ Real xs::rad_f_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const
 		},
 		cubature::Point<3, Real>{ 0., 0., 0. },
 		cubature::Point<3, Real>{ 1., 1., 1. },
-		1000000, 0., 1e-6);
+		max_evals, 0., prec);
 	return xs_integ.val;
 }
 
-Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar) {
+Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& sf, Real k_0_bar, unsigned max_evals, Real prec) {
 	CutRad cut;
 	cut.k_0_bar = Bound(k_0_bar, INF);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
@@ -172,7 +172,6 @@ Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& 
 			HadRadXX had(kin_rad, sf);
 			Real xs = rad_xx_base(lambda_e, eta, b, lep, had);
 			if (std::isnan(xs)) {
-				// TODO: Handle this case more correctly.
 				return 0.;
 			} else {
 				return jacobian * xs;
@@ -180,7 +179,7 @@ Real xs::rad_integ(Real lambda_e, Vec3 eta, Kinematics const& kin, SfSet const& 
 		},
 		cubature::Point<3, Real>{ 0., 0., 0. },
 		cubature::Point<3, Real>{ 1., 1., 1. },
-		1000000, 0., 1e-6);
+		max_evals, 0., prec);
 	return xs_integ.val;
 }
 

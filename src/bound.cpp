@@ -11,10 +11,9 @@ Bound const Bound::INVALID = Bound(
 	std::numeric_limits<Real>::quiet_NaN());
 Bound const Bound::ZERO = Bound(0., 0.);
 Bound const Bound::UNIT = Bound(0., 1.);
-// TODO: Consider changing this to ±infinity.
 Bound const Bound::FULL = Bound(
-	std::numeric_limits<Real>::lowest(),
-	std::numeric_limits<Real>::max());
+	-std::numeric_limits<Real>::infinity(),
+	std::numeric_limits<Real>::infinity());
 Bound const Bound::POSITIVE = Bound(
 	0.,
 	std::numeric_limits<Real>::max());

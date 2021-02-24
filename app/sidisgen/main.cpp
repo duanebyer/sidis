@@ -5,6 +5,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <regex>
 #include <string>
 #include <sstream>
 #include <stdexcept>
@@ -80,6 +81,7 @@ void cuts(Params params, cut::Cut* cut_out, cut::CutRad* cut_rad_out) {
 		cut_out->Q_sq = params.Q_sq_cut.get_or(math::Bound::INVALID);
 		cut_out->t = params.t_cut.get_or(math::Bound::INVALID);
 		cut_out->w = params.w_cut.get_or(math::Bound::INVALID);
+		cut_out->r = params.r_cut.get_or(math::Bound::INVALID);
 		cut_out->mx_sq = params.mx_sq_cut.get_or(math::Bound::INVALID);
 		cut_out->q_0 = params.q_0_cut.get_or(math::Bound::INVALID);
 		cut_out->k2_0 = params.k2_0_cut.get_or(math::Bound::INVALID);
@@ -108,15 +110,22 @@ int alloc_sf(
 		std::unique_ptr<sf::TmdSet>* tmd_out) {
 	std::unique_ptr<sf::SfSet> sf;
 	std::unique_ptr<sf::TmdSet> tmd;
+	std::regex test_regex("test([0-9]+)");
+	std::smatch match;
 	if (*params.sf_set == "prokudin") {
 		std::cout << "Using Prokudin structure functions." << std::endl;
 		tmd_out->reset();
 		sf_out->reset(new sf::set::ProkudinSfSet());
-	} else if (*params.sf_set == "test") {
-		// TODO: Allow selection of any of the 18 test structure functions.
-		std::cout << "Using test structure functions." << std::endl;
+	} else if (std::regex_match(*params.sf_set, match, test_regex)) {
+		int test_idx = std::stoi(match[1]);
+		if (test_idx < 0 || test_idx > 17) {
+			throw std::runtime_error(
+				"Cannot create test structure function with index "
+				+ std::to_string(test_idx));
+		}
+		std::cout << "Using test structure function " << test_idx << "." << std::endl;
 		bool mask[18] = { 0 };
-		mask[0] = true;
+		mask[test_idx] = true;
 		tmd_out->reset();
 		sf_out->reset(new sf::set::TestSfSet(*params.target, mask));
 	} else {
@@ -311,6 +320,7 @@ int command_help() {
 		<< "Q-sq-cut       <min> <max>"                      << std::endl
 		<< "t-cut          <min> <max>"                      << std::endl
 		<< "w-cut          <min> <max>"                      << std::endl
+		<< "r-cut          <min> <max>"                      << std::endl
 		<< "mx-sq-cut      <min> <max>"                      << std::endl
 		<< "q-0-cut        <min> <max>"                      << std::endl
 		<< "k2-0-cut       <min> <max>"                      << std::endl
@@ -324,7 +334,6 @@ int command_help() {
 }
 
 int command_version() {
-	// TODO: Output correct version and build information.
 	std::cout << "sidisgen "
 		<< SIDIS_VERSION_MAJOR << "."
 		<< SIDIS_VERSION_MINOR << "."
@@ -622,7 +631,6 @@ int command_generate(std::string params_file_name) {
 	Double_t weight;
 	Double_t jacobian;
 	Double_t x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R;
-	Double_t Q_sq;
 	TLorentzVector p, k1, q, k2, ph, k;
 	events.Branch("type", &type);
 	events.Branch("weight", &weight);
@@ -636,9 +644,6 @@ int command_generate(std::string params_file_name) {
 	events.Branch("tau", &tau);
 	events.Branch("phi_k", &phi_k);
 	events.Branch("R", &R);
-	// TODO: Add option to parameters file for what additional kinematic
-	// variables should be logged.
-	events.Branch("Q_sq", &Q_sq);
 	events.Branch("p", "TLorentzVector", &p);
 	events.Branch("k1", "TLorentzVector", &k1);
 	events.Branch("q", "TLorentzVector", &q);
@@ -724,7 +729,6 @@ int command_generate(std::string params_file_name) {
 				ph_t_sq = kin.ph_t_sq;
 				phi_h = kin.phi_h;
 				phi = kin.phi;
-				Q_sq = kin.Q_sq;
 				p = convert_vec4(init.p);
 				k1 = convert_vec4(init.k1);
 				q = convert_vec4(fin.q);
@@ -749,7 +753,6 @@ int command_generate(std::string params_file_name) {
 				tau = kin_rad.tau;
 				phi_k = kin_rad.phi_k;
 				R = kin_rad.R;
-				Q_sq = kin_rad.Q_sq;
 				p = convert_vec4(init.p);
 				k1 = convert_vec4(init.k1);
 				q = convert_vec4(fin.q);
