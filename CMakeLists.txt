@@ -26,6 +26,10 @@ set(
 	CACHE BOOL
 	"should the apps (generator) be built")
 set(
+	Sidis_BUILD_DOCS TRUE
+	CACHE BOOL
+	"should the documentation be generated")
+set(
 	Sidis_REAL_TYPE "double"
 	CACHE STRING
 	"what default floating point type should be used for real numbers")
@@ -72,6 +76,9 @@ if(${Sidis_BUILD_EXAMPLES})
 endif()
 if(${Sidis_BUILD_APPS})
 	add_subdirectory(app/sidisgen)
+endif()
+if(${Sidis_BUILD_DOCS})
+	add_subdirectory(doc)
 endif()
 
 # Set up the test builds.
