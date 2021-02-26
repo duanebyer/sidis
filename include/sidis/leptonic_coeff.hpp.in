@@ -72,6 +72,38 @@ gen_struct.generate_structs_pol(
 ]]]*/
 /*[[[end]]]*/
 
+// Non-radiative coefficients.
+/*[[[cog
+import gen_struct
+gen_struct.generate_structs_pol(
+	"LepNrad",
+	["U", "L"], ["U", "P"],
+	{
+		"UU": [
+			["LepBornUU", "born_uu"],
+			["LepAmmUU", "amm_uu"],
+		],
+		"UP": [
+			["LepBornUP", "born_up"],
+			["LepAmmUP", "amm_up"],
+		],
+		"LU": [
+			["LepBornLU", "born_lu"],
+			["LepAmmLU", "amm_lu"],
+		],
+		"LP": [
+			["LepBornLP", "born_lp"],
+			["LepAmmLP", "amm_lp"],
+		],
+	},
+	constructors=[
+		[["kin::Kinematics", "kin"]],
+		[["LepBornXX", "born"], ["LepAmmXX", "amm"]],
+	]
+)
+]]]*/
+/*[[[end]]]*/
+
 // Radiative coefficients.
 /*[[[cog
 import gen_struct

@@ -74,11 +74,10 @@ Real xs_uu_integ(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
-				xs::NRadIR b(kin, rc_info.k0_cut);
-				lep::LepBornUU lep_born(kin);
-				lep::LepAmmUU lep_amm(kin);
+				xs::Nrad b(kin, rc_info.k0_cut);
+				lep::LepNradUU lep(kin);
 				had::HadUU had(kin, sf);
-				return xs::nrad_ir_uu_base(b, lep_born, lep_amm, had);
+				return xs::nrad_ir_uu_base(b, lep, had);
 			},
 			-PI, PI,
 			rc_info.num_evals, 0., rc_info.prec);
@@ -152,16 +151,15 @@ Real xs_ut_integ_h(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
-				xs::NRadIR b(kin, rc_info.k0_cut);
-				lep::LepBornUX lep_born(kin);
-				lep::LepAmmUX lep_amm(kin);
+				xs::Nrad b(kin, rc_info.k0_cut);
+				lep::LepNradUX lep(kin);
 				had::HadUP had(kin, sf);
 				Vec3 eta(
 					eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
 					eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
 					0.);
-				return eta.x * xs::nrad_ir_ut1_base(b, lep_born, lep_amm, had)
-					+ eta.y * xs::nrad_ir_ut2_base(b, lep_born, lep_amm, had);
+				return eta.x * xs::nrad_ir_ut1_base(b, lep, had)
+					+ eta.y * xs::nrad_ir_ut2_base(b, lep, had);
 			},
 			-PI, PI,
 			rc_info.num_evals, 0., rc_info.prec);

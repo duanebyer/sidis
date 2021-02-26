@@ -68,6 +68,24 @@ LepAmmLP::LepAmmLP(Kinematics const& kin) {
 		+ 2.*kin.S*kin.S_x*kin.V_m*kin.V_p);
 }
 
+// Non-radiative coefficients.
+LepNradUU::LepNradUU(Kinematics const& kin) : born_uu(kin), amm_uu(kin) { }
+LepNradUP::LepNradUP(Kinematics const& kin) : born_up(kin), amm_up(kin) { }
+LepNradLU::LepNradLU(Kinematics const& kin) : born_lu(kin), amm_lu(kin) { }
+LepNradLP::LepNradLP(Kinematics const& kin) : born_lp(kin), amm_lp(kin) { }
+LepNradUU::LepNradUU(LepBornUU const& born, LepAmmUU const& amm) :
+	born_uu(born),
+	amm_uu(amm) { }
+LepNradUP::LepNradUP(LepBornUP const& born, LepAmmUP const& amm) :
+	born_up(born),
+	amm_up(amm) { }
+LepNradLU::LepNradLU(LepBornLU const& born, LepAmmLU const& amm) :
+	born_lu(born),
+	amm_lu(amm) { }
+LepNradLP::LepNradLP(LepBornLP const& born, LepAmmLP const& amm) :
+	born_lp(born),
+	amm_lp(amm) { }
+
 // Radiative coefficients. Equations [1.B1] and [1.B2].
 LepRadUU::LepRadUU(KinematicsRad const& kin) {
 	LepBornUU lep_born(kin.project());
