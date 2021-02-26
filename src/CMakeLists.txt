@@ -64,7 +64,8 @@ foreach(HEADER ${HEADER_LIST_GENERATE})
 			-o "${Sidis_BINARY_DIR}/include/${HEADER}"
 			"${Sidis_SOURCE_DIR}/include/${HEADER}.in"
 		MAIN_DEPENDENCY "${Sidis_SOURCE_DIR}/include/${HEADER}.in"
-		COMMENT "Generating header file ${HEADER}.")
+		COMMENT "Generating header file ${HEADER}."
+		VERBATIM)
 endforeach(HEADER)
 
 add_library(
@@ -107,7 +108,8 @@ add_custom_command(
 		"${Sidis_BINARY_DIR}/share/sidis/sf_set"
 	COMMAND ${CMAKE_COMMAND} -E create_symlink
 		"${Sidis_SOURCE_DIR}/share/sidis/sf_set/prokudin"
-		"${Sidis_BINARY_DIR}/share/sidis/sf_set/prokudin")
+		"${Sidis_BINARY_DIR}/share/sidis/sf_set/prokudin"
+	VERBATIM)
 
 source_group(
 	TREE "${Sidis_SOURCE_DIR}/include"
