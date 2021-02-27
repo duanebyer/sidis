@@ -61,19 +61,19 @@ struct CutRad {
 
 Real S_min(kin::Particles const& ps);
 
-math::Bound x_bounds(kin::Particles const& ps, Real S);
-math::Bound y_bounds(kin::Particles const& ps, Real S, Real x);
-math::Bound z_bounds(kin::Particles const& ps, Real S, Real x, Real y);
-math::Bound ph_t_sq_bounds(kin::Particles const& ps, Real S, Real x, Real y, Real z);
-math::Bound tau_bounds(kin::Kinematics const& kin);
-math::Bound R_bounds(kin::Kinematics const& kin, Real tau, Real phi_k);
+math::Bound x_bound(kin::Particles const& ps, Real S);
+math::Bound y_bound(kin::Particles const& ps, Real S, Real x);
+math::Bound z_bound(kin::Particles const& ps, Real S, Real x, Real y);
+math::Bound ph_t_sq_bound(kin::Particles const& ps, Real S, Real x, Real y, Real z);
+math::Bound tau_bound(kin::Kinematics const& kin);
+math::Bound R_bound(kin::Kinematics const& kin, Real tau, Real phi_k);
 
-math::Bound x_bounds(Cut const& cut, kin::Particles const& ps, Real S);
-math::Bound y_bounds(Cut const& cut, kin::Particles const& ps, Real S, Real x);
-math::Bound z_bounds(Cut const& cut, kin::Particles const& ps, Real S, Real x, Real y);
-math::Bound ph_t_sq_bounds(Cut const& cut, kin::Particles const& ps, Real S, Real x, Real y, Real z);
-math::Bound tau_bounds(CutRad const& cut, kin::Kinematics const& kin);
-math::Bound R_bounds(CutRad const& cut, kin::Kinematics const& kin, Real tau, Real phi_k);
+math::Bound x_bound(Cut const& cut, kin::Particles const& ps, Real S);
+math::Bound y_bound(Cut const& cut, kin::Particles const& ps, Real S, Real x);
+math::Bound z_bound(Cut const& cut, kin::Particles const& ps, Real S, Real x, Real y);
+math::Bound ph_t_sq_bound(Cut const& cut, kin::Particles const& ps, Real S, Real x, Real y, Real z);
+math::Bound tau_bound(CutRad const& cut, kin::Kinematics const& kin);
+math::Bound R_bound(CutRad const& cut, kin::Kinematics const& kin, Real tau, Real phi_k);
 
 bool valid(kin::Kinematics const& kin);
 bool valid(kin::KinematicsRad const& kin);

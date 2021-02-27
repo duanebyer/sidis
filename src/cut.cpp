@@ -44,7 +44,7 @@ CutRad::CutRad() :
 Real cut::S_min(Particles const& ps) {
 	return sq(ps.Mth + ps.mh) + 2.*ps.m*(ps.Mth + ps.mh) - sq(ps.M);
 }
-Bound cut::x_bounds(Particles const& ps, Real S) {
+Bound cut::x_bound(Particles const& ps, Real S) {
 	Real M = ps.M;
 	Real m = ps.m;
 	Real mh = ps.mh;
@@ -52,7 +52,7 @@ Bound cut::x_bounds(Particles const& ps, Real S) {
 	Real lambda_S = sq(S) - 4.*sq(M)*sq(m);
 	Real L = S - (sq(Mth + mh) - sq(M));
 
-	// Combined bounds `mx >= Mth` and `sq(q_t) >= 0`.
+	// Combined bound `mx >= Mth` and `sq(q_t) >= 0`.
 	Real denom = 2.*(lambda_S + sq(M)*(sq(Mth + mh) - sq(M)));
 	Real a = lambda_S - S*(sq(Mth + mh) - sq(M));
 	Real b = std::sqrt(lambda_S*(L - 2.*m*(Mth + mh))*(L + 2.*m*(Mth + mh)));
@@ -62,7 +62,7 @@ Bound cut::x_bounds(Particles const& ps, Real S) {
 
 	return Bound::UNIT & kin_b;
 }
-Bound cut::y_bounds(Particles const& ps, Real S, Real x) {
+Bound cut::y_bound(Particles const& ps, Real S, Real x) {
 	Real M = ps.M;
 	Real m = ps.m;
 	Real mh = ps.mh;
@@ -77,7 +77,7 @@ Bound cut::y_bounds(Particles const& ps, Real S, Real x) {
 
 	return Bound::UNIT & kin_b;
 }
-Bound cut::z_bounds(Particles const& ps, Real S, Real x, Real y) {
+Bound cut::z_bound(Particles const& ps, Real S, Real x, Real y) {
 	Real M = ps.M;
 	Real mh = ps.mh;
 	Real Mth = ps.Mth;
@@ -100,7 +100,7 @@ Bound cut::z_bounds(Particles const& ps, Real S, Real x, Real y) {
 
 	return Bound::UNIT & kin_b;
 }
-Bound cut::ph_t_sq_bounds(Particles const& ps, Real S, Real x, Real y, Real z) {
+Bound cut::ph_t_sq_bound(Particles const& ps, Real S, Real x, Real y, Real z) {
 	Real M = ps.M;
 	Real mh = ps.mh;
 	Real Mth = ps.Mth;
@@ -120,7 +120,7 @@ Bound cut::ph_t_sq_bounds(Particles const& ps, Real S, Real x, Real y, Real z) {
 
 	return Bound::POSITIVE & kin_b;
 }
-Bound cut::tau_bounds(Kinematics const& kin) {
+Bound cut::tau_bound(Kinematics const& kin) {
 	// Equation [1.44].
 	Real min = (kin.S_x - kin.lambda_Y_sqrt)/(2.*sq(kin.M));
 	Real max = (kin.S_x + kin.lambda_Y_sqrt)/(2.*sq(kin.M));
@@ -128,8 +128,8 @@ Bound cut::tau_bounds(Kinematics const& kin) {
 
 	return Bound::FULL & kin_b;
 }
-Bound cut::R_bounds(Kinematics const& kin, Real tau, Real phi_k) {
-	Bound tau_b = tau_bounds(kin);
+Bound cut::R_bound(Kinematics const& kin, Real tau, Real phi_k) {
+	Bound tau_b = tau_bound(kin);
 	// Copied from kinematic calculations.
 	Real mu = kin.ph_0/kin.M
 		+ 1./kin.lambda_Y_sqrt*(
@@ -144,8 +144,8 @@ Bound cut::R_bounds(Kinematics const& kin, Real tau, Real phi_k) {
 }
 
 // TODO: Verify the extra kinematics cuts.
-Bound cut::x_bounds(Cut const& cut, Particles const& ps, Real S) {
-	Bound result = x_bounds(ps, S);
+Bound cut::x_bound(Cut const& cut, Particles const& ps, Real S) {
+	Bound result = x_bound(ps, S);
 	if (cut.x.valid()) {
 		result &= cut.x;
 	}
@@ -172,8 +172,8 @@ Bound cut::x_bounds(Cut const& cut, Particles const& ps, Real S) {
 	}
 	return result;
 }
-Bound cut::y_bounds(Cut const& cut, Particles const& ps, Real S, Real x) {
-	Bound result = y_bounds(ps, S, x);
+Bound cut::y_bound(Cut const& cut, Particles const& ps, Real S, Real x) {
+	Bound result = y_bound(ps, S, x);
 	if (cut.y.valid()) {
 		result &= cut.y;
 	}
@@ -187,31 +187,31 @@ Bound cut::y_bounds(Cut const& cut, Particles const& ps, Real S, Real x) {
 	}
 	return result;
 }
-Bound cut::z_bounds(Cut const& cut, Particles const& ps, Real S, Real x, Real y) {
-	Bound result = z_bounds(ps, S, x, y);
+Bound cut::z_bound(Cut const& cut, Particles const& ps, Real S, Real x, Real y) {
+	Bound result = z_bound(ps, S, x, y);
 	if (cut.z.valid()) {
 		result &= cut.z;
 	}
 	return result;
 }
-Bound cut::ph_t_sq_bounds(Cut const& cut, Particles const& ps, Real S, Real x, Real y, Real z) {
-	Bound result = ph_t_sq_bounds(ps, S, x, y, z);
+Bound cut::ph_t_sq_bound(Cut const& cut, Particles const& ps, Real S, Real x, Real y, Real z) {
+	Bound result = ph_t_sq_bound(ps, S, x, y, z);
 	if (cut.ph_t_sq.valid()) {
 		result &= cut.ph_t_sq;
 	}
 	return result;
 }
-Bound cut::tau_bounds(CutRad const& cut, Kinematics const& kin) {
-	Bound result = tau_bounds(kin);
+Bound cut::tau_bound(CutRad const& cut, Kinematics const& kin) {
+	Bound result = tau_bound(kin);
 	if (cut.tau.valid()) {
 		result &= cut.tau;
 	}
 	return result;
 }
-Bound cut::R_bounds(CutRad const& cut, Kinematics const& kin, Real tau, Real phi_k) {
-	Bound result = R_bounds(kin, tau, phi_k);
+Bound cut::R_bound(CutRad const& cut, Kinematics const& kin, Real tau, Real phi_k) {
+	Bound result = R_bound(kin, tau, phi_k);
 	if (cut.k_0_bar.valid()) {
-		Bound tau_b = tau_bounds(kin);
+		Bound tau_b = tau_bound(kin);
 		// Copied from kinematic calculations.
 		Real mu = kin.ph_0/kin.M
 			+ 1./kin.lambda_Y_sqrt*(
@@ -224,7 +224,7 @@ Bound cut::R_bounds(CutRad const& cut, Kinematics const& kin, Real tau, Real phi
 	return result;
 }
 
-// Check whether within kinematic bounds.
+// Check whether within kinematic bound.
 bool cut::valid(Kinematics const& kin) {
 	// TODO: Make sure to check the minimum set of things that let the final
 	// state particle be reconstructed.
@@ -261,7 +261,7 @@ bool cut::valid(Kinematics const& kin) {
 	}
 }
 bool cut::valid(KinematicsRad const& kin_rad) {
-	// TODO: Instead of checking if things are within bounds, check whether the
+	// TODO: Instead of checking if things are within bound, check whether the
 	// photon can be constructed (which should be equivalent, but more useful).
 	if (!valid(kin_rad.project())) {
 		return false;
@@ -359,13 +359,13 @@ bool cut::valid(Cut const& cut, CutRad const& cut_rad, KinematicsRad const& kin)
 bool cut::take(
 		Particles const& ps, Real S, const Real point[6],
 		PhaseSpace* ph_space_out, Real* jacobian_out) {
-	Bound x_b = x_bounds(ps, S);
+	Bound x_b = x_bound(ps, S);
 	Real x = x_b.lerp(point[0]);
-	Bound y_b = y_bounds(ps, S, x);
+	Bound y_b = y_bound(ps, S, x);
 	Real y = y_b.lerp(point[1]);
-	Bound z_b = z_bounds(ps, S, x, y);
+	Bound z_b = z_bound(ps, S, x, y);
 	Real z = z_b.lerp(point[2]);
-	Bound ph_t_sq_b = ph_t_sq_bounds(ps, S, x, y, z);
+	Bound ph_t_sq_b = ph_t_sq_bound(ps, S, x, y, z);
 	Real ph_t_sq = ph_t_sq_b.lerp(point[3]);
 	Bound phi_h_b = Bound(-PI, PI);
 	Real phi_h = phi_h_b.lerp(point[4]);
@@ -399,13 +399,13 @@ bool cut::take(
 		Cut const& cut,
 		Particles const& ps, Real S, const Real point[6],
 		Kinematics* kin_out, Real* jacobian_out) {
-	Bound x_b = x_bounds(cut, ps, S);
+	Bound x_b = x_bound(cut, ps, S);
 	Real x = x_b.lerp(point[0]);
-	Bound y_b = y_bounds(cut, ps, S, x);
+	Bound y_b = y_bound(cut, ps, S, x);
 	Real y = y_b.lerp(point[1]);
-	Bound z_b = z_bounds(cut, ps, S, x, y);
+	Bound z_b = z_bound(cut, ps, S, x, y);
 	Real z = z_b.lerp(point[2]);
-	Bound ph_t_sq_b = ph_t_sq_bounds(cut, ps, S, x, y, z);
+	Bound ph_t_sq_b = ph_t_sq_bound(cut, ps, S, x, y, z);
 	Real ph_t_sq = ph_t_sq_b.lerp(point[3]);
 	Bound phi_h_b = cut.phi.valid() ? cut.phi_h : Bound(-PI, PI);
 	Real phi_h = phi_h_b.lerp(point[4]);
@@ -478,11 +478,11 @@ bool cut::take(
 bool cut::take(
 		Kinematics const& kin, const Real point[3],
 		PhaseSpaceRad* ph_space_out, Real* jacobian_out) {
-	Bound tau_b = tau_bounds(kin);
+	Bound tau_b = tau_bound(kin);
 	Real tau = tau_b.lerp(point[0]);
 	Bound phi_k_b = Bound(-PI, PI);
 	Real phi_k = phi_k_b.lerp(point[1]);
-	Bound R_b = R_bounds(kin, tau, phi_k);
+	Bound R_b = R_bound(kin, tau, phi_k);
 	Real R = R_b.lerp(point[2]);
 	if (ph_space_out != nullptr) {
 		*ph_space_out = {
@@ -515,11 +515,11 @@ bool cut::take(
 		CutRad const& cut,
 		Kinematics const& kin, const Real point[3],
 		KinematicsRad* kin_out, Real* jacobian_out) {
-	Bound tau_b = tau_bounds(cut, kin);
+	Bound tau_b = tau_bound(cut, kin);
 	Real tau = tau_b.lerp(point[0]);
 	Bound phi_k_b = cut.phi_k.valid() ? cut.phi_k : Bound(-PI, PI);
 	Real phi_k = phi_k_b.lerp(point[1]);
-	Bound R_b = R_bounds(cut, kin, tau, phi_k);
+	Bound R_b = R_bound(cut, kin, tau, phi_k);
 	Real R = R_b.lerp(point[2]);
 	KinematicsRad kin_rad(kin, tau, phi_k, R);
 	if (kin_out != nullptr) {

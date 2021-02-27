@@ -115,13 +115,13 @@ int main(int argc, char** argv) {
 	// Check that we are in valid kinematic region.
 	if (!(S >= cut::S_min(ps))) {
 		throw std::out_of_range("Beam energy is below threshold");
-	} else if (!cut::x_bounds(ps, S).contains(x)) {
+	} else if (!cut::x_bound(ps, S).contains(x)) {
 		throw std::out_of_range("x is out of valid kinematic range");
-	} else if (!cut::y_bounds(ps, S, x).contains(y)) {
+	} else if (!cut::y_bound(ps, S, x).contains(y)) {
 		throw std::out_of_range("y is out of valid kinematic range");
-	} else if (!cut::z_bounds(ps, S, x, y).contains(z)) {
+	} else if (!cut::z_bound(ps, S, x, y).contains(z)) {
 		throw std::out_of_range("z is out of valid kinematic range");
-	} else if (!cut::ph_t_sq_bounds(ps, S, x, y, z).contains(ph_t_sq)) {
+	} else if (!cut::ph_t_sq_bound(ps, S, x, y, z).contains(ph_t_sq)) {
 		throw std::out_of_range("ph_t_sq is out of valid kinematic range");
 	}
 	// Do kinematics calculations.
@@ -147,9 +147,9 @@ int main(int argc, char** argv) {
 		std::cout << "σ_tot     = " << nrad + rad << std::endl;
 	} else {
 		// Do radiative kinematics checks.
-		if (!cut::tau_bounds(kin).contains(tau)) {
+		if (!cut::tau_bound(kin).contains(tau)) {
 			throw std::out_of_range("tau is out of valid kinematic range");
-		} else if (!cut::R_bounds(kin, tau, phi_k).contains(R)) {
+		} else if (!cut::R_bound(kin, tau, phi_k).contains(R)) {
 			throw std::out_of_range("R is out of valid kinematic range");
 		}
 		std::cout << std::scientific << std::setprecision(16);
