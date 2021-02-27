@@ -10,7 +10,7 @@ int main() {
 		sidis::part::Nucleus::P,   // Target nucleus.
 		sidis::part::Lepton::E,    // Beam lepton.
 		sidis::part::Hadron::PI_P, // Leading hadron.
-		M_TH                           // Threshold mass of undetected part.
+		M_TH                       // Threshold mass of undetected part.
 	);
 	sidis::Real S = 2. * 10.6 * particles.M; // Kinematic variable `S = 2 p k1`.
 	sidis::kin::PhaseSpace phase_space {
