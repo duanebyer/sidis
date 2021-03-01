@@ -6,27 +6,69 @@
 namespace sidis {
 namespace part {
 
+/**
+ * \defgroup ParticleInfo Particle info
+ * \addtogroup ParticleInfo
+ */
+/// \{
+
+/// Beam leptons types.
 enum class Lepton {
-	E, MU, TAU,
+	E,   ///< Electron \f$e^{-}\f$
+	MU,  ///< Muon \f$\mu^{-}\f$
+	TAU, ///< Tau lepton \f$\tau^{-}\f$
 };
 
+/// Target nuclei types.
 enum class Nucleus {
-	P,
-	N,
-	D,
+	P, ///< Proton \f$p\f$
+	N, ///< Neutron \f$n\f$
+	D, ///< Deuteron \f$d\f$
 };
 
+/// Detected hadron types.
 enum class Hadron {
-	PI_0,
-	PI_P,
-	PI_M,
-	K_0,
-	K_P,
-	K_M,
-	PHI,
-	J_PSI,
+	PI_0,  ///< Pion \f$\pi^{0}\f$
+	PI_P,  ///< Pion \f$\pi^{+}\f$
+	PI_M,  ///< Pion \f$\pi^{-}\f$
+	K_0,   ///< Kaon \f$K^{0}\f$
+	K_P,   ///< Kaon \f$K^{+}\f$
+	K_M,   ///< Kaon \f$K^{-}\f$
+	PHI,   ///< Phi meson \f$\phi\f$
+	J_PSI, ///< J/psi meson \f$J/\psi\f$
 };
 
+/// A full description of the particles involved in a SIDIS process. Contains a
+/// target Nucleus, a Lepton beam, and a leading Hadron.
+struct Particles {
+	/// Target nucleus type.
+	part::Nucleus const target;
+	/// Lepton beam type.
+	part::Lepton const beam;
+	/// Detected hadron type.
+	part::Hadron const hadron;
+	/// Mass of target.
+	Real const M;
+	/// Mass of beam lepton.
+	Real const m;
+	/// Mass of detected hadron.
+	Real const mh;
+	/// Threshold mass for SIDIS process.
+	Real const Mth;
+
+	/// Bundle together a set of particles describing a setup for a SIDIS
+	/// experiment.
+	Particles(
+		part::Nucleus target,
+		part::Lepton beam,
+		part::Hadron hadron,
+		Real Mth);
+};
+
+/// \name Particle masses
+/// \{
+
+/// Return the mass of a particle.
 inline Real mass(Lepton lepton) {
 	switch (lepton) {
 	case Lepton::E:
@@ -38,7 +80,6 @@ inline Real mass(Lepton lepton) {
 	}
 	return 0.;
 }
-
 inline Real mass(Nucleus nucleus) {
 	switch (nucleus) {
 	case Nucleus::P:
@@ -50,7 +91,6 @@ inline Real mass(Nucleus nucleus) {
 	}
 	return 0.;
 }
-
 inline Real mass(Hadron hadron) {
 	switch (hadron) {
 	case Hadron::PI_0:
@@ -70,7 +110,12 @@ inline Real mass(Hadron hadron) {
 	}
 	return 0.;
 }
+/// \}
 
+/// \name Particle charges
+/// \{
+
+/// Returns the charge of a particle.
 inline Real charge(Lepton lepton) {
 	switch (lepton) {
 	case Lepton::E:
@@ -80,7 +125,6 @@ inline Real charge(Lepton lepton) {
 	}
 	return 0.;
 }
-
 inline Real charge(Nucleus nucleus) {
 	switch (nucleus) {
 	case Nucleus::P:
@@ -91,7 +135,6 @@ inline Real charge(Nucleus nucleus) {
 	}
 	return 0.;
 }
-
 inline Real charge(Hadron hadron) {
 	switch (hadron) {
 	case Hadron::PI_0:
@@ -108,7 +151,12 @@ inline Real charge(Hadron hadron) {
 	}
 	return 0.;
 }
+/// \}
 
+/// \name Particle names
+/// \{
+
+/// Returns a string naming the particle.
 inline char const* name(Lepton lepton) {
 	switch (lepton) {
 	case Lepton::E:
@@ -154,6 +202,9 @@ inline char const* name(Hadron hadron) {
 	}
 	return "<error>";
 }
+/// \}
+
+/// \}
 
 }
 }
