@@ -6,29 +6,12 @@
 #include "sidis/constant.hpp"
 #include "sidis/frame.hpp"
 #include "sidis/transform.hpp"
-#include "sidis/extra/exception.hpp"
 #include "sidis/extra/math.hpp"
 
 using namespace sidis;
 using namespace sidis::kin;
 using namespace sidis::math;
-
-Particles::Particles(
-		part::Nucleus target,
-		part::Lepton beam,
-		part::Hadron hadron,
-		Real Mth) :
-		target(target),
-		beam(beam),
-		hadron(hadron),
-		M(mass(target)),
-		m(mass(beam)),
-		mh(mass(hadron)),
-		Mth(Mth) {
-	if (!(Mth >= M) || !(Mth <= M + mh)) {
-		throw MassThresholdOutOfRange(Mth, M, M + mh);
-	}
-}
+using namespace sidis::part;
 
 Kinematics::Kinematics(Particles const& ps, Real S, PhaseSpace const& ph_space) {
 	x = ph_space.x;
@@ -141,13 +124,6 @@ KinematicsRad::KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R
 		ph_t_sq(kin.ph_t_sq),
 		phi_h(kin.phi_h),
 		phi(kin.phi),
-		phi_q(kin.phi_q),
-		cos_phi_h(kin.cos_phi_h),
-		sin_phi_h(kin.sin_phi_h),
-		cos_phi(kin.cos_phi),
-		sin_phi(kin.sin_phi),
-		cos_phi_q(kin.cos_phi_q),
-		sin_phi_q(kin.sin_phi_q),
 		Q_sq(kin.Q_sq),
 		Q(kin.Q),
 		t(kin.t),
@@ -169,20 +145,27 @@ KinematicsRad::KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R
 		lambda_1_sqrt(kin.lambda_1_sqrt),
 		lambda_2_sqrt(kin.lambda_2_sqrt),
 		lambda_3_sqrt(kin.lambda_3_sqrt),
-		ph_0(kin.ph_0),
-		ph_t(kin.ph_t),
-		ph_l(kin.ph_l),
-		q_0(kin.q_0),
-		q_t(kin.q_t),
-		q_l(kin.q_l),
-		k2_0(kin.k2_0),
-		k2_t(kin.k2_t),
-		k2_l(kin.k2_l),
-		k1_t(kin.k1_t),
 		mx_sq(kin.mx_sq),
 		mx(kin.mx),
 		vol_phi_h(kin.vol_phi_h),
 		C_1(kin.C_1),
+		ph_0(kin.ph_0),
+		ph_t(kin.ph_t),
+		ph_l(kin.ph_l),
+		cos_phi_h(kin.cos_phi_h),
+		sin_phi_h(kin.sin_phi_h),
+		q_0(kin.q_0),
+		q_t(kin.q_t),
+		q_l(kin.q_l),
+		phi_q(kin.phi_q),
+		cos_phi_q(kin.cos_phi_q),
+		sin_phi_q(kin.sin_phi_q),
+		k2_0(kin.k2_0),
+		k2_t(kin.k2_t),
+		k2_l(kin.k2_l),
+		k1_t(kin.k1_t),
+		cos_phi(kin.cos_phi),
+		sin_phi(kin.sin_phi),
 		tau(tau),
 		phi_k(phi_k),
 		R(R) {
@@ -285,12 +268,7 @@ KinematicsRad::KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R
 	shift_ph_t = std::sqrt(shift_ph_t_sq);
 	shift_ph_l = 1./shift_lambda_Y_sqrt*(lambda_Y_sqrt*ph_l - lambda_RV/(2.*M));
 	shift_q_0 = shift_S_x/(2.*M);
-	// TODO: Find a more accurate method for calculating `shift_q_t`.
-	shift_q_t = std::sqrt(
-		sq(q_t)
-		+ R/(4.*sq(M))*(R - 2.*(S_x - 2.*sq(M)*tau))
-		- R/(4.*sq(M)*lambda_S)*(S - 2.*sq(M)*z_1)*(
-			R*(S - 2.*sq(M)*z_1) - 2.*(S*S_x + 2.*sq(M)*Q_sq)));
+	shift_q_t = shift_lambda_1_sqrt/lambda_S_sqrt;
 	shift_q_l = q_l - R/(2.*M*lambda_S_sqrt)*(S - 2.*sq(M)*z_1);
 	shift_k1_t = shift_lambda_1_sqrt/shift_lambda_Y_sqrt;
 	shift_mx_sq = mx_sq - R*(1. + tau) + (z*R*S_x - lambda_RV)/(2.*sq(M));
@@ -351,15 +329,6 @@ Kinematics KinematicsRad::project() const {
 	kin.phi_h = phi_h;
 	kin.phi = phi;
 
-	kin.phi_q = phi_q;
-
-	kin.cos_phi_h = cos_phi_h;
-	kin.sin_phi_h = sin_phi_h;
-	kin.cos_phi = cos_phi;
-	kin.sin_phi = sin_phi;
-	kin.cos_phi_q = cos_phi_q;
-	kin.sin_phi_q = sin_phi_q;
-
 	kin.Q_sq = Q_sq;
 	kin.Q = Q;
 	kin.t = t;
@@ -383,26 +352,36 @@ Kinematics KinematicsRad::project() const {
 	kin.lambda_2_sqrt = lambda_2_sqrt;
 	kin.lambda_3_sqrt = lambda_3_sqrt;
 
-	kin.ph_0 = ph_0;
-	kin.ph_t = ph_t;
-	kin.ph_l = ph_l;
-	kin.q_0 = q_0;
-	kin.q_t = q_t;
-	kin.q_l = q_l;
-	kin.k2_0 = k2_0;
-	kin.k2_t = k2_t;
-	kin.k2_l = k2_l;
-	kin.k1_t = k1_t;
 	kin.mx_sq = mx_sq;
 	kin.mx = mx;
 	kin.vol_phi_h = vol_phi_h;
 
 	kin.C_1 = C_1;
 
+	kin.ph_0 = ph_0;
+	kin.ph_t = ph_t;
+	kin.ph_l = ph_l;
+	kin.cos_phi_h = cos_phi_h;
+	kin.sin_phi_h = sin_phi_h;
+	kin.q_0 = q_0;
+	kin.q_t = q_t;
+	kin.q_l = q_l;
+	kin.phi_q = phi_q;
+	kin.cos_phi_q = cos_phi_q;
+	kin.sin_phi_q = sin_phi_q;
+	kin.k2_0 = k2_0;
+	kin.k2_t = k2_t;
+	kin.k2_l = k2_l;
+	kin.k1_t = k1_t;
+	kin.cos_phi = cos_phi;
+	kin.sin_phi = sin_phi;
+
 	return kin;
 }
 
 Kinematics KinematicsRad::project_shift() const {
+	// TODO: Verify that `project_shift` will take a valid radiative kinematics
+	// to a valid non-radiative kinematics.
 	Kinematics kin;
 	kin.target = target;
 	kin.beam = beam;
@@ -420,15 +399,6 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.ph_t_sq = shift_ph_t_sq;
 	kin.phi_h = shift_phi_h;
 	kin.phi = phi;
-
-	kin.phi_q = shift_phi_q;
-
-	kin.cos_phi_h = shift_cos_phi_h;
-	kin.sin_phi_h = shift_sin_phi_h;
-	kin.cos_phi = cos_phi;
-	kin.sin_phi = sin_phi;
-	kin.cos_phi_q = shift_cos_phi_q;
-	kin.sin_phi_q = shift_sin_phi_q;
 
 	kin.Q_sq = shift_Q_sq;
 	kin.Q = shift_Q;
@@ -453,21 +423,29 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.lambda_2_sqrt = shift_lambda_2_sqrt;
 	kin.lambda_3_sqrt = shift_lambda_3_sqrt;
 
-	kin.ph_0 = ph_0;
-	kin.ph_t = shift_ph_t;
-	kin.ph_l = shift_ph_l;
-	kin.q_0 = shift_q_0;
-	kin.q_t = shift_q_t;
-	kin.q_l = shift_q_l;
-	kin.k2_0 = k2_0;
-	kin.k2_t = k2_t;
-	kin.k2_l = k2_l;
-	kin.k1_t = shift_k1_t;
 	kin.mx_sq = shift_mx_sq;
 	kin.mx = shift_mx;
 	kin.vol_phi_h = shift_vol_phi_h;
 
 	kin.C_1 = shift_C_1;
+
+	kin.ph_0 = ph_0;
+	kin.ph_t = shift_ph_t;
+	kin.ph_l = shift_ph_l;
+	kin.cos_phi_h = shift_cos_phi_h;
+	kin.sin_phi_h = shift_sin_phi_h;
+	kin.q_0 = shift_q_0;
+	kin.q_t = shift_q_t;
+	kin.q_l = shift_q_l;
+	kin.phi_q = shift_phi_q;
+	kin.cos_phi_q = shift_cos_phi_q;
+	kin.sin_phi_q = shift_sin_phi_q;
+	kin.k2_0 = k2_0;
+	kin.k2_t = k2_t;
+	kin.k2_l = k2_l;
+	kin.k1_t = shift_k1_t;
+	kin.cos_phi = cos_phi;
+	kin.sin_phi = sin_phi;
 
 	return kin;
 }

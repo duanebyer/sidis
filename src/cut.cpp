@@ -5,12 +5,14 @@
 
 #include "sidis/constant.hpp"
 #include "sidis/kinematics.hpp"
+#include "sidis/particle.hpp"
 #include "sidis/extra/math.hpp"
 
 using namespace sidis;
 using namespace sidis::cut;
 using namespace sidis::kin;
 using namespace sidis::math;
+using namespace sidis::part;
 
 Cut::Cut() :
 	x(Bound::INVALID),

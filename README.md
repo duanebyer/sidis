@@ -52,7 +52,7 @@ sidis::Real const PI = sidis::PI;
 sidis::Real const M_TH = sidis::MASS_P + sidis::MASS_PI_0;
 
 int main() {
-	sidis::kin::Particles particles(
+	sidis::part::Particles particles(
 		sidis::part::Nucleus::P,   // Target nucleus.
 		sidis::part::Lepton::E,    // Beam lepton.
 		sidis::part::Hadron::PI_P, // Leading hadron.

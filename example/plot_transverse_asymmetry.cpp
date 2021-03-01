@@ -15,6 +15,7 @@
 using namespace sidis;
 using namespace sidis::kin;
 using namespace sidis::math;
+using namespace sidis::part;
 
 namespace {
 

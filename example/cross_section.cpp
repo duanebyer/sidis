@@ -12,6 +12,7 @@
 using namespace sidis;
 using namespace sidis::kin;
 using namespace sidis::math;
+using namespace sidis::part;
 
 // This program calculates the cross-section given the parameters passed to it
 // on the command line. It outputs the Born cross-section, and the various

@@ -20,6 +20,7 @@ using namespace sidis;
 using namespace sidis::cut;
 using namespace sidis::kin;
 using namespace sidis::math;
+using namespace sidis::part;
 
 // Plots the kinematically allowed phase space region. This program can generate
 // plots in 1, 2, or 3 kinematic variables.

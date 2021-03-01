@@ -10,6 +10,7 @@
 using namespace sidis;
 using namespace sidis::kin;
 using namespace sidis::math;
+using namespace sidis::part;
 
 // This program returns a random valid point in phase space.
 int main(int argc, char** argv) {

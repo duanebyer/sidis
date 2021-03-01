@@ -160,7 +160,7 @@ TEST_CASE(
 		lep = part::Lepton::TAU;
 	}
 	Real Mth = MASS_P + MASS_PI_0;
-	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
+	part::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	kin::PhaseSpace ph_space = input.ph_space;
 	kin::Kinematics kin(ps, input.S, ph_space);
 	// Get beam and target polarizations.
@@ -231,7 +231,7 @@ TEST_CASE(
 		lep = part::Lepton::TAU;
 	}
 	Real Mth = MASS_P + MASS_PI_0;
-	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
+	part::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	kin::PhaseSpaceRad ph_space = input.ph_space;
 	kin::KinematicsRad kin(ps, input.S, ph_space);
 	// Get beam and target polarizations.

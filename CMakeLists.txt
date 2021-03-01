@@ -77,13 +77,13 @@ endif()
 if(${Sidis_BUILD_APPS})
 	add_subdirectory(app/sidisgen)
 endif()
-if(${Sidis_BUILD_DOCS})
-	add_subdirectory(doc)
-endif()
-
 # Set up the test builds.
 if(${Sidis_BUILD_TESTS})
 	enable_testing()
 	add_subdirectory(test)
+endif()
+# Set up the documentation builds.
+if(${Sidis_BUILD_DOCS})
+	add_subdirectory(doc)
 endif()
 

@@ -266,7 +266,7 @@ TEST_CASE(
 		lep = part::Lepton::TAU;
 	}
 	Real Mth = MASS_P + MASS_PI_0;
-	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
+	part::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpace ph_space = input.ph_space;
@@ -306,7 +306,7 @@ TEST_CASE(
 		lep = part::Lepton::TAU;
 	}
 	Real Mth = MASS_P + MASS_PI_0;
-	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
+	part::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpaceRad ph_space = input.ph_space;
@@ -346,7 +346,7 @@ TEST_CASE(
 	part::Nucleus target = part::Nucleus::P;
 	part::Lepton lepton = part::Lepton::TAU;
 	part::Hadron hadron = part::Hadron::PI_P;
-	kin::Particles ps(target, lepton, hadron, Mth);
+	part::Particles ps(target, lepton, hadron, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpace ph_space = GENERATE_COPY(
@@ -377,7 +377,7 @@ TEST_CASE(
 	part::Nucleus target = part::Nucleus::P;
 	part::Lepton lepton = part::Lepton::TAU;
 	part::Hadron hadron = part::Hadron::PI_P;
-	kin::Particles ps(target, lepton, hadron, Mth);
+	part::Particles ps(target, lepton, hadron, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpace ph_space = GENERATE_COPY(
@@ -409,7 +409,7 @@ TEST_CASE(
 	part::Nucleus target = part::Nucleus::P;
 	part::Lepton lepton = part::Lepton::TAU;
 	part::Hadron hadron = part::Hadron::PI_P;
-	kin::Particles ps(target, lepton, hadron, Mth);
+	part::Particles ps(target, lepton, hadron, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpace ph_space = GENERATE_COPY(
@@ -449,7 +449,7 @@ TEST_CASE(
 		lep = part::Lepton::TAU;
 	}
 	Real Mth = MASS_P + MASS_PI_0;
-	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
+	part::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpaceRad ph_space = input.ph_space;
@@ -602,7 +602,7 @@ TEST_CASE(
 	math::Vec3 p(1.2, -0.5, 2.3);
 	math::Vec3 k1(0.4, -2.2, 0.2);
 	math::Vec3 pol(0.2, 0.1, -0.3);
-	kin::Particles ps(
+	part::Particles ps(
 		part::Nucleus::P,
 		part::Lepton::MU,
 		part::Hadron::PI_P,
@@ -696,7 +696,7 @@ TEST_CASE(
 TEST_CASE(
 		"Default target to lab frame checks",
 		"[frame]") {
-	kin::Particles ps(
+	part::Particles ps(
 		part::Nucleus::P,
 		part::Lepton::MU,
 		part::Hadron::PI_P,
@@ -754,7 +754,7 @@ TEST_CASE(
 		lep = part::Lepton::TAU;
 	}
 	Real Mth = MASS_P + MASS_PI_0;
-	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
+	part::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpace ph_space = input.ph_space;
@@ -898,7 +898,7 @@ TEST_CASE(
 		lep = part::Lepton::TAU;
 	}
 	Real Mth = MASS_P + MASS_PI_0;
-	kin::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
+	part::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpaceRad ph_space = input.ph_space;

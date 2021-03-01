@@ -98,28 +98,28 @@ bool PhaseSpaceRadSurfaceGenerator::next() {
 }
 
 Catch::Generators::GeneratorWrapper<sidis::kin::PhaseSpace> gen_phase_space(
-		kin::Particles ps, Real S) {
+		part::Particles ps, Real S) {
 	return Catch::Generators::GeneratorWrapper<kin::PhaseSpace>(
 		std::unique_ptr<Catch::Generators::IGenerator<kin::PhaseSpace> >(
 			new PhaseSpaceGenerator(ps, S)));
 }
 
 Catch::Generators::GeneratorWrapper<kin::PhaseSpaceRad> gen_phase_space_rad(
-		kin::Particles ps, Real S) {
+		part::Particles ps, Real S) {
 	return Catch::Generators::GeneratorWrapper<kin::PhaseSpaceRad>(
 		std::unique_ptr<Catch::Generators::IGenerator<kin::PhaseSpaceRad> >(
 			new PhaseSpaceRadGenerator(ps, S)));
 }
 
 Catch::Generators::GeneratorWrapper<sidis::kin::PhaseSpace> gen_phase_space_surface(
-		kin::Particles ps, Real S, Real skin_depth) {
+		part::Particles ps, Real S, Real skin_depth) {
 	return Catch::Generators::GeneratorWrapper<kin::PhaseSpace>(
 		std::unique_ptr<Catch::Generators::IGenerator<kin::PhaseSpace> >(
 			new PhaseSpaceSurfaceGenerator(ps, S, skin_depth)));
 }
 
 Catch::Generators::GeneratorWrapper<sidis::kin::PhaseSpaceRad> gen_phase_space_rad_surface(
-		kin::Particles ps, Real S, Real skin_depth) {
+		part::Particles ps, Real S, Real skin_depth) {
 	return Catch::Generators::GeneratorWrapper<kin::PhaseSpaceRad>(
 		std::unique_ptr<Catch::Generators::IGenerator<kin::PhaseSpaceRad> >(
 			new PhaseSpaceRadSurfaceGenerator(ps, S, skin_depth)));

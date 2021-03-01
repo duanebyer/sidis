@@ -7,11 +7,14 @@
 namespace sidis {
 
 namespace kin {
-	struct Particles;
 	struct PhaseSpace;
 	struct PhaseSpaceRad;
 	struct Kinematics;
 	struct KinematicsRad;
+}
+
+namespace part {
+	struct Particles;
 }
 
 namespace cut {
@@ -59,19 +62,19 @@ struct CutRad {
 	CutRad();
 };
 
-Real S_min(kin::Particles const& ps);
+Real S_min(part::Particles const& ps);
 
-math::Bound x_bound(kin::Particles const& ps, Real S);
-math::Bound y_bound(kin::Particles const& ps, Real S, Real x);
-math::Bound z_bound(kin::Particles const& ps, Real S, Real x, Real y);
-math::Bound ph_t_sq_bound(kin::Particles const& ps, Real S, Real x, Real y, Real z);
+math::Bound x_bound(part::Particles const& ps, Real S);
+math::Bound y_bound(part::Particles const& ps, Real S, Real x);
+math::Bound z_bound(part::Particles const& ps, Real S, Real x, Real y);
+math::Bound ph_t_sq_bound(part::Particles const& ps, Real S, Real x, Real y, Real z);
 math::Bound tau_bound(kin::Kinematics const& kin);
 math::Bound R_bound(kin::Kinematics const& kin, Real tau, Real phi_k);
 
-math::Bound x_bound(Cut const& cut, kin::Particles const& ps, Real S);
-math::Bound y_bound(Cut const& cut, kin::Particles const& ps, Real S, Real x);
-math::Bound z_bound(Cut const& cut, kin::Particles const& ps, Real S, Real x, Real y);
-math::Bound ph_t_sq_bound(Cut const& cut, kin::Particles const& ps, Real S, Real x, Real y, Real z);
+math::Bound x_bound(Cut const& cut, part::Particles const& ps, Real S);
+math::Bound y_bound(Cut const& cut, part::Particles const& ps, Real S, Real x);
+math::Bound z_bound(Cut const& cut, part::Particles const& ps, Real S, Real x, Real y);
+math::Bound ph_t_sq_bound(Cut const& cut, part::Particles const& ps, Real S, Real x, Real y, Real z);
 math::Bound tau_bound(CutRad const& cut, kin::Kinematics const& kin);
 math::Bound R_bound(CutRad const& cut, kin::Kinematics const& kin, Real tau, Real phi_k);
 
@@ -83,26 +86,26 @@ bool valid(CutRad const& cut, kin::KinematicsRad const& kin);
 
 // Draw from the non-radiative kinematic region.
 bool take(
-	kin::Particles const& ps, Real S, const Real point[6],
+	part::Particles const& ps, Real S, const Real point[6],
 	kin::PhaseSpace* ph_space_out, Real* jacobian_out);
 bool take(
-	kin::Particles const& ps, Real S, const Real point[6],
+	part::Particles const& ps, Real S, const Real point[6],
 	kin::Kinematics* kin_out, Real* jacobian_out);
 bool take(
 	Cut const& cut,
-	kin::Particles const& ps, Real S, const Real point[6],
+	part::Particles const& ps, Real S, const Real point[6],
 	kin::Kinematics* kin_out, Real* jacobian_out);
 
 // Draw from the radiative kinematic region.
 bool take(
-	kin::Particles const& ps, Real S, const Real point[9],
+	part::Particles const& ps, Real S, const Real point[9],
 	kin::PhaseSpaceRad* ph_space_out, Real* jacobian_out);
 bool take(
-	kin::Particles const& ps, Real S, const Real point[9],
+	part::Particles const& ps, Real S, const Real point[9],
 	kin::KinematicsRad* kin_out, Real* jacobian_out);
 bool take(
 	Cut const& cut, CutRad const& cut_rad,
-	kin::Particles const& ps, Real S, const Real point[9],
+	part::Particles const& ps, Real S, const Real point[9],
 	kin::KinematicsRad* kin_out, Real* jacobian_out);
 bool take(
 	kin::Kinematics const& kin, const Real point[3],

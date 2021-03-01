@@ -6,8 +6,8 @@
 namespace sidis {
 
 /**
- * \defgroup Constant Constants
- * \addtogroup Constant
+ * \defgroup ConstantGroup Constants
+ * \addtogroup ConstantGroup
  */
 /// \{
 
@@ -22,6 +22,7 @@ extern Real const INF;
 static Real const ALPHA = 7.2973525664e-3L;
 
 /// \name Particle masses
+/// \sa ParticleGroup
 /// \{
 static Real const MASS_E = 0.0005109989461L;
 static Real const MASS_MU = 0.1056583745L;

@@ -80,6 +80,7 @@ add_library(
 	kinematics.cpp
 	leptonic_coeff.cpp
 	math.cpp
+	particle.cpp
 	structure_function.cpp
 	tmd.cpp
 	transform.cpp

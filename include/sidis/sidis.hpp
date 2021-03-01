@@ -84,7 +84,7 @@ namespace sidis {
  * is small enough (due to the absence of an infrared divergence).
  *
  * \f{eqnarray*}{
- *     \sigma_{\text{nrad}} &=& \sigma_{B} + \sigma_{AMM} + \sigma_{VR} + \int_0^{\bar{k}_{0,\text{cutoff}}} d\bar{k}_0 \, \int d\Omega_{\bar{k}} \, \sigma_{R}^{F} \\
+ *     \sigma_{\text{nrad}} &=& \sigma_{B} + \sigma_{AMM} + \sigma_{VR} + \int_0^{\bar{k}_{0,\text{cutoff}}} d\bar{k}_0 \, \int d\Omega_{\bar{k}} \, \sigma_{R}^{F} \\%
  *     &\approx& \sigma_{B} + \sigma_{AMM} + \sigma_{VR}
  *     \tag{3}
  * \f}
@@ -115,7 +115,7 @@ namespace sidis {
  * degrees of freedom. The `sidis` library chooses them as follows:
  *
  * \f{equation}{
- *     x = -\frac{q^2}{2 q p},\qquad y = \frac{q p}{k_1 p},\qquad z = \frac{p_h p}{p q},\qquad p_{t}^2 = \frac{\left|\pmb{p}_h\times\pmb{q}\right|^2}{\left|\pmb{q}\right|^2},\qquad \phi_h,\qquad \phi
+ *     x = -\frac{q^2}{2 q p},\qquad y = \frac{q p}{k_1 p},\qquad z = \frac{p_h p}{p q},\qquad p_{t}^2 = \frac{|\pmb{p}_h\times\pmb{q}|^2}{|\pmb{q}|^2},\qquad \phi_h,\qquad \phi
  *     \tag{5}
  * \f}
  *
@@ -155,7 +155,7 @@ namespace sidis {
  *
  * The process by which the `sidis` library performs this setup is:
  * * Set up the initial state, including particle IDs, the beam energy, and the
- *   threshold mass \f$M_{\text{th}}\f$ (see kin::Particles and kin::Initial).
+ *   threshold mass \f$M_{\text{th}}\f$ (see part::Particles and kin::Initial).
  * * Choose a point in phase space using the kinematic variables from equations
  *   (5) or (6) (see kin::PhaseSpace and kin::PhaseSpaceRad).
  * * Calculate various kinematic quantities and store the results for later use

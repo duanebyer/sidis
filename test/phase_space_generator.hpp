@@ -12,12 +12,12 @@
  */
 class PhaseSpaceGenerator final :
 		public Catch::Generators::IGenerator<sidis::kin::PhaseSpace> {
-	sidis::kin::Particles _ps;
+	sidis::part::Particles _ps;
 	sidis::Real _S;
 	sidis::kin::PhaseSpace _value;
 
 public:
-	PhaseSpaceGenerator(sidis::kin::Particles ps, sidis::Real S) :
+	PhaseSpaceGenerator(sidis::part::Particles ps, sidis::Real S) :
 			_ps(ps),
 			_S(S) {
 		next();
@@ -34,12 +34,12 @@ public:
  */
 class PhaseSpaceRadGenerator final :
 		public Catch::Generators::IGenerator<sidis::kin::PhaseSpaceRad> {
-	sidis::kin::Particles _ps;
+	sidis::part::Particles _ps;
 	sidis::Real _S;
 	sidis::kin::PhaseSpaceRad _value;
 
 public:
-	PhaseSpaceRadGenerator(sidis::kin::Particles ps, sidis::Real S) :
+	PhaseSpaceRadGenerator(sidis::part::Particles ps, sidis::Real S) :
 			_ps(ps),
 			_S(S) {
 		next();
@@ -56,14 +56,14 @@ public:
  */
 class PhaseSpaceSurfaceGenerator final :
 		public Catch::Generators::IGenerator<sidis::kin::PhaseSpace> {
-	sidis::kin::Particles _ps;
+	sidis::part::Particles _ps;
 	sidis::Real _S;
 	sidis::Real _skin_depth;
 	sidis::kin::PhaseSpace _value;
 
 public:
 	PhaseSpaceSurfaceGenerator(
-			sidis::kin::Particles ps,
+			sidis::part::Particles ps,
 			sidis::Real S,
 			sidis::Real skin_depth) :
 			_ps(ps),
@@ -83,14 +83,14 @@ public:
  */
 class PhaseSpaceRadSurfaceGenerator final :
 		public Catch::Generators::IGenerator<sidis::kin::PhaseSpaceRad> {
-	sidis::kin::Particles _ps;
+	sidis::part::Particles _ps;
 	sidis::Real _S;
 	sidis::Real _skin_depth;
 	sidis::kin::PhaseSpaceRad _value;
 
 public:
 	PhaseSpaceRadSurfaceGenerator(
-			sidis::kin::Particles ps,
+			sidis::part::Particles ps,
 			sidis::Real S,
 			sidis::Real skin_depth) :
 			_ps(ps),
@@ -106,13 +106,13 @@ public:
 };
 
 Catch::Generators::GeneratorWrapper<sidis::kin::PhaseSpace> gen_phase_space(
-		sidis::kin::Particles ps, sidis::Real S);
+		sidis::part::Particles ps, sidis::Real S);
 Catch::Generators::GeneratorWrapper<sidis::kin::PhaseSpaceRad> gen_phase_space_rad(
-		sidis::kin::Particles ps, sidis::Real S);
+		sidis::part::Particles ps, sidis::Real S);
 Catch::Generators::GeneratorWrapper<sidis::kin::PhaseSpace> gen_phase_space_surface(
-		sidis::kin::Particles ps, sidis::Real S, sidis::Real skin_depth);
+		sidis::part::Particles ps, sidis::Real S, sidis::Real skin_depth);
 Catch::Generators::GeneratorWrapper<sidis::kin::PhaseSpaceRad> gen_phase_space_rad_surface(
-		sidis::kin::Particles ps, sidis::Real S, sidis::Real skin_depth);
+		sidis::part::Particles ps, sidis::Real S, sidis::Real skin_depth);
 
 #endif
 
