@@ -8,7 +8,7 @@ namespace part {
 
 /**
  * \defgroup ParticleInfo Particle info
- * \addtogroup ParticleInfo
+ * Masses and charges of various types of particles.
  */
 /// \{
 

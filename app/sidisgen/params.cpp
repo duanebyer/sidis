@@ -673,6 +673,14 @@ void Params::make_valid(bool strict) {
 			}
 		}
 		gen_rad.reset(false);
+		if (k_0_bar.occupied()) {
+			if (strict) {
+				throw std::runtime_error(
+					"Cannot provide soft photon threshold when not using any "
+					"radiative cross-sections.");
+			}
+			k_0_bar.reset();
+		}
 	}
 	if (*gen_rad) {
 		if (k_0_bar_cut->min() <= 0.) {
@@ -776,7 +784,8 @@ void Params::compatible_with_foam(Params const& foam_params) const {
 		throw std::runtime_error("Different target polarizations.");
 	} else if (*beam_pol != *foam_params.beam_pol) {
 		throw std::runtime_error("Different beam polarizations.");
-	} else if (*k_0_bar != *foam_params.k_0_bar) {
+	} else if ((*rc_method == RcMethod::APPROX || *rc_method == RcMethod::EXACT)
+			&& *k_0_bar != *foam_params.k_0_bar) {
 		throw std::runtime_error("Different soft photon cutoffs.");
 	} else if (x_cut.get_or(Bound::UNIT) != foam_params.x_cut.get_or(Bound::UNIT)) {
 		throw std::runtime_error("Different cuts on x.");

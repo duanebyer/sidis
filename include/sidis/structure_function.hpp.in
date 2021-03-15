@@ -25,12 +25,27 @@ struct SfXP;
 struct SfXX;
 
 /**
- * A type that provides structure functions.
+ * \defgroup SfGroup Structure functions
+ * Classes related to computing the structure functions.
+ */
+/// \{
+
+/**
+ * Complete set of structure functions bundled together. This abstract class is
+ * to be derived for user-provided structure functions. If the structure
+ * functions can be factorized into transverse momentum distributions (TMDs),
+ * then one of the derived classes TmdSfSet, GaussianTmdSfSet, WwTmdSfSet, or
+ * GaussianWwTmdSfSet will be more suitable.
+ *
+ * This class contains all leading twist and sub-leading twist structure
+ * functions.
  */
 class SfSet {
 public:
+	/// What type of part::Nucleus the structure functions are valid for.
 	part::Nucleus const target;
 
+	/// Initialize an SfSet for use on the specified type of target.
 	SfSet(part::Nucleus target) : target(target) { }
 	SfSet(SfSet const&) = delete;
 	SfSet(SfSet&&) = delete;
@@ -38,6 +53,10 @@ public:
 	SfSet& operator=(SfSet&&) = delete;
 	virtual ~SfSet() = default;
 
+	/// \name Structure functions
+	/// All leading twist and sub-leading twist SIDIS structure functions. By
+	/// default, each of these returns zero.
+	/// \{
 	virtual Real F_UUL(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	virtual Real F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	virtual Real F_UU_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
@@ -61,7 +80,13 @@ public:
 	virtual Real F_LT_cos_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	virtual Real F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	virtual Real F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	/// \}
 
+	/// \name Structure function combinations
+	/// Convenience methods for retrieving groups of structure functions based
+	/// on beam and target polarizations. For example, `sf_ut` will retrieve all
+	/// structure functions of the form \f$F_{UT}^{\cdot}\f$.
+	/// \{
 	SfUU sf_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	SfUL sf_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	SfUT sf_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
@@ -80,15 +105,33 @@ public:
 	SfXP sf_xp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	SfXX sf_xx(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	SfXX sf(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	/// \}
 };
 
 /**
- * Computes structure functions directly from a set of TMDs and FFs.
+ * Wrapper type for computing structure functions directly from the TMDs. The
+ * structure functions are computed through convolution of the TMDs with the
+ * fragmentation functions (FFs). If possible, prefer using a more specific
+ * class such as GaussianTmdSet, WwTmdSet, or GaussianWwTmdSet to allow the
+ * convolution to be computed more efficiently.
+ *
+ * The convolution used to compute the structure functions is:
+ *
+ * \f{equation}{
+ *     F = x \sum_a e_a^2 \int d^2 \pmb{k}_{\perp} d^2 \pmb{P}_{\perp} \delta^{(2)}(z\pmb{k}_{\perp} + \pmb{P}_{\perp} - \pmb{p}_t)\omega f^a(x, |\pmb{k}_{\perp}|^2) D^a(x, |\pmb{D}_{\perp}|^2)
+ * \f}
+ *
+ * Where \f$e_a\f$ is the charge of the parton flavor, \f$\omega\f$ is a
+ * weighting factor, \f$f^a\f$ is a TMD, and \f$D^a\f$ is a FF.
+ *
+ * \sa TmdSet
  */
 class TmdSfSet final : public SfSet {
 public:
+	/// The underlying TmdSet.
 	TmdSet const& tmd_set;
 
+	/// Initialize a TmdSfSet using the TMDs provided in \p tmd_set.
 	TmdSfSet(TmdSet const& tmd_set) :
 		SfSet(tmd_set.target),
 		tmd_set(tmd_set) { };
@@ -119,13 +162,17 @@ public:
 };
 
 /**
- * Computes structure functions using the Gaussian approximation to more
- * efficently evaluate the integrals.
+ * More efficient version of TmdSet specialized for Gaussian TMDs. The
+ * convolution can be evaluated analytically.
+ *
+ * \sa GaussianTmdSet
  */
 class GaussianTmdSfSet final : public SfSet {
 public:
+	/// The underlying GaussianTmdSet.
 	GaussianTmdSet const& tmd_set;
 
+	/// Initialize a GaussianTmdSfSet using the TMDs provided in \p tmd_set.
 	GaussianTmdSfSet(GaussianTmdSet const& tmd_set) :
 		SfSet(tmd_set.target),
 		tmd_set(tmd_set) { };
@@ -155,10 +202,19 @@ public:
 	Real F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 };
 
+/**
+ * More efficient version of TmdSet specialized for TMDs with the
+ * Wandzura-Wilczek-type (WW-type) approximation applied. The WW-type
+ * approximation allows certain TMDs to be approximated in terms of others.
+ *
+ * \sa WwTmdSet
+ */
 class WwTmdSfSet final : public SfSet {
 public:
+	/// The underlying WwTmdSet.
 	WwTmdSet const& tmd_set;
 
+	/// Initialize a WwTmdSfSet using the TMDs provided in \p tmd_set.
 	WwTmdSfSet(WwTmdSet const& tmd_set) :
 		SfSet(tmd_set.target),
 		tmd_set(tmd_set) { }
@@ -188,10 +244,20 @@ public:
 	Real F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 };
 
+/**
+ * More efficient version of TmdSet specialized for combining the Gaussian and
+ * WW-type approximations. Since there are some issues when combining these two
+ * approximations (see \cite bastami2019ww), this case must be treated
+ * separately from GaussianTmdSfSet and WwTmdSfSet.
+ *
+ * \sa GaussianWwTmdSet
+ */
 class GaussianWwTmdSfSet final : public SfSet {
 public:
+	/// The underlying GaussianWwTmdSet.
 	GaussianWwTmdSet const& tmd_set;
 
+	/// Initialize a GaussianWwTmdSfSet using the TMDs provided in \p tmd_set.
 	GaussianWwTmdSfSet(GaussianWwTmdSet const& tmd_set) :
 		SfSet(tmd_set.target),
 		tmd_set(tmd_set) { }
@@ -221,6 +287,14 @@ public:
 	Real F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 };
 
+/**
+ * \defgroup SfCombsGroup Structure function combinations
+ * The types here are used to combine structure function results by beam and
+ * target polarization.
+ *
+ * \sa SfSet
+ */
+/// \{
 /*[[[cog
 import gen_struct
 gen_struct.generate_structs_pol(
@@ -270,6 +344,8 @@ using SfLT1 = SfLT;
 using SfLT2 = SfLT;
 using SfXT1 = SfXT;
 using SfXT2 = SfXT;
+/// \}
+/// \}
 
 }
 }

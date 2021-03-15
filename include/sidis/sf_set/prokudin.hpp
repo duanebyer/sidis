@@ -13,7 +13,9 @@ namespace constant {
 namespace sf {
 namespace set {
 
-// Use data files from [2] to calculate TMDs and FFs.
+/**
+ * Use data files from \cite bastami2019ww to calculate TMDs and FFs.
+ */
 class ProkudinTmdSet final : public GaussianWwTmdSet {
 private:
 	struct Impl;
@@ -42,7 +44,9 @@ public:
 	Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
 };
 
-// Use data files from [2] to calculate TMDs and FFs.
+/**
+ * Use data files from \cite bastami2019ww to calculate structure functions.
+ */
 class ProkudinSfSet final : public SfSet {
 	struct Impl;
 	Impl* _impl;

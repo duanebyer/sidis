@@ -179,7 +179,7 @@ struct Params {
 
 	Params() :
 		version("version"),
-		event_file("event_file"),
+		event_file("event-file"),
 		rc_method("rc-method"),
 		gen_nrad("gen-nrad"),
 		gen_rad("gen-rad"),

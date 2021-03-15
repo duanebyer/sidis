@@ -16,12 +16,10 @@
 #include "sidis/structure_function.hpp"
 #include "sidis/vector.hpp"
 #include "sidis/extra/math.hpp"
-#include "sidis/extra/integrate.hpp"
 
 using namespace sidis;
 using namespace sidis::cut;
 using namespace sidis::had;
-using namespace sidis::integ;
 using namespace sidis::kin;
 using namespace sidis::lep;
 using namespace sidis::math;

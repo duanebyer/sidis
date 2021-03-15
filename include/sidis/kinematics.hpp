@@ -6,15 +6,18 @@
 #include "sidis/vector.hpp"
 
 namespace sidis {
-
-namespace math {
-	struct Bounds;
-}
-
 namespace kin {
 
-/// Point in phase space. These six kinematic variables uniquely pick out a
-/// point in the SIDIS phase space.
+/**
+ * \defgroup KinGroup Kinematics info
+ * Types and functions related to kinematics calculations.
+ */
+/// \{
+
+/**
+ * Point in phase space. These six kinematic variables uniquely pick out a point
+ * in the SIDIS phase space.
+ */
 struct PhaseSpace {
 	/// Bjorken variable \f$x = -\frac{q^2}{2 q p}\f$.
 	Real x;
@@ -32,8 +35,10 @@ struct PhaseSpace {
 	Real phi;
 };
 
-/// Point in radiative phase space. These nine kinematic variables uniquely pick
-/// out a point in the radiative SIDIS phase space.
+/**
+ * Point in radiative phase space. These nine kinematic variables uniquely pick
+ * out a point in the radiative SIDIS phase space.
+ */
 struct PhaseSpaceRad {
 	/// \copydoc PhaseSpace::x
 	Real x;
@@ -62,9 +67,11 @@ struct PhaseSpaceRad {
 	}
 };
 
-/// Describes the kinematics of a SIDIS process. This structure is used to cache
-/// various kinematic quantities so they can be re-used throughout the
-/// cross-section calculations.
+/**
+ * Describes the kinematics of a SIDIS process. This structure is used to cache
+ * various kinematic quantities so they can be re-used throughout the
+ * cross-section calculations.
+ */
 struct Kinematics {
 	/// \name %Initial state description
 	/// \{
@@ -119,7 +126,8 @@ struct Kinematics {
 	Real Q;
 	/// Momentum transfer from virtual photon into hadron \f$t = (q - p_h)^2\f$.
 	Real t;
-	/// Center-of-mass energy of the virtual photon and hadron system.
+	/// Center-of-mass energy of the virtual photon and hadron system
+	/// \f$w = (p + q)^2\f$.
 	Real w;
 	/// Related to energy of scattered lepton \f$X = 2 p k_2\f$.
 	Real X;
@@ -172,7 +180,8 @@ struct Kinematics {
 
 	/// \name 4-momentum components
 	/// Energy, and momentum components of the particles in various frames. For
-	/// the definitions of the frames themselves, see the \ref frame namespace.
+	/// the definitions of the frames themselves, see the
+	/// \ref FrameGroup "frame" namespace.
 	/// \{
 
 	/// Hadron energy in the lepton frame.
@@ -223,9 +232,11 @@ struct Kinematics {
 	Kinematics(part::Particles const& ps, Real S, PhaseSpace const& ph_space);
 };
 
-/// Describes the kinematics of a radiative SIDIS process. This structure is
-/// used to cache various kinematic quantities so they can be re-used throughout
-/// the cross-section calculations.
+/**
+ * Describes the kinematics of a radiative SIDIS process. This structure is used
+ * to cache various kinematic quantities so they can be re-used throughout the
+ * cross-section calculations.
+ */
 struct KinematicsRad {
 	/// \name %Initial state description
 	/// \{
@@ -330,7 +341,8 @@ struct KinematicsRad {
 
 	/// \name Non-radiative 4-momentum components
 	/// Energy, and momentum components of the particles in various frames. For
-	/// the definitions of the frames themselves, see the \ref frame namespace.
+	/// the definitions of the frames themselves, see the
+	/// \ref FrameGroup "frame" namespace.
 	/// \{
 
 	/// \copydoc Kinematics::ph_0
@@ -442,8 +454,8 @@ struct KinematicsRad {
 
 	/// \name Radiative 4-momentum components
 	/// Energy, and momentum components of the radiated photon in the lepton
-	/// frame. For the definition of the lepton frame, see the \ref frame
-	/// namespace.
+	/// frame. For the definition of the lepton frame, see the
+	/// \ref FrameGroup "frame" namespace.
 	/// \{
 
 	// Components of real photon 4-momentum in lepton frame.
@@ -466,7 +478,7 @@ struct KinematicsRad {
 	/// For example, for the Bjorken variable \f$x\f$:
 	///
 	/// \f{eqnarray*}{
-	///     x &=& -\frac{q^2}{2 q p} = \frac{Q^2}{S_x} \\%
+	///     x &=& -\frac{q^2}{2 q p} = \frac{Q^2}{S_x} \newline
 	///     \tilde{x} &=& -\frac{(q - k)^2}{2 (q - k) p}
 	///         = -\frac{q^2 - 2 q k}{2 q p - 2 k p}
 	///         = \frac{Q^2 + R\tau}{S_x - R}
@@ -631,6 +643,7 @@ struct FinalRad {
 	/// describing a radiative SIDIS process.
 	FinalRad(Initial const& init, math::Vec3 target_pol, KinematicsRad const& kin);
 };
+/// \}
 
 }
 }

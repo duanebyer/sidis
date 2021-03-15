@@ -24,11 +24,11 @@ namespace sidis {
  * The `sidis` library can be used to calculate the polarized SIDIS
  * cross-section with lowest order radiative corrections, following the work in
  * \cite akushevich2019sidis. To get started quickly see the
- * \ref Example "example" below. Then, read the documentation for the xs::born,
- * xs::nrad, and xs::rad functions. For a thorough introduction to the `sidis`
- * library, read this page.
+ * \ref ExampleSection "example" below. Then, read the documentation for the
+ * xs::born(), xs::nrad(), and xs::rad() functions. For a thorough introduction
+ * to the `sidis` library, read this page.
  *
- * \section Introduction Introduction to the SIDIS process
+ * \section IntroductionSection Introduction to the SIDIS process
  *
  * The `sidis` library is used to compute cross-sections for the semi-inclusive
  * deep inelastic scattering (SIDIS) process, in which a lepton scatters from a
@@ -44,7 +44,7 @@ namespace sidis {
  * These diagrams give the following cross-sections:
  * * \f$\sigma_{B}\f$: The six-fold Born cross-section.
  * * \f$\sigma_{AMM}\f$: The six-fold anomalous magnetic moment (AMM)
- *   cross-section, corresponding to the vertex correction diagram.
+ *   cross-section, related to the vertex correction diagram.
  * * \f$\sigma_{\text{vac}}\f$: The six-fold vacuum polarization cross-section.
  *   It has an infrared divergence.
  * * \f$\sigma_{R}\f$: The nine-fold radiative cross-section, corresponding to
@@ -54,7 +54,7 @@ namespace sidis {
  *   cross-section. Currently, the `sidis` library does not support computation
  *   of this part of the cross-section.
  *
- * \subsection RadiativeCorrections Radiative corrections
+ * \subsection RcSection Radiative corrections
  *
  * To handle the infrared divergence, the radiative part of the cross-section is
  * first divided into an infrared-divergent part \f$\sigma_{R}^{IR}\f$ and an
@@ -84,7 +84,7 @@ namespace sidis {
  * is small enough (due to the absence of an infrared divergence).
  *
  * \f{eqnarray*}{
- *     \sigma_{\text{nrad}} &=& \sigma_{B} + \sigma_{AMM} + \sigma_{VR} + \int_0^{\bar{k}_{0,\text{cutoff}}} d\bar{k}_0 \, \int d\Omega_{\bar{k}} \, \sigma_{R}^{F} \\%
+ *     \sigma_{\text{nrad}} &=& \sigma_{B} + \sigma_{AMM} + \sigma_{VR} + \int_0^{\bar{k}_{0,\text{cutoff}}} d\bar{k}_0 \, \int d\Omega_{\bar{k}} \, \sigma_{R}^{F} \newline
  *     &\approx& \sigma_{B} + \sigma_{AMM} + \sigma_{VR}
  *     \tag{3}
  * \f}
@@ -97,7 +97,7 @@ namespace sidis {
  * The expressions for these cross-sections are derived in detail in
  * \cite akushevich2019sidis.
  *
- * \subsection Kinematics Kinematics
+ * \subsection KinSection Kinematics
  *
  * The non-radiative SIDIS process, with target \f$n\f$, detected hadron
  * \f$h\f$, and undetected fragments \f$x\f$ is:
@@ -137,7 +137,7 @@ namespace sidis {
  * resulting in only eight degrees of freedom. This case is not handled by the
  * `sidis` library.
  *
- * \section Computing Computing the cross-section
+ * \section ComputingSection Computing the cross-section
  *
  * The details of the cross-section computation are not necessary to use the
  * `sidis` library, although they can help with getting the most possible
@@ -161,14 +161,15 @@ namespace sidis {
  * * Calculate various kinematic quantities and store the results for later use
  *   (see kin::PhaseSpace and kin::Kinematics).
  * * Calculate the "leptonic coefficients". These coefficients are related to
- *   the \f$\theta_i\f$ coefficients(see \ref lep).
+ *   the \f$\theta_i\f$ coefficients(see \ref LepGroup "lepton coefficients").
  * * Calculate the structure functions (see sf::SfSet).
  * * Use the structure functions to calculate the "hadronic coefficients". These
- *   coefficients are related to the \f$\mathcal{H}_i\f$ (see \ref had).
+ *   coefficients are related to the \f$\mathcal{H}_i\f$ (see
+ *   \ref HadGroup "hadron coefficients").
  * * Combine the leptonic and hadronic coefficients into a cross-section using
- *   equation (7) (see \ref xs).
+ *   equation (7) (see \ref XsGroup "cross-section" namespace).
  *
- * \subsection PolNotation Polarization notation
+ * \subsection PolSection Polarization notation
  *
  * For each different target and beam polarization, and for each type of
  * cross-section, there is a different subset of lepton and hadron coefficients
@@ -208,50 +209,52 @@ namespace sidis {
  * \f$\pmb{\sigma}^{LP}\f$ cross-section, which corresponds to a longitudinally
  * polarized beam and a target polarized in any direction.
  *
- * \subsection Kin Kinematics
+ * \subsection CalcKinSection Kinematics
  *
  * The kinematics are determined by the six SIDIS variables. The results of the
  * full kinematic calculations are stored in the kin::Kinematics structure. The
  * six SIDIS variables have kinematic bounds on what values they can take. These
- * bounds can be determined using methods from the \ref cut namespace, such as
- * cut::x_bound. It may also be useful to apply cuts to various kinematic
+ * bounds can be determined using methods from the \ref CutGroup namespace, such
+ * as cut::x_bound(). It may also be useful to apply cuts to various kinematic
  * variables (e.g. when generating events). The cut::Cut and cut::CutRad
  * structures can be used for this purpose.
  *
- * \subsection LeptonCoeffs Lepton coefficients
+ * \subsection CalcLepCoeffsSection Lepton coefficients
  *
  * The lepton coefficients are specialized for every type of cross-section
  * computation: lep::LepBorn for Born, lep::LepAmm for AMM, lep::LepNrad for
  * non-radiative (including Born, AMM, and vacuum polarization), and lep::LepRad
- * for radiative. See the \ref lep namespace for more information.
+ * for radiative. See the \ref LepGroup "lepton coefficients" for more
+ * information.
  *
- * \subsection HadronCoeffs Hadron coefficients
+ * \subsection CalcHadCoeffsSection Hadron coefficients
  *
  * There are three types of hadron coefficients: had::Had for non-radiative
  * cross-sections, had::HadRad for radiative cross-sections, and had::HadRadF
  * for the infrared-divergent-free part of the radiative cross-sections
- * \f$\sigma_{R}^{F}\f$ (from equation (1)). See the \ref had namespace for more
- * information.
+ * \f$\sigma_{R}^{F}\f$ (from equation (1)). See the
+ * \ref HadGroup "hadron coefficients" for more information.
  *
- * \subsection CrossSections Cross-sections
+ * \subsection CalcXsSection Cross-sections
  *
  * As per equation (8), the cross-sections can be calculated in a number of
- * parts. For example, the xs::born_ut1_base function computes the term
- * \f$\sigma_{B}^{UT_1}\f$. For ease of use, the xs::born function can combine
+ * parts. For example, the `xs::born_ut1_base()` function computes the term
+ * \f$\sigma_{B}^{UT_1}\f$. For ease of use, the xs::born() function can combine
  * all of these pieces with the provided polarizations to give a cross-section
- * (and similarly with the other types of cross-sections).
+ * (and similarly with the other types of cross-sections). See the
+ * \ref XsGroup "cross-section page" for more information.
  *
- * \section Example Example
+ * \section ExampleSection Example
  *
  * The following example shows how to easily get started using the `sidis`
  * library to compute cross-sections.
  *
  * \include quick_start.cpp
  *
- * To extend this example, try replacing xs::born with another kind of
- * cross-section, such as xs::amm, xs::nrad, or even xs::rad. You can also
- * experiment with the integrated radiative cross-sections xs::rad_integ and
- * xs::rad_f_integ.
+ * To extend this example, try replacing xs::born() with another kind of
+ * cross-section, such as xs::amm(), xs::nrad(), or even xs::rad(). You can also
+ * experiment with the integrated radiative cross-sections xs::rad_integ() and
+ * xs::rad_f_integ().
  *
  * \example quick_start.cpp
  * Demonstrates how to compute a cross-section with the `sidis` library.

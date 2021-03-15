@@ -10,6 +10,12 @@
 namespace sidis {
 
 /**
+ * \defgroup ExceptionGroup Exceptions
+ * Exception types thrown by the `sidis` library.
+ */
+/// \{
+
+/**
  * Mass threshold does not satisfy `M <= Mth <= M + mh`.
  */
 class MassThresholdOutOfRange final : public std::exception {
@@ -123,6 +129,7 @@ public:
 		return _what.c_str();
 	}
 };
+/// \}
 
 }
 

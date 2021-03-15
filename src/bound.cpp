@@ -16,9 +16,9 @@ Bound const Bound::FULL = Bound(
 	std::numeric_limits<Real>::infinity());
 Bound const Bound::POSITIVE = Bound(
 	0.,
-	std::numeric_limits<Real>::max());
+	std::numeric_limits<Real>::infinity());
 Bound const Bound::NEGATIVE = Bound(
-	std::numeric_limits<Real>::lowest(),
+	-std::numeric_limits<Real>::infinity(),
 	0.);
 
 Bound::Bound(Real min, Real max) : _min(min), _max(max) {

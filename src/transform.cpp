@@ -35,8 +35,8 @@ Transform3 Transform3::rotate_to(Vec3 const& dir_old, Vec3 const& dir_new) {
 		+ (1. - cos) * outer(dir, dir);
 }
 
-Transform3 Transform3::rotate_to(Vec3 const& z_axis) {
-	return Transform3::rotate_to(Vec3::Z, z_axis);
+Transform3 Transform3::rotate_to(Vec3 const& z_new) {
+	return Transform3::rotate_to(Vec3::Z, z_new);
 }
 
 Transform3 Transform3::rotate_basis(Vec3 const& z_axis, Vec3 const& y_up) {
@@ -159,8 +159,8 @@ Transform4 Transform4::transform_to(Vec4 const& dir_old, Vec4 const& dir_new) {
 	return Transform4::ID - (sym + asym - transport) / (s + cos);
 }
 
-Transform4 Transform4::transform_to(Vec4 const& t_axis) {
-	return Transform4::transform_to(Vec4::T, t_axis);
+Transform4 Transform4::transform_to(Vec4 const& t_new) {
+	return Transform4::transform_to(Vec4::T, t_new);
 }
 
 Transform4 Transform4::project(Vec4 const& dir) {

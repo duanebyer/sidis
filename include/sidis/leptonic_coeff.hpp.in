@@ -8,7 +8,29 @@ namespace sidis {
 
 namespace lep {
 
-// Born coefficients.
+/**
+ * \defgroup LepGroup Lepton coefficients
+ * Coefficients for describing the lepton part of the a SIDIS process. The
+ * coefficients come from the various \f$\theta_{i}\f$ coefficients in
+ * \cite akushevich2019sidis, including for the Born, AMM, and radiative
+ * cross-sections.
+ *
+ * The coefficients are labeled by a beam and target polarization (see
+ * \ref PolSection), but there are some inconsistencies in how the target
+ * polarization is labeled. The target `P` polarization is used to indicate a
+ * polarization "in-plane", either in the `L` direction or the `T1` direction.
+ * The target `U` polarization is used to indicate a target polarization
+ * "out-of-plane", either unpolarized or in the `T2` direction. See the
+ * \ref XsGroup "cross-section" functions for details about what coefficient
+ * sets are needed to compute which cross-sections.
+ */
+/// \{
+
+/**
+ * \defgroup LepBornGroup Born lepton coefficients
+ * Coefficients \f$\theta_{i}^{B}\f$ for the Born SIDIS diagram.
+ */
+/// \{
 /*[[[cog
 import gen_struct
 gen_struct.generate_structs_pol(
@@ -39,8 +61,13 @@ gen_struct.generate_structs_pol(
 )
 ]]]*/
 /*[[[end]]]*/
+/// \}
 
-// AMM coefficients.
+/**
+ * \defgroup LepAMMGroup AMM lepton coefficients
+ * Coefficients \f$\theta_{i}^{AMM}\f$ for the AMM cross-section.
+ */
+/// \{
 /*[[[cog
 import gen_struct
 gen_struct.generate_structs_pol(
@@ -71,8 +98,14 @@ gen_struct.generate_structs_pol(
 )
 ]]]*/
 /*[[[end]]]*/
+/// \}
 
-// Non-radiative coefficients.
+/**
+ * \defgroup LepNradGroup Non-radiative lepton coefficients
+ * Coefficients for the non-radiative (Born, vertex correction, vacuum
+ * polarization, and soft photon emission) SIDIS diagrams.
+ */
+/// \{
 /*[[[cog
 import gen_struct
 gen_struct.generate_structs_pol(
@@ -103,8 +136,13 @@ gen_struct.generate_structs_pol(
 )
 ]]]*/
 /*[[[end]]]*/
+/// \}
 
-// Radiative coefficients.
+/**
+ * \defgroup LepRadGroup Radiative lepton coefficients
+ * Coefficients \f$\theta_{i}^{\,j}\f$ for the radiative SIDIS diagrams.
+ */
+/// \{
 /*[[[cog
 import gen_struct
 gen_struct.generate_structs_pol(
@@ -168,6 +206,8 @@ gen_struct.generate_structs_pol(
 )
 ]]]*/
 /*[[[end]]]*/
+/// \}
+/// \}
 
 }
 }

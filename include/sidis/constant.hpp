@@ -7,7 +7,6 @@ namespace sidis {
 
 /**
  * \defgroup ConstantGroup Constants
- * \addtogroup ConstantGroup
  */
 /// \{
 

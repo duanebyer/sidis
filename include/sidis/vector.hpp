@@ -7,6 +7,13 @@ namespace sidis {
 namespace math {
 
 /**
+ * \defgroup LinAlgGroup Linear algebra
+ *
+ * Types and functions for linear algebra in 3 and 4 dimensions.
+ */
+/// \{
+
+/**
  * A spatial 3-vector.
  */
 struct Vec3 {
@@ -204,6 +211,8 @@ inline Real dot(Vec4 const& lhs, Vec4 const& rhs) {
 	return lhs.t * rhs.t - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z;
 }
 Vec4 cross(Vec4 const& a, Vec4 const& b, Vec4 const& c);
+
+/// \}
 
 }
 }

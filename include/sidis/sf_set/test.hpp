@@ -7,7 +7,7 @@ namespace sidis {
 namespace sf {
 namespace set {
 
-/*
+/**
  * Structure function set that returns a constant value of one for some subset
  * of all structure functions, for testing purposes.
  *
@@ -20,6 +20,8 @@ class TestSfSet final : public SfSet {
 	bool mask[18];
 
 public:
+	/// Constructs an SfSet for \p target with a \p mask determining which
+	/// structure functions will be non-zero.
 	TestSfSet(part::Nucleus target, const bool (&mask)[18]);
 
 	Real F_UUL(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;

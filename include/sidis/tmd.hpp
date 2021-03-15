@@ -6,21 +6,42 @@
 namespace sidis {
 namespace sf {
 
+/**
+ * \defgroup TmdGroup Transverse momentum distributions (TMD)
+ * Interfaces for user-defined transverse momentum distributions (TMDs).
+ */
+/// \{
+
+/**
+ * Complete set of transverse momentum distributions (TMDs) and also
+ * fragmentation functions (FFs) bundled together. This abstract class is to be
+ * derived for user-provided TMDs and FFs. The TMDs and FFs are indexed by a
+ * flavor index, where the number of supported flavors is also user-provided.
+ *
+ * When possible, it is recommended to derive GaussianTmdSet, WwTmdSet, or
+ * GaussianWwTmdSet instead.
+ */
 class TmdSet {
 public:
+	/// The number of flavors supported by the TmdSet.
 	unsigned const flavor_count;
+	/// What type of part::Nucleus the structure functions are valid for.
 	part::Nucleus const target;
 
+	/// Initialize a TMDSet with \p flavor_count number of flavors and for the
+	/// specified target.
 	TmdSet(unsigned flavor_count, part::Nucleus target) :
 		flavor_count(flavor_count),
 		target(target) { }
 	virtual ~TmdSet() = default;
 
-	// Charge of a given flavor (used as a weighting when computing structure
-	// functions).
+	/// Charge of a given flavor (for use as the weighting when computing
+	/// structure functions).
 	virtual Real charge(unsigned fl) const = 0;
 
-	// Transverse momentum distribtions (TMDs).
+	/// \name Transverse momentum distributions
+	/// By default, these return zero.
+	/// \{
 	virtual Real xf1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	virtual Real xf1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	virtual Real xfT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
@@ -45,18 +66,29 @@ public:
 	virtual Real xeL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	virtual Real xeT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	virtual Real xeTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
+	/// \}
 
-	// Fragmentation functions (FFs).
+	/// \name Fragmentation functions
+	/// By default, these return zero.
+	/// \{
 	virtual Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
 	virtual Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
 	virtual Real Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
 	virtual Real H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
 	virtual Real Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
 	virtual Real E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const;
+	/// \}
 };
 
+/**
+ * Gaussian TMDs and FFs for more efficient structure function computation.
+ *
+ * \sa TmdSet
+ */
 class GaussianTmdSet : public TmdSet {
 public:
+	/// \name Gaussian widths of TMDs
+	/// \{
 	Real const mean_f1;
 	Real const mean_f1Tperp;
 	Real const mean_fT;
@@ -81,14 +113,19 @@ public:
 	Real const mean_eL;
 	Real const mean_eT;
 	Real const mean_eTperp;
+	/// \}
 
+	/// \name Gaussian widths of FFs
+	/// \{
 	Real const mean_D1;
 	Real const mean_H1perp;
 	Real const mean_Dperp_tilde;
 	Real const mean_H_tilde;
 	Real const mean_Gperp_tilde;
 	Real const mean_E_tilde;
+	/// \}
 
+	/// Initialize a GaussianTmdSet with the provided Gaussian widths.
 	GaussianTmdSet(
 		unsigned flavor_count,
 		part::Nucleus target,
@@ -124,7 +161,10 @@ public:
 		Real mean_E_tilde);
 	virtual ~GaussianTmdSet() = default;
 
-	// Reduced TMDs (without `k_perp` dependence).
+	/// \name Reduced transverse momentum distributions
+	/// These TMDs do not have explicit \f$\pmb{k}_{\perp}\f$ dependence, since
+	/// the \f$\pmb{k}_{\perp}\f$ dependence is given by the Gaussian widths.
+	/// \{
 	virtual Real xf1(unsigned fl, Real x, Real Q_sq) const;
 	virtual Real xf1Tperp(unsigned fl, Real x, Real Q_sq) const;
 	virtual Real xfT(unsigned fl, Real x, Real Q_sq) const;
@@ -149,15 +189,22 @@ public:
 	virtual Real xeL(unsigned fl, Real x, Real Q_sq) const;
 	virtual Real xeT(unsigned fl, Real x, Real Q_sq) const;
 	virtual Real xeTperp(unsigned fl, Real x, Real Q_sq) const;
+	/// \}
 
-	// Reduced FFs (without `p_perp` dependence).
+	/// \name Reduced fragmentation functions
+	/// These FFs do not have explicit \f$\pmb{P}_{\perp}\f$ dependence, since
+	/// the \f$\pmb{P}_{\perp}\f$ dependence is given by the Gaussian widths.
+	/// \{
 	virtual Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
 	virtual Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
 	virtual Real Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
 	virtual Real H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
 	virtual Real Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
 	virtual Real E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
+	/// \}
 
+	/// \name Transverse momentum distributions
+	/// \{
 	Real xf1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xf1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xfT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
@@ -182,17 +229,29 @@ public:
 	Real xeL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xeT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xeTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
+	/// \}
 
+	/// \name Fragmentation functions
+	/// \{
 	Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 	Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 	Real Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 	Real H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 	Real Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 	Real E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	/// \}
 };
 
+/**
+ * Use Wandzura-Wilczek-type (WW-type) approximations compute all TMDs and FFs
+ * in terms of a small basis of TMDs and FFs. See \cite bastami2019ww.
+ *
+ * \sa TmdSet
+ */
 class WwTmdSet : public TmdSet {
 public:
+	/// Initialize a WwTMDSet with \p flavor_count number of flavors and for the
+	/// specified target.
 	WwTmdSet(
 		unsigned flavor_count,
 		part::Nucleus target) :
@@ -201,6 +260,9 @@ public:
 			target) { }
 	virtual ~WwTmdSet() = default;
 
+	/// \name Base set of transverse momentum distributions
+	/// By default, these return zero.
+	/// \{
 	virtual Real xf1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	virtual Real xf1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	virtual Real xg1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
@@ -209,16 +271,27 @@ public:
 	virtual Real xh1perp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	virtual Real xh1Lperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	virtual Real xh1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
+	/// \}
 
+	/// \name Base set of fragmentation functions
+	/// By default, these return zero.
+	/// \{
 	virtual Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 	virtual Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	/// \}
 
+	/// \name Transverse momentum distribution moments
+	/// Important first moments of TMDs.
+	/// \{
 	Real xf1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	Real xg1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	Real xh1perpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	Real xh1LperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
 	Real xh1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const;
+	/// \}
 
+	/// \name Transverse momentum distributions
+	/// \{
 	Real xfT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xfperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xfLperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
@@ -235,15 +308,30 @@ public:
 	Real xeL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xeT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
 	Real xeTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const override;
+	/// \}
 
+	/// \name Fragmentation functions
+	/// \{
 	Real Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 	Real H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 	Real Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
 	Real E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const override;
+	/// \}
 };
 
+/**
+ * Combine Gaussian and WW-type approximations together. Because of some
+ * inconsistencies between Gaussian and WW-type approximations, the method of
+ * combining these two (take from \cite bastami2019ww) is to first apply the
+ * Gaussian approximation when performing convolutions, and then to apply the
+ * WW-type approximation to the reduced TMDs and FFs without
+ * \f$\pmb{k}_{\perp}\f$ or \f$\pmb{P}_{\perp}\f$ dependence.
+ *
+ * \sa TmdSet
+ */
 class GaussianWwTmdSet : public GaussianTmdSet {
 public:
+	/// Initialize a GaussianWwTmdSet with the provided Gaussian widths.
 	GaussianWwTmdSet(
 		unsigned flavor_count,
 		part::Nucleus target,
@@ -265,6 +353,10 @@ public:
 		Real mean_H1perp);
 	virtual ~GaussianWwTmdSet() = default;
 
+	/// \name Base set of reduced transverse momentum distributions
+	/// These TMDs do not have explicit \f$\pmb{k}_{\perp}\f$ dependence, since
+	/// the \f$\pmb{k}_{\perp}\f$ dependence is given by the Gaussian widths.
+	/// \{
 	virtual Real xf1(unsigned fl, Real x, Real Q_sq) const override;
 	virtual Real xf1Tperp(unsigned fl, Real x, Real Q_sq) const override;
 	virtual Real xg1(unsigned fl, Real x, Real Q_sq) const override;
@@ -273,16 +365,27 @@ public:
 	virtual Real xh1perp(unsigned fl, Real x, Real Q_sq) const override;
 	virtual Real xh1Lperp(unsigned fl, Real x, Real Q_sq) const override;
 	virtual Real xh1Tperp(unsigned fl, Real x, Real Q_sq) const override;
+	/// \}
 
+	/// \name Base set of reduced fragmentation functions
+	/// These FFs do not have explicit \f$\pmb{P}_{\perp}\f$ dependence, since
+	/// the \f$\pmb{P}_{\perp}\f$ dependence is given by the Gaussian widths.
+	/// \{
 	virtual Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
 	virtual Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	/// \}
 
+	/// \name Transverse momentum distribution moments
+	/// Important reduced first moments of TMDs.
+	/// \{
 	Real xf1TperpM1(unsigned fl, Real x, Real Q_sq) const;
 	Real xg1TperpM1(unsigned fl, Real x, Real Q_sq) const;
 	Real xh1perpM1(unsigned fl, Real x, Real Q_sq) const;
 	Real xh1LperpM1(unsigned fl, Real x, Real Q_sq) const;
 	Real xh1TperpM1(unsigned fl, Real x, Real Q_sq) const;
 
+	/// Transverse momentum distributions
+	/// \{
 	Real xfT(unsigned fl, Real x, Real Q_sq) const override;
 	Real xfperp(unsigned fl, Real x, Real Q_sq) const override;
 	Real xfLperp(unsigned fl, Real x, Real Q_sq) const override;
@@ -299,12 +402,17 @@ public:
 	Real xeL(unsigned fl, Real x, Real Q_sq) const override;
 	Real xeT(unsigned fl, Real x, Real Q_sq) const override;
 	Real xeTperp(unsigned fl, Real x, Real Q_sq) const override;
+	/// \}
 
+	/// Fragmentation functions
+	/// \{
 	Real Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
 	Real H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
 	Real Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
 	Real E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	/// \}
 };
+/// \}
 
 }
 }

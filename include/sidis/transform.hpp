@@ -10,6 +10,11 @@ namespace math {
 struct Transform4;
 
 /**
+ * \addtogroup LinAlgGroup
+ */
+/// \{
+
+/**
  * A linear transformation acting on 3-vectors.
  */
 struct Transform3 {
@@ -18,7 +23,7 @@ struct Transform3 {
 
 	static Transform3 rotate(Vec3 const& dir, Real angle);
 	static Transform3 rotate_to(Vec3 const& dir_old, Vec3 const& dir_new);
-	static Transform3 rotate_to(Vec3 const& z_axis);
+	static Transform3 rotate_to(Vec3 const& z_new);
 	static Transform3 rotate_basis(Vec3 const& z_axis, Vec3 const& y_up);
 	static Transform3 scale(Vec3 const& dir, Real scale);
 	static Transform3 project(Vec3 const& dir);
@@ -321,6 +326,8 @@ inline Transform4 asym_prod(Vec4 const& v1, Vec4 const& v2) {
 inline Transform4 sym_prod(Vec4 const& v1, Vec4 const& v2) {
 	return outer(v1, v2) + outer(v1, v2);
 }
+
+/// \}
 
 }
 }

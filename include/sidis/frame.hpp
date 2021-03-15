@@ -45,8 +45,6 @@ namespace frame {
  * the target frame using frame::target_from_lab. From the target frame, you can
  * then transform to the various other frames using a kin::Kinematics or
  * kin::KinematicsRad.
- *
- * \addtogroup FrameGroup
  */
 /// \{
 

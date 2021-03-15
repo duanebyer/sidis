@@ -9,7 +9,25 @@
 namespace sidis {
 namespace had {
 
-// Standard coefficients.
+/**
+ * \defgroup HadGroup Hadron coefficients
+ * Coefficients for describing the hadron part of the SIDIS process. The
+ * coefficients come from the \f$\mathcal{H}_{i}\f$ coefficients in
+ * \cite akushevich2019sidis.
+ *
+ * See the \ref XsGroup "cross-section" functions for details about what
+ * coefficient sets are needed to compute which cross-sections.
+ */
+/// \{
+
+/**
+ * \defgroup HadStandardGroup Standard hadron coefficients
+ * Standard coefficients \f$\mathcal{H}_{i}\f$ for a non-radiative SIDIS
+ * process.
+ *
+ * Structure functions from sf::SfSet are used to calculate these coefficients.
+ */
+/// \{
 /*[[[cog
 import gen_struct
 gen_struct.generate_structs_pol(
@@ -55,8 +73,21 @@ gen_struct.generate_structs_pol(
 )
 ]]]*/
 /*[[[end]]]*/
+/// \}
 
-// Radiative coefficients.
+/** \defgroup HadRadGroup Radiative hadron coefficients
+ * These are the shifted versions of the coefficients
+ * \f$\tilde{\mathcal{H}}_{i}\f$ calculated through the substitution
+ * \f$q \rightarrow q - k\f$. They are needed for computing radiative
+ * cross-section. These coefficients have an infrared divergence in the
+ * \f$k \rightarrow 0\f$ case. For removing this divergence, see
+ * \ref HadRadFGroup "HadRadFXX"-type coefficients.
+ *
+ * "Shifted" structure functions from sf::SfSet are used to calculate these
+ * coefficients. It is recommended to supply an sf::SfSet instance directly so
+ * that the constructor can calculate the required shift itself.
+ */
+/// \{
 /*[[[cog
 import gen_struct
 gen_struct.generate_structs_pol(
@@ -84,8 +115,7 @@ gen_struct.generate_structs_pol(
 			["math::Vec3", "H_5"],
 			["math::Vec3", "H_7"],
 			["math::Vec3", "H_9"],
-		],
-	},
+		], },
 	constructors=[
 		[["kin::KinematicsRad", "kin"], ["sf::SfXX", "shift_sf"]],
 		[["kin::KinematicsRad", "kin"], ["sf::SfSet", "sf"]],
@@ -94,8 +124,21 @@ gen_struct.generate_structs_pol(
 )
 ]]]*/
 /*[[[end]]]*/
+/// \}
 
-// Infrared-divergent-free radiative coefficients.
+/**
+ * \defgroup HadRadFGroup Infrared-divergent-free radiative hadron coefficients
+ * A variation of the \ref HadRadGroup "HadRadXX"-type coefficients, in which
+ * the infrared divergence at \f$k \rightarrow 0\f$ is removed through taking
+ * the difference with the unshifted \ref HadStandardGroup "HadXX"-type
+ * coefficients
+ * (\f$\mathcal{H}_{i}^{F} = \frac{1}{R}(\tilde{\mathcal{H}}_{i} - \mathcal{H}_{i})\f$).
+ *
+ * "Shifted" structure functions from sf::SfSet are used to calculate these
+ * coefficients. It is recommended to supply an sf::SfSet instance directly so
+ * that the constructor can calculate the required shift itself.
+ */
+/// \{
 /*[[[cog
 import gen_struct
 gen_struct.generate_structs_pol(
@@ -148,6 +191,8 @@ gen_struct.generate_structs_pol(
 )
 ]]]*/
 /*[[[end]]]*/
+/// \}
+/// \}
 
 }
 }
