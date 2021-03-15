@@ -42,7 +42,7 @@ class Grid;
  * Grid-like interface into an already existing set of data.
  */
 template<typename T, std::size_t N>
-class GridView {
+class GridView final {
 public:
 	using CellIndex = std::array<std::size_t, N>;
 	using Point = std::array<T, N>;
@@ -149,7 +149,7 @@ public:
  * \sa GridView
  */
 template<typename T, std::size_t N>
-class Grid {
+class Grid final {
 public:
 	using CellIndex = typename GridView<T, N>::CellIndex;
 	using Point = typename GridView<T, N>::Point;
@@ -216,7 +216,7 @@ public:
  * grid of N-d data.
  */
 template<typename T, std::size_t N>
-class LinearView {
+class LinearView final {
 	static_assert(
 		std::is_floating_point<T>::value,
 		"Cannot have a LinearView of a non-floating-point type.");
@@ -231,7 +231,7 @@ public:
 
 /// Base specialization of LinearView.
 template<typename T>
-class LinearView<T, 0> {
+class LinearView<T, 0> final {
 	static_assert(
 		std::is_floating_point<T>::value,
 		"Cannot have a LinearView of a non-floating-point type.");
@@ -250,7 +250,7 @@ public:
  * grid of N-d data.
  */
 template<typename T, std::size_t N>
-class CubicView {
+class CubicView final {
 	static_assert(
 		std::is_floating_point<T>::value,
 		"Cannot have a CubicView of a non-floating-point type.");
@@ -265,7 +265,7 @@ public:
 
 /// Base specialization of CubicView.
 template<typename T>
-class CubicView<T, 0> {
+class CubicView<T, 0> final {
 	static_assert(
 		std::is_floating_point<T>::value,
 		"Cannot have a CubicView of a non-floating-point type.");
