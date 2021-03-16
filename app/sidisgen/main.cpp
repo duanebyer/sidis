@@ -26,6 +26,7 @@
 
 #include <sidis/sidis.hpp>
 #include <sidis/extra/math.hpp>
+#include <sidis/sf_set/mask.hpp>
 #include <sidis/sf_set/prokudin.hpp>
 #include <sidis/sf_set/test.hpp>
 
@@ -127,7 +128,8 @@ int alloc_sf(
 		bool mask[18] = { 0 };
 		mask[test_idx] = true;
 		tmd_out->reset();
-		sf_out->reset(new sf::set::TestSfSet(*params.target, mask));
+		sf_out->reset(new sf::set::MaskSfSet<sf::set::TestSfSet>(mask,
+			sf::set::TestSfSet(*params.target)));
 	} else {
 		std::string file_name = *params.sf_set + ".so";
 		if (gSystem->Load(file_name.c_str()) != 0) {

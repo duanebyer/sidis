@@ -7,6 +7,7 @@
 #include <utility>
 
 #include <sidis/sidis.hpp>
+#include <sidis/sf_set/mask.hpp>
 #include <sidis/sf_set/prokudin.hpp>
 #include <sidis/sf_set/test.hpp>
 
@@ -147,7 +148,8 @@ TEST_CASE(
 	} else {
 		bool mask[18] = { false };
 		mask[-input.sf_set_idx - 1] = true;
-		sf.reset(new sf::set::TestSfSet(part::Nucleus::P, mask));
+		sf.reset(new sf::set::MaskSfSet<sf::set::TestSfSet>(
+			mask, sf::set::TestSfSet(part::Nucleus::P)));
 	}
 
 	// Set up the input to the cross-section calculation.
@@ -218,7 +220,8 @@ TEST_CASE(
 	} else {
 		bool mask[18] = { false };
 		mask[-input.sf_set_idx - 1] = true;
-		sf.reset(new sf::set::TestSfSet(part::Nucleus::P, mask));
+		sf.reset(new sf::set::MaskSfSet<sf::set::TestSfSet>(
+			mask, sf::set::TestSfSet(part::Nucleus::P)));
 	}
 
 	// Set up the input to the cross-section calculation.

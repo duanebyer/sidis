@@ -7,6 +7,7 @@
 
 #include <sidis/sidis.hpp>
 #include <sidis/sf_set/prokudin.hpp>
+#include <sidis/sf_set/mask.hpp>
 #include <sidis/sf_set/test.hpp>
 
 using namespace sidis;
@@ -62,7 +63,8 @@ int main(int argc, char** argv) {
 		} else if (set_idx <= -1 && set_idx >= -18) {
 			bool mask[18] = { false };
 			mask[-set_idx - 1] = true;
-			sf.reset(new sf::set::TestSfSet(target, mask));
+			sf.reset(new sf::set::MaskSfSet<sf::set::TestSfSet>(
+				mask, sf::set::TestSfSet(target)));
 		} else {
 			throw std::out_of_range(
 				"SF set index must be Prokudin (0) or Test (-18 to -1)");

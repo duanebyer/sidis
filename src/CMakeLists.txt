@@ -11,6 +11,7 @@ set(
 	"sidis/tmd.hpp"
 	"sidis/transform.hpp"
 	"sidis/vector.hpp"
+	"sidis/sf_set/mask.hpp"
 	"sidis/sf_set/prokudin.hpp"
 	"sidis/sf_set/test.hpp"
 	"sidis/extra/exception.hpp"
@@ -86,7 +87,6 @@ add_library(
 	transform.cpp
 	vector.cpp
 	sf_set/prokudin.cpp
-	sf_set/test.cpp
 	${HEADER_LIST_SOURCE})
 target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature)
 target_include_directories(
