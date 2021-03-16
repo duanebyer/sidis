@@ -68,12 +68,11 @@ class ProkudinSfSet final : public SfSet {
 
 public:
 	ProkudinSfSet();
-	~ProkudinSfSet();
-
 	ProkudinSfSet(ProkudinSfSet const& other) = delete;
 	ProkudinSfSet(ProkudinSfSet&& other) noexcept;
 	ProkudinSfSet& operator=(ProkudinSfSet const& other) = delete;
 	ProkudinSfSet& operator=(ProkudinSfSet&& other) noexcept;
+	virtual ~ProkudinSfSet();
 
 	// Structure functions.
 	Real F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
