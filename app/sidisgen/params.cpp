@@ -100,7 +100,7 @@ void consume_param_from_map(
 	auto p = map.find(param.name());
 	if (p != map.end()) {
 		// Strip all trailing whitespace or comments from param.
-		std::istringstream ss(trim(trim_comment(p->second)));
+		std::istringstream ss(p->second);
 		map.erase(p);
 		try {
 			read_param_stream(ss, param);
@@ -561,12 +561,15 @@ void Params::write_stream(std::ostream& file) const {
 void Params::read_stream(std::istream& file) {
 	std::unordered_map<std::string, std::string> map;
 	while (file) {
+		std::string line;
+		std::getline(file, line);
+		std::stringstream ss(trim(trim_comment(line)));
 		std::string key;
 		std::string value;
-		file >> key;
-		std::getline(file, value);
-		key = trim(key);
-		if (!key.empty() && key[0] != '#') {
+		ss >> key;
+		std::getline(ss, value);
+		value = trim(value);
+		if (!key.empty()) {
 			if (map.find(key) != map.end()) {
 				throw std::runtime_error("Duplicate parameter '" + key + "'.");
 			}
