@@ -650,7 +650,7 @@ int command_generate(std::string params_file_name) {
 		if (foam_nrad == nullptr) {
 			std::cerr
 				<< "Failed to load non-radiative FOAM from file '"
-				<< *params.foam_nrad_file << "'.";
+				<< *params.foam_nrad_file << "'." << std::endl;
 			return ERROR_FOAM_NOT_FOUND;
 		}
 		std::unique_ptr<TFoamIntegrand> rho(new XsNRad(params, cut, *sf));
