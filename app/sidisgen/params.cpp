@@ -29,12 +29,19 @@ struct RootParser {
 	}
 };
 
+// Remove whitespace from beginning and end of string.
 std::string trim(std::string str) {
 	auto not_whitespace = [](char c) {
 		return !std::isspace(c);
 	};
 	str.erase(str.begin(), std::find_if(str.begin(), str.end(), not_whitespace));
 	str.erase(std::find_if(str.rbegin(), str.rend(), not_whitespace).base(), str.end());
+	return str;
+}
+
+// Search for comment character '#' and remove anything following it.
+std::string trim_comment(std::string str) {
+	str.erase(std::find(str.begin(), str.end(), '#'), str.end());
 	return str;
 }
 
@@ -73,6 +80,18 @@ void read_param_stream(std::istream& is, Param<T>& param) {
 	}
 }
 
+template<>
+void read_param_stream<std::string>(std::istream& is, Param<std::string>& param) {
+	std::string value;
+	std::getline(is, value);
+	param.reset(trim(value));
+	if (!is) {
+		throw std::runtime_error(
+			std::string("Could not read parameter '")
+			+ param.name() + "' from stream.");
+	}
+}
+
 template<typename T>
 void consume_param_from_map(
 		std::unordered_map<std::string, std::string>& map,
@@ -80,14 +99,14 @@ void consume_param_from_map(
 	param.reset();
 	auto p = map.find(param.name());
 	if (p != map.end()) {
-		std::istringstream ss(p->second);
+		// Strip all trailing whitespace or comments from param.
+		std::istringstream ss(trim(trim_comment(p->second)));
 		map.erase(p);
 		try {
 			read_param_stream(ss, param);
 			std::string rem;
 			std::getline(ss, rem);
-			rem = trim(rem);
-			if (!rem.empty() && rem[0] != '#') {
+			if (!rem.empty()) {
 				throw std::runtime_error("");
 			}
 		} catch (std::exception const& e) {

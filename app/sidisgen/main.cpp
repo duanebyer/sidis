@@ -46,6 +46,7 @@ int const ERROR_PARAMS_INVALID = -5;
 int const ERROR_FOAM_INCOMPATIBLE = -6;
 int const ERROR_FOAM_NOT_FOUND = -7;
 int const ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND = -8;
+int const ERROR_STRUCTURE_FUNCTIONS_PARSE = -9;
 
 // In the future, more types of events (such as exclusive) may be included.
 enum class EventType {
@@ -104,65 +105,84 @@ void cuts(Params params, cut::Cut* cut_out, cut::CutRad* cut_rad_out) {
 	}
 }
 
+// Logical union of two boolean arrays.
+void zip_and(bool* begin_1, bool* end_1, bool const* begin_2) {
+	bool const* it_2 = begin_2;
+	for (bool* it_1 = begin_1; it_1 != end_1; ++it_1) {
+		*it_1 &= *it_2;
+		++it_2;
+	}
+}
+
 // Allocates the memory for the structure functions.
 int alloc_sf(
 		Params params,
 		std::unique_ptr<sf::SfSet>* sf_out,
 		std::unique_ptr<sf::TmdSet>* tmd_out) {
+	// Structure function description comes as a series of words. For example:
+	// `leading uu prokudin`. The total structure function is built starting
+	// from the end backwards. So in this case, a ProkudinSfSet wrapped in two
+	// MaskSfSet.
 	std::unique_ptr<sf::SfSet> sf;
 	std::unique_ptr<sf::TmdSet> tmd;
-	std::regex test_regex("test([0-9]+)");
-	std::smatch match;
-	if (*params.sf_set == "prokudin") {
+	// Load words into an array.
+	std::vector<std::string> parts;
+	std::stringstream ss(*params.sf_set);
+	std::string next_part;
+	while (ss >> next_part) {
+		parts.push_back(next_part);
+	}
+	if (parts.empty()) {
+		std::cerr << "No structure function provided." << std::endl;
+		return ERROR_STRUCTURE_FUNCTIONS_PARSE;
+	}
+
+	// The last part is the base structure function.
+	std::string base = parts.back();
+	parts.pop_back();
+	if (base == "prokudin") {
 		std::cout << "Using Prokudin structure functions." << std::endl;
 		tmd_out->reset();
 		sf_out->reset(new sf::set::ProkudinSfSet());
-	} else if (std::regex_match(*params.sf_set, match, test_regex)) {
-		int test_idx = std::stoi(match[1]);
-		if (test_idx < 0 || test_idx > 17) {
-			throw std::runtime_error(
-				"Cannot create test structure function with index "
-				+ std::to_string(test_idx));
-		}
-		std::cout << "Using test structure function " << test_idx << "." << std::endl;
-		bool mask[18] = { 0 };
-		mask[test_idx] = true;
+	} else if (base == "test") {
+		std::cout << "Using test structure functions." << std::endl;
 		tmd_out->reset();
-		sf_out->reset(new sf::set::MaskSfSet<sf::set::TestSfSet>(mask,
-			sf::set::TestSfSet(*params.target)));
+		sf_out->reset(new sf::set::TestSfSet(*params.target));
 	} else {
-		std::string file_name = *params.sf_set + ".so";
+		// TODO: Make this work on Windows as well, and make providing the
+		// extension optional.
+		std::string file_name = base + ".so";
 		if (gSystem->Load(file_name.c_str()) != 0) {
 			std::cerr
-				<< "Failed to load structure function from shared library file '"
-				<< *params.sf_set << ".so'." << std::endl;
+				<< "Failed to load structure function from shared library file "
+				<< "'" << file_name << "'." << std::endl;
 			return ERROR_FILE_NOT_FOUND;
 		}
-		TClass* sf_class = TClass::GetClass(params.sf_set->c_str());
+		TClass* sf_class = TClass::GetClass(base.c_str());
 		if (sf_class->InheritsFrom("sidis::sf::SfSet")) {
 			std::cout
 				<< "Using structure functions from '"
-				<< *params.sf_set << "'." << std::endl;
+				<< file_name << "'." << std::endl;
 			tmd_out->reset();
 			sf_out->reset(static_cast<sf::SfSet*>(sf_class->New()));
 		} else if (sf_class->InheritsFrom("sidis::sf::TmdSet")) {
 			std::cout
 				<< "Using TMDs and FFs from '"
-				<< *params.sf_set << "'." << std::endl;
+				<< file_name << "'." << std::endl;
 			sf::TmdSet* tmd_ptr = static_cast<sf::TmdSet*>(sf_class->New());
 			tmd_out->reset(tmd_ptr);
 			sf_out->reset(new sf::TmdSfSet(*tmd_ptr));
 		} else if (sf_class->InheritsFrom("sidis::sf::GaussianTmdSet")) {
 			std::cout
 				<< "Using Gaussian TMDs and FFs from '"
-				<< *params.sf_set << "'." << std::endl;
+				<< file_name << "'." << std::endl;
 			sf::GaussianTmdSet* tmd_ptr = static_cast<sf::GaussianTmdSet*>(sf_class->New());
 			tmd_out->reset(tmd_ptr);
 			sf_out->reset(new sf::GaussianTmdSfSet(*tmd_ptr));
 		} else if (sf_class->InheritsFrom("sidis::sf::WwTmdSet")) {
 			std::cout
 				<< "Using WW-type TMDs and FFs from '"
-				<< *params.sf_set << "'." << std::endl;
+				<< file_name << "'." << std::endl;
 			sf::WwTmdSet* tmd_ptr = static_cast<sf::WwTmdSet*>(sf_class->New());
 			tmd_out->reset(tmd_ptr);
 			sf_out->reset(new sf::WwTmdSfSet(*tmd_ptr));
@@ -179,6 +199,77 @@ int alloc_sf(
 				<< *params.sf_set << ".so'" << std::endl;
 			return ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND;
 		}
+	}
+
+	// Apply filters to the base structure function based on every other part,
+	// in reverse order.
+	std::regex mask_regex("select([0-9]+)");
+	std::smatch match;
+	bool mask[sf::set::NUM_SF];
+	std::fill_n(mask, sf::set::NUM_SF, true);
+	for (auto it = parts.rbegin(); it != parts.rend(); ++it) {
+		std::string part = *it;
+		if (part == "leading") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_LEADING);
+		} else if (part == "subleading") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_SUBLEADING);
+		} else if (part == "uu") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_UU);
+		} else if (part == "ul") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_UL);
+		} else if (part == "ut") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_UT);
+		} else if (part == "up") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_UP);
+		} else if (part == "ux") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_UX);
+		} else if (part == "lu") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_LU);
+		} else if (part == "ll") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_LL);
+		} else if (part == "lt") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_LT);
+		} else if (part == "lp") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_LP);
+		} else if (part == "lx") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_LX);
+		} else if (part == "xu") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_XU);
+		} else if (part == "xl") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_XL);
+		} else if (part == "xt") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_XT);
+		} else if (part == "xp") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_XP);
+		} else if (part == "xx") {
+			zip_and(mask, mask + sf::set::NUM_SF, sf::set::MASK_XX);
+		} else if (std::regex_match(part, match, mask_regex)) {
+			std::size_t idx = std::stoul(match[1]);
+			if (idx > sf::set::NUM_SF) {
+				std::cerr
+					<< "Cannot filter on structure function index "
+					<< idx << ": out of bounds." << std::endl;
+				return ERROR_STRUCTURE_FUNCTIONS_PARSE;
+			}
+			bool select_mask[sf::set::NUM_SF] = { false };
+			select_mask[idx] = true;
+			zip_and(mask, mask + sf::set::NUM_SF, select_mask);
+		} else {
+			std::cerr
+				<< "Unrecognized structure function filter '"
+				<< part << "'." << std::endl;
+			return ERROR_STRUCTURE_FUNCTIONS_PARSE;
+		}
+	}
+	bool mask_full = true;
+	for (std::size_t idx = 0; idx < sf::set::NUM_SF; ++idx) {
+		if (!mask[idx]) {
+			mask_full = false;
+			break;
+		}
+	}
+	if (!mask_full) {
+		sf_out->reset(new sf::set::MaskSfSet(mask, std::move(*sf_out)));
 	}
 	return SUCCESS;
 }

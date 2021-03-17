@@ -68,7 +68,7 @@ std::istream& operator>>(std::istream& in, TestPair& pair) {
 	Input& input = pair.input;
 	Output& output = pair.output;
 	in >> input.sf_set_idx;
-	if (!(input.sf_set_idx >= -18 && input.sf_set_idx < 1)) {
+	if (!(input.sf_set_idx >= -sf::set::NUM_SF && input.sf_set_idx < 1)) {
 		in.setstate(std::ios_base::failbit);
 	}
 	in >> input.k0_cut;
@@ -100,7 +100,7 @@ std::istream& operator>>(std::istream& in, TestPairRad& pair) {
 	InputRad& input = pair.input;
 	OutputRad& output = pair.output;
 	in >> input.sf_set_idx;
-	if (!(input.sf_set_idx >= -18 && input.sf_set_idx < 1)) {
+	if (!(input.sf_set_idx >= -sf::set::NUM_SF && input.sf_set_idx < 1)) {
 		in.setstate(std::ios_base::failbit);
 	}
 	in >> input.k0_cut;
@@ -146,10 +146,10 @@ TEST_CASE(
 	if (input.sf_set_idx == 0) {
 		sf.reset(new sf::set::ProkudinSfSet());
 	} else {
-		bool mask[18] = { false };
+		bool mask[sf::set::NUM_SF] = { false };
 		mask[-input.sf_set_idx - 1] = true;
-		sf.reset(new sf::set::MaskSfSet<sf::set::TestSfSet>(
-			mask, sf::set::TestSfSet(part::Nucleus::P)));
+		sf.reset(new sf::set::MaskSfSet(
+			mask, new sf::set::TestSfSet(part::Nucleus::P)));
 	}
 
 	// Set up the input to the cross-section calculation.
@@ -218,10 +218,10 @@ TEST_CASE(
 	if (input.sf_set_idx == 0) {
 		sf.reset(new sf::set::ProkudinSfSet());
 	} else {
-		bool mask[18] = { false };
+		bool mask[sf::set::NUM_SF] = { false };
 		mask[-input.sf_set_idx - 1] = true;
-		sf.reset(new sf::set::MaskSfSet<sf::set::TestSfSet>(
-			mask, sf::set::TestSfSet(part::Nucleus::P)));
+		sf.reset(new sf::set::MaskSfSet(
+			mask, new sf::set::TestSfSet(part::Nucleus::P)));
 	}
 
 	// Set up the input to the cross-section calculation.

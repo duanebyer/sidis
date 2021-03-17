@@ -60,14 +60,15 @@ int main(int argc, char** argv) {
 
 		if (set_idx == 0) {
 			sf.reset(new sf::set::ProkudinSfSet());
-		} else if (set_idx <= -1 && set_idx >= -18) {
-			bool mask[18] = { false };
+		} else if (set_idx <= -1 && set_idx >= -static_cast<int>(sf::set::NUM_SF)) {
+			bool mask[sf::set::NUM_SF] = { false };
 			mask[-set_idx - 1] = true;
-			sf.reset(new sf::set::MaskSfSet<sf::set::TestSfSet>(
-				mask, sf::set::TestSfSet(target)));
+			sf.reset(new sf::set::MaskSfSet(
+				mask, new sf::set::TestSfSet(target)));
 		} else {
 			throw std::out_of_range(
-				"SF set index must be Prokudin (0) or Test (-18 to -1)");
+				"SF set index must be Prokudin (0) or Test ("
+				+ std::to_string(-sf::set::NUM_SF) + " to -1)");
 		}
 
 		if (beam_pol_str == "U") {
