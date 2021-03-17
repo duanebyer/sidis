@@ -378,8 +378,15 @@ int command_help() {
 		<< "    sidisgen --generate <parameter file>"        << std::endl
 		<< "  List parameters used to produce file"          << std::endl
 		<< "    sidisgen --inspect <output file>"            << std::endl
-		<< std::endl
-		<< "Parameter file format summary (see docs):"       << std::endl
+		<< "  Show parameter file format information"        << std::endl
+		<< "    sidisgen --help-params"                      << std::endl;
+	return SUCCESS;
+}
+
+int command_help_params() {
+	std::cout
+		<< "Parameter file format summary."                  << std::endl
+		<< "For more detailed information, see docs."        << std::endl
 		<< std::endl
 		<< "event-file     <ROOT file>"                      << std::endl
 		<< "rc-method      <none, approx, exact>"            << std::endl
@@ -918,6 +925,8 @@ int main(int argc, char** argv) {
 	std::string command = argv[1];
 	if (command == "--help" || command == "-?") {
 		return command_help();
+	} else if (command == "--help-params") {
+		return command_help_params();
 	} else if (command == "--version" || command == "-v") {
 		return command_version();
 	} else if (command == "--inspect" || command == "-i") {
