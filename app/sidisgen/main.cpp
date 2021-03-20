@@ -203,7 +203,7 @@ int alloc_sf(
 
 	// Apply filters to the base structure function based on every other part,
 	// in reverse order.
-	std::regex mask_regex("select([0-9]+)");
+	std::regex mask_regex("select([0-9]+)", std::regex_constants::basic);
 	std::smatch match;
 	bool mask[sf::set::NUM_SF];
 	std::fill_n(mask, sf::set::NUM_SF, true);
