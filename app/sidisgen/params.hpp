@@ -23,15 +23,15 @@ enum class RcMethod {
 };
 
 struct Version {
-	int major;
-	int minor;
+	int v_major;
+	int v_minor;
 	Version(
-		int major=SIDIS_PARAMS_VERSION_MAJOR,
-		int minor=SIDIS_PARAMS_VERSION_MINOR) :
-		major(major),
-		minor(minor) { }
+		int v_major=SIDIS_PARAMS_VERSION_MAJOR,
+		int v_minor=SIDIS_PARAMS_VERSION_MINOR) :
+		v_major(v_major),
+		v_minor(v_minor) { }
 	bool operator==(Version const& rhs) const {
-		return major == rhs.major && minor == rhs.minor;
+		return v_major == rhs.v_major && v_minor == rhs.v_minor;
 	}
 	bool operator!=(Version const& rhs) const {
 		return !(*this == rhs);
