@@ -122,7 +122,7 @@ void consume_param_from_map(
 template<>
 struct RootParser<Version> {
 	static void write_root(TFile& file, Param<Version> const& param) {
-		Int_t vals[2] = { param->major, param->minor };
+		Int_t vals[2] = { param->v_major, param->v_minor };
 		TArrayI object(2, vals);
 		Int_t result = file.WriteObject<TArrayI>(&object, param.name());
 		if (result == 0) {
@@ -254,16 +254,16 @@ struct RootParser<Bound> {
 // Parsers for streams.
 // Version.
 std::ostream& operator<<(std::ostream& os, Version const& version) {
-	return os << version.major << "." << version.minor;
+	return os << version.v_major << "." << version.v_minor;
 }
 std::istream& operator>>(std::istream& is, Version& version) {
-	is >> version.major;
+	is >> version.v_major;
 	char period;
 	is >> period;
 	if (period != '.') {
 		is.setstate(std::ios_base::failbit);
 	}
-	is >> version.minor;
+	is >> version.v_minor;
 	return is;
 }
 // Enums.
@@ -462,12 +462,12 @@ void Params::write_root(TFile& file) const {
 
 void Params::read_root(TFile& file) {
 	read_param_root(file, version);
-	if (version->major != SIDIS_PARAMS_VERSION_MAJOR
-			|| version->minor > SIDIS_PARAMS_VERSION_MINOR) {
+	if (version->v_major != SIDIS_PARAMS_VERSION_MAJOR
+			|| version->v_minor > SIDIS_PARAMS_VERSION_MINOR) {
 		throw std::runtime_error(
 			std::string("Cannot read parameters from version ")
-			+ std::to_string(version->major) + "."
-			+ std::to_string(version->minor) + ".");
+			+ std::to_string(version->v_major) + "."
+			+ std::to_string(version->v_minor) + ".");
 	}
 	read_param_root(file, event_file);
 	read_param_root(file, rc_method);
@@ -579,12 +579,12 @@ void Params::read_stream(std::istream& file) {
 
 	consume_param_from_map(map, version);
 	version.get_or_insert(Version());
-	if (version->major != SIDIS_PARAMS_VERSION_MAJOR
-			|| version->minor > SIDIS_PARAMS_VERSION_MINOR) {
+	if (version->v_major != SIDIS_PARAMS_VERSION_MAJOR
+			|| version->v_minor > SIDIS_PARAMS_VERSION_MINOR) {
 		throw std::runtime_error(
 			std::string("Cannot read parameters from version ")
-			+ std::to_string(version->major) + "."
-			+ std::to_string(version->minor) + ".");
+			+ std::to_string(version->v_major) + "."
+			+ std::to_string(version->v_minor) + ".");
 	}
 	consume_param_from_map(map, event_file);
 	consume_param_from_map(map, rc_method);
@@ -777,8 +777,8 @@ void Params::make_valid(bool strict) {
 }
 
 void Params::compatible_with_foam(Params const& foam_params) const {
-	if (version->major != foam_params.version->major
-			|| version->minor > foam_params.version->minor) {
+	if (version->v_major != foam_params.version->v_major
+			|| version->v_minor > foam_params.version->v_minor) {
 		throw std::runtime_error("Incompatible versions.");
 	} else if (*foam_params.rc_method != *rc_method) {
 		throw std::runtime_error("Different RC methods.");
