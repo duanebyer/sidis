@@ -409,7 +409,7 @@ bool cut::take(
 	Real z = z_b.lerp(point[2]);
 	Bound ph_t_sq_b = ph_t_sq_bound(cut, ps, S, x, y, z);
 	Real ph_t_sq = ph_t_sq_b.lerp(point[3]);
-	Bound phi_h_b = cut.phi.valid() ? cut.phi_h : Bound(-PI, PI);
+	Bound phi_h_b = cut.phi_h.valid() ? cut.phi_h : Bound(-PI, PI);
 	Real phi_h = phi_h_b.lerp(point[4]);
 	Bound phi_b = cut.phi.valid() ? cut.phi : Bound(-PI, PI);
 	Real phi = phi_b.lerp(point[5]);
@@ -489,8 +489,8 @@ bool cut::take(
 	if (ph_space_out != nullptr) {
 		*ph_space_out = {
 			kin.x, kin.y, kin.z,
-			kin.ph_t_sq, kin.phi_h,
-			kin.phi, tau, phi_k, R,
+			kin.ph_t_sq, kin.phi_h, kin.phi,
+			tau, phi_k, R,
 		};
 	}
 	if (jacobian_out != nullptr) {
