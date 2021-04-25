@@ -489,7 +489,7 @@ int command_initialize(std::string params_file_name) {
 		params.make_valid();
 	} catch (std::exception const& e) {
 		std::cerr
-			<< "Invalid options in parameter file '" << params_file_name << "': "
+			<< "Invalid parameter file '" << params_file_name << "': "
 			<< e.what() << std::endl;
 		return ERROR_PARAMS_INVALID;
 	}
