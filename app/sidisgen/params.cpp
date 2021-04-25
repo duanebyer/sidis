@@ -689,7 +689,11 @@ void Params::make_valid(bool strict) {
 	if (*rc_method == RcMethod::APPROX || *rc_method == RcMethod::EXACT) {
 		gen_rad.get_or_insert(true);
 		k_0_bar.get_or_insert(0.01);
-		k_0_bar_cut.get_or_insert(Bound::POSITIVE);
+		if (gen_nrad.occupied() && *gen_nrad) {
+			k_0_bar_cut.get_or_insert(Bound::POSITIVE);
+		} else {
+			k_0_bar_cut.get_or_insert(Bound::POSITIVE + *k_0_bar);
+		}
 	} else {
 		if (gen_rad.occupied() && *gen_rad) {
 			if (strict) {
@@ -718,7 +722,7 @@ void Params::make_valid(bool strict) {
 						"`k_0_bar_cut min. == 0`.");
 				}
 			}
-		} else if (*k_0_bar < k_0_bar_cut->min()) {
+		} else if (*k_0_bar <= k_0_bar_cut->min()) {
 			if (gen_nrad.occupied() && *gen_nrad) {
 				if (strict) {
 					throw std::runtime_error(
