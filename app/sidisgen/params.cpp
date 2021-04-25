@@ -716,14 +716,14 @@ void Params::make_valid(bool strict) {
 				if (strict) {
 					throw std::runtime_error(
 						"Cannot generate non-radiative events with "
-						"`k-0-bar >= k-0-bar-cut min.`.");
+						"`soft_threshold < k_0_bar_cut min.`.");
 				}
 			}
 			gen_nrad.reset(false);
 		} else {
 			throw std::runtime_error(
-				"Invalid `k-0-bar-cut`: minimum must be zero "
-				"or larger than `k-0-bar`.");
+				"Invalid `k_0_bar_cut`: minimum must be zero "
+				"or larger than `soft_threshold`.");
 		}
 	} else {
 		gen_nrad.get_or_insert(true);
@@ -739,7 +739,7 @@ void Params::make_valid(bool strict) {
 	} else if (foam_nrad_file.occupied()) {
 		if (strict) {
 			throw std::runtime_error(
-				"Cannot provide `foam-nrad-file` when no "
+				"Cannot provide `foam_nrad_file` when no "
 				"non-radiative events are being generated.");
 		} else {
 			foam_nrad_file.reset();
@@ -752,7 +752,7 @@ void Params::make_valid(bool strict) {
 		if (foam_rad_file.occupied()) {
 			if (strict) {
 				throw std::runtime_error(
-					"Cannot provide `foam-rad-file` when no "
+					"Cannot provide `foam_rad_file` when no "
 					"radiative events are being generated.");
 			} else {
 				foam_rad_file.reset();
@@ -761,7 +761,7 @@ void Params::make_valid(bool strict) {
 		if (write_photon.occupied()) {
 			if (strict) {
 				throw std::runtime_error(
-					"Cannot enable `write-photon` when no "
+					"Cannot enable `write_photon` when no "
 					"radiative events are being generated.");
 			} else {
 				write_photon.reset();
