@@ -20,7 +20,7 @@ using namespace sidis::part;
 // radiative correction contributions.
 int main(int argc, char** argv) {
 	Real Mth = MASS_P + MASS_PI_0;
-	part::Lepton beam = part::Lepton::TAU;
+	part::Lepton beam = part::Lepton::E;
 	part::Nucleus target = part::Nucleus::P;
 	part::Hadron hadron = part::Hadron::PI_P;
 

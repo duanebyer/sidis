@@ -113,7 +113,7 @@ public:
 	bool occupied() const {
 		return _occupied;
 	}
-	operator bool() const {
+	explicit operator bool() const {
 		return _occupied;
 	}
 
