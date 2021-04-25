@@ -75,6 +75,7 @@ struct CutRad {
 	/// \{
 	math::Bound tau;
 	math::Bound phi_k;
+	math::Bound R;
 	math::Bound k_0_bar;
 	/// \}
 

@@ -36,6 +36,7 @@ Cut::Cut() :
 CutRad::CutRad() :
 	tau(Bound::INVALID),
 	phi_k(Bound::INVALID),
+	R(Bound::INVALID),
 	k_0_bar(Bound::INVALID),
 	k_0(Bound::INVALID),
 	theta_k(Bound::INVALID) { }
@@ -212,6 +213,9 @@ Bound cut::tau_bound(CutRad const& cut, Kinematics const& kin) {
 }
 Bound cut::R_bound(CutRad const& cut, Kinematics const& kin, Real tau, Real phi_k) {
 	Bound result = R_bound(kin, tau, phi_k);
+	if (cut.R.valid()) {
+		result &= cut.R;
+	}
 	if (cut.k_0_bar.valid()) {
 		Bound tau_b = tau_bound(kin);
 		// Copied from kinematic calculations.
@@ -336,6 +340,8 @@ bool cut::valid(CutRad const& cut, KinematicsRad const& kin) {
 	} else if (cut.tau.valid() && !cut.tau.contains(kin.tau)) {
 		return false;
 	} else if (cut.phi_k.valid() && !cut.phi_k.contains(kin.phi_k)) {
+		return false;
+	} else if (cut.R.valid() && !cut.R.contains(kin.R)) {
 		return false;
 	} else if (cut.k_0_bar.valid() && !cut.k_0_bar.contains(kin.k_0_bar)) {
 		return false;

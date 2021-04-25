@@ -97,6 +97,7 @@ void cuts(Params params, cut::Cut* cut_out, cut::CutRad* cut_rad_out) {
 		if (*params.gen_rad) {
 			cut_rad_out->tau = params.tau_cut.get_or(math::Bound::INVALID);
 			cut_rad_out->phi_k = params.phi_k_cut.get_or(math::Bound::INVALID);
+			cut_rad_out->R = params.R_cut.get_or(math::Bound::INVALID);
 			// The `k_0_bar` cut is mandatory.
 			cut_rad_out->k_0_bar = *params.k_0_bar_cut;
 			cut_rad_out->k_0 = params.k_0_cut.get_or(math::Bound::INVALID);
@@ -417,6 +418,7 @@ int command_help_params() {
 		<< "phi-cut        <min> <max>"                      << std::endl
 		<< "tau-cut        <min> <max>"                      << std::endl
 		<< "phi-k-cut      <min> <max>"                      << std::endl
+		<< "R-cut          <min> <max>"                      << std::endl
 		<< "Q-sq-cut       <min> <max>"                      << std::endl
 		<< "t-cut          <min> <max>"                      << std::endl
 		<< "w-cut          <min> <max>"                      << std::endl

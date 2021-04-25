@@ -173,6 +173,7 @@ struct Params {
 	Param<sidis::math::Bound> theta_h_cut;
 	Param<sidis::math::Bound> tau_cut;
 	Param<sidis::math::Bound> phi_k_cut;
+	Param<sidis::math::Bound> R_cut;
 	Param<sidis::math::Bound> k_0_bar_cut;
 	Param<sidis::math::Bound> k_0_cut;
 	Param<sidis::math::Bound> theta_k_cut;
@@ -218,6 +219,7 @@ struct Params {
 		theta_h_cut("theta-h-cut"),
 		tau_cut("tau-cut"),
 		phi_k_cut("phi-k-cut"),
+		R_cut("R-cut"),
 		k_0_bar_cut("k-0-bar-cut"),
 		k_0_cut("k-0-cut"),
 		theta_k_cut("theta-k-cut") { }
