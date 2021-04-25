@@ -711,6 +711,13 @@ void Params::make_valid(bool strict) {
 	if (*gen_rad) {
 		if (k_0_bar_cut->min() <= 0.) {
 			gen_nrad.get_or_insert(true);
+			if (!*gen_nrad) {
+				if (strict) {
+					throw std::runtime_error(
+						"Cannot generate radiative events only with "
+						"`k_0_bar_cut min. == 0`.");
+				}
+			}
 		} else if (*k_0_bar < k_0_bar_cut->min()) {
 			if (gen_nrad.occupied() && *gen_nrad) {
 				if (strict) {
