@@ -14,7 +14,7 @@ if(NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif()
 
 set(
-	Sidis_BUILD_TESTS TRUE
+	Sidis_BUILD_TESTS FALSE
 	CACHE BOOL
 	"should the tests be built (overrides BUILD_TESTING)")
 set(
@@ -26,9 +26,9 @@ set(
 	CACHE BOOL
 	"should the apps (generator) be built")
 set(
-	Sidis_BUILD_DOCS TRUE
+	Sidis_BUILD_DOCS FALSE
 	CACHE BOOL
-	"should the documentation be generated")
+	"should the Doxygen documentation be generated")
 set(
 	Sidis_REAL_TYPE "double"
 	CACHE STRING
