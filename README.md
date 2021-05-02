@@ -111,6 +111,7 @@ The following CMake configuration options may be of use:
   and `long double` are supported.
 * `Sidis_BUILD_TESTS`: Whether to build the tests.
 * `Sidis_BUILD_EXAMPLES`: Whether to build the examples.
+* `Sidis_BUILD_DOCS`: Whether to build the Doxygen documentation.
 * `Sidis_BUILD_APPS`: Whether to build the `sidisgen` binary.
 * `Sidis_IPO_ENABLED`: Whether to build with interprocedural optimization.
 
