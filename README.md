@@ -84,6 +84,10 @@ The `sidis` library uses CMake for building. As part of the build process, the
 `cogapp` utility is used for code generation. `cogapp` can be installed through
 `pip` as `pip install cogapp`.
 
+For building the generator, ROOT must be installed on your system. For building
+the documentation, Doxygen must be installed. For building the tests, Catch2
+must be installed.
+
 Once `cogapp` is available, use CMake to build the project. On most Linux
 systems, this looks like:
 
