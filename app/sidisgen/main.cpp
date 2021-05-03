@@ -885,8 +885,8 @@ int command_generate(std::string params_file_name) {
 	for (EventStats& stats : event_stats) {
 		Int_t idx = static_cast<Int_t>(stats.type);
 		stats.foam->GetIntegMC(stats.xs, stats.xs_err);
-		total_xs.SetAt(idx, stats.xs);
-		total_xs_err.SetAt(idx, stats.xs_err);
+		total_xs.SetAt(stats.xs, idx);
+		total_xs_err.SetAt(stats.xs_err, idx);
 		switch (stats.type) {
 		case EventType::NRAD:
 			std::cout << "\tNon-radiative events:" << std::endl;
