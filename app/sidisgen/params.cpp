@@ -140,6 +140,27 @@ struct RootParser<Version> {
 		}
 	}
 };
+// Toggle.
+template<>
+struct RootParser<Toggle> {
+	static void write_root(TFile& file, Param<Toggle> const& param) {
+		TParameter<Bool_t> object("", *param);
+		Int_t result = file.WriteObject<TParameter<Bool_t> >(&object, param.name());
+		if (result == 0) {
+			throw std::runtime_error(
+				std::string("Could not write parameter '")
+				+ param.name() + "' to ROOT file.");
+		}
+	}
+	static void read_root(TFile& file, Param<Toggle>& param) {
+		auto* object = file.Get<TParameter<Bool_t> >(param.name());
+		if (object != nullptr) {
+			param.reset(object->GetVal());
+		} else {
+			param.reset();
+		}
+	}
+};
 // Number types.
 template<typename T>
 struct RootParser<T, typename std::enable_if<std::is_arithmetic<T>::value>::type> {
@@ -973,6 +994,7 @@ void Params::compatible_with_foam(Params const& foam_params) const {
 
 bool Params::operator==(Params const& rhs) const {
 	return version == rhs.version
+		&& strict == rhs.strict
 		&& event_file == rhs.event_file
 		&& rc_method == rhs.rc_method
 		&& gen_nrad == rhs.gen_nrad
