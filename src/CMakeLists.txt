@@ -122,11 +122,7 @@ target_compile_definitions(
 install(
 	DIRECTORY "${Sidis_SOURCE_DIR}/share/sidis/sf_set/prokudin"
 	DESTINATION "${CMAKE_INSTALL_DATADIR}/sidis/sf_set"
-	FILES_MATCHING
-		PATTERN ".git" EXCLUDE
-		PATTERN "*.m"
-		PATTERN "*.nb"
-		PATTERN "*.dat")
+	FILES_MATCHING PATTERN "*.dat")
 install(
 	DIRECTORY "${Sidis_SOURCE_DIR}/include/sidis"
 	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
