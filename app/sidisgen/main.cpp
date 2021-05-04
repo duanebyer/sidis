@@ -72,14 +72,15 @@ TLorentzVector convert_vec4(math::Vec4 v) {
 
 // Fills out cuts from parameters.
 void cuts(Params params, cut::Cut* cut_out, cut::CutRad* cut_rad_out) {
+	Real const DEG = PI / 180.;
 	if (cut_out != nullptr) {
 		*cut_out = cut::Cut();
 		cut_out->x = params.x_cut.get_or(math::Bound::INVALID);
 		cut_out->y = params.y_cut.get_or(math::Bound::INVALID);
 		cut_out->z = params.z_cut.get_or(math::Bound::INVALID);
 		cut_out->ph_t_sq = params.ph_t_sq_cut.get_or(math::Bound::INVALID);
-		cut_out->phi_h = params.phi_h_cut.get_or(math::Bound::INVALID);
-		cut_out->phi = params.phi_cut.get_or(math::Bound::INVALID);
+		cut_out->phi_h = DEG * params.phi_h_cut.get_or(math::Bound::INVALID);
+		cut_out->phi = DEG * params.phi_cut.get_or(math::Bound::INVALID);
 		cut_out->Q_sq = params.Q_sq_cut.get_or(math::Bound::INVALID);
 		cut_out->t = params.t_cut.get_or(math::Bound::INVALID);
 		cut_out->W_sq = params.W_sq_cut.get_or(math::Bound::INVALID);
@@ -88,21 +89,21 @@ void cuts(Params params, cut::Cut* cut_out, cut::CutRad* cut_rad_out) {
 		cut_out->q_0 = params.q_0_cut.get_or(math::Bound::INVALID);
 		cut_out->k2_0 = params.k2_0_cut.get_or(math::Bound::INVALID);
 		cut_out->ph_0 = params.ph_0_cut.get_or(math::Bound::INVALID);
-		cut_out->theta_q = params.theta_q_cut.get_or(math::Bound::INVALID);
-		cut_out->theta_k2 = params.theta_k2_cut.get_or(math::Bound::INVALID);
-		cut_out->theta_h = params.theta_h_cut.get_or(math::Bound::INVALID);
+		cut_out->theta_q = DEG * params.theta_q_cut.get_or(math::Bound::INVALID);
+		cut_out->theta_k2 = DEG * params.theta_k2_cut.get_or(math::Bound::INVALID);
+		cut_out->theta_h = DEG * params.theta_h_cut.get_or(math::Bound::INVALID);
 	}
 	if (cut_rad_out != nullptr) {
 		*cut_rad_out = cut::CutRad();
 		if (*params.gen_rad) {
 			cut_rad_out->tau = params.tau_cut.get_or(math::Bound::INVALID);
-			cut_rad_out->phi_k = params.phi_k_cut.get_or(math::Bound::INVALID);
+			cut_rad_out->phi_k = DEG * params.phi_k_cut.get_or(math::Bound::INVALID);
 			cut_rad_out->R = params.R_cut.get_or(math::Bound::INVALID);
 			// The `k_0_bar` cut is mandatory.
 			cut_rad_out->k_0_bar = *params.k_0_bar_cut
 				& math::Bound(*params.k_0_bar, INF);
 			cut_rad_out->k_0 = params.k_0_cut.get_or(math::Bound::INVALID);
-			cut_rad_out->theta_k = params.theta_k_cut.get_or(math::Bound::INVALID);
+			cut_rad_out->theta_k = DEG * params.theta_k_cut.get_or(math::Bound::INVALID);
 		}
 	}
 }
