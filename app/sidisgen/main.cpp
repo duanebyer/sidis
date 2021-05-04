@@ -393,9 +393,9 @@ int command_help_params() {
 		<< std::endl
 		<< "event_file     <ROOT file>"                      << std::endl
 		<< "rc_method      <none, approx, exact>"            << std::endl
-		<< "gen_nrad       <true, false>"                    << std::endl
-		<< "gen_rad        <true, false>"                    << std::endl
-		<< "write_photon   <true, false>"                    << std::endl
+		<< "gen_nrad       <on, off>"                        << std::endl
+		<< "gen_rad        <on, off>"                        << std::endl
+		<< "write_photon   <on, off>"                        << std::endl
 		<< "foam_nrad_file <ROOT file>"                      << std::endl
 		<< "foam_rad_file  <ROOT file>"                      << std::endl
 		<< "sf_set         <prokudin, test, ROOT dict.>"     << std::endl
