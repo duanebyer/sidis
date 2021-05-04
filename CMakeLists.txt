@@ -14,15 +14,15 @@ if(NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif()
 
 set(
-	Sidis_BUILD_TESTS FALSE
+	Sidis_BUILD_TESTS NO
 	CACHE BOOL
 	"should the tests be built (overrides BUILD_TESTING)")
 set(
-	Sidis_BUILD_EXAMPLES TRUE
+	Sidis_BUILD_EXAMPLES YES
 	CACHE BOOL
 	"should the examples be built")
 set(
-	Sidis_BUILD_APPS TRUE
+	Sidis_BUILD_APPS YES
 	CACHE BOOL
 	"should the apps (generator) be built")
 
@@ -48,7 +48,7 @@ set_property(
 	PROPERTY STRINGS
 	"float" "double" "long double")
 
-set(IPO_SUPPORTED FALSE)
+set(IPO_SUPPORTED YES)
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.9)
 	include(CheckIPOSupported)
 	check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_OUTPUT)
