@@ -76,8 +76,8 @@ configure_file(
 add_subdirectory(check)
 
 # Add external libraries.
-add_subdirectory(external/mstwpdf)
-add_subdirectory(external/cubature-cpp)
+add_subdirectory(external/mstwpdf EXCLUDE_FROM_ALL)
+add_subdirectory(external/cubature-cpp EXCLUDE_FROM_ALL)
 
 # Set up the library/app builds.
 add_subdirectory(src)
