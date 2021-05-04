@@ -266,6 +266,22 @@ std::istream& operator>>(std::istream& is, Version& version) {
 	is >> version.v_minor;
 	return is;
 }
+// Toggle.
+std::ostream& operator<<(std::ostream& os, Toggle const& toggle) {
+	return os << (toggle ? "on" : "off");
+}
+std::istream& operator>>(std::istream& is, Toggle& toggle) {
+	std::string str;
+	is >> str;
+	if (str == "1" || str == "on" || str == "true" || str == "yes") {
+		toggle.on = true;
+	} else if (str == "0" || str == "off" || str == "false" || str == "no") {
+		toggle.on = false;
+	} else {
+		is.setstate(std::ios_base::failbit);
+	}
+	return is;
+}
 // Enums.
 std::ostream& operator<<(std::ostream& os, RcMethod const& rc_method) {
 	switch (rc_method) {
@@ -416,6 +432,7 @@ std::istream& operator>>(std::istream& is, Bound& bounds) {
 void Params::write_root(TFile& file) const {
 	file.cd();
 	write_param_root(file, version);
+	write_param_root(file, strict);
 	write_param_root(file, event_file);
 	write_param_root(file, rc_method);
 	write_param_root(file, gen_nrad);
@@ -432,7 +449,7 @@ void Params::write_root(TFile& file) const {
 	write_param_root(file, beam);
 	write_param_root(file, target);
 	write_param_root(file, hadron);
-	write_param_root(file, mass_threshold);
+	write_param_root(file, Mth);
 	write_param_root(file, target_pol);
 	write_param_root(file, beam_pol);
 	write_param_root(file, k_0_bar);
@@ -470,6 +487,7 @@ void Params::read_root(TFile& file) {
 			+ std::to_string(version->v_major) + "."
 			+ std::to_string(version->v_minor) + ".");
 	}
+	read_param_root(file, strict);
 	read_param_root(file, event_file);
 	read_param_root(file, rc_method);
 	read_param_root(file, gen_nrad);
@@ -486,7 +504,7 @@ void Params::read_root(TFile& file) {
 	read_param_root(file, beam);
 	read_param_root(file, target);
 	read_param_root(file, hadron);
-	read_param_root(file, mass_threshold);
+	read_param_root(file, Mth);
 	read_param_root(file, target_pol);
 	read_param_root(file, beam_pol);
 	read_param_root(file, k_0_bar);
@@ -517,6 +535,7 @@ void Params::read_root(TFile& file) {
 
 void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, version, true);
+	write_param_stream(file, strict);
 	write_param_stream(file, event_file);
 	write_param_stream(file, rc_method);
 	write_param_stream(file, gen_nrad);
@@ -533,7 +552,7 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, beam);
 	write_param_stream(file, target);
 	write_param_stream(file, hadron);
-	write_param_stream(file, mass_threshold);
+	write_param_stream(file, Mth);
 	write_param_stream(file, target_pol);
 	write_param_stream(file, beam_pol);
 	write_param_stream(file, k_0_bar);
@@ -589,6 +608,7 @@ void Params::read_stream(std::istream& file) {
 			+ std::to_string(version->v_major) + "."
 			+ std::to_string(version->v_minor) + ".");
 	}
+	consume_param_from_map(map, strict);
 	consume_param_from_map(map, event_file);
 	consume_param_from_map(map, rc_method);
 	consume_param_from_map(map, gen_nrad);
@@ -605,7 +625,7 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, beam);
 	consume_param_from_map(map, target);
 	consume_param_from_map(map, hadron);
-	consume_param_from_map(map, mass_threshold);
+	consume_param_from_map(map, Mth);
 	consume_param_from_map(map, target_pol);
 	consume_param_from_map(map, beam_pol);
 	consume_param_from_map(map, k_0_bar);
@@ -645,31 +665,46 @@ void Params::read_stream(std::istream& file) {
 	}
 }
 
-void Params::make_valid(bool strict) {
+void Params::make_valid() {
 	// This function is somewhat complicated because it tries to consider many
 	// possible combinations of options and sort through them to produce a
 	// "normalized" form of any parameter file.
 	version.get_or_insert(Version());
+	strict.get_or_insert(true);
 	if (!num_events.occupied()) {
-		throw std::runtime_error("Must specify number of events to generate.");
+		throw std::runtime_error(
+			std::string("Must specify number of events to generate (")
+			+ num_events.name() + ").");
 	}
 	if (!beam_energy.occupied()) {
-		throw std::runtime_error("Must specify beam energy.");
+		throw std::runtime_error(
+			std::string("Must specify beam energy (")
+			+ beam_energy.name() + ").");
 	}
 	if (!beam.occupied()) {
-		throw std::runtime_error("Must specify beam lepton flavor.");
+		throw std::runtime_error(
+			std::string("Must specify beam lepton flavor (")
+			+ beam.name() + ").");
 	}
 	if (!target.occupied()) {
-		throw std::runtime_error("Must specify target nucleus.");
+		throw std::runtime_error(
+			std::string("Must specify target nucleus (")
+			+ target.name() + ").");
 	}
 	if (!hadron.occupied()) {
-		throw std::runtime_error("Must specify leading hadron.");
+		throw std::runtime_error(
+			std::string("Must specify leading hadron (")
+			+ hadron.name() + ").");
 	}
-	if (!mass_threshold.occupied()) {
-		throw std::runtime_error("Must specify mass threshold.");
+	if (!Mth.occupied()) {
+		throw std::runtime_error(
+			std::string("Must specify mass threshold (")
+			+ Mth.name() + ").");
 	}
 	if (!sf_set.occupied()) {
-		throw std::runtime_error("Must specify structure function set.");
+		throw std::runtime_error(
+			std::string("Must specify structure function set (")
+			+ sf_set.name() + ").");
 	}
 	event_file.get_or_insert("gen.root");
 	rc_method.get_or_insert(RcMethod::APPROX);
@@ -700,18 +735,20 @@ void Params::make_valid(bool strict) {
 		}
 	} else {
 		if (gen_rad.occupied() && *gen_rad) {
-			if (strict) {
+			if (*strict) {
 				throw std::runtime_error(
-					"Cannot generate radiative events without "
-					"radiative corrections enabled.");
+					std::string("Cannot generate radiative events without "
+						"radiative corrections enabled (")
+					+ gen_rad.name() + ", " + rc_method.name() + ").");
 			}
 		}
 		gen_rad.reset(false);
 		if (k_0_bar.occupied()) {
-			if (strict) {
+			if (*strict) {
 				throw std::runtime_error(
-					"Cannot provide soft photon threshold when not using any "
-					"radiative cross-sections.");
+					std::string("Cannot provide soft photon threshold without "
+						"radiative corrections enabled (")
+					+ k_0_bar.name() + ", " + rc_method.name() + ").");
 			}
 			k_0_bar.reset();
 		}
@@ -720,42 +757,49 @@ void Params::make_valid(bool strict) {
 		if (k_0_bar_cut->min() <= 0.) {
 			gen_nrad.get_or_insert(true);
 			if (!*gen_nrad) {
-				if (strict) {
+				if (*strict) {
 					throw std::runtime_error(
-						"Cannot generate radiative events only with "
-						"`k_0_bar_cut min. == 0`.");
+						std::string("Cannot generate radiative events only "
+							"with photon energy minimum <= 0 (")
+						+ gen_rad.name() + ", " + gen_nrad.name()
+						+ ", " + k_0_bar_cut.name() + ").");
 				}
 			}
 		} else if (*k_0_bar <= k_0_bar_cut->min()) {
 			if (gen_nrad.occupied() && *gen_nrad) {
-				if (strict) {
+				if (*strict) {
 					throw std::runtime_error(
-						"Cannot generate non-radiative events with "
-						"`soft_threshold < k_0_bar_cut min.`.");
+						std::string("Cannot generate non-radiative events with "
+							"photon energy minimum > soft threshold (")
+						+ gen_nrad.name() + ", " + k_0_bar.name() + ", "
+						+ k_0_bar_cut.name() + ").");
 				}
 			}
 			gen_nrad.reset(false);
 		} else {
 			throw std::runtime_error(
-				"Invalid `k_0_bar_cut`: minimum must be zero "
-				"or larger than `soft_threshold`.");
+				std::string("Cannot have photon energy cut minimum < soft "
+					"threshold without generating non-radiative events (")
+				+ gen_nrad.name() + ", " + k_0_bar.name() + ", "
+				+ k_0_bar_cut.name() + ").");
 		}
 	} else {
 		gen_nrad.get_or_insert(true);
 	}
 	if (!*gen_nrad && !*gen_rad) {
 		throw std::runtime_error(
-			"Cannot disable all event types `(nrad, rad)`.");
+			std::string("Cannot disable all event types (")
+			+ gen_nrad.name() + ", " + gen_rad.name() + ").");
 	}
 	// Basic options associated with radiative and non-radiative events in
 	// particular.
 	if (*gen_nrad) {
 		foam_nrad_file.get_or_insert("foam-nrad.root");
 	} else if (foam_nrad_file.occupied()) {
-		if (strict) {
+		if (*strict) {
 			throw std::runtime_error(
-				"Cannot provide `foam_nrad_file` when no "
-				"non-radiative events are being generated.");
+				std::string("Cannot provide '") + foam_nrad_file.name()
+				+ "' when no non-radiative events are being generated.");
 		} else {
 			foam_nrad_file.reset();
 		}
@@ -765,19 +809,19 @@ void Params::make_valid(bool strict) {
 		write_photon.get_or_insert(true);
 	} else {
 		if (foam_rad_file.occupied()) {
-			if (strict) {
+			if (*strict) {
 				throw std::runtime_error(
-					"Cannot provide `foam_rad_file` when no "
-					"radiative events are being generated.");
+					std::string("Cannot provide '") + foam_rad_file.name()
+					+ "' when no radiative events are being generated.");
 			} else {
 				foam_rad_file.reset();
 			}
 		}
 		if (write_photon.occupied()) {
-			if (strict) {
+			if (*strict) {
 				throw std::runtime_error(
-					"Cannot enable `write_photon` when no "
-					"radiative events are being generated.");
+					std::string("Cannot enable '") + write_photon.name()
+					+ "' when no radiative events are being generated.");
 			} else {
 				write_photon.reset();
 			}
@@ -796,41 +840,50 @@ void Params::make_valid(bool strict) {
 	}
 	// Verify that cuts make sense. This isn't comprehensive, but is primarily
 	// important to avoid cuts on the azimuthal angles larger than 360 degrees.
-	if (strict && x_cut.occupied() && !Bound::UNIT.contains(*x_cut)) {
+	if (*strict && x_cut.occupied() && !Bound::UNIT.contains(*x_cut)) {
 		throw std::runtime_error(
-			"Cut on x must lie between 0 and 1.");
+			std::string("Cut on x must lie between 0 and 1 (")
+			+ x_cut.name() + ").");
 	}
-	if (strict && y_cut.occupied() && !Bound::UNIT.contains(*y_cut)) {
+	if (*strict && y_cut.occupied() && !Bound::UNIT.contains(*y_cut)) {
 		throw std::runtime_error(
-			"Cut on y must lie between 0 and 1.");
+			std::string("Cut on y must lie between 0 and 1 (")
+			+ y_cut.name() + ").");
 	}
-	if (strict && z_cut.occupied() && !Bound::UNIT.contains(*z_cut)) {
+	if (*strict && z_cut.occupied() && !Bound::UNIT.contains(*z_cut)) {
 		throw std::runtime_error(
-			"Cut on z must lie between 0 and 1.");
+			std::string("Cut on z must lie between 0 and 1 (")
+			+ z_cut.name() + ").");
 	}
 	if (phi_h_cut.occupied() && phi_h_cut->size() >= 360.) {
 		throw std::runtime_error(
-			"Cut on φ_h must be smaller than 360 degrees.");
+			std::string("Cut on φ_h must be smaller than 360 degrees (")
+			+ phi_h_cut.name() + ").");
 	}
 	if (phi_cut.occupied() && phi_cut->size() >= 360.) {
 		throw std::runtime_error(
-			"Cut on φ must be smaller than 360 degrees.");
+			std::string("Cut on φ must be smaller than 360 degrees (")
+			+ phi_cut.name() + ").");
 	}
 	if (phi_k_cut.occupied() && phi_k_cut->size() >= 360.) {
 		throw std::runtime_error(
-			"Cut on φ_k must be smaller than 360 degrees.");
+			std::string("Cut on φ_k must be smaller than 360 degrees (")
+			+ phi_k_cut.name() + ").");
 	}
-	if (strict && theta_q_cut.occupied() && !Bound(0., 180.).contains(*theta_q_cut)) {
+	if (*strict && theta_q_cut.occupied() && !Bound(0., 180.).contains(*theta_q_cut)) {
 		throw std::runtime_error(
-			"Cut on θ_q must lie between 0 and 180 degrees.");
+			std::string("Cut on θ_q must lie between 0 and 180 degrees (")
+			+ theta_q_cut.name() + ").");
 	}
-	if (strict && theta_h_cut.occupied() && !Bound(0., 180.).contains(*theta_h_cut)) {
+	if (*strict && theta_h_cut.occupied() && !Bound(0., 180.).contains(*theta_h_cut)) {
 		throw std::runtime_error(
-			"Cut on θ_h must lie between 0 and 180 degrees.");
+			std::string("Cut on θ_h must lie between 0 and 180 degrees (")
+			+ theta_h_cut.name() + ").");
 	}
-	if (strict && theta_k_cut.occupied() && !Bound(0., 180.).contains(*theta_k_cut)) {
+	if (*strict && theta_k_cut.occupied() && !Bound(0., 180.).contains(*theta_k_cut)) {
 		throw std::runtime_error(
-			"Cut on θ_k must lie between 0 and 180 degrees.");
+			std::string("Cut on θ_k must lie between 0 and 180 degrees (")
+			+ theta_k_cut.name() + ").");
 	}
 }
 
@@ -838,6 +891,8 @@ void Params::compatible_with_foam(Params const& foam_params) const {
 	if (version->v_major != foam_params.version->v_major
 			|| version->v_minor > foam_params.version->v_minor) {
 		throw std::runtime_error("Incompatible versions.");
+	} else if (strict != foam_params.strict) {
+		throw std::runtime_error("Incompatible strictness levels.");
 	} else if (*foam_params.rc_method != *rc_method) {
 		throw std::runtime_error("Different RC methods.");
 	} else if (*gen_nrad && !*foam_params.gen_nrad) {
@@ -858,7 +913,7 @@ void Params::compatible_with_foam(Params const& foam_params) const {
 		throw std::runtime_error("Different target nucleus type.");
 	} else if (*hadron != *foam_params.hadron) {
 		throw std::runtime_error("Different leading hadron type.");
-	} else if (*mass_threshold != *foam_params.mass_threshold) {
+	} else if (*Mth != *foam_params.Mth) {
 		throw std::runtime_error("Different mass thresholds.");
 	} else if (*target_pol != *foam_params.target_pol) {
 		throw std::runtime_error("Different target polarizations.");
@@ -934,7 +989,7 @@ bool Params::operator==(Params const& rhs) const {
 		&& beam == rhs.beam
 		&& target == rhs.target
 		&& hadron == rhs.hadron
-		&& mass_threshold == rhs.mass_threshold
+		&& Mth == rhs.Mth
 		&& target_pol == rhs.target_pol
 		&& beam_pol == rhs.beam_pol
 		&& k_0_bar == rhs.k_0_bar

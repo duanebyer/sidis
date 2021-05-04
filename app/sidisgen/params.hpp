@@ -16,6 +16,15 @@
 #define SIDIS_PARAMS_VERSION_MAJOR 2
 #define SIDIS_PARAMS_VERSION_MINOR 0
 
+struct Toggle {
+	bool on;
+	Toggle() : on(false) { }
+	Toggle(bool on) : on(on) { }
+	operator bool() const {
+		return on;
+	}
+};
+
 enum class RcMethod {
 	NONE,
 	APPROX,
@@ -134,11 +143,12 @@ public:
 // text file.
 struct Params {
 	Param<Version> version;
+	Param<Toggle> strict;
 	Param<std::string> event_file;
 	Param<RcMethod> rc_method;
-	Param<bool> gen_nrad;
-	Param<bool> gen_rad;
-	Param<bool> write_photon;
+	Param<Toggle> gen_nrad;
+	Param<Toggle> gen_rad;
+	Param<Toggle> write_photon;
 	Param<std::string> foam_nrad_file;
 	Param<std::string> foam_rad_file;
 	Param<std::string> sf_set;
@@ -150,7 +160,7 @@ struct Params {
 	Param<sidis::part::Lepton> beam;
 	Param<sidis::part::Nucleus> target;
 	Param<sidis::part::Hadron> hadron;
-	Param<sidis::Real> mass_threshold;
+	Param<sidis::Real> Mth;
 	Param<sidis::math::Vec3> target_pol;
 	Param<sidis::Real> beam_pol;
 	Param<sidis::Real> k_0_bar;
@@ -180,6 +190,7 @@ struct Params {
 
 	Params() :
 		version("version"),
+		strict("strict"),
 		event_file("event_file"),
 		rc_method("rc_method"),
 		gen_nrad("gen_nrad"),
@@ -196,7 +207,7 @@ struct Params {
 		beam("beam"),
 		target("target"),
 		hadron("hadron"),
-		mass_threshold("mass_threshold"),
+		Mth("mass_threshold"),
 		target_pol("target_pol"),
 		beam_pol("beam_pol"),
 		k_0_bar("soft_threshold"),
@@ -235,7 +246,7 @@ struct Params {
 	// then `make_valid` will never change a parameter that has been set by the
 	// user (for example, disabling `write_photon` when no radiative corrections
 	// are being applied).
-	void make_valid(bool strict=true);
+	void make_valid();
 	bool valid() const {
 		Params other = *this;
 		other.make_valid();

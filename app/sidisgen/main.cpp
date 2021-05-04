@@ -287,7 +287,7 @@ struct XsNRad : public TFoamIntegrand {
 	explicit XsNRad(Params params, cut::Cut cut, sf::SfSet const& sf) :
 		params(params),
 		cut(cut),
-		ps(*params.target, *params.beam, *params.hadron, *params.mass_threshold),
+		ps(*params.target, *params.beam, *params.hadron, *params.Mth),
 		S(2. * mass(*params.target) * *params.beam_energy),
 		sf(sf) { }
 
@@ -347,7 +347,7 @@ struct XsRad : public TFoamIntegrand {
 		params(params),
 		cut(cut),
 		cut_rad(cut_rad),
-		ps(*params.target, *params.beam, *params.hadron, *params.mass_threshold),
+		ps(*params.target, *params.beam, *params.hadron, *params.Mth),
 		S(2. * mass(*params.target) * *params.beam_energy),
 		sf(sf) {
 	}
@@ -723,7 +723,7 @@ int command_generate(std::string params_file_name) {
 	part::Lepton beam = *params.beam;
 	part::Hadron hadron = *params.hadron;
 	math::Vec3 target_pol = *params.target_pol;
-	part::Particles ps(target, beam, hadron, *params.mass_threshold);
+	part::Particles ps(target, beam, hadron, *params.Mth);
 	Real S = 2.*(*params.beam_energy)*ps.M;
 
 	kin::Initial init(ps, *params.beam_energy);
