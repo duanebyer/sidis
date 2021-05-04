@@ -444,7 +444,7 @@ void Params::write_root(TFile& file) const {
 	write_param_root(file, phi_cut);
 	write_param_root(file, Q_sq_cut);
 	write_param_root(file, t_cut);
-	write_param_root(file, w_cut);
+	write_param_root(file, W_sq_cut);
 	write_param_root(file, r_cut);
 	write_param_root(file, mx_sq_cut);
 	write_param_root(file, q_0_cut);
@@ -498,7 +498,7 @@ void Params::read_root(TFile& file) {
 	read_param_root(file, phi_cut);
 	read_param_root(file, Q_sq_cut);
 	read_param_root(file, t_cut);
-	read_param_root(file, w_cut);
+	read_param_root(file, W_sq_cut);
 	read_param_root(file, r_cut);
 	read_param_root(file, mx_sq_cut);
 	read_param_root(file, q_0_cut);
@@ -545,7 +545,7 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, phi_cut);
 	write_param_stream(file, Q_sq_cut);
 	write_param_stream(file, t_cut);
-	write_param_stream(file, w_cut);
+	write_param_stream(file, W_sq_cut);
 	write_param_stream(file, r_cut);
 	write_param_stream(file, mx_sq_cut);
 	write_param_stream(file, q_0_cut);
@@ -617,7 +617,7 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, phi_cut);
 	consume_param_from_map(map, Q_sq_cut);
 	consume_param_from_map(map, t_cut);
-	consume_param_from_map(map, w_cut);
+	consume_param_from_map(map, W_sq_cut);
 	consume_param_from_map(map, r_cut);
 	consume_param_from_map(map, mx_sq_cut);
 	consume_param_from_map(map, q_0_cut);
@@ -844,8 +844,8 @@ void Params::compatible_with_foam(Params const& foam_params) const {
 		throw std::runtime_error("Different cuts on Q².");
 	} else if (t_cut != foam_params.t_cut) {
 		throw std::runtime_error("Different cuts on t.");
-	} else if (w_cut != foam_params.w_cut) {
-		throw std::runtime_error("Different cuts on w.");
+	} else if (W_sq_cut != foam_params.W_sq_cut) {
+		throw std::runtime_error("Different cuts on W².");
 	} else if (r_cut != foam_params.r_cut) {
 		throw std::runtime_error("Different cuts on r.");
 	} else if (mx_sq_cut != foam_params.mx_sq_cut) {
@@ -907,7 +907,7 @@ bool Params::operator==(Params const& rhs) const {
 		&& phi_cut == rhs.phi_cut
 		&& Q_sq_cut == rhs.Q_sq_cut
 		&& t_cut == rhs.t_cut
-		&& w_cut == rhs.w_cut
+		&& W_sq_cut == rhs.W_sq_cut
 		&& r_cut == rhs.r_cut
 		&& mx_sq_cut == rhs.mx_sq_cut
 		&& q_0_cut == rhs.q_0_cut

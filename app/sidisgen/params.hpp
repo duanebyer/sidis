@@ -162,7 +162,7 @@ struct Params {
 	Param<sidis::math::Bound> phi_cut;
 	Param<sidis::math::Bound> Q_sq_cut;
 	Param<sidis::math::Bound> t_cut;
-	Param<sidis::math::Bound> w_cut;
+	Param<sidis::math::Bound> W_sq_cut;
 	Param<sidis::math::Bound> r_cut;
 	Param<sidis::math::Bound> mx_sq_cut;
 	Param<sidis::math::Bound> q_0_cut;
@@ -208,7 +208,7 @@ struct Params {
 		phi_cut("phi_cut"),
 		Q_sq_cut("Q_sq_cut"),
 		t_cut("t_cut"),
-		w_cut("w_cut"),
+		W_sq_cut("W_sq_cut"),
 		r_cut("r_cut"),
 		mx_sq_cut("mx_sq_cut"),
 		q_0_cut("q_0_cut"),

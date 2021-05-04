@@ -127,8 +127,8 @@ struct Kinematics {
 	/// Momentum transfer from virtual photon into hadron \f$t = (q - p_h)^2\f$.
 	Real t;
 	/// Center-of-mass energy of the virtual photon and hadron system
-	/// \f$w = (p + q)^2\f$.
-	Real w;
+	/// \f$W^2 = (p + q)^2\f$.
+	Real W_sq;
 	/// Related to energy of scattered lepton \f$X = 2 p k_2\f$.
 	Real X;
 	/// Related to energy of virtual photon \f$S_x = 2 p q\f$.
@@ -290,8 +290,8 @@ struct KinematicsRad {
 	Real Q;
 	/// \copydoc Kinematics::t
 	Real t;
-	/// \copydoc Kinematics::w
-	Real w;
+	/// \copydoc Kinematics::W_sq
+	Real W_sq;
 	/// \copydoc Kinematics::X
 	Real X;
 	/// \copydoc Kinematics::S_x
@@ -502,7 +502,7 @@ struct KinematicsRad {
 	Real shift_Q_sq;
 	Real shift_Q;
 	Real shift_t;
-	Real shift_w;
+	Real shift_W_sq;
 	Real shift_S_x;
 	Real shift_V_m;
 

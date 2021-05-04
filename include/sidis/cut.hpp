@@ -45,7 +45,7 @@ struct Cut {
 	/// \{
 	math::Bound Q_sq;
 	math::Bound t;
-	math::Bound w;
+	math::Bound W_sq;
 	math::Bound r;
 	/// \}
 

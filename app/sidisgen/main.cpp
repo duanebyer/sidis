@@ -82,7 +82,7 @@ void cuts(Params params, cut::Cut* cut_out, cut::CutRad* cut_rad_out) {
 		cut_out->phi = params.phi_cut.get_or(math::Bound::INVALID);
 		cut_out->Q_sq = params.Q_sq_cut.get_or(math::Bound::INVALID);
 		cut_out->t = params.t_cut.get_or(math::Bound::INVALID);
-		cut_out->w = params.w_cut.get_or(math::Bound::INVALID);
+		cut_out->W_sq = params.W_sq_cut.get_or(math::Bound::INVALID);
 		cut_out->r = params.r_cut.get_or(math::Bound::INVALID);
 		cut_out->mx_sq = params.mx_sq_cut.get_or(math::Bound::INVALID);
 		cut_out->q_0 = params.q_0_cut.get_or(math::Bound::INVALID);
@@ -422,7 +422,7 @@ int command_help_params() {
 		<< "R_cut          <min> <max>"                      << std::endl
 		<< "Q_sq_cut       <min> <max>"                      << std::endl
 		<< "t_cut          <min> <max>"                      << std::endl
-		<< "w_cut          <min> <max>"                      << std::endl
+		<< "W_sq_cut       <min> <max>"                      << std::endl
 		<< "r_cut          <min> <max>"                      << std::endl
 		<< "mx_sq_cut      <min> <max>"                      << std::endl
 		<< "q_0_cut        <min> <max>"                      << std::endl

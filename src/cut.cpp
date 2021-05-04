@@ -23,7 +23,7 @@ Cut::Cut() :
 	phi(Bound::INVALID),
 	Q_sq(Bound::INVALID),
 	t(Bound::INVALID),
-	w(Bound::INVALID),
+	W_sq(Bound::INVALID),
 	r(Bound::INVALID),
 	mx_sq(Bound::INVALID),
 	q_0(Bound::INVALID),
@@ -158,20 +158,20 @@ Bound cut::x_bound(Cut const& cut, Particles const& ps, Real S) {
 			cut.Q_sq.max()/(cut.Q_sq.max() + sq(ps.Mth + ps.mh) - sq(ps.M)));
 		result &= Q_sq;
 	}
-	if (cut.w.valid()) {
-		Real w_min = cut.w.min();
+	if (cut.W_sq.valid()) {
+		Real W_sq_min = cut.W_sq.min();
 		Real M = ps.M;
 		Real m = ps.m;
 		Real lambda_S = sq(S) - 4.*sq(M)*sq(m);
 
-		Real L = S - (w_min - sq(M));
-		Real denom = 2.*(lambda_S + sq(M)*(w_min - sq(M)));
-		Real a = lambda_S - S*(w_min - sq(M));
-		Real b = std::sqrt(lambda_S*(sq(L) - 4.*sq(m)*w_min));
+		Real L = S - (W_sq_min - sq(M));
+		Real denom = 2.*(lambda_S + sq(M)*(W_sq_min - sq(M)));
+		Real a = lambda_S - S*(W_sq_min - sq(M));
+		Real b = std::sqrt(lambda_S*(sq(L) - 4.*sq(m)*W_sq_min));
 		Real x_1 = (a - b)/denom;
 		Real x_2 = (a + b)/denom;
-		Bound w(x_1, x_2);
-		result &= w;
+		Bound W_sq(x_1, x_2);
+		result &= W_sq;
 	}
 	return result;
 }
@@ -184,9 +184,9 @@ Bound cut::y_bound(Cut const& cut, Particles const& ps, Real S, Real x) {
 		Bound Q_sq = cut.Q_sq/(S*x);
 		result &= Q_sq;
 	}
-	if (cut.w.valid()) {
-		Bound w = (cut.w - sq(ps.M))/((1. - x)*S);
-		result &= w;
+	if (cut.W_sq.valid()) {
+		Bound W_sq = (cut.W_sq - sq(ps.M))/((1. - x)*S);
+		result &= W_sq;
 	}
 	return result;
 }
@@ -310,7 +310,7 @@ bool cut::valid(Cut const& cut, Kinematics const& kin) {
 		return false;
 	} else if (cut.t.valid() && !cut.t.contains(kin.t)) {
 		return false;
-	} else if (cut.w.valid() && !cut.w.contains(kin.w)) {
+	} else if (cut.W_sq.valid() && !cut.W_sq.contains(kin.W_sq)) {
 		return false;
 	} else if (cut.r.valid() && !cut.r.contains(kin.V_2/kin.V_1)) {
 		return false;
