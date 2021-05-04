@@ -25,10 +25,20 @@ set(
 	Sidis_BUILD_APPS TRUE
 	CACHE BOOL
 	"should the apps (generator) be built")
+
+# Documentation is by default built if Latex was found.
+find_package(LATEX)
 set(
-	Sidis_BUILD_DOCS FALSE
+	Sidis_BUILD_DOCS ${LATEX_FOUND}
+	CACHE BOOL
+	"should the documentation be generated")
+# Doxygen documentation is by default built if Doxygen was found.
+find_package(Doxygen)
+set(
+	Sidis_BUILD_DOXYGEN ${DOXYGEN_FOUND}
 	CACHE BOOL
 	"should the Doxygen documentation be generated")
+
 set(
 	Sidis_REAL_TYPE "double"
 	CACHE STRING
@@ -42,7 +52,7 @@ set(IPO_SUPPORTED FALSE)
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.9)
 	include(CheckIPOSupported)
 	check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_OUTPUT)
-	if (NOT IPO_SUPPORTED)
+	if(NOT IPO_SUPPORTED)
 		message(WARNING "IPO not supported: ${IPO_OUTPUT}")
 	endif()
 endif()
