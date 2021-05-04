@@ -787,11 +787,50 @@ void Params::make_valid(bool strict) {
 	if (*gen_rad && *gen_nrad) {
 		if (tau_cut.occupied()
 				|| phi_k_cut.occupied()
+				|| R_cut.occupied()
 				|| k_0_cut.occupied()
 				|| theta_k_cut.occupied()) {
 			throw std::runtime_error(
 				"Cannot apply radiative cuts to non-radiative events.");
 		}
+	}
+	// Verify that cuts make sense. This isn't comprehensive, but is primarily
+	// important to avoid cuts on the azimuthal angles larger than 360 degrees.
+	if (strict && x_cut.occupied() && !Bound::UNIT.contains(*x_cut)) {
+		throw std::runtime_error(
+			"Cut on x must lie between 0 and 1.");
+	}
+	if (strict && y_cut.occupied() && !Bound::UNIT.contains(*y_cut)) {
+		throw std::runtime_error(
+			"Cut on y must lie between 0 and 1.");
+	}
+	if (strict && z_cut.occupied() && !Bound::UNIT.contains(*z_cut)) {
+		throw std::runtime_error(
+			"Cut on z must lie between 0 and 1.");
+	}
+	if (phi_h_cut.occupied() && phi_h_cut->size() >= 360.) {
+		throw std::runtime_error(
+			"Cut on φ_h must be smaller than 360 degrees.");
+	}
+	if (phi_cut.occupied() && phi_cut->size() >= 360.) {
+		throw std::runtime_error(
+			"Cut on φ must be smaller than 360 degrees.");
+	}
+	if (phi_k_cut.occupied() && phi_k_cut->size() >= 360.) {
+		throw std::runtime_error(
+			"Cut on φ_k must be smaller than 360 degrees.");
+	}
+	if (strict && theta_q_cut.occupied() && !Bound(0., 180.).contains(*theta_q_cut)) {
+		throw std::runtime_error(
+			"Cut on θ_q must lie between 0 and 180 degrees.");
+	}
+	if (strict && theta_h_cut.occupied() && !Bound(0., 180.).contains(*theta_h_cut)) {
+		throw std::runtime_error(
+			"Cut on θ_h must lie between 0 and 180 degrees.");
+	}
+	if (strict && theta_k_cut.occupied() && !Bound(0., 180.).contains(*theta_k_cut)) {
+		throw std::runtime_error(
+			"Cut on θ_k must lie between 0 and 180 degrees.");
 	}
 }
 
