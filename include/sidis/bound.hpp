@@ -53,6 +53,10 @@ public:
 	bool contains(Real x) const {
 		return _min <= x && x < _max;
 	}
+	/// Are both ends of \p bound contained within this Bound?
+	bool contains(Bound other) const {
+		return contains(other._min) && contains(other._max);
+	}
 	/// Linearly interpolate between the ends of the Bound with \p x in
 	/// \f$[0, 1)\f$.
 	Real lerp(Real x) const {
