@@ -922,7 +922,7 @@ void Params::compatible_with_foam(Params const& foam_params) const {
 		throw std::runtime_error("No radiative FOAM available.");
 	} else if (*sf_set != *foam_params.sf_set) {
 		throw std::runtime_error("Different SF set.");
-	} else if (*num_init < *foam_params.num_init) {
+	} else if (*num_init > *foam_params.num_init) {
 		throw std::runtime_error("Insufficient initialization sampling.");
 	} else if (*seed_init != 0 && *foam_params.seed_init != *seed_init) {
 		throw std::runtime_error("Different initialization seed.");
