@@ -909,8 +909,11 @@ void Params::make_valid() {
 }
 
 void Params::compatible_with_foam(Params const& foam_params) const {
+	// TODO: Consider getting rid of the minor version compatibility check, so
+	// that `sidisgen` will try its best to make technically "incompatible"
+	// versions work with one another.
 	if (version->v_major != foam_params.version->v_major
-			|| version->v_minor > foam_params.version->v_minor) {
+			|| version->v_minor < foam_params.version->v_minor) {
 		throw std::runtime_error("Incompatible versions.");
 	} else if (strict != foam_params.strict) {
 		throw std::runtime_error("Incompatible strictness levels.");
