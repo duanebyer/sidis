@@ -311,7 +311,6 @@ int command_inspect(char const* file_name) {
 	std::cout.flags(flags);
 	std::cout << std::endl;
 
-	std::vector<EventStats> stats[NUM_TYPES + 1];
 	TArrayD* xs = file.Get<TArrayD>("stats/xs");
 	TArrayD* xs_err = file.Get<TArrayD>("stats/xs_err");
 	TArrayD* norm = file.Get<TArrayD>("stats/norm");
@@ -879,7 +878,7 @@ int main(int argc, char** argv) {
 					"Expected target file and source file arguments.");
 			}
 			std::vector<char const*> files;
-			for (int idx; idx < argc; ++idx) {
+			for (int idx = 3; idx < argc; ++idx) {
 				files.push_back(argv[idx]);
 			}
 			return command_merge_hard(argv[2], files);
