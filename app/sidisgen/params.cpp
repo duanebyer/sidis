@@ -11,10 +11,13 @@
 
 #include <TArrayD.h>
 #include <TArrayI.h>
+#include <TDirectory.h>
 #include <TObjString.h>
 #include <TParameter.h>
 #include <TString.h>
 #include <TVector3.h>
+
+#include "exception.hpp"
 
 using namespace sidis;
 using namespace sidis::math;
@@ -23,9 +26,9 @@ namespace {
 
 template<typename T, typename=void>
 struct RootParser {
-	static void write_root(TFile&, Param<T> const&) {
+	static void write_root_dir(TDirectory&, Param<T> const&) {
 	}
-	static void read_root(TFile&, Param<T>&) {
+	static void read_root_dir(TDirectory&, Param<T>&) {
 	}
 };
 
@@ -46,14 +49,14 @@ std::string trim_comment(std::string str) {
 }
 
 template<typename T>
-void write_param_root(TFile& file, Param<T> const& param) {
+void write_param_root_dir(TDirectory& file, Param<T> const& param) {
 	if (param.occupied()) {
-		RootParser<T>::write_root(file, param);
+		RootParser<T>::write_root_dir(file, param);
 	}
 }
 template<typename T>
-void read_param_root(TFile& file, Param<T>& param) {
-	RootParser<T>::read_root(file, param);
+void read_param_root_dir(TDirectory& file, Param<T>& param) {
+	RootParser<T>::read_root_dir(file, param);
 }
 
 template<typename T>
@@ -121,7 +124,7 @@ void consume_param_from_map(
 // Version.
 template<>
 struct RootParser<Version> {
-	static void write_root(TFile& file, Param<Version> const& param) {
+	static void write_root_dir(TDirectory& file, Param<Version> const& param) {
 		Int_t vals[2] = { param->v_major, param->v_minor };
 		TArrayI object(2, vals);
 		Int_t result = file.WriteObject<TArrayI>(&object, param.name());
@@ -131,7 +134,7 @@ struct RootParser<Version> {
 				+ param.name() + "' to ROOT file.");
 		}
 	}
-	static void read_root(TFile& file, Param<Version>& param) {
+	static void read_root_dir(TDirectory& file, Param<Version>& param) {
 		auto* object = file.Get<TArrayI>(param.name());
 		if (object != nullptr && object->GetSize() == 2) {
 			param.reset(Version(object->At(0), object->At(1)));
@@ -143,7 +146,7 @@ struct RootParser<Version> {
 // Toggle.
 template<>
 struct RootParser<Toggle> {
-	static void write_root(TFile& file, Param<Toggle> const& param) {
+	static void write_root_dir(TDirectory& file, Param<Toggle> const& param) {
 		TParameter<Bool_t> object("", *param);
 		Int_t result = file.WriteObject<TParameter<Bool_t> >(&object, param.name());
 		if (result == 0) {
@@ -152,7 +155,7 @@ struct RootParser<Toggle> {
 				+ param.name() + "' to ROOT file.");
 		}
 	}
-	static void read_root(TFile& file, Param<Toggle>& param) {
+	static void read_root_dir(TDirectory& file, Param<Toggle>& param) {
 		auto* object = file.Get<TParameter<Bool_t> >(param.name());
 		if (object != nullptr) {
 			param.reset(object->GetVal());
@@ -164,7 +167,7 @@ struct RootParser<Toggle> {
 // Number types.
 template<typename T>
 struct RootParser<T, typename std::enable_if<std::is_arithmetic<T>::value>::type> {
-	static void write_root(TFile& file, Param<T> const& param) {
+	static void write_root_dir(TDirectory& file, Param<T> const& param) {
 		TParameter<T> object("", *param);
 		Int_t result = file.WriteObject<TParameter<T> >(&object, param.name());
 		if (result == 0) {
@@ -173,7 +176,7 @@ struct RootParser<T, typename std::enable_if<std::is_arithmetic<T>::value>::type
 				+ param.name() + "' to ROOT file.");
 		}
 	}
-	static void read_root(TFile& file, Param<T>& param) {
+	static void read_root_dir(TDirectory& file, Param<T>& param) {
 		auto* object = file.Get<TParameter<T> >(param.name());
 		if (object != nullptr) {
 			param.reset(object->GetVal());
@@ -190,7 +193,7 @@ using is_scoped_enum = std::integral_constant<
 template<typename T>
 struct RootParser<T, typename std::enable_if<is_scoped_enum<T>::value>::type> {
 	using Integral = typename std::underlying_type<T>::type;
-	static void write_root(TFile& file, Param<T> const& param) {
+	static void write_root_dir(TDirectory& file, Param<T> const& param) {
 		TParameter<Integral> object("", static_cast<Integral>(*param));
 		Int_t result = file.WriteObject<decltype(object)>(&object, param.name());
 		if (result == 0) {
@@ -199,7 +202,7 @@ struct RootParser<T, typename std::enable_if<is_scoped_enum<T>::value>::type> {
 				+ param.name() + "' to ROOT file.");
 		}
 	}
-	static void read_root(TFile& file, Param<T>& param) {
+	static void read_root_dir(TDirectory& file, Param<T>& param) {
 		auto object = file.Get<TParameter<Integral> >(param.name());
 		if (object != nullptr) {
 			param.reset(static_cast<T>(object->GetVal()));
@@ -211,7 +214,7 @@ struct RootParser<T, typename std::enable_if<is_scoped_enum<T>::value>::type> {
 // Strings.
 template<>
 struct RootParser<std::string> {
-	static void write_root(TFile& file, Param<std::string> const& param) {
+	static void write_root_dir(TDirectory& file, Param<std::string> const& param) {
 		TObjString object(param->c_str());
 		Int_t result = file.WriteObject<TObjString>(&object, param.name());
 		if (result == 0) {
@@ -220,7 +223,7 @@ struct RootParser<std::string> {
 				+ param.name() + "' to ROOT file.");
 		}
 	}
-	static void read_root(TFile& file, Param<std::string>& param) {
+	static void read_root_dir(TDirectory& file, Param<std::string>& param) {
 		auto object = file.Get<TObjString>(param.name());
 		if (object != nullptr) {
 			param.reset(object->GetString().Data());
@@ -232,7 +235,7 @@ struct RootParser<std::string> {
 // Math types.
 template<>
 struct RootParser<Vec3> {
-	static void write_root(TFile& file, Param<Vec3> const& param) {
+	static void write_root_dir(TDirectory& file, Param<Vec3> const& param) {
 		TVector3 object(param->x, param->y, param->z);
 		Int_t result = file.WriteObject<TVector3>(&object, param.name());
 		if (result == 0) {
@@ -241,7 +244,7 @@ struct RootParser<Vec3> {
 				+ param.name() + "' to ROOT file.");
 		}
 	}
-	static void read_root(TFile& file, Param<Vec3>& param) {
+	static void read_root_dir(TDirectory& file, Param<Vec3>& param) {
 		auto object = file.Get<TVector3>(param.name());
 		if (object != nullptr) {
 			param.reset(Vec3(object->X(), object->Y(), object->Z()));
@@ -252,7 +255,7 @@ struct RootParser<Vec3> {
 };
 template<>
 struct RootParser<Bound> {
-	static void write_root(TFile& file, Param<Bound> const& param) {
+	static void write_root_dir(TDirectory& file, Param<Bound> const& param) {
 		Double_t vals[2] = { param->min(), param->max() };
 		TArrayD object(2, vals);
 		Int_t result = file.WriteObject<TArrayD>(&object, param.name());
@@ -262,7 +265,7 @@ struct RootParser<Bound> {
 				+ param.name() + "' to ROOT file.");
 		}
 	}
-	static void read_root(TFile& file, Param<Bound>& param) {
+	static void read_root_dir(TDirectory& file, Param<Bound>& param) {
 		auto object = file.Get<TArrayD>(param.name());
 		if (object != nullptr && object->GetSize() == 2 && object->At(0) <= object->At(1)) {
 			param.reset(Bound(object->At(0), object->At(1)));
@@ -448,59 +451,156 @@ std::istream& operator>>(std::istream& is, Bound& bounds) {
 	return is;
 }
 
+// Common part to `compatible_with_foam` and `compatible_with_event`.
+void compatible_common(Params const& p1, Params const& p2) {
+	if (p1.version->v_major != p2.version->v_major) {
+		throw std::runtime_error("Incompatible versions.");
+	} else if (*p1.rc_method != *p2.rc_method) {
+		throw std::runtime_error("Different rc methods.");
+	} else if (*p1.sf_set != *p2.sf_set) {
+		throw std::runtime_error("Different sf set.");
+	} else if (*p1.beam_energy != *p2.beam_energy) {
+		throw std::runtime_error("Different beam energies.");
+	} else if (*p1.beam != *p2.beam) {
+		throw std::runtime_error("Different beam lepton type.");
+	} else if (*p1.target != *p2.target) {
+		throw std::runtime_error("Different target nucleus type.");
+	} else if (*p1.hadron != *p2.hadron) {
+		throw std::runtime_error("Different leading hadron type.");
+	} else if (*p1.Mth != *p2.Mth) {
+		throw std::runtime_error("Different mass thresholds.");
+	} else if (*p1.target_pol != *p2.target_pol) {
+		throw std::runtime_error("Different target polarizations.");
+	} else if (*p1.beam_pol != *p2.beam_pol) {
+		throw std::runtime_error("Different beam polarizations.");
+	} else if ((*p1.rc_method == RcMethod::APPROX || *p1.rc_method == RcMethod::EXACT)
+			&& *p1.k_0_bar != *p2.k_0_bar) {
+		throw std::runtime_error("Different soft photon cutoffs.");
+	} else if (p1.x_cut.get_or(Bound::UNIT) != p2.x_cut.get_or(Bound::UNIT)) {
+		throw std::runtime_error("Different cuts on x.");
+	} else if (p1.y_cut.get_or(Bound::UNIT) != p2.y_cut.get_or(Bound::UNIT)) {
+		throw std::runtime_error("Different cuts on y.");
+	} else if (p1.z_cut.get_or(Bound::UNIT) != p2.z_cut.get_or(Bound::UNIT)) {
+		throw std::runtime_error("Different cuts on z.");
+	} else if (p1.ph_t_sq_cut != p2.ph_t_sq_cut) {
+		throw std::runtime_error("Different cuts on ph_t².");
+	} else if (p1.phi_h_cut != p2.phi_h_cut) {
+		throw std::runtime_error("Different cuts on φ_h.");
+	} else if (p1.phi_cut != p2.phi_cut) {
+		throw std::runtime_error("Different cuts on φ.");
+	} else if (p1.Q_sq_cut != p2.Q_sq_cut) {
+		throw std::runtime_error("Different cuts on Q².");
+	} else if (p1.t_cut != p2.t_cut) {
+		throw std::runtime_error("Different cuts on t.");
+	} else if (p1.W_sq_cut != p2.W_sq_cut) {
+		throw std::runtime_error("Different cuts on W².");
+	} else if (p1.r_cut != p2.r_cut) {
+		throw std::runtime_error("Different cuts on r.");
+	} else if (p1.mx_sq_cut != p2.mx_sq_cut) {
+		throw std::runtime_error("Different cuts on mx².");
+	} else if (p1.q_0_cut != p2.q_0_cut) {
+		throw std::runtime_error("Different cuts on q_0.");
+	} else if (p1.k2_0_cut != p2.k2_0_cut) {
+		throw std::runtime_error("Different cuts on k2_0.");
+	} else if (p1.ph_0_cut != p2.ph_0_cut) {
+		throw std::runtime_error("Different cuts on ph_0.");
+	} else if (p1.theta_q_cut != p2.theta_q_cut) {
+		throw std::runtime_error("Different cuts on θ_q.");
+	} else if (p1.theta_k2_cut != p2.theta_k2_cut) {
+		throw std::runtime_error("Different cuts on θ_k2.");
+	} else if (p1.theta_h_cut != p2.theta_h_cut) {
+		throw std::runtime_error("Different cuts on θ_h.");
+	}
+}
+
+void compatible_common_rad(Params const& p1, Params const& p2) {
+	if (*p1.gen_rad && *p2.gen_rad) {
+		if (p1.tau_cut != p2.tau_cut) {
+			throw std::runtime_error("Different cuts on τ.");
+		} else if (p1.phi_k_cut != p2.phi_k_cut) {
+			throw std::runtime_error("Different cuts on φ_k.");
+		} else if (p1.R_cut != p2.R_cut) {
+			throw std::runtime_error("Different cuts on R.");
+		} else if (p1.k_0_bar_cut != p2.k_0_bar_cut) {
+			throw std::runtime_error(
+				std::string("Different '") + p1.k_0_bar_cut.name() + "'.");
+		} else if (p1.k_0_cut != p2.k_0_cut) {
+			throw std::runtime_error(
+				std::string("Different '") + p1.k_0_cut.name() + "'.");
+		} else if (p1.theta_k_cut != p2.theta_k_cut) {
+			throw std::runtime_error("Different cuts on θ_k.");
+		}
+	}
+}
+
 }
 
 void Params::write_root(TFile& file) const {
-	file.cd();
-	write_param_root(file, version);
-	write_param_root(file, strict);
-	write_param_root(file, event_file);
-	write_param_root(file, rc_method);
-	write_param_root(file, gen_nrad);
-	write_param_root(file, gen_rad);
-	write_param_root(file, write_photon);
-	write_param_root(file, foam_nrad_file);
-	write_param_root(file, foam_rad_file);
-	write_param_root(file, sf_set);
-	write_param_root(file, num_events);
-	write_param_root(file, num_init);
-	write_param_root(file, seed);
-	write_param_root(file, seed_init);
-	write_param_root(file, beam_energy);
-	write_param_root(file, beam);
-	write_param_root(file, target);
-	write_param_root(file, hadron);
-	write_param_root(file, Mth);
-	write_param_root(file, target_pol);
-	write_param_root(file, beam_pol);
-	write_param_root(file, k_0_bar);
-	write_param_root(file, x_cut);
-	write_param_root(file, y_cut);
-	write_param_root(file, z_cut);
-	write_param_root(file, ph_t_sq_cut);
-	write_param_root(file, phi_h_cut);
-	write_param_root(file, phi_cut);
-	write_param_root(file, Q_sq_cut);
-	write_param_root(file, t_cut);
-	write_param_root(file, W_sq_cut);
-	write_param_root(file, r_cut);
-	write_param_root(file, mx_sq_cut);
-	write_param_root(file, q_0_cut);
-	write_param_root(file, k2_0_cut);
-	write_param_root(file, ph_0_cut);
-	write_param_root(file, theta_q_cut);
-	write_param_root(file, theta_k2_cut);
-	write_param_root(file, theta_h_cut);
-	write_param_root(file, tau_cut);
-	write_param_root(file, phi_k_cut);
-	write_param_root(file, R_cut);
-	write_param_root(file, k_0_bar_cut);
-	write_param_root(file, k_0_cut);
-	write_param_root(file, theta_k_cut);
+	TDirectory* dir = file.mkdir("params", "params");
+	if (dir == nullptr) {
+		throw Exception(
+			ERROR_FILE_NOT_CREATED,
+			std::string("Couldn't create directory 'params' in ROOT file."));
+	}
+	dir->cd();
+	write_param_root_dir(*dir, version);
+	write_param_root_dir(*dir, strict);
+	write_param_root_dir(*dir, event_file);
+	write_param_root_dir(*dir, rc_method);
+	write_param_root_dir(*dir, gen_nrad);
+	write_param_root_dir(*dir, gen_rad);
+	write_param_root_dir(*dir, write_momenta);
+	write_param_root_dir(*dir, write_photon);
+	write_param_root_dir(*dir, foam_nrad_file);
+	write_param_root_dir(*dir, foam_rad_file);
+	write_param_root_dir(*dir, sf_set);
+	write_param_root_dir(*dir, num_events);
+	write_param_root_dir(*dir, num_init);
+	write_param_root_dir(*dir, num_cells);
+	write_param_root_dir(*dir, rej_weight);
+	write_param_root_dir(*dir, seed);
+	write_param_root_dir(*dir, seed_init);
+	write_param_root_dir(*dir, beam_energy);
+	write_param_root_dir(*dir, beam);
+	write_param_root_dir(*dir, target);
+	write_param_root_dir(*dir, hadron);
+	write_param_root_dir(*dir, Mth);
+	write_param_root_dir(*dir, target_pol);
+	write_param_root_dir(*dir, beam_pol);
+	write_param_root_dir(*dir, k_0_bar);
+	write_param_root_dir(*dir, x_cut);
+	write_param_root_dir(*dir, y_cut);
+	write_param_root_dir(*dir, z_cut);
+	write_param_root_dir(*dir, ph_t_sq_cut);
+	write_param_root_dir(*dir, phi_h_cut);
+	write_param_root_dir(*dir, phi_cut);
+	write_param_root_dir(*dir, Q_sq_cut);
+	write_param_root_dir(*dir, t_cut);
+	write_param_root_dir(*dir, W_sq_cut);
+	write_param_root_dir(*dir, r_cut);
+	write_param_root_dir(*dir, mx_sq_cut);
+	write_param_root_dir(*dir, q_0_cut);
+	write_param_root_dir(*dir, k2_0_cut);
+	write_param_root_dir(*dir, ph_0_cut);
+	write_param_root_dir(*dir, theta_q_cut);
+	write_param_root_dir(*dir, theta_k2_cut);
+	write_param_root_dir(*dir, theta_h_cut);
+	write_param_root_dir(*dir, tau_cut);
+	write_param_root_dir(*dir, phi_k_cut);
+	write_param_root_dir(*dir, R_cut);
+	write_param_root_dir(*dir, k_0_bar_cut);
+	write_param_root_dir(*dir, k_0_cut);
+	write_param_root_dir(*dir, theta_k_cut);
 }
 
 void Params::read_root(TFile& file) {
-	read_param_root(file, version);
+	TDirectory* dir = file.Get<TDirectory>("params");
+	if (dir == nullptr) {
+		throw Exception(
+			ERROR_FILE_NOT_FOUND,
+			std::string("Couldn't find directory 'params' in ROOT file."));
+	}
+	read_param_root_dir(*dir, version);
 	if (version->v_major != SIDIS_PARAMS_VERSION_MAJOR
 			|| version->v_minor > SIDIS_PARAMS_VERSION_MINOR) {
 		throw std::runtime_error(
@@ -508,50 +608,53 @@ void Params::read_root(TFile& file) {
 			+ std::to_string(version->v_major) + "."
 			+ std::to_string(version->v_minor) + ".");
 	}
-	read_param_root(file, strict);
-	read_param_root(file, event_file);
-	read_param_root(file, rc_method);
-	read_param_root(file, gen_nrad);
-	read_param_root(file, gen_rad);
-	read_param_root(file, write_photon);
-	read_param_root(file, foam_nrad_file);
-	read_param_root(file, foam_rad_file);
-	read_param_root(file, sf_set);
-	read_param_root(file, num_events);
-	read_param_root(file, num_init);
-	read_param_root(file, seed);
-	read_param_root(file, seed_init);
-	read_param_root(file, beam_energy);
-	read_param_root(file, beam);
-	read_param_root(file, target);
-	read_param_root(file, hadron);
-	read_param_root(file, Mth);
-	read_param_root(file, target_pol);
-	read_param_root(file, beam_pol);
-	read_param_root(file, k_0_bar);
-	read_param_root(file, x_cut);
-	read_param_root(file, y_cut);
-	read_param_root(file, z_cut);
-	read_param_root(file, ph_t_sq_cut);
-	read_param_root(file, phi_h_cut);
-	read_param_root(file, phi_cut);
-	read_param_root(file, Q_sq_cut);
-	read_param_root(file, t_cut);
-	read_param_root(file, W_sq_cut);
-	read_param_root(file, r_cut);
-	read_param_root(file, mx_sq_cut);
-	read_param_root(file, q_0_cut);
-	read_param_root(file, k2_0_cut);
-	read_param_root(file, ph_0_cut);
-	read_param_root(file, theta_q_cut);
-	read_param_root(file, theta_k2_cut);
-	read_param_root(file, theta_h_cut);
-	read_param_root(file, tau_cut);
-	read_param_root(file, phi_k_cut);
-	read_param_root(file, R_cut);
-	read_param_root(file, k_0_bar_cut);
-	read_param_root(file, k_0_cut);
-	read_param_root(file, theta_k_cut);
+	read_param_root_dir(*dir, strict);
+	read_param_root_dir(*dir, event_file);
+	read_param_root_dir(*dir, rc_method);
+	read_param_root_dir(*dir, gen_nrad);
+	read_param_root_dir(*dir, gen_rad);
+	read_param_root_dir(*dir, write_momenta);
+	read_param_root_dir(*dir, write_photon);
+	read_param_root_dir(*dir, foam_nrad_file);
+	read_param_root_dir(*dir, foam_rad_file);
+	read_param_root_dir(*dir, sf_set);
+	read_param_root_dir(*dir, num_events);
+	read_param_root_dir(*dir, num_init);
+	read_param_root_dir(*dir, num_cells);
+	read_param_root_dir(*dir, rej_weight);
+	read_param_root_dir(*dir, seed);
+	read_param_root_dir(*dir, seed_init);
+	read_param_root_dir(*dir, beam_energy);
+	read_param_root_dir(*dir, beam);
+	read_param_root_dir(*dir, target);
+	read_param_root_dir(*dir, hadron);
+	read_param_root_dir(*dir, Mth);
+	read_param_root_dir(*dir, target_pol);
+	read_param_root_dir(*dir, beam_pol);
+	read_param_root_dir(*dir, k_0_bar);
+	read_param_root_dir(*dir, x_cut);
+	read_param_root_dir(*dir, y_cut);
+	read_param_root_dir(*dir, z_cut);
+	read_param_root_dir(*dir, ph_t_sq_cut);
+	read_param_root_dir(*dir, phi_h_cut);
+	read_param_root_dir(*dir, phi_cut);
+	read_param_root_dir(*dir, Q_sq_cut);
+	read_param_root_dir(*dir, t_cut);
+	read_param_root_dir(*dir, W_sq_cut);
+	read_param_root_dir(*dir, r_cut);
+	read_param_root_dir(*dir, mx_sq_cut);
+	read_param_root_dir(*dir, q_0_cut);
+	read_param_root_dir(*dir, k2_0_cut);
+	read_param_root_dir(*dir, ph_0_cut);
+	read_param_root_dir(*dir, theta_q_cut);
+	read_param_root_dir(*dir, theta_k2_cut);
+	read_param_root_dir(*dir, theta_h_cut);
+	read_param_root_dir(*dir, tau_cut);
+	read_param_root_dir(*dir, phi_k_cut);
+	read_param_root_dir(*dir, R_cut);
+	read_param_root_dir(*dir, k_0_bar_cut);
+	read_param_root_dir(*dir, k_0_cut);
+	read_param_root_dir(*dir, theta_k_cut);
 }
 
 void Params::write_stream(std::ostream& file) const {
@@ -561,12 +664,15 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, rc_method);
 	write_param_stream(file, gen_nrad);
 	write_param_stream(file, gen_rad);
+	write_param_stream(file, write_momenta);
 	write_param_stream(file, write_photon);
 	write_param_stream(file, foam_nrad_file);
 	write_param_stream(file, foam_rad_file);
 	write_param_stream(file, sf_set);
 	write_param_stream(file, num_events);
 	write_param_stream(file, num_init);
+	write_param_stream(file, num_cells);
+	write_param_stream(file, rej_weight);
 	write_param_stream(file, seed);
 	write_param_stream(file, seed_init);
 	write_param_stream(file, beam_energy);
@@ -634,12 +740,15 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, rc_method);
 	consume_param_from_map(map, gen_nrad);
 	consume_param_from_map(map, gen_rad);
+	consume_param_from_map(map, write_momenta);
 	consume_param_from_map(map, write_photon);
 	consume_param_from_map(map, foam_nrad_file);
 	consume_param_from_map(map, foam_rad_file);
 	consume_param_from_map(map, sf_set);
 	consume_param_from_map(map, num_events);
 	consume_param_from_map(map, num_init);
+	consume_param_from_map(map, num_cells);
+	consume_param_from_map(map, rej_weight);
 	consume_param_from_map(map, seed);
 	consume_param_from_map(map, seed_init);
 	consume_param_from_map(map, beam_energy);
@@ -730,10 +839,13 @@ void Params::make_valid() {
 	event_file.get_or_insert("gen.root");
 	rc_method.get_or_insert(RcMethod::APPROX);
 	num_init.get_or_insert(1000);
+	num_cells.get_or_insert(1000);
+	rej_weight.get_or_insert(1.1);
 	seed.get_or_insert(0);
 	seed_init.get_or_insert(0);
 	target_pol.get_or_insert(Vec3::ZERO);
 	beam_pol.get_or_insert(0.);
+	write_momenta.get_or_insert(true);
 	// RC methods.
 	// The process for determining whether radiative and non-radiative events
 	// are generated looks something like this:
@@ -827,7 +939,19 @@ void Params::make_valid() {
 	}
 	if (*gen_rad) {
 		foam_rad_file.get_or_insert("foam-rad.root");
-		write_photon.get_or_insert(true);
+		if (write_momenta.occupied() && *write_momenta) {
+			write_photon.get_or_insert(true);
+		} else {
+			if (write_photon.occupied() && *write_photon) {
+				if (*strict) {
+					throw std::runtime_error(
+						std::string("Cannot enable '") + write_photon.name()
+						+ "' when '" + write_momenta.name() + "' is disabled.");
+				} else {
+					write_photon.reset(false);
+				}
+			}
+		}
 	} else {
 		if (foam_rad_file.occupied()) {
 			if (*strict) {
@@ -838,7 +962,7 @@ void Params::make_valid() {
 				foam_rad_file.reset();
 			}
 		}
-		if (write_photon.occupied()) {
+		if (write_photon.occupied() && *write_photon) {
 			if (*strict) {
 				throw std::runtime_error(
 					std::string("Cannot enable '") + write_photon.name()
@@ -908,90 +1032,70 @@ void Params::make_valid() {
 	}
 }
 
-void Params::compatible_with_foam(Params const& foam_params) const {
-	// TODO: Consider getting rid of the minor version compatibility check, so
-	// that `sidisgen` will try its best to make technically "incompatible"
-	// versions work with one another.
-	if (version->v_major != foam_params.version->v_major
-			|| version->v_minor < foam_params.version->v_minor) {
-		throw std::runtime_error("Incompatible versions.");
-	} else if (strict != foam_params.strict) {
+void Params::compatible_with_foam(EventType type, Params const& foam_params) const {
+	if (strict && !foam_params.strict) {
 		throw std::runtime_error("Incompatible strictness levels.");
-	} else if (*foam_params.rc_method != *rc_method) {
-		throw std::runtime_error("Different RC methods.");
-	} else if (*gen_nrad && !*foam_params.gen_nrad) {
+	} else if (type == EventType::NRAD && *gen_nrad && !*foam_params.gen_nrad) {
 		throw std::runtime_error("No non-radiative FOAM available.");
-	} else if (*gen_rad && !*foam_params.gen_rad) {
+	} else if (type == EventType::RAD && *gen_rad && !*foam_params.gen_rad) {
 		throw std::runtime_error("No radiative FOAM available.");
-	} else if (*sf_set != *foam_params.sf_set) {
-		throw std::runtime_error("Different SF set.");
 	} else if (*num_init > *foam_params.num_init) {
-		throw std::runtime_error("Insufficient initialization sampling.");
+		throw std::runtime_error("Insufficient initialization samples for FOAM.");
+	} else if (*num_cells > *foam_params.num_cells) {
+		throw std::runtime_error("Insufficient number of cells in FOAM.");
 	} else if (*seed_init != 0 && *foam_params.seed_init != *seed_init) {
 		throw std::runtime_error("Different initialization seed.");
-	} else if (*beam_energy != *foam_params.beam_energy) {
-		throw std::runtime_error("Different beam energies.");
-	} else if (*beam != *foam_params.beam) {
-		throw std::runtime_error("Different beam lepton type.");
-	} else if (*target != *foam_params.target) {
-		throw std::runtime_error("Different target nucleus type.");
-	} else if (*hadron != *foam_params.hadron) {
-		throw std::runtime_error("Different leading hadron type.");
-	} else if (*Mth != *foam_params.Mth) {
-		throw std::runtime_error("Different mass thresholds.");
-	} else if (*target_pol != *foam_params.target_pol) {
-		throw std::runtime_error("Different target polarizations.");
-	} else if (*beam_pol != *foam_params.beam_pol) {
-		throw std::runtime_error("Different beam polarizations.");
-	} else if ((*rc_method == RcMethod::APPROX || *rc_method == RcMethod::EXACT)
-			&& *k_0_bar != *foam_params.k_0_bar) {
-		throw std::runtime_error("Different soft photon cutoffs.");
-	} else if (x_cut.get_or(Bound::UNIT) != foam_params.x_cut.get_or(Bound::UNIT)) {
-		throw std::runtime_error("Different cuts on x.");
-	} else if (y_cut.get_or(Bound::UNIT) != foam_params.y_cut.get_or(Bound::UNIT)) {
-		throw std::runtime_error("Different cuts on y.");
-	} else if (z_cut.get_or(Bound::UNIT) != foam_params.z_cut.get_or(Bound::UNIT)) {
-		throw std::runtime_error("Different cuts on z.");
-	} else if (ph_t_sq_cut != foam_params.ph_t_sq_cut) {
-		throw std::runtime_error("Different cuts on ph_t².");
-	} else if (phi_h_cut != foam_params.phi_h_cut) {
-		throw std::runtime_error("Different cuts on φ_h.");
-	} else if (phi_cut != foam_params.phi_cut) {
-		throw std::runtime_error("Different cuts on φ.");
-	} else if (Q_sq_cut != foam_params.Q_sq_cut) {
-		throw std::runtime_error("Different cuts on Q².");
-	} else if (t_cut != foam_params.t_cut) {
-		throw std::runtime_error("Different cuts on t.");
-	} else if (W_sq_cut != foam_params.W_sq_cut) {
-		throw std::runtime_error("Different cuts on W².");
-	} else if (r_cut != foam_params.r_cut) {
-		throw std::runtime_error("Different cuts on r.");
-	} else if (mx_sq_cut != foam_params.mx_sq_cut) {
-		throw std::runtime_error("Different cuts on mx².");
-	} else if (q_0_cut != foam_params.q_0_cut) {
-		throw std::runtime_error("Different cuts on q_0.");
-	} else if (k2_0_cut != foam_params.k2_0_cut) {
-		throw std::runtime_error("Different cuts on k2_0.");
-	} else if (ph_0_cut != foam_params.ph_0_cut) {
-		throw std::runtime_error("Different cuts on ph_0.");
-	} else if (theta_q_cut != foam_params.theta_q_cut) {
-		throw std::runtime_error("Different cuts on θ_q.");
-	} else if (theta_k2_cut != foam_params.theta_k2_cut) {
-		throw std::runtime_error("Different cuts on θ_k2.");
-	} else if (theta_h_cut != foam_params.theta_h_cut) {
-		throw std::runtime_error("Different cuts on θ_h.");
-	} else if (*gen_rad && tau_cut != foam_params.tau_cut) {
-		throw std::runtime_error("Different cuts on τ.");
-	} else if (*gen_rad && phi_k_cut != foam_params.phi_k_cut) {
-		throw std::runtime_error("Different cuts on φ_k.");
-	} else if (*gen_rad && R_cut != foam_params.R_cut) {
-		throw std::runtime_error("Different cuts on R.");
-	} else if (*gen_rad && k_0_bar_cut != foam_params.k_0_bar_cut) {
-		throw std::runtime_error("Different cuts on radiated photon energy.");
-	} else if (*gen_rad && k_0_cut != foam_params.k_0_cut) {
-		throw std::runtime_error("Different cuts on radiated photon energy.");
-	} else if (*gen_rad && theta_k_cut != foam_params.theta_k_cut) {
-		throw std::runtime_error("Different cuts on radiated photon energy.");
+	} else if (type == EventType::NRAD && *gen_nrad && !*foam_params.gen_nrad) {
+		throw std::runtime_error("FOAM doesn't support non-radiative events.");
+	} else if (type == EventType::RAD && *gen_rad && !*foam_params.gen_rad) {
+		throw std::runtime_error("FOAM doesn't support radiative events.");
+	}
+	compatible_common(*this, foam_params);
+	if (type == EventType::RAD) {
+		compatible_common_rad(*this, foam_params);
+	}
+}
+
+void Params::compatible_with_event(Params const& params) const {
+	if (*seed == *params.seed && *seed != 0) {
+		throw std::runtime_error("Can't merge parameters with same seed.");
+	}
+	compatible_common(*this, params);
+	compatible_common_rad(*this, params);
+}
+
+void Params::merge(Params const& params) {
+	compatible_with_event(params);
+	version->v_minor = std::max(version->v_minor, params.version->v_minor);
+	*strict = *strict && *params.strict;
+	event_file.reset("<undefined>");
+	*gen_nrad = *gen_nrad || *params.gen_nrad;
+	*gen_rad = *gen_rad || *params.gen_rad;
+	*write_momenta = *write_momenta && *params.write_momenta;
+	*write_photon = *write_photon && *params.write_photon;
+	if (foam_nrad_file != params.foam_nrad_file) {
+		foam_nrad_file.reset("<undefined>");
+	}
+	if (foam_rad_file != params.foam_rad_file) {
+		foam_rad_file.reset("<undefined>");
+	}
+	*num_events += *params.num_events;
+	*num_init = std::min(*num_init, *params.num_init);
+	*num_cells = std::min(*num_cells, *params.num_cells);
+	if (rej_weight != params.rej_weight) {
+		rej_weight.reset(0.);
+	}
+	*seed = 0;
+	if (seed_init != params.seed_init) {
+		seed_init.reset(0.);
+	}
+	if (*gen_rad ^ *params.gen_rad) {
+		tau_cut.take_first(params.tau_cut);
+		phi_k_cut.take_first(params.phi_k_cut);
+		R_cut.take_first(params.R_cut);
+		k_0_bar_cut.take_first(params.k_0_bar_cut);
+		k_0_cut.take_first(params.k_0_cut);
+		theta_k_cut.take_first(params.theta_k_cut);
 	}
 }
 
@@ -1002,12 +1106,15 @@ bool Params::operator==(Params const& rhs) const {
 		&& rc_method == rhs.rc_method
 		&& gen_nrad == rhs.gen_nrad
 		&& gen_rad == rhs.gen_rad
+		&& write_momenta == rhs.write_momenta
 		&& write_photon == rhs.write_photon
 		&& foam_nrad_file == rhs.foam_nrad_file
 		&& foam_rad_file == rhs.foam_rad_file
 		&& sf_set == rhs.sf_set
 		&& num_events == rhs.num_events
 		&& num_init == rhs.num_init
+		&& num_cells == rhs.num_cells
+		&& rej_weight == rhs.rej_weight
 		&& seed == rhs.seed
 		&& seed_init == rhs.seed_init
 		&& beam_energy == rhs.beam_energy

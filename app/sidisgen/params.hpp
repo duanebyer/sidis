@@ -10,11 +10,13 @@
 
 #include <sidis/sidis.hpp>
 
+#include "event_stats.hpp"
+
 // Within a major version, there is forward compatibility (e.x. 1.4 is
 // forward-compatible with 1.5). Between major versions, there is no
 // compatibility.
 #define SIDIS_PARAMS_VERSION_MAJOR 2
-#define SIDIS_PARAMS_VERSION_MINOR 0
+#define SIDIS_PARAMS_VERSION_MINOR 1
 
 struct Toggle {
 	bool on;
@@ -51,7 +53,7 @@ struct Version {
 // optional value.
 template<typename T>
 class Param {
-	std::string const _name;
+	std::string _name;
 	T _value;
 	bool _occupied;
 
@@ -107,6 +109,14 @@ public:
 		}
 		return _value;
 	}
+	void take_first(Param<T> const& other) {
+		if (!_occupied) {
+			if (other._occupied) {
+				_value = other._value;
+				_occupied = true;
+			}
+		}
+	}
 	void reset() {
 		_value = T();
 		_occupied = false;
@@ -148,12 +158,15 @@ struct Params {
 	Param<RcMethod> rc_method;
 	Param<Toggle> gen_nrad;
 	Param<Toggle> gen_rad;
+	Param<Toggle> write_momenta;
 	Param<Toggle> write_photon;
 	Param<std::string> foam_nrad_file;
 	Param<std::string> foam_rad_file;
 	Param<std::string> sf_set;
 	Param<Long_t> num_events;
 	Param<Long_t> num_init;
+	Param<Long_t> num_cells;
+	Param<Double_t> rej_weight;
 	Param<Int_t> seed;
 	Param<Int_t> seed_init;
 	Param<sidis::Real> beam_energy;
@@ -195,12 +208,15 @@ struct Params {
 		rc_method("rc_method"),
 		gen_nrad("gen_nrad"),
 		gen_rad("gen_rad"),
+		write_momenta("write_momenta"),
 		write_photon("write_photon"),
 		foam_nrad_file("foam_nrad_file"),
 		foam_rad_file("foam_rad_file"),
 		sf_set("sf_set"),
 		num_events("num_events"),
 		num_init("num_init"),
+		num_cells("num_cells"),
+		rej_weight("rej_weight"),
 		seed("seed"),
 		seed_init("seed_init"),
 		beam_energy("beam_energy"),
@@ -256,7 +272,13 @@ struct Params {
 	// Check whether a `TFoam` generated for one set of parameters can be used
 	// for another set. If not compatible, throws an exception with a message
 	// describing the incompatibility.
-	void compatible_with_foam(Params const& foam_params) const;
+	void compatible_with_foam(EventType type, Params const& foam_params) const;
+	// Checks whether two parameter files used for event generation can be
+	// merged together.
+	void compatible_with_event(Params const& foam_params) const;
+	// Combine two parameter files together. If the parameter files cannot be
+	// combined, then throws an exception.
+	void merge(Params const& params);
 
 	bool operator==(Params const& rhs) const;
 	bool operator!=(Params const& rhs) const {

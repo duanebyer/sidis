@@ -12,14 +12,14 @@
 #include <utility>
 
 #include <TArrayD.h>
+#include <TArrayL.h>
 #include <TBranch.h>
+#include <TChain.h>
 #include <TClass.h>
+#include <TDirectory.h>
 #include <TError.h>
 #include <TFile.h>
-#include <TFoam.h>
-#include <TFoamIntegrand.h>
 #include <TLorentzVector.h>
-#include <TParameter.h>
 #include <TRandom3.h>
 #include <TSystem.h>
 #include <TTree.h>
@@ -30,6 +30,9 @@
 #include <sidis/sf_set/prokudin.hpp>
 #include <sidis/sf_set/test.hpp>
 
+#include "event_generator.hpp"
+#include "event_stats.hpp"
+#include "exception.hpp"
 #include "params.hpp"
 #include "utility.hpp"
 
@@ -37,75 +40,9 @@ using namespace sidis;
 
 namespace {
 
-int const SUCCESS = 0;
-int const ERROR_ARG_PARSE = -1;
-int const ERROR_FILE_NOT_FOUND = -2;
-int const ERROR_FILE_NOT_CREATED = -3;
-int const ERROR_PARAMS_PARSE = -4;
-int const ERROR_PARAMS_INVALID = -5;
-int const ERROR_FOAM_INCOMPATIBLE = -6;
-int const ERROR_FOAM_NOT_FOUND = -7;
-int const ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND = -8;
-int const ERROR_STRUCTURE_FUNCTIONS_PARSE = -9;
-
-// In the future, more types of events (such as exclusive) may be included.
-enum class EventType {
-	NRAD,
-	RAD,
-};
-
-// All of the relevant information about one kind of event.
-struct EventStats {
-	EventType type;
-	std::unique_ptr<TFile> foam_file;
-	std::unique_ptr<TFoamIntegrand> rho;
-	TFoam* foam;
-	Double_t xs;
-	Double_t xs_err;
-	ULong_t num_events;
-};
-
-// Converts between the `sidis` 4-vector type and the `ROOT` 4-vector type.
-TLorentzVector convert_vec4(math::Vec4 v) {
-	return TLorentzVector(v.x, v.y, v.z, v.t);
-}
-
-// Fills out cuts from parameters.
-void cuts(Params params, cut::Cut* cut_out, cut::CutRad* cut_rad_out) {
-	Real const DEG = PI / 180.;
-	if (cut_out != nullptr) {
-		*cut_out = cut::Cut();
-		cut_out->x = params.x_cut.get_or(math::Bound::INVALID);
-		cut_out->y = params.y_cut.get_or(math::Bound::INVALID);
-		cut_out->z = params.z_cut.get_or(math::Bound::INVALID);
-		cut_out->ph_t_sq = params.ph_t_sq_cut.get_or(math::Bound::INVALID);
-		cut_out->phi_h = DEG * params.phi_h_cut.get_or(math::Bound::INVALID);
-		cut_out->phi = DEG * params.phi_cut.get_or(math::Bound::INVALID);
-		cut_out->Q_sq = params.Q_sq_cut.get_or(math::Bound::INVALID);
-		cut_out->t = params.t_cut.get_or(math::Bound::INVALID);
-		cut_out->W_sq = params.W_sq_cut.get_or(math::Bound::INVALID);
-		cut_out->r = params.r_cut.get_or(math::Bound::INVALID);
-		cut_out->mx_sq = params.mx_sq_cut.get_or(math::Bound::INVALID);
-		cut_out->q_0 = params.q_0_cut.get_or(math::Bound::INVALID);
-		cut_out->k2_0 = params.k2_0_cut.get_or(math::Bound::INVALID);
-		cut_out->ph_0 = params.ph_0_cut.get_or(math::Bound::INVALID);
-		cut_out->theta_q = DEG * params.theta_q_cut.get_or(math::Bound::INVALID);
-		cut_out->theta_k2 = DEG * params.theta_k2_cut.get_or(math::Bound::INVALID);
-		cut_out->theta_h = DEG * params.theta_h_cut.get_or(math::Bound::INVALID);
-	}
-	if (cut_rad_out != nullptr) {
-		*cut_rad_out = cut::CutRad();
-		if (*params.gen_rad) {
-			cut_rad_out->tau = params.tau_cut.get_or(math::Bound::INVALID);
-			cut_rad_out->phi_k = DEG * params.phi_k_cut.get_or(math::Bound::INVALID);
-			cut_rad_out->R = params.R_cut.get_or(math::Bound::INVALID);
-			// The `k_0_bar` cut is mandatory.
-			cut_rad_out->k_0_bar = *params.k_0_bar_cut
-				& math::Bound(*params.k_0_bar, INF);
-			cut_rad_out->k_0 = params.k_0_cut.get_or(math::Bound::INVALID);
-			cut_rad_out->theta_k = DEG * params.theta_k_cut.get_or(math::Bound::INVALID);
-		}
-	}
+// Converts between the `sidis` 4-vector type and the ROOT 4-vector type.
+TLorentzVector convert_vec4(math::Vec4 vec) {
+	return TLorentzVector(vec.x, vec.y, vec.z, vec.t);
 }
 
 // Logical union of two boolean arrays.
@@ -118,7 +55,7 @@ void zip_and(bool* begin_1, bool* end_1, bool const* begin_2) {
 }
 
 // Allocates the memory for the structure functions.
-int alloc_sf(
+void alloc_sf(
 		Params params,
 		std::unique_ptr<sf::SfSet>* sf_out,
 		std::unique_ptr<sf::TmdSet>* tmd_out) {
@@ -136,8 +73,9 @@ int alloc_sf(
 		parts.push_back(next_part);
 	}
 	if (parts.empty()) {
-		std::cerr << "No structure function provided." << std::endl;
-		return ERROR_STRUCTURE_FUNCTIONS_PARSE;
+		throw Exception(
+			ERROR_STRUCTURE_FUNCTIONS_PARSE,
+			"No structure function provided.");
 	}
 
 	// The last part is the base structure function.
@@ -156,10 +94,10 @@ int alloc_sf(
 		// extension optional.
 		std::string file_name = base + ".so";
 		if (gSystem->Load(file_name.c_str()) != 0) {
-			std::cerr
-				<< "Failed to load structure function from shared library file "
-				<< "'" << file_name << "'." << std::endl;
-			return ERROR_FILE_NOT_FOUND;
+			throw Exception(
+				ERROR_FILE_NOT_FOUND,
+				std::string("Failed to load structure function from shared ")
+				+ "library file '" + file_name + "'.");
 		}
 		TClass* sf_class = TClass::GetClass(base.c_str());
 		if (sf_class->InheritsFrom("sidis::sf::SfSet")) {
@@ -197,10 +135,10 @@ int alloc_sf(
 			tmd_out->reset(tmd_ptr);
 			sf_out->reset(new sf::GaussianWwTmdSfSet(*tmd_ptr));
 		} else {
-			std::cerr
-				<< "Couldn't find structure functions in file '"
-				<< *params.sf_set << ".so'" << std::endl;
-			return ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND;
+			throw Exception(
+				ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND,
+				std::string("Couldn't find structure functions in file '")
+				+ *params.sf_set + ".so'.");
 		}
 	}
 
@@ -249,19 +187,19 @@ int alloc_sf(
 		} else if (std::regex_match(part, match, mask_regex)) {
 			std::size_t idx = std::stoul(match[1]);
 			if (idx > sf::set::NUM_SF) {
-				std::cerr
-					<< "Cannot filter on structure function index "
-					<< idx << ": out of bounds." << std::endl;
-				return ERROR_STRUCTURE_FUNCTIONS_PARSE;
+				throw Exception(
+					ERROR_STRUCTURE_FUNCTIONS_PARSE,
+					std::string("Cannot filter on structure function index ")
+					+ std::to_string(idx) + " because out of bounds.");
 			}
 			bool select_mask[sf::set::NUM_SF] = { false };
 			select_mask[idx] = true;
 			zip_and(mask, mask + sf::set::NUM_SF, select_mask);
 		} else {
-			std::cerr
-				<< "Unrecognized structure function filter '"
-				<< part << "'." << std::endl;
-			return ERROR_STRUCTURE_FUNCTIONS_PARSE;
+			throw Exception(
+				ERROR_STRUCTURE_FUNCTIONS_PARSE,
+				std::string("Unrecognized structure function filter '") + part
+				+ "'.");
 		}
 	}
 	bool mask_full = true;
@@ -274,115 +212,22 @@ int alloc_sf(
 	if (!mask_full) {
 		sf_out->reset(new sf::set::MaskSfSet(mask, std::move(*sf_out)));
 	}
-	return SUCCESS;
 }
-
-struct XsNRad : public TFoamIntegrand {
-	Params params;
-	cut::Cut cut;
-	part::Particles ps;
-	Real S;
-	sf::SfSet const& sf;
-
-	explicit XsNRad(Params params, cut::Cut cut, sf::SfSet const& sf) :
-		params(params),
-		cut(cut),
-		ps(*params.target, *params.beam, *params.hadron, *params.Mth),
-		S(2. * mass(*params.target) * *params.beam_energy),
-		sf(sf) { }
-
-	Double_t Density(int dim, Double_t* vec) override {
-		if (dim != 6) {
-			return 0.;
-		}
-		kin::Kinematics kin;
-		Real jacobian;
-		if (!cut::take(cut, ps, S, vec, &kin, &jacobian)) {
-			return 0.;
-		}
-		math::Vec3 eta = frame::hadron_from_target(kin) * *params.target_pol;
-		// TODO: Evaluate when it is a good approximation to say that
-		// `nrad ~ nrad_ir`. This happens because for small `k_0_bar`, the
-		// contribution of `rad_f` integrated up to `k_0_bar` becomes vanishingly
-		// small, so it can be neglected. However, this must be balanced with
-		// choosing `k_0_bar` to be non-zero to avoid the infrared divergence in
-		// the radiative part of the cross-section.
-		Real xs;
-		switch (*params.rc_method) {
-		case RcMethod::NONE:
-			xs = xs::born(kin, sf, *params.beam_pol, eta);
-			break;
-		case RcMethod::APPROX:
-			xs = xs::nrad_ir(kin, sf, *params.beam_pol, eta, *params.k_0_bar);
-			break;
-		case RcMethod::EXACT:
-			xs = xs::nrad(kin, sf, *params.beam_pol, eta, *params.k_0_bar);
-			break;
-		default:
-			xs = 0.;
-		}
-		// Some kinematic regions will be out of range for the structure
-		// functions, so return 0 in those cases.
-		if (std::isnan(xs)) {
-			return 0.;
-		} else {
-			return jacobian * xs;
-		}
-	}
-};
-
-struct XsRad : public TFoamIntegrand {
-	Params params;
-	cut::Cut cut;
-	cut::CutRad cut_rad;
-	part::Particles ps;
-	Real S;
-	sf::SfSet const& sf;
-
-	explicit XsRad(
-		Params params,
-		cut::Cut cut,
-		cut::CutRad cut_rad,
-		sf::SfSet const& sf) :
-		params(params),
-		cut(cut),
-		cut_rad(cut_rad),
-		ps(*params.target, *params.beam, *params.hadron, *params.Mth),
-		S(2. * mass(*params.target) * *params.beam_energy),
-		sf(sf) {
-	}
-
-	Double_t Density(int dim, Double_t* vec) override {
-		if (dim != 9) {
-			return 0.;
-		}
-		kin::KinematicsRad kin_rad;
-		Real jacobian;
-		if (!cut::take(cut, cut_rad, ps, S, vec, &kin_rad, &jacobian)) {
-			return 0.;
-		}
-		kin::Kinematics kin = kin_rad.project();
-		math::Vec3 eta = frame::hadron_from_target(kin) * *params.target_pol;
-		Real xs = xs::rad(kin_rad, sf, *params.beam_pol, eta);
-		if (std::isnan(xs)) {
-			return 0.;
-		} else {
-			return jacobian * xs;
-		}
-	}
-};
 
 int command_help() {
 	std::cout
-		<< "Usage:"                                          << std::endl
-		<< "  Prepare FOAM for Monte-Carlo generation"       << std::endl
-		<< "    sidisgen --initialize <parameter file>"      << std::endl
-		<< "  Generate events"                               << std::endl
-		<< "    sidisgen --generate <parameter file>"        << std::endl
-		<< "  List parameters used to produce file"          << std::endl
-		<< "    sidisgen --inspect <output file>"            << std::endl
-		<< "  Show parameter file format information"        << std::endl
-		<< "    sidisgen --help-params"                      << std::endl;
+		<< "Usage:"                                                << std::endl
+		<< "  Prepare FOAM for Monte-Carlo generation"             << std::endl
+		<< "    sidisgen --initialize <parameter file>"            << std::endl
+		<< "  Generate events"                                     << std::endl
+		<< "    sidisgen --generate <parameter file>"              << std::endl
+		<< "  List parameters used to produce file"                << std::endl
+		<< "    sidisgen --inspect <output file>"                  << std::endl
+		<< "  Merge multiple event files into one"                 << std::endl
+		<< "    sidisgen --merge-soft <output file> <input files>" << std::endl
+		<< "    sidisgen --merge-hard <output file> <input files>" << std::endl
+		<< "  Show parameter file format information"              << std::endl
+		<< "    sidisgen --help-params"                            << std::endl;
 	return SUCCESS;
 }
 
@@ -395,12 +240,14 @@ int command_help_params() {
 		<< "rc_method      <none, approx, exact>"            << std::endl
 		<< "gen_nrad       <on, off>"                        << std::endl
 		<< "gen_rad        <on, off>"                        << std::endl
+		<< "write_momenta  <on, off>"                        << std::endl
 		<< "write_photon   <on, off>"                        << std::endl
 		<< "foam_nrad_file <ROOT file>"                      << std::endl
 		<< "foam_rad_file  <ROOT file>"                      << std::endl
 		<< "sf_set         <prokudin, test, ROOT dict.>"     << std::endl
 		<< "num_events     <integer>"                        << std::endl
 		<< "num_init       <integer>"                        << std::endl
+		<< "rej_weight     <real in [1, ∞)>"                 << std::endl
 		<< "seed           <integer>"                        << std::endl
 		<< "seed_init      <integer>"                        << std::endl
 		<< "beam_energy    <energy (GeV)>"                   << std::endl
@@ -446,42 +293,81 @@ int command_version() {
 	return SUCCESS;
 }
 
-int command_inspect(std::string output_file_name) {
+int command_inspect(char const* file_name) {
 	Params params;
-	TFile file(output_file_name.c_str());
+	TFile file(file_name, "OPEN");
 	if (file.IsZombie()) {
-		std::cerr
-			<< "Output file '" << output_file_name
-			<< "' not found." << std::endl;
-		return ERROR_FILE_NOT_FOUND;
+		throw Exception(
+			ERROR_FILE_NOT_FOUND,
+			std::string("File '") + file_name + "' not found.");
 	}
 	params.read_root(file);
+	std::cout << "Parameters:" << std::endl;
 	std::ios_base::fmtflags flags(std::cout.flags());
 	std::cout
 		<< std::scientific
 		<< std::setprecision(std::numeric_limits<long double>::digits10 + 1);
 	params.write_stream(std::cout);
 	std::cout.flags(flags);
+	std::cout << std::endl;
+
+	std::vector<EventStats> stats[NUM_TYPES + 1];
+	TArrayD* xs = file.Get<TArrayD>("stats/xs");
+	TArrayD* xs_err = file.Get<TArrayD>("stats/xs_err");
+	TArrayD* norm = file.Get<TArrayD>("stats/norm");
+	TArrayD* efficiency = file.Get<TArrayD>("stats/efficiency");
+	TArrayL* num_events = file.Get<TArrayL>("stats/num_events");
+	if (
+			xs == nullptr
+			|| xs_err == nullptr
+			|| norm == nullptr
+			|| efficiency == nullptr
+			|| num_events == nullptr) {
+		throw Exception(
+			ERROR_FILE_NOT_FOUND,
+			std::string("Couldn't find statistics in file '") + file_name
+			+ "'.");
+	}
+	std::cout << "Statistics:" << std::endl;
+	flags = std::cout.flags();
+	std::cout << std::scientific << std::setprecision(6);
+	for (std::size_t type_idx = 0; type_idx < NUM_TYPES + 1; ++type_idx) {
+		if (num_events->At(type_idx) == 0) {
+			continue;
+		}
+		if (type_idx == NUM_TYPES) {
+			std::cout << "\ttotal:" << std::endl;
+		} else {
+			EventType type = static_cast<EventType>(type_idx);
+			std::cout << "\t" << event_type_name(type) << ":" << std::endl;
+		}
+		std::cout << "\t\tcount:         " << num_events->At(type_idx) << std::endl;
+		std::cout << "\t\tcross-section: " << xs->At(type_idx) << " ± " << xs_err->At(type_idx) << std::endl;
+		std::cout << "\t\tnorm:          " << norm->At(type_idx) << std::endl;
+		std::cout << "\t\tefficiency:    " << efficiency->At(type_idx) << std::endl;
+	}
+	std::cout.flags(flags);
+
 	return SUCCESS;
 }
 
-int command_initialize(std::string params_file_name) {
+int command_initialize(char const* params_file_name) {
 	std::ifstream params_file(params_file_name);
 	if (!params_file) {
-		std::cerr
-			<< "Parameter file '" << params_file_name
-			<< "' not found." << std::endl;
-		return ERROR_FILE_NOT_FOUND;
+		throw Exception(
+			ERROR_FILE_NOT_FOUND,
+			std::string("Parameter file '") + params_file_name + "' not "
+			+ "found.");
 	}
 	std::cout << "Reading parameter file '" << params_file_name << "'." << std::endl;
 	Params params;
 	try {
 		params.read_stream(params_file);
 	} catch (std::exception const& e) {
-		std::cerr
-			<< "Failed to parse parameter file '" << params_file_name << "': "
-			<< e.what() << std::endl;
-		return ERROR_PARAMS_PARSE;
+		throw Exception(
+			ERROR_PARAMS_PARSE,
+			std::string("Failed to parse parameter file '")
+			+ params_file_name + "': " + e.what());
 	}
 	std::cout << std::endl;
 	params.write_stream(std::cout);
@@ -489,98 +375,52 @@ int command_initialize(std::string params_file_name) {
 	try {
 		params.make_valid();
 	} catch (std::exception const& e) {
-		std::cerr
-			<< "Invalid parameter file '" << params_file_name << "': "
-			<< e.what() << std::endl;
-		return ERROR_PARAMS_INVALID;
+		throw Exception(
+			ERROR_PARAMS_INVALID,
+			std::string("Invalid parameter file '") + params_file_name + "': "
+			+ e.what());
 	}
-
-	ULong_t N_init_nrad = *params.num_init >= 1 ? *params.num_init : 1;
-	ULong_t N_init_rad  = *params.num_init >= 1 ? *params.num_init : 1;
-	// Note that `TRandom3` uses the time as the seed if zero is provided.
-	UInt_t seed = *params.seed_init >= 0 ? *params.seed_init : 0;
-	TRandom3 random(seed);
-
-	cut::Cut cut;
-	cut::CutRad cut_rad;
-	cuts(params, &cut, &cut_rad);
 
 	std::unique_ptr<sf::SfSet> sf;
 	std::unique_ptr<sf::TmdSet> tmd;
-	int err = alloc_sf(params, &sf, &tmd);
-	if (err != SUCCESS) {
-		return err;
-	}
+	alloc_sf(params, &sf, &tmd);
+	UInt_t seed = *params.seed_init >= 0 ? *params.seed_init : 0;
 
 	if (*params.gen_nrad) {
-		std::cout << "Creating non-radiative FOAM file." << std::endl;
-		TFile foam_nrad_file(params.foam_nrad_file->c_str(), "RECREATE");
-		if (foam_nrad_file.IsZombie()) {
-			std::cerr
-				<< "Couldn't open or create file '" << *params.foam_nrad_file
-				<< "'." << std::endl;
-			return ERROR_FILE_NOT_CREATED;
-		}
-		foam_nrad_file.cd();
-		params.write_root(foam_nrad_file);
-
-		std::cout << "Non-radiative FOAM initialization." << std::endl;
-		TFoam foam_nrad("FoamNRad");
-		XsNRad xs_nrad(params, cut, *sf);
-		foam_nrad.SetChat(0);
-		foam_nrad.SetkDim(6);
-		foam_nrad.SetRho(&xs_nrad);
-		foam_nrad.SetPseRan(&random);
-		foam_nrad.SetnSampl(N_init_nrad);
-		foam_nrad.Initialize();
-		foam_nrad.Write("FoamNRad");
+		TRandom3 random(seed);
+		std::cout
+			<< "Initializing non-radiative FOAM in file '"
+			<< *params.foam_nrad_file << "'." << std::endl;
+		EventGenerator::write(EventType::NRAD, params, *sf, &random);
 	}
-
-	if (*params.gen_rad && *params.rc_method != RcMethod::NONE) {
-		std::cout << "Creating radiative FOAM file." << std::endl;
-		TFile foam_rad_file(params.foam_rad_file->c_str(), "RECREATE");
-		if (foam_rad_file.IsZombie()) {
-			std::cerr
-				<< "Couldn't open or create file '" << *params.foam_rad_file
-				<< "'." << std::endl;
-			return ERROR_FILE_NOT_CREATED;
-		}
-		foam_rad_file.cd();
-		params.write_root(foam_rad_file);
-
-		std::cout << "Radiative FOAM initialization." << std::endl;
-		TFoam foam_rad("FoamRad");
-		XsRad xs_rad(params, cut, cut_rad, *sf);
-		foam_rad.SetChat(0);
-		foam_rad.SetkDim(9);
-		foam_rad.SetRho(&xs_rad);
-		foam_rad.SetPseRan(&random);
-		foam_rad.SetnSampl(N_init_rad);
-		foam_rad.Initialize();
-		foam_rad.Write("FoamRad");
+	if (*params.gen_rad) {
+		TRandom3 random(seed);
+		std::cout
+			<< "Initializing radiative FOAM in file '"
+			<< *params.foam_rad_file << "'." << std::endl;
+		EventGenerator::write(EventType::RAD, params, *sf, &random);
 	}
-
 	std::cout << "Finished!" << std::endl;
 	return SUCCESS;
 }
 
-int command_generate(std::string params_file_name) {
+int command_generate(char const* params_file_name) {
 	std::ifstream params_file(params_file_name);
 	if (!params_file) {
-		std::cerr
-			<< "Parameter file '" << params_file_name
-			<< "' not found." << std::endl;
-		return ERROR_FILE_NOT_FOUND;
+		throw Exception(
+			ERROR_FILE_NOT_FOUND,
+			std::string("Parameter file '") + params_file_name + "' not "
+			+ "found.");
 	}
 	std::cout << "Reading parameter file '" << params_file_name << "'." << std::endl;
 	Params params;
 	try {
 		params.read_stream(params_file);
 	} catch (std::exception const& e) {
-		std::cerr
-			<< "Failed to parse parameter file '" << params_file_name << "': "
-			<< e.what() << std::endl;
-		return ERROR_PARAMS_PARSE;
+		throw Exception(
+			ERROR_PARAMS_PARSE,
+			std::string("Failed to parse parameter file '")
+			+ params_file_name + "': " + e.what());
 	}
 	std::cout << std::endl;
 	params.write_stream(std::cout);
@@ -588,135 +428,51 @@ int command_generate(std::string params_file_name) {
 	try {
 		params.make_valid();
 	} catch (std::exception const& e) {
-		std::cerr
-			<< "Invalid parameter file '" << params_file_name << "': "
-			<< e.what() << std::endl;
-		return ERROR_PARAMS_INVALID;
+		throw Exception(
+			ERROR_PARAMS_INVALID,
+			std::string("Invalid parameter file '") + params_file_name + "': "
+			+ e.what());
 	}
-
-	// Fill out cut information.
-	cut::Cut cut;
-	cut::CutRad cut_rad;
-	cuts(params, &cut, &cut_rad);
 
 	// Load the structure functions.
 	std::unique_ptr<sf::SfSet> sf;
 	std::unique_ptr<sf::TmdSet> tmd;
-	int err = alloc_sf(params, &sf, &tmd);
-	if (err != SUCCESS) {
-		return err;
-	}
+	alloc_sf(params, &sf, &tmd);
 
 	std::cout
-		<< "Opening event output file '" << *params.event_file
-		<< "'." << std::endl;
+		<< "Opening event output file '" << *params.event_file << "'."
+		<< std::endl;
 	TFile event_file(params.event_file->c_str(), "RECREATE");
 	if (event_file.IsZombie()) {
-		std::cerr
-			<< "Couldn't create file '" << *params.event_file
-			<< "'." << std::endl;
-		return ERROR_FILE_NOT_CREATED;
+		throw Exception(
+			ERROR_FILE_NOT_CREATED,
+			std::string("Couldn't create file '") + *params.event_file + "'.");
 	}
 
 	UInt_t seed = *params.seed >= 0 ? *params.seed : 0;
 	TRandom3 random(seed);
 
-	// Fill out the information for each type of event.
-	std::vector<EventStats> event_stats;
+	// Load the event generators from file.
+	std::vector<EventGenerator> event_generators;
 	if (*params.gen_nrad) {
 		std::cout
-			<< "Reading non-radiative FOAM from file '" << *params.foam_nrad_file
-			<< "'." << std::endl;
-		std::unique_ptr<TFile> foam_nrad_file(
-			new TFile(params.foam_nrad_file->c_str(), "OPEN"));
-		if (foam_nrad_file->IsZombie()) {
-			std::cerr
-				<< "Couldn't open file '" << *params.foam_nrad_file
-				<< "'." << std::endl;
-			return ERROR_FILE_NOT_CREATED;
-		}
-		Params foam_nrad_params;
-		foam_nrad_params.read_root(*foam_nrad_file);
-		try {
-			if (!foam_nrad_params.valid()) {
-				throw std::runtime_error("Invalid FOAM parameters.");
-			}
-			params.compatible_with_foam(foam_nrad_params);
-		} catch (std::exception const& e) {
-			std::cerr
-				<< "Couldn't use non-radiative FOAM from '" << *params.foam_nrad_file
-				<< "' because it uses parameters incompatible with the "
-				<< "provided parameter file '" << params_file_name
-				<< "': " << e.what() << std::endl;
-			return ERROR_FOAM_INCOMPATIBLE;
-		}
-		TFoam* foam_nrad = foam_nrad_file->Get<TFoam>("FoamNRad");
-		if (foam_nrad == nullptr) {
-			std::cerr
-				<< "Failed to load non-radiative FOAM from file '"
-				<< *params.foam_nrad_file << "'." << std::endl;
-			return ERROR_FOAM_NOT_FOUND;
-		}
-		std::unique_ptr<TFoamIntegrand> rho(new XsNRad(params, cut, *sf));
-		foam_nrad->SetPseRan(&random);
-		foam_nrad->ResetRho(rho.get());
-		event_stats.push_back({
+			<< "Loading non-radiative FOAM from file '"
+			<< *params.foam_nrad_file << "'." << std::endl;
+		event_generators.push_back(EventGenerator::read(
 			EventType::NRAD,
-			std::move(foam_nrad_file),
-			std::move(rho),
-			foam_nrad,
-			0.,
-			0.,
-			0,
-		});
+			params,
+			*sf,
+			&random));
 	}
-
 	if (*params.gen_rad) {
 		std::cout
-			<< "Reading radiative FOAM from file '" << *params.foam_rad_file
-			<< "'." << std::endl;
-		std::unique_ptr<TFile> foam_rad_file(
-			new TFile(params.foam_rad_file->c_str(), "OPEN"));
-		if (foam_rad_file->IsZombie()) {
-			std::cerr
-				<< "Couldn't open file '" << *params.foam_rad_file
-				<< "'." << std::endl;
-			return ERROR_FILE_NOT_CREATED;
-		}
-		Params foam_rad_params;
-		foam_rad_params.read_root(*foam_rad_file);
-		try {
-			if (!foam_rad_params.valid()) {
-				throw std::runtime_error("Invalid FOAM parameters.");
-			}
-			params.compatible_with_foam(foam_rad_params);
-		} catch (std::exception const& e) {
-			std::cerr
-				<< "Couldn't use radiative FOAM from '" << *params.foam_rad_file
-				<< "' because it uses parameters incompatible with the "
-				<< "provided parameter file '" << params_file_name
-				<< "': " << e.what() << std::endl;
-			return ERROR_FOAM_INCOMPATIBLE;
-		}
-		TFoam* foam_rad = foam_rad_file->Get<TFoam>("FoamRad");
-		if (foam_rad == nullptr) {
-			std::cerr
-				<< "Failed to load radiative FOAM from file '"
-				<< *params.foam_rad_file << "'.";
-			return ERROR_FOAM_NOT_FOUND;
-		}
-		std::unique_ptr<TFoamIntegrand> rho(new XsRad(params, cut, cut_rad, *sf));
-		foam_rad->SetPseRan(&random);
-		foam_rad->ResetRho(rho.get());
-		event_stats.push_back({
+			<< "Loading radiative FOAM from file '"
+			<< *params.foam_rad_file << "'." << std::endl;
+		event_generators.push_back(EventGenerator::read(
 			EventType::RAD,
-			std::move(foam_rad_file),
-			std::move(rho),
-			foam_rad,
-			0.,
-			0.,
-			0,
-		});
+			params,
+			*sf,
+			&random));
 	}
 
 	part::Nucleus target = *params.target;
@@ -730,7 +486,7 @@ int command_generate(std::string params_file_name) {
 	ULong_t N_gen = *params.num_events >= 0 ? *params.num_events : 0;
 
 	event_file.cd();
-	TTree events("Events", "Events");
+	TTree events("events", "events");
 	Int_t type;
 	Double_t weight;
 	Double_t jacobian;
@@ -748,13 +504,15 @@ int command_generate(std::string params_file_name) {
 	events.Branch("tau", &tau);
 	events.Branch("phi_k", &phi_k);
 	events.Branch("R", &R);
-	events.Branch("p", "TLorentzVector", &p);
-	events.Branch("k1", "TLorentzVector", &k1);
-	events.Branch("q", "TLorentzVector", &q);
-	events.Branch("k2", "TLorentzVector", &k2);
-	events.Branch("ph", "TLorentzVector", &ph);
-	if (*params.gen_rad && *params.write_photon) {
-		events.Branch("k", "TLorentzVector", &k);
+	if (*params.gen_rad && *params.write_momenta) {
+		events.Branch("p", "TLorentzVector", &p);
+		events.Branch("k1", "TLorentzVector", &k1);
+		events.Branch("q", "TLorentzVector", &q);
+		events.Branch("k2", "TLorentzVector", &k2);
+		events.Branch("ph", "TLorentzVector", &ph);
+		if (*params.gen_rad && *params.write_photon) {
+			events.Branch("k", "TLorentzVector", &k);
+		}
 	}
 	params.write_root(event_file);
 
@@ -775,20 +533,7 @@ int command_generate(std::string params_file_name) {
 			std::cout.flush();
 			update_progress = false;
 		}
-		// Estimate the total radiative and non-radiative cross-sections and
-		// generate a radiative/non-radiative event accordingly. The total
-		// cross-section estimates are improved as more events are generated.
-		Double_t total_xs = 0.;
-		Double_t total_xs_err = 0.;
-		for (EventStats& stats : event_stats) {
-			stats.foam->GetIntegMC(stats.xs, stats.xs_err);
-			if (!std::isfinite(stats.xs) || stats.xs == 0.) {
-				stats.xs = 0.;
-				stats.xs_err = std::numeric_limits<Double_t>::max();
-			}
-			total_xs += stats.xs;
-			total_xs_err += stats.xs_err;
-		}
+		// Choose a type of event (ex. radiative or non-radiative) to generate.
 		std::size_t choose_event_type;
 		if (event_idx == 0) {
 			// On the first event, we don't know anything about the total cross-
@@ -798,14 +543,15 @@ int command_generate(std::string params_file_name) {
 			// We choose the type of event to generate as that for which the
 			// # of events generated / total # of events is furthest from the
 			// cross-section ratio of the two event types.
-			Double_t ratio_min = std::numeric_limits<Double_t>::infinity();
-			for (std::size_t idx = 0; idx < event_stats.size(); ++idx) {
-				EventStats const& stats = event_stats[idx];
-				Double_t target = (stats.xs + stats.xs_err) / (total_xs + total_xs_err);
-				Double_t ratio = static_cast<Double_t>(stats.num_events) / event_idx
-					/ target;
-				if (ratio <= ratio_min) {
-					ratio_min = ratio;
+			Double_t ratio_max = 0.;
+			for (std::size_t idx = 0; idx < event_generators.size(); ++idx) {
+				EventStats stats = event_generators[idx].stats();
+				Double_t ratio = stats.xs / stats.weight_total;
+				if (!std::isfinite(ratio)) {
+					ratio = std::numeric_limits<Double_t>::infinity();
+				}
+				if (ratio > ratio_max) {
+					ratio_max = ratio;
 					choose_event_type = idx;
 				}
 			}
@@ -814,59 +560,73 @@ int command_generate(std::string params_file_name) {
 		// The event vector can store up to the number of dimensions of any of
 		// the FOAMs.
 		Double_t event_vec[9];
-		weight = event_stats[choose_event_type].foam->MCgenerate(event_vec);
-		type = static_cast<Int_t>(event_stats[choose_event_type].type);
-		event_stats[choose_event_type].num_events += 1;
+		weight = event_generators[choose_event_type].generate(event_vec);
+		type = static_cast<Int_t>(event_generators[choose_event_type].type());
 
 		// Fill in the branches.
 		kin::Kinematics kin;
 		kin::KinematicsRad kin_rad;
-		switch (event_stats[choose_event_type].type) {
+		switch (event_generators[choose_event_type].type()) {
 		case EventType::NRAD:
 			// Non-radiative event.
-			if (cut::take(cut, ps, S, event_vec, &kin, &jacobian)) {
-				kin::Final fin(init, target_pol, kin);
+			{
 				// Fill in branches.
-				x = kin.x;
-				y = kin.y;
-				z = kin.z;
-				ph_t_sq = kin.ph_t_sq;
-				phi_h = kin.phi_h;
-				phi = kin.phi;
-				p = convert_vec4(init.p);
-				k1 = convert_vec4(init.k1);
-				q = convert_vec4(fin.q);
-				k2 = convert_vec4(fin.k2);
-				ph = convert_vec4(fin.ph);
-			} else {
-				// Make sure invalid data isn't written to the events.
-				weight = 0.;
+				x = event_vec[0];
+				y = event_vec[1];
+				z = event_vec[2];
+				ph_t_sq = event_vec[3];
+				phi_h = event_vec[4];
+				phi = event_vec[5];
+				tau = 0.;
+				phi_k = 0.;
+				R = 0.;
+				if (*params.write_momenta) {
+					kin::PhaseSpace ph_space {
+						x, y, z,
+						ph_t_sq, phi_h, phi,
+					};
+					kin::Kinematics kin(ps, S, ph_space);
+					kin::Final fin(init, target_pol, kin);
+					p = convert_vec4(init.p);
+					k1 = convert_vec4(init.k1);
+					q = convert_vec4(fin.q);
+					k2 = convert_vec4(fin.k2);
+					ph = convert_vec4(fin.ph);
+				}
 			}
 			break;
 		case EventType::RAD:
 			// Radiative event.
-			if (cut::take(cut, cut_rad, ps, S, event_vec, &kin_rad, &jacobian)) {
-				kin::FinalRad fin(init, target_pol, kin_rad);
+			{
 				// Fill in branches.
-				x = kin_rad.x;
-				y = kin_rad.y;
-				z = kin_rad.z;
-				ph_t_sq = kin_rad.ph_t_sq;
-				phi_h = kin_rad.phi_h;
-				phi = kin_rad.phi;
-				tau = kin_rad.tau;
-				phi_k = kin_rad.phi_k;
-				R = kin_rad.R;
-				p = convert_vec4(init.p);
-				k1 = convert_vec4(init.k1);
-				q = convert_vec4(fin.q);
-				k2 = convert_vec4(fin.k2);
-				ph = convert_vec4(fin.ph);
-				k = convert_vec4(fin.k);
-			} else {
-				weight = 0.;
+				x = event_vec[0];
+				y = event_vec[1];
+				z = event_vec[2];
+				ph_t_sq = event_vec[3];
+				phi_h = event_vec[4];
+				phi = event_vec[5];
+				tau = event_vec[6];
+				phi_k = event_vec[7];
+				R = event_vec[8];
+				if (*params.write_momenta) {
+					kin::PhaseSpaceRad ph_space {
+						x, y, z,
+						ph_t_sq, phi_h, phi,
+						tau, phi_k, R,
+					};
+					kin::KinematicsRad kin(ps, S, ph_space);
+					kin::FinalRad fin(init, target_pol, kin);
+					p = convert_vec4(init.p);
+					k1 = convert_vec4(init.k1);
+					q = convert_vec4(fin.q);
+					k2 = convert_vec4(fin.k2);
+					ph = convert_vec4(fin.ph);
+					k = convert_vec4(fin.k);
+				}
 			}
 			break;
+		case EventType::EXCL:
+			throw std::runtime_error("Exclusive events not supported.");
 		default:
 			throw std::runtime_error("Unrecognized event type.");
 		}
@@ -875,40 +635,174 @@ int command_generate(std::string params_file_name) {
 	write_progress_bar(std::cout, 100);
 	std::cout << std::endl;
 	std::cout << "Writing events to file." << std::endl;
-	event_file.cd();
-	events.Write();
+	event_file.WriteObject(&events, events.GetName());
 
+	// Produce statistics and write them to file.
 	std::cout << "Statistics:" << std::endl;
+	TDirectory* stats_dir = event_file.mkdir("stats", "stats");
+	if (stats_dir == nullptr) {
+		throw Exception(
+			ERROR_FILE_NOT_CREATED,
+			std::string("Couldn't create directory 'stats' in ROOT file."));
+	}
+	stats_dir->cd();
+	TArrayD xs(NUM_TYPES + 1);
+	TArrayD xs_err(NUM_TYPES + 1);
+	TArrayD weight_total(NUM_TYPES + 1);
+	TArrayD weight_sq_total(NUM_TYPES + 1);
+	TArrayD norm(NUM_TYPES + 1);
+	TArrayD efficiency(NUM_TYPES + 1);
+	TArrayL num_events(NUM_TYPES + 1);
+	xs_err.Reset(std::numeric_limits<Double_t>::infinity());
+	std::vector<EventStats> stats;
 	std::ios_base::fmtflags flags(std::cout.flags());
 	std::cout << std::scientific << std::setprecision(6);
-	TArrayD total_xs(2);
-	TArrayD total_xs_err(2);
-	for (EventStats& stats : event_stats) {
-		Int_t idx = static_cast<Int_t>(stats.type);
-		stats.foam->GetIntegMC(stats.xs, stats.xs_err);
-		total_xs.SetAt(stats.xs, idx);
-		total_xs_err.SetAt(stats.xs_err, idx);
-		switch (stats.type) {
-		case EventType::NRAD:
-			std::cout << "\tNon-radiative events:" << std::endl;
-			break;
-		case EventType::RAD:
-			std::cout << "\tRadiative events:" << std::endl;
-			break;
-		default:
-			throw std::runtime_error("Unrecognized event type.");
-		}
-		std::cout << "\t\tCount:         " << stats.num_events << std::endl;
-		std::cout << "\t\tCross-section: " << stats.xs << " ± " << stats.xs_err << std::endl;
+	for (EventGenerator& gen : event_generators) {
+		Int_t idx = static_cast<Int_t>(gen.type());
+		stats.push_back(gen.stats());
+		xs.SetAt(gen.stats().xs, idx);
+		xs_err.SetAt(gen.stats().xs_err, idx);
+		weight_total.SetAt(gen.stats().weight_total, idx);
+		weight_sq_total.SetAt(gen.stats().weight_sq_total, idx);
+		norm.SetAt(gen.stats().norm(), idx);
+		efficiency.SetAt(gen.stats().efficiency(), idx);
+		num_events.SetAt(gen.stats().num_events, idx);
+		std::cout << "\t" << event_type_name(gen.type()) << " events:" << std::endl;
+		std::cout << "\t\tcount:         " << gen.stats().num_events << std::endl;
+		std::cout << "\t\tcross-section: " << gen.stats().xs << " ± " << gen.stats().xs_err << std::endl;
+		std::cout << "\t\tnorm:          " << gen.stats().norm() << std::endl;
+		std::cout << "\t\tefficiency:    " << gen.stats().efficiency() << std::endl;
 	}
+	EventStats total_stats = EventStats::total(stats.begin(), stats.end());
+	xs.SetAt(total_stats.xs, NUM_TYPES);
+	xs_err.SetAt(total_stats.xs_err, NUM_TYPES);
+	weight_total.SetAt(total_stats.weight_total, NUM_TYPES);
+	weight_sq_total.SetAt(total_stats.weight_sq_total, NUM_TYPES);
+	norm.SetAt(total_stats.norm(), NUM_TYPES);
+	efficiency.SetAt(total_stats.efficiency(), NUM_TYPES);
+	num_events.SetAt(total_stats.num_events, NUM_TYPES);
+	std::cout << "\ttotal:" << std::endl;
+		std::cout << "\t\tcount:         " << total_stats.num_events << std::endl;
+		std::cout << "\t\tcross-section: " << total_stats.xs << " ± " << total_stats.xs_err << std::endl;
+		std::cout << "\t\tnorm:          " << total_stats.norm() << std::endl;
+		std::cout << "\t\tefficiency:    " << total_stats.efficiency() << std::endl;
 	std::cout.flags(flags);
-
-	// Write total cross-sections to file.
-	event_file.cd();
-	event_file.WriteObject(&total_xs, "xs_total");
-	event_file.WriteObject(&total_xs_err, "xs_total_err");
+	stats_dir->WriteObject(&xs, "xs");
+	stats_dir->WriteObject(&xs_err, "xs_err");
+	stats_dir->WriteObject(&weight_total, "weight_total");
+	stats_dir->WriteObject(&weight_sq_total, "weight_sq_total");
+	stats_dir->WriteObject(&norm, "norm");
+	stats_dir->WriteObject(&efficiency, "efficiency");
+	stats_dir->WriteObject(&num_events, "num_events");
 
 	return SUCCESS;
+}
+
+int command_merge_soft(
+		char const* file_out_name,
+		std::vector<char const*> file_names) {
+	TFile file_out(file_out_name, "CREATE");
+	if (file_out.IsZombie()) {
+		throw Exception(
+			ERROR_FILE_NOT_CREATED,
+			std::string("Couldn't create file '") + file_out_name + "'.");
+	}
+
+	std::cout << "Merging parameters from files." << std::endl;
+	Params params_out;
+	bool first = true;
+	for (char const* file_name : file_names) {
+		TFile file(file_name, "OPEN");
+		Params params;
+		params.read_root(file);
+		if (!params.valid()) {
+			throw Exception(
+				ERROR_PARAMS_INVALID,
+				std::string("Invalid parameters in '") + file_name + "'.");
+		}
+		if (first) {
+			params_out = params;
+			first = false;
+		} else {
+			params_out.merge(params);
+		}
+	}
+	params_out.write_root(file_out);
+
+	std::cout << "Merging statistics from files." << std::endl;
+	std::vector<EventStats> stats[NUM_TYPES + 1];
+	for (char const* file_name : file_names) {
+		TFile file(file_name, "OPEN");
+		TArrayD* xs = file.Get<TArrayD>("stats/xs");
+		TArrayD* xs_err = file.Get<TArrayD>("stats/xs_err");
+		TArrayD* weight_total = file.Get<TArrayD>("stats/weight_total");
+		TArrayD* weight_sq_total = file.Get<TArrayD>("stats/weight_sq_total");
+		TArrayL* num_events = file.Get<TArrayL>("stats/num_events");
+		for (std::size_t type_idx = 0; type_idx < NUM_TYPES + 1; ++type_idx) {
+			EventStats next_stats;
+			next_stats.xs = xs->At(type_idx);
+			next_stats.xs_err = xs_err->At(type_idx);
+			next_stats.weight_total = weight_total->At(type_idx);
+			next_stats.weight_sq_total = weight_sq_total->At(type_idx);
+			next_stats.num_events = num_events->At(type_idx);
+			stats[type_idx].push_back(next_stats);
+		}
+	}
+	EventStats stats_out[NUM_TYPES + 1];
+	TDirectory* stats_dir = file_out.mkdir("stats");
+	if (stats_dir == nullptr) {
+		throw Exception(
+			ERROR_FILE_NOT_CREATED,
+			std::string("Couldn't create directory 'stats' in ROOT file."));
+	}
+	stats_dir->cd();
+	TArrayD xs_out(NUM_TYPES + 1);
+	TArrayD xs_err_out(NUM_TYPES + 1);
+	TArrayD weight_total_out(NUM_TYPES + 1);
+	TArrayD weight_sq_total_out(NUM_TYPES + 1);
+	TArrayD norm_out(NUM_TYPES + 1);
+	TArrayD efficiency_out(NUM_TYPES + 1);
+	TArrayL num_events_out(NUM_TYPES + 1);
+	for (std::size_t type_idx = 0; type_idx < NUM_TYPES + 1; ++type_idx) {
+		stats_out[type_idx] = EventStats::average(
+			stats[type_idx].begin(),
+			stats[type_idx].end());
+		xs_out.SetAt(stats_out[type_idx].xs, type_idx);
+		xs_err_out.SetAt(stats_out[type_idx].xs_err, type_idx);
+		weight_total_out.SetAt(stats_out[type_idx].weight_total, type_idx);
+		weight_sq_total_out.SetAt(stats_out[type_idx].weight_sq_total, type_idx);
+		norm_out.SetAt(stats_out[type_idx].norm(), type_idx);
+		efficiency_out.SetAt(stats_out[type_idx].efficiency(), type_idx);
+		num_events_out.SetAt(stats_out[type_idx].num_events, type_idx);
+	}
+	stats_dir->WriteObject(&xs_out, "xs");
+	stats_dir->WriteObject(&xs_err_out, "xs_err");
+	stats_dir->WriteObject(&weight_total_out, "weight_total");
+	stats_dir->WriteObject(&weight_sq_total_out, "weight_sq_total");
+	stats_dir->WriteObject(&norm_out, "norm");
+	stats_dir->WriteObject(&efficiency_out, "efficiency");
+	stats_dir->WriteObject(&num_events_out, "num_events");
+
+	std::cout << "Merging events from files." << std::endl;
+	file_out.cd();
+	TChain chain("events", "events");
+	for (char const* file_name : file_names) {
+		std::cout << "\t" << file_name << std::endl;
+		chain.Add(file_name);
+	}
+	file_out.WriteObject(&chain, chain.GetName());
+
+	return SUCCESS;
+}
+
+int command_merge_hard(
+		char const* file_out_name,
+		std::vector<char const*> file_names) {
+	static_cast<void>(file_out_name);
+	static_cast<void>(file_names);
+	throw Exception(
+		ERROR_UNIMPLEMENTED,
+		"Hard merges are not yet supported.");
 }
 
 }
@@ -922,53 +816,87 @@ int main(int argc, char** argv) {
 	gErrorAbortLevel = kError;
 #endif
 	// Parse arguments.
-	if (argc <= 1) {
-		std::cout << "Try `sidisgen --help`." << std::endl;
-		return SUCCESS;
-	}
-	std::string command = argv[1];
-	if (command == "--help" || command == "-?") {
-		return command_help();
-	} else if (command == "--help-params") {
-		return command_help_params();
-	} else if (command == "--version" || command == "-v") {
-		return command_version();
-	} else if (command == "--inspect" || command == "-i") {
-		if (argc > 3) {
-			std::cerr
-				<< "Unexpected argument " << argv[3] << "." << std::endl;
-			return ERROR_ARG_PARSE;
-		} else if (argc < 3) {
-			std::cerr
-				<< "Expected ROOT file argument for inspection." << std::endl;
-			return ERROR_ARG_PARSE;
+	try {
+		if (argc <= 1) {
+			std::cout << "Try `sidisgen --help`." << std::endl;
+			return SUCCESS;
 		}
-		return command_inspect(argv[2]);
-	} else if (command == "--initialize" || command == "-i") {
-		if (argc > 3) {
-			std::cerr
-				<< "Unexpected argument " << argv[3] << "." << std::endl;
-			return ERROR_ARG_PARSE;
-		} else if (argc < 3) {
-			std::cerr
-				<< "Expected parameter file argument." << std::endl;
-			return ERROR_ARG_PARSE;
+		std::string command = argv[1];
+		if (command == "--help" || command == "-?") {
+			return command_help();
+		} else if (command == "--help-params") {
+			return command_help_params();
+		} else if (command == "--version" || command == "-v") {
+			return command_version();
+		} else if (command == "--inspect" || command == "-i") {
+			if (argc > 3) {
+				throw Exception(
+					ERROR_ARG_PARSE,
+					std::string("Unexpected argument '") + argv[3] + "'.");
+			} else if (argc < 3) {
+				throw Exception(
+					ERROR_ARG_PARSE,
+					"Expected ROOT file argument for inspection.");
+			}
+			return command_inspect(argv[2]);
+		} else if (command == "--initialize" || command == "-i") {
+			if (argc > 3) {
+				throw Exception(
+					ERROR_ARG_PARSE,
+					std::string("Unexpected argument '") + argv[3] + "'.");
+			} else if (argc < 3) {
+				throw Exception(
+					ERROR_ARG_PARSE,
+					"Expected parameter file argument.");
+			}
+			return command_initialize(argv[2]);
+		} else if (command == "--generate" || command == "-g") {
+			if (argc > 3) {
+				throw Exception(
+					ERROR_ARG_PARSE,
+					std::string("Unexpected argument '") + argv[3] + "'.");
+			} else if (argc < 3) {
+				throw Exception(
+					ERROR_ARG_PARSE,
+					"Expected parameter file argument.");
+			}
+			return command_generate(argv[2]);
+		} else if (command == "--merge-soft") {
+			if (argc < 4) {
+				throw Exception(
+					ERROR_ARG_PARSE,
+					"Expected target file and source file arguments.");
+			}
+			std::vector<char const*> files;
+			for (int idx = 3; idx < argc; ++idx) {
+				files.push_back(argv[idx]);
+			}
+			return command_merge_soft(argv[2], files);
+		} else if (command == "--merge-hard") {
+			if (argc < 4) {
+				throw Exception(
+					ERROR_ARG_PARSE,
+					"Expected target file and source file arguments.");
+			}
+			std::vector<char const*> files;
+			for (int idx; idx < argc; ++idx) {
+				files.push_back(argv[idx]);
+			}
+			return command_merge_hard(argv[2], files);
+		} else {
+			throw Exception(
+				ERROR_ARG_PARSE,
+				std::string("Unrecognized command '") + command + "'.");
 		}
-		return command_initialize(argv[2]);
-	} else if (command == "--generate" || command == "-g") {
-		if (argc > 3) {
-			std::cerr
-				<< "Unexpected argument " << argv[3] << "." << std::endl;
-			return ERROR_ARG_PARSE;
-		} else if (argc < 3) {
-			std::cerr
-				<< "Expected parameter file argument." << std::endl;
-			return ERROR_ARG_PARSE;
-		}
-		return command_generate(argv[2]);
-	} else {
-		std::cerr << "Unrecognized command " << command << "." << std::endl;
-		return ERROR_ARG_PARSE;
+	} catch (Exception const& e) {
+		std::cerr << "Fatal error: " << e.what() << std::endl;
+		return e.error_code;
+	} catch (std::exception const& e) {
+		std::cerr << "Fatal error: " << e.what() << std::endl;
+		return ERROR;
+	} catch (...) {
+		std::cerr << "Fatal error: An unknown error occurred." << std::endl;
+		return ERROR;
 	}
 }
 
