@@ -276,6 +276,10 @@ EventGenerator EventGenerator::write(
 	foam->SetnSampl(num_init);
 	foam->SetnCells(num_cells);
 	foam->SetOptRej(opt_rej ? 1 : 0);
+	// Use variance reduction because it typically does a better job improving
+	// the efficiency, as well as because of a bug in the maximum weight
+	// reduction that causes a crash for a large number of cells.
+	foam->SetOptDrive(1);
 	if (opt_rej) {
 		foam->SetMaxWtRej(*params.rej_weight);
 	}
