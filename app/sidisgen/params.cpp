@@ -1060,6 +1060,9 @@ void Params::compatible_with_event(Params const& params) const {
 	if (*seed == *params.seed && *seed != 0) {
 		throw std::runtime_error("Can't merge parameters with same seed.");
 	}
+	if (*rej_weight != *params.rej_weight) {
+		throw std::runtime_error("Can't merge parameters with different rejection weights.");
+	}
 	compatible_common(*this, params);
 	compatible_common_rad(*this, params);
 }
@@ -1072,7 +1075,9 @@ void Params::merge(Params const& params) {
 	*gen_nrad = *gen_nrad || *params.gen_nrad;
 	*gen_rad = *gen_rad || *params.gen_rad;
 	*write_momenta = *write_momenta && *params.write_momenta;
-	*write_photon = *write_photon && *params.write_photon;
+	if (*write_momenta) {
+		*write_photon = *write_photon && *params.write_photon;
+	}
 	if (foam_nrad_file != params.foam_nrad_file) {
 		foam_nrad_file.reset("<undefined>");
 	}
