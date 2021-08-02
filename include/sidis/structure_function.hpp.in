@@ -112,8 +112,8 @@ public:
  * Wrapper type for computing structure functions directly from the TMDs. The
  * structure functions are computed through convolution of the TMDs with the
  * fragmentation functions (FFs). If possible, prefer using a more specific
- * class such as GaussianTmdSet, WwTmdSet, or GaussianWwTmdSet to allow the
- * convolution to be computed more efficiently.
+ * class such as GaussianTmdSfSet, WwTmdSfSet, or GaussianWwTmdSfSet to allow
+ * the convolution to be computed more efficiently.
  *
  * The convolution used to compute the structure functions is:
  *
@@ -162,7 +162,7 @@ public:
 };
 
 /**
- * More efficient version of TmdSet specialized for Gaussian TMDs. The
+ * More efficient version of TmdSfSet specialized for Gaussian TMDs. The
  * convolution can be evaluated analytically.
  *
  * \sa GaussianTmdSet
@@ -203,7 +203,7 @@ public:
 };
 
 /**
- * More efficient version of TmdSet specialized for TMDs with the
+ * More efficient version of TmdSfSet specialized for TMDs with the
  * Wandzura-Wilczek-type (WW-type) approximation applied. The WW-type
  * approximation allows certain TMDs to be approximated in terms of others.
  *
@@ -245,7 +245,7 @@ public:
 };
 
 /**
- * More efficient version of TmdSet specialized for combining the Gaussian and
+ * More efficient version of TmdSfSet specialized for combining the Gaussian and
  * WW-type approximations. Since there are some issues when combining these two
  * approximations (see \cite bastami2019ww), this case must be treated
  * separately from GaussianTmdSfSet and WwTmdSfSet.
