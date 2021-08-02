@@ -58,6 +58,8 @@ struct EventStats {
 	Double_t xs_err;
 	Double_t weight_total;
 	Double_t weight_sq_total;
+	Double_t weight_p3_total;
+	Double_t weight_p4_total;
 	Long_t num_events;
 
 	EventStats();
@@ -65,6 +67,7 @@ struct EventStats {
 	// Efficiency is the ratio of the error bars in an "ideal" unweighted MC
 	// integration to the error bars of the actual weighted MC integration.
 	Double_t efficiency() const;
+	Double_t efficiency_err() const;
 	// The normalization for events from this generator (to be combined with
 	// individual event weights) to ensure that the total integral is correct.
 	Double_t norm() const;
@@ -81,6 +84,8 @@ struct EventStats {
 			xs_var_inv += var_inv * stats.xs;
 			result.weight_total += stats.weight_total;
 			result.weight_sq_total += stats.weight_sq_total;
+			result.weight_p3_total += stats.weight_p3_total;
+			result.weight_p4_total += stats.weight_p4_total;
 			result.num_events += stats.num_events;
 		}
 		result.xs = xs_var_inv / var_inv_total;
@@ -98,6 +103,8 @@ struct EventStats {
 			xs_err_sq += stats.xs_err * stats.xs_err;
 			result.weight_total += stats.weight_total;
 			result.weight_sq_total += stats.weight_sq_total;
+			result.weight_p3_total += stats.weight_p3_total;
+			result.weight_p4_total += stats.weight_p4_total;
 			result.num_events += stats.num_events;
 		}
 		result.xs_err = std::sqrt(xs_err_sq);

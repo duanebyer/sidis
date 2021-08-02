@@ -347,6 +347,8 @@ Double_t EventGenerator::generate(Double_t* vec) {
 	_density->Transform(_vec_unit.data(), vec);
 	_stats.weight_total += weight;
 	_stats.weight_sq_total += weight * weight;
+	_stats.weight_p3_total += weight * weight * weight;
+	_stats.weight_p4_total += weight * weight * weight * weight;
 	_stats.num_events += 1;
 	_foam->GetIntegMC(_stats.xs, _stats.xs_err);
 	if (!std::isfinite(_stats.xs) || _stats.xs == 0.) {

@@ -670,7 +670,7 @@ int command_generate(char const* params_file_name) {
 		std::cout << "\t\tcount:         " << gen.stats().num_events << std::endl;
 		std::cout << "\t\tcross-section: " << gen.stats().xs << " ± " << gen.stats().xs_err << std::endl;
 		std::cout << "\t\tnorm:          " << gen.stats().norm() << std::endl;
-		std::cout << "\t\tefficiency:    " << gen.stats().efficiency() << std::endl;
+		std::cout << "\t\tefficiency:    " << gen.stats().efficiency() << " ± " << gen.stats().efficiency_err() << std::endl;
 	}
 	EventStats total_stats = EventStats::total(stats.begin(), stats.end());
 	xs.SetAt(total_stats.xs, NUM_TYPES);
