@@ -135,7 +135,7 @@ public:
 		}
 		// Some kinematic regions will be out of range for the structure
 		// functions, so return 0 in those cases.
-		if (std::isnan(xs)) {
+		if (std::isnan(xs) || !(xs >= 0.)) {
 			return 0.;
 		} else {
 			return jacobian * xs;
@@ -191,7 +191,7 @@ public:
 		kin::Kinematics kin = kin_rad.project();
 		math::Vec3 eta = frame::hadron_from_target(kin) * *params.target_pol;
 		Real xs = xs::rad(kin_rad, sf, *params.beam_pol, eta);
-		if (std::isnan(xs)) {
+		if (std::isnan(xs) || !(xs >= 0.)) {
 			return 0.;
 		} else {
 			return jacobian * xs;
