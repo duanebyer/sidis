@@ -551,12 +551,9 @@ void Params::write_root(TFile& file) const {
 	write_param_root_dir(*dir, gen_rad);
 	write_param_root_dir(*dir, write_momenta);
 	write_param_root_dir(*dir, write_photon);
-	write_param_root_dir(*dir, foam_nrad_file);
-	write_param_root_dir(*dir, foam_rad_file);
+	write_param_root_dir(*dir, foam_file);
 	write_param_root_dir(*dir, sf_set);
 	write_param_root_dir(*dir, num_events);
-	write_param_root_dir(*dir, num_init);
-	write_param_root_dir(*dir, num_cells);
 	write_param_root_dir(*dir, rej_weight);
 	write_param_root_dir(*dir, seed);
 	write_param_root_dir(*dir, seed_init);
@@ -591,6 +588,7 @@ void Params::write_root(TFile& file) const {
 	write_param_root_dir(*dir, k_0_bar_cut);
 	write_param_root_dir(*dir, k_0_cut);
 	write_param_root_dir(*dir, theta_k_cut);
+	file.cd();
 }
 
 void Params::read_root(TFile& file) {
@@ -615,12 +613,9 @@ void Params::read_root(TFile& file) {
 	read_param_root_dir(*dir, gen_rad);
 	read_param_root_dir(*dir, write_momenta);
 	read_param_root_dir(*dir, write_photon);
-	read_param_root_dir(*dir, foam_nrad_file);
-	read_param_root_dir(*dir, foam_rad_file);
+	read_param_root_dir(*dir, foam_file);
 	read_param_root_dir(*dir, sf_set);
 	read_param_root_dir(*dir, num_events);
-	read_param_root_dir(*dir, num_init);
-	read_param_root_dir(*dir, num_cells);
 	read_param_root_dir(*dir, rej_weight);
 	read_param_root_dir(*dir, seed);
 	read_param_root_dir(*dir, seed_init);
@@ -666,12 +661,9 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, gen_rad);
 	write_param_stream(file, write_momenta);
 	write_param_stream(file, write_photon);
-	write_param_stream(file, foam_nrad_file);
-	write_param_stream(file, foam_rad_file);
+	write_param_stream(file, foam_file);
 	write_param_stream(file, sf_set);
 	write_param_stream(file, num_events);
-	write_param_stream(file, num_init);
-	write_param_stream(file, num_cells);
 	write_param_stream(file, rej_weight);
 	write_param_stream(file, seed);
 	write_param_stream(file, seed_init);
@@ -742,12 +734,9 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, gen_rad);
 	consume_param_from_map(map, write_momenta);
 	consume_param_from_map(map, write_photon);
-	consume_param_from_map(map, foam_nrad_file);
-	consume_param_from_map(map, foam_rad_file);
+	consume_param_from_map(map, foam_file);
 	consume_param_from_map(map, sf_set);
 	consume_param_from_map(map, num_events);
-	consume_param_from_map(map, num_init);
-	consume_param_from_map(map, num_cells);
 	consume_param_from_map(map, rej_weight);
 	consume_param_from_map(map, seed);
 	consume_param_from_map(map, seed_init);
@@ -838,8 +827,6 @@ void Params::make_valid() {
 	}
 	event_file.get_or_insert("gen.root");
 	rc_method.get_or_insert(RcMethod::APPROX);
-	num_init.get_or_insert(1000);
-	num_cells.get_or_insert(1000);
 	rej_weight.get_or_insert(1.1);
 	seed.get_or_insert(0);
 	seed_init.get_or_insert(0);
@@ -926,19 +913,7 @@ void Params::make_valid() {
 	}
 	// Basic options associated with radiative and non-radiative events in
 	// particular.
-	if (*gen_nrad) {
-		foam_nrad_file.get_or_insert("foam-nrad.root");
-	} else if (foam_nrad_file.occupied()) {
-		if (*strict) {
-			throw std::runtime_error(
-				std::string("Cannot provide '") + foam_nrad_file.name()
-				+ "' when no non-radiative events are being generated.");
-		} else {
-			foam_nrad_file.reset();
-		}
-	}
 	if (*gen_rad) {
-		foam_rad_file.get_or_insert("foam-rad.root");
 		if (write_momenta.occupied() && *write_momenta) {
 			write_photon.get_or_insert(true);
 		} else {
@@ -953,15 +928,6 @@ void Params::make_valid() {
 			}
 		}
 	} else {
-		if (foam_rad_file.occupied()) {
-			if (*strict) {
-				throw std::runtime_error(
-					std::string("Cannot provide '") + foam_rad_file.name()
-					+ "' when no radiative events are being generated.");
-			} else {
-				foam_rad_file.reset();
-			}
-		}
 		if (write_photon.occupied() && *write_photon) {
 			if (*strict) {
 				throw std::runtime_error(
@@ -1039,10 +1005,6 @@ void Params::compatible_with_foam(EventType type, Params const& foam_params) con
 		throw std::runtime_error("No non-radiative FOAM available.");
 	} else if (type == EventType::RAD && *gen_rad && !*foam_params.gen_rad) {
 		throw std::runtime_error("No radiative FOAM available.");
-	} else if (*num_init > *foam_params.num_init) {
-		throw std::runtime_error("Insufficient initialization samples for FOAM.");
-	} else if (*num_cells > *foam_params.num_cells) {
-		throw std::runtime_error("Insufficient number of cells in FOAM.");
 	} else if (*seed_init != 0 && *foam_params.seed_init != *seed_init) {
 		throw std::runtime_error("Different initialization seed.");
 	} else if (type == EventType::NRAD && *gen_nrad && !*foam_params.gen_nrad) {
@@ -1078,15 +1040,10 @@ void Params::merge(Params const& params) {
 	if (*write_momenta) {
 		*write_photon = *write_photon && *params.write_photon;
 	}
-	if (foam_nrad_file != params.foam_nrad_file) {
-		foam_nrad_file.reset("<undefined>");
-	}
-	if (foam_rad_file != params.foam_rad_file) {
-		foam_rad_file.reset("<undefined>");
+	if (foam_file != params.foam_file) {
+		foam_file.reset("<undefined>");
 	}
 	*num_events += *params.num_events;
-	*num_init = std::min(*num_init, *params.num_init);
-	*num_cells = std::min(*num_cells, *params.num_cells);
 	if (rej_weight != params.rej_weight) {
 		rej_weight.reset(0.);
 	}
@@ -1113,12 +1070,9 @@ bool Params::operator==(Params const& rhs) const {
 		&& gen_rad == rhs.gen_rad
 		&& write_momenta == rhs.write_momenta
 		&& write_photon == rhs.write_photon
-		&& foam_nrad_file == rhs.foam_nrad_file
-		&& foam_rad_file == rhs.foam_rad_file
+		&& foam_file == rhs.foam_file
 		&& sf_set == rhs.sf_set
 		&& num_events == rhs.num_events
-		&& num_init == rhs.num_init
-		&& num_cells == rhs.num_cells
 		&& rej_weight == rhs.rej_weight
 		&& seed == rhs.seed
 		&& seed_init == rhs.seed_init

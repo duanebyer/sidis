@@ -39,7 +39,7 @@ foreach(HEADER ${HEADER_LIST_GENERATE})
 endforeach(HEADER)
 
 # Check that Python is installed.
-if(${CMAKE_VERSION} VERSION_LESS 3.12)
+if(CMAKE_VERSION VERSION_LESS 3.12)
 	find_package(PythonInterp 2.7 REQUIRED)
 	find_package(PythonLibs 2.7 REQUIRED)
 	set(Python_EXECUTABLE PYTHON_EXECUTABLE)

@@ -11,7 +11,7 @@ if(NOT CHECK_NUMERIC)
 	message(SEND_ERROR "Sidis real type `${Sidis_REAL_TYPE}` is not a supported floating point type")
 endif()
 
-if(${BUILD_TESTING})
+if(Sidis_BUILD_TESTS)
 	try_compile(
 		CHECK_TEST_FLOAT
 		"${Sidis_BINARY_DIR}/check"

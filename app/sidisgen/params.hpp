@@ -10,7 +10,7 @@
 
 #include <sidis/sidis.hpp>
 
-#include "event_stats.hpp"
+#include "event_type.hpp"
 
 // Within a major version, there is forward compatibility (e.x. 1.4 is
 // forward-compatible with 1.5). Between major versions, there is no
@@ -160,12 +160,9 @@ struct Params {
 	Param<Toggle> gen_rad;
 	Param<Toggle> write_momenta;
 	Param<Toggle> write_photon;
-	Param<std::string> foam_nrad_file;
-	Param<std::string> foam_rad_file;
+	Param<std::string> foam_file;
 	Param<std::string> sf_set;
 	Param<Long_t> num_events;
-	Param<Long_t> num_init;
-	Param<Long_t> num_cells;
 	Param<Double_t> rej_weight;
 	Param<Int_t> seed;
 	Param<Int_t> seed_init;
@@ -210,12 +207,9 @@ struct Params {
 		gen_rad("gen_rad"),
 		write_momenta("write_momenta"),
 		write_photon("write_photon"),
-		foam_nrad_file("foam_nrad_file"),
-		foam_rad_file("foam_rad_file"),
+		foam_file("foam_file"),
 		sf_set("sf_set"),
 		num_events("num_events"),
-		num_init("num_init"),
-		num_cells("num_cells"),
 		rej_weight("rej_weight"),
 		seed("seed"),
 		seed_init("seed_init"),
@@ -269,8 +263,8 @@ struct Params {
 		return other == *this;
 	}
 
-	// Check whether a `TFoam` generated for one set of parameters can be used
-	// for another set. If not compatible, throws an exception with a message
+	// Check whether a FOAM generated for one set of parameters can be used for
+	// another set. If not compatible, throws an exception with a message
 	// describing the incompatibility.
 	void compatible_with_foam(EventType type, Params const& foam_params) const;
 	// Checks whether two parameter files used for event generation can be

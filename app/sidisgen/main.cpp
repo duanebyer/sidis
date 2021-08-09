@@ -1,3 +1,4 @@
+#include <array>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -5,10 +6,12 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <random>
 #include <regex>
 #include <string>
 #include <sstream>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 #include <TArrayD.h>
@@ -20,9 +23,10 @@
 #include <TError.h>
 #include <TFile.h>
 #include <TLorentzVector.h>
-#include <TRandom3.h>
 #include <TSystem.h>
 #include <TTree.h>
+
+#include <bubble.hpp>
 
 #include <sidis/sidis.hpp>
 #include <sidis/extra/math.hpp>
@@ -30,15 +34,36 @@
 #include <sidis/sf_set/prokudin.hpp>
 #include <sidis/sf_set/test.hpp>
 
-#include "event_generator.hpp"
-#include "event_stats.hpp"
+#include "generator.hpp"
+#include "event_type.hpp"
 #include "exception.hpp"
 #include "params.hpp"
 #include "utility.hpp"
 
 using namespace sidis;
 
+static_assert(
+	std::is_same<Real, Double_t>::value,
+	"ROOT `Double_t` type must be same as C++ `double` type.");
+
 namespace {
+
+struct DrawProgressBar final :
+		public bubble::ExploreProgressReporter<Real>,
+		public bubble::TuneProgressReporter<Real> {
+	void operator()(bubble::ExploreProgress<Real> progress) override {
+		Real percent = 100. * progress.progress;
+		write_progress_bar(std::cout, static_cast<unsigned>(percent));
+		std::cout << '\r';
+		std::cout << std::flush;
+	}
+	void operator()(bubble::TuneProgress<Real> progress) override {
+		Real percent = 100. * progress.progress;
+		write_progress_bar(std::cout, static_cast<unsigned>(percent));
+		std::cout << '\r';
+		std::cout << std::flush;
+	}
+};
 
 // Converts between the `sidis` 4-vector type and the ROOT 4-vector type.
 TLorentzVector convert_vec4(math::Vec4 vec) {
@@ -216,18 +241,18 @@ void alloc_sf(
 
 int command_help() {
 	std::cout
-		<< "Usage:"                                                << std::endl
-		<< "  Prepare FOAM for Monte-Carlo generation"             << std::endl
-		<< "    sidisgen --initialize <parameter file>"            << std::endl
-		<< "  Generate events"                                     << std::endl
-		<< "    sidisgen --generate <parameter file>"              << std::endl
-		<< "  List parameters used to produce file"                << std::endl
-		<< "    sidisgen --inspect <output file>"                  << std::endl
-		<< "  Merge multiple event files into one"                 << std::endl
-		<< "    sidisgen --merge-soft <output file> <input files>" << std::endl
-		<< "    sidisgen --merge-hard <output file> <input files>" << std::endl
-		<< "  Show parameter file format information"              << std::endl
-		<< "    sidisgen --help-params"                            << std::endl;
+		<< "Usage:"                                              << std::endl
+		<< "  Prepare FOAM for Monte-Carlo generation"           << std::endl
+		<< "    sidisgen initialize <parameter file>"            << std::endl
+		<< "  Generate events"                                   << std::endl
+		<< "    sidisgen generate <parameter file>"              << std::endl
+		<< "  List parameters used to produce file"              << std::endl
+		<< "    sidisgen inspect <output file>"                  << std::endl
+		<< "  Merge multiple event files into one"               << std::endl
+		<< "    sidisgen merge-soft <output file> <input files>" << std::endl
+		<< "    sidisgen merge-hard <output file> <input files>" << std::endl
+		<< "  Show parameter file format information"            << std::endl
+		<< "    sidisgen help-params"                            << std::endl;
 	return SUCCESS;
 }
 
@@ -242,11 +267,9 @@ int command_help_params() {
 		<< "gen_rad        <on, off>"                        << std::endl
 		<< "write_momenta  <on, off>"                        << std::endl
 		<< "write_photon   <on, off>"                        << std::endl
-		<< "foam_nrad_file <ROOT file>"                      << std::endl
-		<< "foam_rad_file  <ROOT file>"                      << std::endl
+		<< "foam_file      <ROOT file>"                      << std::endl
 		<< "sf_set         <prokudin, test, ROOT dict.>"     << std::endl
 		<< "num_events     <integer>"                        << std::endl
-		<< "num_init       <integer>"                        << std::endl
 		<< "rej_weight     <real in [1, ∞)>"                 << std::endl
 		<< "seed           <integer>"                        << std::endl
 		<< "seed_init      <integer>"                        << std::endl
@@ -311,17 +334,17 @@ int command_inspect(char const* file_name) {
 	std::cout.flags(flags);
 	std::cout << std::endl;
 
-	TArrayD* xs = file.Get<TArrayD>("stats/xs");
-	TArrayD* xs_err = file.Get<TArrayD>("stats/xs_err");
-	TArrayD* norm = file.Get<TArrayD>("stats/norm");
-	TArrayD* efficiency = file.Get<TArrayD>("stats/efficiency");
-	TArrayL* num_events = file.Get<TArrayL>("stats/num_events");
+	TArrayD* prime_arr = file.Get<TArrayD>("stats/prime");
+	TArrayD* weight_moms_arr = file.Get<TArrayD>("stats/weight_mom");
+	TArrayD* weight_max_arr = file.Get<TArrayD>("stats/weight_max");
+	TArrayL* num_events_arr = file.Get<TArrayL>("stats/num_events");
+	TArrayD* norm_arr = file.Get<TArrayD>("stats/norm");
 	if (
-			xs == nullptr
-			|| xs_err == nullptr
-			|| norm == nullptr
-			|| efficiency == nullptr
-			|| num_events == nullptr) {
+			prime_arr == nullptr
+			|| weight_moms_arr == nullptr
+			|| weight_max_arr == nullptr
+			|| num_events_arr == nullptr
+			|| norm_arr == nullptr) {
 		throw Exception(
 			ERROR_FILE_NOT_FOUND,
 			std::string("Couldn't find statistics in file '") + file_name
@@ -330,20 +353,38 @@ int command_inspect(char const* file_name) {
 	std::cout << "Statistics:" << std::endl;
 	flags = std::cout.flags();
 	std::cout << std::scientific << std::setprecision(6);
-	for (std::size_t type_idx = 0; type_idx < NUM_TYPES + 1; ++type_idx) {
-		if (num_events->At(type_idx) == 0) {
+	for (std::size_t type_idx = 0; type_idx < NUM_EVENT_TYPES + 1; ++type_idx) {
+		auto count = num_events_arr->At(type_idx);
+		if (count == 0) {
 			continue;
 		}
-		if (type_idx == NUM_TYPES) {
+		if (type_idx == NUM_EVENT_TYPES) {
 			std::cout << "\ttotal:" << std::endl;
 		} else {
 			EventType type = static_cast<EventType>(type_idx);
 			std::cout << "\t" << event_type_name(type) << ":" << std::endl;
 		}
-		std::cout << "\t\tcount:         " << num_events->At(type_idx) << std::endl;
-		std::cout << "\t\tcross-section: " << xs->At(type_idx) << " ± " << xs_err->At(type_idx) << std::endl;
-		std::cout << "\t\tnorm:          " << norm->At(type_idx) << std::endl;
-		std::cout << "\t\tefficiency:    " << efficiency->At(type_idx) << std::endl;
+
+		Real prime = prime_arr->At(type_idx);
+		Real norm = norm_arr->At(type_idx);
+		std::array<Real, 4> moms = {
+			weight_moms_arr->At(4 * type_idx + 0),
+			weight_moms_arr->At(4 * type_idx + 1),
+			weight_moms_arr->At(4 * type_idx + 2),
+			weight_moms_arr->At(4 * type_idx + 3),
+		};
+		Real max = weight_max_arr->At(type_idx);
+		Stats stats(moms, max, count);
+		Real mean = stats.mean();
+		Real mean_err = std::sqrt(stats.ratio_var1_to_max2()) * stats.max1()
+			/ std::sqrt(stats.count());
+		Real xs = prime * mean;
+		Real xs_err = prime * mean_err;
+
+		std::cout << "\t\tcount:         " << count << std::endl;
+		std::cout << "\t\tcross-section: " << xs << " ± " << xs_err << std::endl;
+		std::cout << "\t\tnorm:          " << norm << std::endl;
+		std::cout << "\t\tefficiency:    " << mean << " ± " << mean_err << std::endl;
 	}
 	std::cout.flags(flags);
 
@@ -351,6 +392,7 @@ int command_inspect(char const* file_name) {
 }
 
 int command_initialize(char const* params_file_name) {
+	// Load parameters.
 	std::ifstream params_file(params_file_name);
 	if (!params_file) {
 		throw Exception(
@@ -380,30 +422,89 @@ int command_initialize(char const* params_file_name) {
 			+ e.what());
 	}
 
+	// Load the structure functions.
 	std::unique_ptr<sf::SfSet> sf;
 	std::unique_ptr<sf::TmdSet> tmd;
 	alloc_sf(params, &sf, &tmd);
-	UInt_t seed = *params.seed_init >= 0 ? *params.seed_init : 0;
 
+	BuilderParams builder_params;
+	std::minstd_rand seed_rnd(*params.seed_init >= 0 ? *params.seed_init : 0);
+	std::uniform_int_distribution<Seed> seed_dist;
+
+	// Create FOAM file.
+	std::string file_name = *params.foam_file;
+	std::cout << "Creating ROOT file '" << file_name << "'." << std::endl;
+	TFile file(file_name.c_str(), "CREATE");
+	if (file.IsZombie()) {
+		throw Exception(
+			ERROR_FILE_NOT_CREATED,
+			std::string("Couldn't create file '") + file_name + "'.");
+	}
+	params.write_root(file);
+
+	// Build FOAMs and write to file.
+	std::vector<EventType> gen_types;
 	if (*params.gen_nrad) {
-		TRandom3 random(seed);
-		std::cout
-			<< "Initializing non-radiative FOAM in file '"
-			<< *params.foam_nrad_file << "'." << std::endl;
-		EventGenerator::write(EventType::NRAD, params, *sf, &random);
+		gen_types.push_back(EventType::NRAD);
 	}
 	if (*params.gen_rad) {
-		TRandom3 random(seed);
-		std::cout
-			<< "Initializing radiative FOAM in file '"
-			<< *params.foam_rad_file << "'." << std::endl;
-		EventGenerator::write(EventType::RAD, params, *sf, &random);
+		gen_types.push_back(EventType::RAD);
 	}
+	for (EventType gen_type : gen_types) {
+		char const* gen_name = event_type_name(gen_type);
+		char const* gen_key = event_type_short_name(gen_type);
+		std::cout << "Building " << gen_name << " FOAM." << std::endl;
+		DrawProgressBar progress_reporter;
+		builder_params.explore_progress_reporter = &progress_reporter;
+		builder_params.tune_progress_reporter = &progress_reporter;
+		builder_params.seed = seed_dist(seed_rnd);
+		Builder builder(gen_type, builder_params, params, *sf);
+		try {
+			std::cout << "Exploration phase." << std::endl;
+			write_progress_bar(std::cout, 0);
+			std::cout << '\r';
+			std::cout << std::flush;
+			builder.explore();
+			write_progress_bar(std::cout, 100);
+			std::cout << std::endl;
+
+			std::cout << "Tuning phase." << std::endl;
+			write_progress_bar(std::cout, 0);
+			std::cout << '\r';
+			std::cout << std::flush;
+			builder.tune();
+			write_progress_bar(std::cout, 100);
+			std::cout << std::endl;
+		} catch (std::exception const& e) {
+			throw Exception(
+				ERROR_BUILDING_FOAM,
+				std::string("Error while building ") + gen_name + " FOAM: "
+				+ e.what());
+		}
+		Real rel_var_err;
+		Real rel_var = builder.rel_var(&rel_var_err);
+		std::cout << "Constructed " << gen_name << " FOAM with relative "
+			<< "variance " << rel_var << " ± " << rel_var_err << std::endl;
+		std::cout << "Writing " << gen_name << " FOAM to file." << std::endl;
+		try {
+			std::ostringstream os;
+			builder.write(os);
+			std::string data = os.str();
+			file.WriteObject(&data, gen_key);
+		} catch (std::exception const& e) {
+			throw Exception(
+				ERROR_WRITING_FOAM,
+				std::string("Failed to write ") + gen_name + " non-radiative "
+				+ "FOAM to file '" + file_name + "': " + e.what());
+		}
+	}
+
 	std::cout << "Finished!" << std::endl;
 	return SUCCESS;
 }
 
 int command_generate(char const* params_file_name) {
+	// Load parameters.
 	std::ifstream params_file(params_file_name);
 	if (!params_file) {
 		throw Exception(
@@ -441,38 +542,51 @@ int command_generate(char const* params_file_name) {
 	std::cout
 		<< "Opening event output file '" << *params.event_file << "'."
 		<< std::endl;
-	TFile event_file(params.event_file->c_str(), "RECREATE");
+	TFile event_file(params.event_file->c_str(), "CREATE");
 	if (event_file.IsZombie()) {
 		throw Exception(
 			ERROR_FILE_NOT_CREATED,
 			std::string("Couldn't create file '") + *params.event_file + "'.");
 	}
 
-	UInt_t seed = *params.seed >= 0 ? *params.seed : 0;
-	TRandom3 random(seed);
+	GeneratorParams generator_params;
+	std::minstd_rand seed_rnd(*params.seed >= 0 ? *params.seed : 0);
+	std::uniform_int_distribution<Seed> seed_dist;
 
 	// Load the event generators from file.
-	std::vector<EventGenerator> event_generators;
+	std::vector<EventType> gen_types;
 	if (*params.gen_nrad) {
-		std::cout
-			<< "Loading non-radiative FOAM from file '"
-			<< *params.foam_nrad_file << "'." << std::endl;
-		event_generators.push_back(EventGenerator::read(
-			EventType::NRAD,
-			params,
-			*sf,
-			&random));
+		gen_types.push_back(EventType::NRAD);
 	}
 	if (*params.gen_rad) {
-		std::cout
-			<< "Loading radiative FOAM from file '"
-			<< *params.foam_rad_file << "'." << std::endl;
-		event_generators.push_back(EventGenerator::read(
-			EventType::RAD,
-			params,
-			*sf,
-			&random));
+		gen_types.push_back(EventType::RAD);
 	}
+	std::vector<Generator> gens;
+	std::string foam_file_name = *params.foam_file;
+	std::cout << "Opening FOAM file '" << foam_file_name << "'." << std::endl;
+	TFile foam_file(foam_file_name.c_str(), "OPEN");
+	for (EventType gen_type : gen_types) {
+		char const* gen_name = event_type_name(gen_type);
+		char const* gen_key = event_type_short_name(gen_type);
+		std::cout << "Loading " << gen_name << " FOAM from file." << std::endl;
+		try {
+			std::string* data = foam_file.Get<std::string>(gen_key);
+			if (data == nullptr) {
+				throw std::runtime_error(
+					std::string("Couldn't find key '") + gen_key + "' in "
+					+ "file '" + foam_file_name + "'.");
+			}
+			std::istringstream is(*data);
+			generator_params.seed = seed_dist(seed_rnd);
+			gens.emplace_back(gen_type, generator_params, params, *sf, is);
+		} catch (std::exception const& e) {
+			throw Exception(
+				ERROR_READING_FOAM,
+				std::string("Failed to read ") + gen_name + " FOAM from file '"
+				+ foam_file_name + "': " + e.what());
+		}
+	}
+	foam_file.Close();
 
 	part::Nucleus target = *params.target;
 	part::Lepton beam = *params.beam;
@@ -487,9 +601,9 @@ int command_generate(char const* params_file_name) {
 	event_file.cd();
 	TTree events("events", "events");
 	Int_t type;
-	Double_t weight;
-	Double_t jacobian;
-	Double_t x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R;
+	Real weight;
+	Real jacobian;
+	Real x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R;
 	TLorentzVector p, k1, q, k2, ph, k;
 	events.Branch("type", &type);
 	events.Branch("weight", &weight);
@@ -529,7 +643,7 @@ int command_generate(char const* params_file_name) {
 		if (update_progress) {
 			write_progress_bar(std::cout, percent);
 			std::cout << '\r';
-			std::cout.flush();
+			std::cout << std::flush;
 			update_progress = false;
 		}
 		// Choose a type of event (ex. radiative or non-radiative) to generate.
@@ -539,15 +653,16 @@ int command_generate(char const* params_file_name) {
 			// sections, so choose the event type arbitrarily.
 			choose_event_type = 0;
 		} else {
-			// We choose the type of event to generate as that for which the
-			// # of events generated / total # of events is furthest from the
-			// cross-section ratio of the two event types.
-			Double_t ratio_max = 0.;
-			for (std::size_t idx = 0; idx < event_generators.size(); ++idx) {
-				EventStats stats = event_generators[idx].stats();
-				Double_t ratio = stats.xs / stats.weight_total;
+			// We want to generate events so that the total weights contributed
+			// by events of each "type" have the same ratio as the cross-
+			// sections of each "type".
+			Real ratio_max = 0.;
+			for (std::size_t idx = 0; idx < gens.size(); ++idx) {
+				Generator const& gen = gens[idx];
+				// Equivalent to cross-section divided by total weight.
+				Real ratio = gen.prime() / gen.weights().count();
 				if (!std::isfinite(ratio)) {
-					ratio = std::numeric_limits<Double_t>::infinity();
+					ratio = std::numeric_limits<Real>::infinity();
 				}
 				if (ratio > ratio_max) {
 					ratio_max = ratio;
@@ -558,14 +673,14 @@ int command_generate(char const* params_file_name) {
 
 		// The event vector can store up to the number of dimensions of any of
 		// the FOAMs.
-		Double_t event_vec[9];
-		weight = event_generators[choose_event_type].generate(event_vec);
-		type = static_cast<Int_t>(event_generators[choose_event_type].type());
+		Real event_vec[9];
+		weight = gens[choose_event_type].generate(event_vec);
+		type = static_cast<Int_t>(gens[choose_event_type].type());
 
 		// Fill in the branches.
 		kin::Kinematics kin;
 		kin::KinematicsRad kin_rad;
-		switch (event_generators[choose_event_type].type()) {
+		switch (gens[choose_event_type].type()) {
 		case EventType::NRAD:
 			// Non-radiative event.
 			{
@@ -645,54 +760,72 @@ int command_generate(char const* params_file_name) {
 			std::string("Couldn't create directory 'stats' in ROOT file."));
 	}
 	stats_dir->cd();
-	TArrayD xs(NUM_TYPES + 1);
-	TArrayD xs_err(NUM_TYPES + 1);
-	TArrayD weight_total(NUM_TYPES + 1);
-	TArrayD weight_sq_total(NUM_TYPES + 1);
-	TArrayD norm(NUM_TYPES + 1);
-	TArrayD efficiency(NUM_TYPES + 1);
-	TArrayL num_events(NUM_TYPES + 1);
-	xs_err.Reset(std::numeric_limits<Double_t>::infinity());
-	std::vector<EventStats> stats;
+	TArrayD prime_arr(NUM_EVENT_TYPES + 1);
+	TArrayD weight_moms_arr(4 * (NUM_EVENT_TYPES + 1));
+	TArrayD weight_max_arr(NUM_EVENT_TYPES + 1);
+	TArrayL num_events_arr(NUM_EVENT_TYPES + 1);
+	TArrayD norm_arr(NUM_EVENT_TYPES + 1);
+	Stats stats_total;
+	Real prime_total = 0.;
 	std::ios_base::fmtflags flags(std::cout.flags());
 	std::cout << std::scientific << std::setprecision(6);
-	for (EventGenerator& gen : event_generators) {
-		Int_t idx = static_cast<Int_t>(gen.type());
-		stats.push_back(gen.stats());
-		xs.SetAt(gen.stats().xs, idx);
-		xs_err.SetAt(gen.stats().xs_err, idx);
-		weight_total.SetAt(gen.stats().weight_total, idx);
-		weight_sq_total.SetAt(gen.stats().weight_sq_total, idx);
-		norm.SetAt(gen.stats().norm(), idx);
-		efficiency.SetAt(gen.stats().efficiency(), idx);
-		num_events.SetAt(gen.stats().num_events, idx);
+	for (Generator& gen : gens) {
+		Stats stats = gen.weights();
+		Real prime = gen.prime();
+		stats_total += stats;
+		prime_total += prime;
+		Real norm = prime / stats.count();
+		Real mean = stats.mean();
+		Real mean_err = std::sqrt(stats.ratio_var1_to_max2()) * stats.max1()
+			/ std::sqrt(stats.count());
+		Real xs = prime * mean;
+		Real xs_err = prime * mean_err;
+
+		Int_t type_idx = static_cast<Int_t>(gen.type());
+		prime_arr.SetAt(prime, type_idx);
+		weight_moms_arr.SetAt(stats.ratio_m1_to_max1(), 4 * type_idx + 0);
+		weight_moms_arr.SetAt(stats.ratio_m2_to_max2(), 4 * type_idx + 1);
+		weight_moms_arr.SetAt(stats.ratio_m3_to_max3(), 4 * type_idx + 2);
+		weight_moms_arr.SetAt(stats.ratio_m4_to_max4(), 4 * type_idx + 3);
+		weight_max_arr.SetAt(stats.max1(), type_idx);
+		num_events_arr.SetAt(stats.count(), type_idx);
+		norm_arr.SetAt(norm, type_idx);
+
 		std::cout << "\t" << event_type_name(gen.type()) << " events:" << std::endl;
-		std::cout << "\t\tcount:         " << gen.stats().num_events << std::endl;
-		std::cout << "\t\tcross-section: " << gen.stats().xs << " ± " << gen.stats().xs_err << std::endl;
-		std::cout << "\t\tnorm:          " << gen.stats().norm() << std::endl;
-		std::cout << "\t\tefficiency:    " << gen.stats().efficiency() << " ± " << gen.stats().efficiency_err() << std::endl;
+		std::cout << "\t\tcount:         " << stats.count() << std::endl;
+		std::cout << "\t\tcross-section: " << xs << " ± " << xs_err << std::endl;
+		std::cout << "\t\tnorm:          " << norm << std::endl;
+		std::cout << "\t\tefficiency:    " << mean << " ± " << mean_err << std::endl;
 	}
-	EventStats total_stats = EventStats::total(stats.begin(), stats.end());
-	xs.SetAt(total_stats.xs, NUM_TYPES);
-	xs_err.SetAt(total_stats.xs_err, NUM_TYPES);
-	weight_total.SetAt(total_stats.weight_total, NUM_TYPES);
-	weight_sq_total.SetAt(total_stats.weight_sq_total, NUM_TYPES);
-	norm.SetAt(total_stats.norm(), NUM_TYPES);
-	efficiency.SetAt(total_stats.efficiency(), NUM_TYPES);
-	num_events.SetAt(total_stats.num_events, NUM_TYPES);
+
+	Real norm = prime_total / stats_total.count();
+	Real mean = stats_total.mean();
+	Real mean_err = std::sqrt(stats_total.ratio_var1_to_max2()) * stats_total.max1()
+		/ std::sqrt(stats_total.count());
+	Real xs = prime_total * mean;
+	Real xs_err = prime_total * mean_err;
+
+	prime_arr.SetAt(prime_total, NUM_EVENT_TYPES);
+	weight_moms_arr.SetAt(stats_total.ratio_m1_to_max1(), 4 * NUM_EVENT_TYPES + 0);
+	weight_moms_arr.SetAt(stats_total.ratio_m2_to_max2(), 4 * NUM_EVENT_TYPES + 1);
+	weight_moms_arr.SetAt(stats_total.ratio_m3_to_max3(), 4 * NUM_EVENT_TYPES + 2);
+	weight_moms_arr.SetAt(stats_total.ratio_m4_to_max4(), 4 * NUM_EVENT_TYPES + 3);
+	weight_max_arr.SetAt(stats_total.max1(), NUM_EVENT_TYPES);
+	num_events_arr.SetAt(stats_total.count(), NUM_EVENT_TYPES);
+	norm_arr.SetAt(norm, NUM_EVENT_TYPES);
+
 	std::cout << "\ttotal:" << std::endl;
-		std::cout << "\t\tcount:         " << total_stats.num_events << std::endl;
-		std::cout << "\t\tcross-section: " << total_stats.xs << " ± " << total_stats.xs_err << std::endl;
-		std::cout << "\t\tnorm:          " << total_stats.norm() << std::endl;
-		std::cout << "\t\tefficiency:    " << total_stats.efficiency() << std::endl;
+		std::cout << "\t\tcount:         " << stats_total.count() << std::endl;
+		std::cout << "\t\tcross-section: " << xs << " ± " << xs_err << std::endl;
+		std::cout << "\t\tnorm:          " << norm << std::endl;
+		std::cout << "\t\tefficiency:    " << mean << " ± " << mean_err << std::endl;
+
 	std::cout.flags(flags);
-	stats_dir->WriteObject(&xs, "xs");
-	stats_dir->WriteObject(&xs_err, "xs_err");
-	stats_dir->WriteObject(&weight_total, "weight_total");
-	stats_dir->WriteObject(&weight_sq_total, "weight_sq_total");
-	stats_dir->WriteObject(&norm, "norm");
-	stats_dir->WriteObject(&efficiency, "efficiency");
-	stats_dir->WriteObject(&num_events, "num_events");
+	stats_dir->WriteObject(&prime_arr, "prime");
+	stats_dir->WriteObject(&weight_moms_arr, "weight_mom");
+	stats_dir->WriteObject(&weight_max_arr, "weight_max");
+	stats_dir->WriteObject(&num_events_arr, "num_events");
+	stats_dir->WriteObject(&norm_arr, "norm");
 
 	return SUCCESS;
 }
@@ -712,6 +845,11 @@ int command_merge_soft(
 	bool first = true;
 	for (char const* file_name : file_names) {
 		TFile file(file_name, "OPEN");
+		if (file.IsZombie()) {
+			throw Exception(
+				ERROR_FILE_NOT_FOUND,
+				std::string("File '") + file_name + "' not found.");
+		}
 		Params params;
 		params.read_root(file);
 		if (!params.valid()) {
@@ -729,25 +867,59 @@ int command_merge_soft(
 	params_out.write_root(file_out);
 
 	std::cout << "Merging statistics from files." << std::endl;
-	std::vector<EventStats> stats[NUM_TYPES + 1];
+	Real primes[NUM_EVENT_TYPES + 1];
+	Stats stats_total[NUM_EVENT_TYPES + 1];
+	first = true;
 	for (char const* file_name : file_names) {
+		// TODO: Ensure that the merged statistics come from the same underlying
+		// FOAM.
 		TFile file(file_name, "OPEN");
-		TArrayD* xs = file.Get<TArrayD>("stats/xs");
-		TArrayD* xs_err = file.Get<TArrayD>("stats/xs_err");
-		TArrayD* weight_total = file.Get<TArrayD>("stats/weight_total");
-		TArrayD* weight_sq_total = file.Get<TArrayD>("stats/weight_sq_total");
-		TArrayL* num_events = file.Get<TArrayL>("stats/num_events");
-		for (std::size_t type_idx = 0; type_idx < NUM_TYPES + 1; ++type_idx) {
-			EventStats next_stats;
-			next_stats.xs = xs->At(type_idx);
-			next_stats.xs_err = xs_err->At(type_idx);
-			next_stats.weight_total = weight_total->At(type_idx);
-			next_stats.weight_sq_total = weight_sq_total->At(type_idx);
-			next_stats.num_events = num_events->At(type_idx);
-			stats[type_idx].push_back(next_stats);
+		if (file.IsZombie()) {
+			throw Exception(
+				ERROR_FILE_NOT_FOUND,
+				std::string("File '") + file_name + "' not found.");
+		}
+		TArrayD* prime_arr = file.Get<TArrayD>("stats/prime");
+		TArrayD* weight_moms_arr = file.Get<TArrayD>("stats/weight_mom");
+		TArrayD* weight_max_arr = file.Get<TArrayD>("stats/weight_max");
+		TArrayL* num_events_arr = file.Get<TArrayL>("stats/num_events");
+		TArrayD* norm_arr = file.Get<TArrayD>("stats/norm");
+		if (
+				prime_arr == nullptr
+				|| weight_moms_arr == nullptr
+				|| weight_max_arr == nullptr
+				|| num_events_arr == nullptr
+				|| norm_arr == nullptr) {
+			throw Exception(
+				ERROR_FILE_NOT_FOUND,
+				std::string("Couldn't find statistics in file '") + file_name
+				+ "'.");
+		}
+		for (std::size_t type_idx = 0; type_idx < NUM_EVENT_TYPES + 1; ++type_idx) {
+			Real prime = prime_arr->At(type_idx);
+			auto count = num_events_arr->At(type_idx);
+			std::array<Real, 4> moms = {
+				weight_moms_arr->At(4 * type_idx + 0),
+				weight_moms_arr->At(4 * type_idx + 1),
+				weight_moms_arr->At(4 * type_idx + 2),
+				weight_moms_arr->At(4 * type_idx + 3),
+			};
+			Real max = weight_max_arr->At(type_idx);
+			Stats stats(moms, max, count);
+			stats_total[type_idx] += stats;
+			if (first) {
+				primes[type_idx] = prime;
+			} else {
+				if (primes[type_idx] != prime) {
+					throw Exception(
+						ERROR_FOAM_INCOMPATIBLE,
+						std::string("FOAM from file '") + file_name
+						+ "' has incompatible prime.");
+				}
+			}
+			first = false;
 		}
 	}
-	EventStats stats_out[NUM_TYPES + 1];
 	TDirectory* stats_dir = file_out.mkdir("stats");
 	if (stats_dir == nullptr) {
 		throw Exception(
@@ -755,32 +927,27 @@ int command_merge_soft(
 			std::string("Couldn't create directory 'stats' in ROOT file."));
 	}
 	stats_dir->cd();
-	TArrayD xs_out(NUM_TYPES + 1);
-	TArrayD xs_err_out(NUM_TYPES + 1);
-	TArrayD weight_total_out(NUM_TYPES + 1);
-	TArrayD weight_sq_total_out(NUM_TYPES + 1);
-	TArrayD norm_out(NUM_TYPES + 1);
-	TArrayD efficiency_out(NUM_TYPES + 1);
-	TArrayL num_events_out(NUM_TYPES + 1);
-	for (std::size_t type_idx = 0; type_idx < NUM_TYPES + 1; ++type_idx) {
-		stats_out[type_idx] = EventStats::average(
-			stats[type_idx].begin(),
-			stats[type_idx].end());
-		xs_out.SetAt(stats_out[type_idx].xs, type_idx);
-		xs_err_out.SetAt(stats_out[type_idx].xs_err, type_idx);
-		weight_total_out.SetAt(stats_out[type_idx].weight_total, type_idx);
-		weight_sq_total_out.SetAt(stats_out[type_idx].weight_sq_total, type_idx);
-		norm_out.SetAt(stats_out[type_idx].norm(), type_idx);
-		efficiency_out.SetAt(stats_out[type_idx].efficiency(), type_idx);
-		num_events_out.SetAt(stats_out[type_idx].num_events, type_idx);
+	TArrayD prime_arr_out(NUM_EVENT_TYPES + 1);
+	TArrayD weight_moms_arr_out(NUM_EVENT_TYPES + 1);
+	TArrayD weight_max_arr_out(NUM_EVENT_TYPES + 1);
+	TArrayL num_events_arr_out(NUM_EVENT_TYPES + 1);
+	TArrayD norm_arr_out(NUM_EVENT_TYPES + 1);
+	for (std::size_t type_idx = 0; type_idx < NUM_EVENT_TYPES + 1; ++type_idx) {
+		Real norm = primes[type_idx] / stats_total[type_idx].count();
+		prime_arr_out.SetAt(primes[type_idx], type_idx);
+		weight_moms_arr_out.SetAt(stats_total[type_idx].ratio_m1_to_max1(), 4 * type_idx + 0);
+		weight_moms_arr_out.SetAt(stats_total[type_idx].ratio_m2_to_max2(), 4 * type_idx + 1);
+		weight_moms_arr_out.SetAt(stats_total[type_idx].ratio_m3_to_max3(), 4 * type_idx + 2);
+		weight_moms_arr_out.SetAt(stats_total[type_idx].ratio_m4_to_max4(), 4 * type_idx + 3);
+		weight_max_arr_out.SetAt(stats_total[type_idx].max1(), type_idx);
+		num_events_arr_out.SetAt(stats_total[type_idx].count(), type_idx);
+		norm_arr_out.SetAt(norm, type_idx);
 	}
-	stats_dir->WriteObject(&xs_out, "xs");
-	stats_dir->WriteObject(&xs_err_out, "xs_err");
-	stats_dir->WriteObject(&weight_total_out, "weight_total");
-	stats_dir->WriteObject(&weight_sq_total_out, "weight_sq_total");
-	stats_dir->WriteObject(&norm_out, "norm");
-	stats_dir->WriteObject(&efficiency_out, "efficiency");
-	stats_dir->WriteObject(&num_events_out, "num_events");
+	stats_dir->WriteObject(&prime_arr_out, "prime");
+	stats_dir->WriteObject(&weight_moms_arr_out, "weight_mom");
+	stats_dir->WriteObject(&weight_max_arr_out, "weight_max");
+	stats_dir->WriteObject(&num_events_arr_out, "num_events");
+	stats_dir->WriteObject(&norm_arr_out, "norm");
 
 	std::cout << "Merging events from files." << std::endl;
 	file_out.cd();
@@ -817,17 +984,17 @@ int main(int argc, char** argv) {
 	// Parse arguments.
 	try {
 		if (argc <= 1) {
-			std::cout << "Try `sidisgen --help`." << std::endl;
+			std::cout << "Try `sidisgen help`." << std::endl;
 			return SUCCESS;
 		}
 		std::string command = argv[1];
-		if (command == "--help" || command == "-?") {
+		if (command == "help" || command == "-?") {
 			return command_help();
-		} else if (command == "--help-params") {
+		} else if (command == "help-params") {
 			return command_help_params();
-		} else if (command == "--version" || command == "-v") {
+		} else if (command == "version" || command == "-v") {
 			return command_version();
-		} else if (command == "--inspect" || command == "-i") {
+		} else if (command == "inspect" || command == "-i") {
 			if (argc > 3) {
 				throw Exception(
 					ERROR_ARG_PARSE,
@@ -838,7 +1005,7 @@ int main(int argc, char** argv) {
 					"Expected ROOT file argument for inspection.");
 			}
 			return command_inspect(argv[2]);
-		} else if (command == "--initialize" || command == "-i") {
+		} else if (command == "initialize" || command == "-i") {
 			if (argc > 3) {
 				throw Exception(
 					ERROR_ARG_PARSE,
@@ -849,7 +1016,7 @@ int main(int argc, char** argv) {
 					"Expected parameter file argument.");
 			}
 			return command_initialize(argv[2]);
-		} else if (command == "--generate" || command == "-g") {
+		} else if (command == "generate" || command == "-g") {
 			if (argc > 3) {
 				throw Exception(
 					ERROR_ARG_PARSE,
@@ -860,7 +1027,7 @@ int main(int argc, char** argv) {
 					"Expected parameter file argument.");
 			}
 			return command_generate(argv[2]);
-		} else if (command == "--merge-soft") {
+		} else if (command == "merge-soft") {
 			if (argc < 4) {
 				throw Exception(
 					ERROR_ARG_PARSE,
@@ -871,7 +1038,7 @@ int main(int argc, char** argv) {
 				files.push_back(argv[idx]);
 			}
 			return command_merge_soft(argv[2], files);
-		} else if (command == "--merge-hard") {
+		} else if (command == "merge-hard") {
 			if (argc < 4) {
 				throw Exception(
 					ERROR_ARG_PARSE,
