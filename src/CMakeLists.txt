@@ -13,6 +13,7 @@ set(
 	"sidis/vector.hpp"
 	"sidis/sf_set/mask.hpp"
 	"sidis/sf_set/prokudin.hpp"
+	"sidis/sf_set/stf.hpp"
 	"sidis/sf_set/test.hpp"
 	"sidis/extra/exception.hpp"
 	"sidis/extra/integrate.hpp"
@@ -63,6 +64,9 @@ foreach(HEADER ${HEADER_LIST_GENERATE})
 		VERBATIM)
 endforeach(HEADER)
 
+# Additional required packages.
+find_package(LHAPDF REQUIRED)
+
 add_library(
 	sidis
 	bound.cpp
@@ -81,8 +85,9 @@ add_library(
 	transform.cpp
 	vector.cpp
 	sf_set/prokudin.cpp
+	sf_set/stf.cpp
 	${HEADER_LIST_SOURCE})
-target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature)
+target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf LHAPDF Cubature::cubature)
 target_include_directories(
 	sidis PUBLIC
 	"${Sidis_SOURCE_DIR}/include"
@@ -120,9 +125,8 @@ target_compile_definitions(
 	sidis PRIVATE
 	DATADIR="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}")
 install(
-	DIRECTORY "${Sidis_SOURCE_DIR}/share/sidis/sf_set/prokudin"
-	DESTINATION "${CMAKE_INSTALL_DATADIR}/sidis/sf_set"
-	FILES_MATCHING PATTERN "*.dat")
+	DIRECTORY "${Sidis_SOURCE_DIR}/share/sidis/"
+	DESTINATION "${CMAKE_INSTALL_DATADIR}/sidis")
 install(
 	DIRECTORY "${Sidis_SOURCE_DIR}/include/sidis"
 	DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
