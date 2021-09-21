@@ -13,6 +13,8 @@ if(NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	message(FATAL_ERROR "Sidis does not support subproject build")
 endif()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 # Load packages. These aren't used yet, but whether they are found or not
 # determines defaults for some options.
 find_package(Doxygen)
