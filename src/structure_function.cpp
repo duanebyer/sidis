@@ -1,5 +1,6 @@
 #include "sidis/structure_function.hpp"
 
+#include <cmath>
 #include <stdexcept>
 #include <string>
 
@@ -28,8 +29,8 @@
 	convolve_gaussian( \
 		tmd_set, \
 		Weight::weight_type, \
-		tmd_set.mean_ ## tmd, &GaussianTmdSet::x ## tmd, \
-		tmd_set.mean_ ## ff, &GaussianTmdSet::ff, \
+		tmd_set.mean_ ## tmd.data(), &GaussianTmdSet::x ## tmd, \
+		tmd_set.mean_ ## ff.data(), &GaussianTmdSet::ff, \
 		target, h, x, z, Q_sq, ph_t_sq)
 #define CONVOLVE_GAUSSIAN_TILDE(weight_type, tmd, ff, tmd_tilde, ff_tilde, sign) \
 	( \
@@ -130,55 +131,59 @@ Real convolve(
 Real convolve_gaussian(
 		GaussianTmdSet const& tmd_set,
 		Weight weight_type,
-		Real mean_tmd, TmdGaussian tmd,
-		Real mean_ff, FfGaussian ff,
+		Real const* mean_tmd, TmdGaussian tmd,
+		Real const* mean_ff, FfGaussian ff,
 		part::Nucleus target, part::Hadron h,
 		Real x, Real z, Real Q_sq, Real ph_t_sq) {
 	Real M = mass(target);
 	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
-	Real mean = mean_ff + sq(z)*mean_tmd;
-	Real gaussian = std::exp(-ph_t_sq/mean)/(PI*mean);
-	Real integrand;
-	// Analytically evaluate the convolution integral for the TMD and FF
-	// Gaussians with the given means.
-	switch (weight_type) {
-	case Weight::W0:
-		integrand = gaussian;
-		break;
-	case Weight::WA1:
-		integrand = (mean_ff*ph_t*gaussian)/(mh*mean*z);
-		break;
-	case Weight::WB1:
-		integrand = (mean_tmd*ph_t*z*gaussian)/(M*mean);
-		break;
-	case Weight::WA2:
-		integrand = (mean_tmd*mean_ff*(2.*ph_t_sq - mean)*gaussian)/(M*mh*sq(mean));
-		break;
-	case Weight::WB2:
-		integrand = (mean_tmd*mean_ff*(mean - ph_t_sq)*gaussian)/(M*mh*sq(mean));
-		break;
-	case Weight::WAB2:
-		integrand = (mean_tmd*mean_ff*ph_t_sq*gaussian)/(M*mh*sq(mean));
-		break;
-	case Weight::WC2:
-		integrand = (sq(mean_tmd)*ph_t_sq*sq(z)*gaussian)/(2.*sq(M)*sq(mean));
-		break;
-	case Weight::W3:
-		integrand = (sq(mean_tmd)*mean_ff*ph_t*ph_t_sq*z*gaussian)
-			/(2.*sq(M)*mh*mean*sq(mean));
-		break;
-	default:
-		// Unknown integrand.
-		integrand = 0.;
-	}
 	Real weight = 0.;
 	for (unsigned fl = 0; fl < tmd_set.flavor_count; ++fl) {
-		weight += sq(tmd_set.charge(fl))
+		Real mean = mean_ff[fl] + sq(z)*mean_tmd[fl];
+		if (std::isinf(mean)) {
+			continue;
+		}
+		Real gaussian = std::exp(-ph_t_sq/mean)/(PI*mean);
+		// Analytically evaluate the convolution integral for the TMD and FF
+		// Gaussians with the given means.
+		Real integrand;
+		switch (weight_type) {
+		case Weight::W0:
+			integrand = gaussian;
+			break;
+		case Weight::WA1:
+			integrand = (mean_ff[fl]*ph_t*gaussian)/(mh*mean*z);
+			break;
+		case Weight::WB1:
+			integrand = (mean_tmd[fl]*ph_t*z*gaussian)/(M*mean);
+			break;
+		case Weight::WA2:
+			integrand = (mean_tmd[fl]*mean_ff[fl]*(2.*ph_t_sq - mean)*gaussian)/(M*mh*sq(mean));
+			break;
+		case Weight::WB2:
+			integrand = (mean_tmd[fl]*mean_ff[fl]*(mean - ph_t_sq)*gaussian)/(M*mh*sq(mean));
+			break;
+		case Weight::WAB2:
+			integrand = (mean_tmd[fl]*mean_ff[fl]*ph_t_sq*gaussian)/(M*mh*sq(mean));
+			break;
+		case Weight::WC2:
+			integrand = (sq(mean_tmd[fl])*ph_t_sq*sq(z)*gaussian)/(2.*sq(M)*sq(mean));
+			break;
+		case Weight::W3:
+			integrand = (sq(mean_tmd[fl])*mean_ff[fl]*ph_t*ph_t_sq*z*gaussian)
+				/(2.*sq(M)*mh*mean*sq(mean));
+			break;
+		default:
+			// Unknown integrand.
+			integrand = 0.;
+		}
+		weight += integrand
+			*sq(tmd_set.charge(fl))
 			*(tmd_set.*tmd)(fl, x, Q_sq)
 			*(tmd_set.*ff)(h, fl, z, Q_sq);
 	}
-	return weight*integrand;
+	return weight;
 }
 
 }

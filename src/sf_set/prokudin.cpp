@@ -322,22 +322,22 @@ ProkudinTmdSet::ProkudinTmdSet(ProkudinTmdSet&& other) noexcept :
 		GaussianWwTmdSet(
 			other.flavor_count,
 			other.target,
-			other.mean_f1,
-			other.mean_f1Tperp,
-			other.mean_fT,
-			other.mean_g1,
-			other.mean_g1Tperp,
-			other.mean_gT,
-			other.mean_h1,
-			other.mean_h1perp,
-			other.mean_h1Lperp,
-			other.mean_h1Tperp,
-			other.mean_h,
-			other.mean_hL,
-			other.mean_hT,
-			other.mean_hTperp,
-			other.mean_D1,
-			other.mean_H1perp),
+			other.mean_f1.data(),
+			other.mean_f1Tperp.data(),
+			other.mean_fT.data(),
+			other.mean_g1.data(),
+			other.mean_g1Tperp.data(),
+			other.mean_gT.data(),
+			other.mean_h1.data(),
+			other.mean_h1perp.data(),
+			other.mean_h1Lperp.data(),
+			other.mean_h1Tperp.data(),
+			other.mean_h.data(),
+			other.mean_hL.data(),
+			other.mean_hT.data(),
+			other.mean_hTperp.data(),
+			other.mean_D1.data(),
+			other.mean_H1perp.data()),
 		_impl(nullptr) {
 	std::swap(_impl, other._impl);
 }
@@ -352,7 +352,7 @@ ProkudinTmdSet::~ProkudinTmdSet() {
 }
 
 Real ProkudinTmdSet::charge(unsigned fl) const {
-	return charge(fl);
+	return ::charge(fl);
 }
 
 Real ProkudinTmdSet::xf1(unsigned fl, Real x, Real Q_sq) const {

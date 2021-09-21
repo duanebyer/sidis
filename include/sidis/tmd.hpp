@@ -1,6 +1,8 @@
 #ifndef SIDIS_Tmd_HPP
 #define SIDIS_Tmd_HPP
 
+#include <vector>
+
 #include "sidis/particle.hpp"
 
 namespace sidis {
@@ -89,40 +91,40 @@ class GaussianTmdSet : public TmdSet {
 public:
 	/// \name Gaussian widths of TMDs
 	/// \{
-	Real const mean_f1;
-	Real const mean_f1Tperp;
-	Real const mean_fT;
-	Real const mean_fperp;
-	Real const mean_fLperp;
-	Real const mean_fTperp;
-	Real const mean_g1;
-	Real const mean_g1Tperp;
-	Real const mean_gT;
-	Real const mean_gperp;
-	Real const mean_gLperp;
-	Real const mean_gTperp;
-	Real const mean_h1;
-	Real const mean_h1perp;
-	Real const mean_h1Lperp;
-	Real const mean_h1Tperp;
-	Real const mean_h;
-	Real const mean_hL;
-	Real const mean_hT;
-	Real const mean_hTperp;
-	Real const mean_e;
-	Real const mean_eL;
-	Real const mean_eT;
-	Real const mean_eTperp;
+	std::vector<Real> const mean_f1;
+	std::vector<Real> const mean_f1Tperp;
+	std::vector<Real> const mean_fT;
+	std::vector<Real> const mean_fperp;
+	std::vector<Real> const mean_fLperp;
+	std::vector<Real> const mean_fTperp;
+	std::vector<Real> const mean_g1;
+	std::vector<Real> const mean_g1Tperp;
+	std::vector<Real> const mean_gT;
+	std::vector<Real> const mean_gperp;
+	std::vector<Real> const mean_gLperp;
+	std::vector<Real> const mean_gTperp;
+	std::vector<Real> const mean_h1;
+	std::vector<Real> const mean_h1perp;
+	std::vector<Real> const mean_h1Lperp;
+	std::vector<Real> const mean_h1Tperp;
+	std::vector<Real> const mean_h;
+	std::vector<Real> const mean_hL;
+	std::vector<Real> const mean_hT;
+	std::vector<Real> const mean_hTperp;
+	std::vector<Real> const mean_e;
+	std::vector<Real> const mean_eL;
+	std::vector<Real> const mean_eT;
+	std::vector<Real> const mean_eTperp;
 	/// \}
 
 	/// \name Gaussian widths of FFs
 	/// \{
-	Real const mean_D1;
-	Real const mean_H1perp;
-	Real const mean_Dperp_tilde;
-	Real const mean_H_tilde;
-	Real const mean_Gperp_tilde;
-	Real const mean_E_tilde;
+	std::vector<Real> const mean_D1;
+	std::vector<Real> const mean_H1perp;
+	std::vector<Real> const mean_Dperp_tilde;
+	std::vector<Real> const mean_H_tilde;
+	std::vector<Real> const mean_Gperp_tilde;
+	std::vector<Real> const mean_E_tilde;
 	/// \}
 
 	/// Initialize a GaussianTmdSet with the provided Gaussian widths.
@@ -159,6 +161,40 @@ public:
 		Real mean_H_tilde,
 		Real mean_Gperp_tilde,
 		Real mean_E_tilde);
+	/// Initialize a GaussianTmdSet with the provided flavor-dependent widths.
+	GaussianTmdSet(
+		unsigned flavor_count,
+		part::Nucleus target,
+		Real const* mean_f1,
+		Real const* mean_f1Tperp,
+		Real const* mean_fT,
+		Real const* mean_fperp,
+		Real const* mean_fLperp,
+		Real const* mean_fTperp,
+		Real const* mean_g1,
+		Real const* mean_g1Tperp,
+		Real const* mean_gT,
+		Real const* mean_gperp,
+		Real const* mean_gLperp,
+		Real const* mean_gTperp,
+		Real const* mean_h1,
+		Real const* mean_h1perp,
+		Real const* mean_h1Lperp,
+		Real const* mean_h1Tperp,
+		Real const* mean_h,
+		Real const* mean_hL,
+		Real const* mean_hT,
+		Real const* mean_hTperp,
+		Real const* mean_e,
+		Real const* mean_eL,
+		Real const* mean_eT,
+		Real const* mean_eTperp,
+		Real const* mean_D1,
+		Real const* mean_H1perp,
+		Real const* mean_Dperp_tilde,
+		Real const* mean_H_tilde,
+		Real const* mean_Gperp_tilde,
+		Real const* mean_E_tilde);
 	virtual ~GaussianTmdSet() = default;
 
 	/// \name Reduced transverse momentum distributions
@@ -351,6 +387,26 @@ public:
 		Real mean_hTperp,
 		Real mean_D1,
 		Real mean_H1perp);
+	/// Initialize a GaussianWwTmdSet with the provided flavor-dependent widths.
+	GaussianWwTmdSet(
+		unsigned flavor_count,
+		part::Nucleus target,
+		Real const* mean_f1,
+		Real const* mean_f1Tperp,
+		Real const* mean_fT,
+		Real const* mean_g1,
+		Real const* mean_g1Tperp,
+		Real const* mean_gT,
+		Real const* mean_h1,
+		Real const* mean_h1perp,
+		Real const* mean_h1Lperp,
+		Real const* mean_h1Tperp,
+		Real const* mean_h,
+		Real const* mean_hL,
+		Real const* mean_hT,
+		Real const* mean_hTperp,
+		Real const* mean_D1,
+		Real const* mean_H1perp);
 	virtual ~GaussianWwTmdSet() = default;
 
 	/// \name Base set of reduced transverse momentum distributions
