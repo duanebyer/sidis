@@ -14,7 +14,7 @@ NumFlavors:   5
 ErrorType: hessian
 ErrorConfLevel: 90.0
 XMin:     1.00000E-02
-XMax:     9.30000E-01
+XMax:     1.00000E+00
 QMin:     1.00000E+00
 QMax:     3.16228E+02
 MZ:    91.1876
