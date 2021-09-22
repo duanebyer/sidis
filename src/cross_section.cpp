@@ -189,15 +189,15 @@ Real xs::rad_f(KinematicsRad const& kin, SfSet const& sf, Real lambda_e, Vec3 et
 	return SIDIS_MACRO_XS_FROM_BASE_P(rad_f, LepRad, HadRadF, kin, sf, b, lambda_e, eta);
 }
 
-Real xs::nrad(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
+Real xs::nrad(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, Real* err, unsigned max_evals, Real prec) {
 	// The soft part of the radiative cross-section (below `k_0_bar`) is bundled
 	// into the return value here.
 	Real xs_nrad_ir = nrad_ir(kin, sf, lambda_e, eta, k_0_bar);
-	Real xs_rad_f = rad_f_integ(kin, sf, lambda_e, eta, k_0_bar, max_evals, prec);
+	Real xs_rad_f = rad_f_integ(kin, sf, lambda_e, eta, k_0_bar, err, max_evals, prec);
 	return xs_nrad_ir + xs_rad_f;
 }
 
-Real xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
+Real xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, Real* err, unsigned max_evals, Real prec) {
 	HadXX had_0(kin, sf);
 	CutRad cut;
 	cut.k_0_bar = Bound(0., k_0_bar);
@@ -231,10 +231,13 @@ Real xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3
 		cubature::Point<3, Real>{ 0., 0., 0. },
 		cubature::Point<3, Real>{ 1., 1., 1. },
 		max_evals, 0., prec);
+	if (err != nullptr) {
+		*err = xs_integ.err;
+	}
 	return xs_integ.val;
 }
 
-Real xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
+Real xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, Real* err, unsigned max_evals, Real prec) {
 	CutRad cut;
 	cut.k_0_bar = Bound(k_0_bar, INF);
 	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
@@ -263,6 +266,9 @@ Real xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 e
 		cubature::Point<3, Real>{ 0., 0., 0. },
 		cubature::Point<3, Real>{ 1., 1., 1. },
 		max_evals, 0., prec);
+	if (err != nullptr) {
+		*err = xs_integ.err;
+	}
 	return xs_integ.val;
 }
 
