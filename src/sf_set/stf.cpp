@@ -178,8 +178,8 @@ int pdg_id(unsigned fl) {
 
 struct StfTmdSet::Impl {
 	// PDF are calculated with the LHAPDF library.
-	LHAPDF::PDF const* tmd_set;
-	LHAPDF::PDF const* ff_set;
+	LHAPDF::PDF* tmd_set;
+	LHAPDF::PDF* ff_set;
 
 	Impl() {
 		LHAPDF::setVerbosity(0);
@@ -190,6 +190,7 @@ struct StfTmdSet::Impl {
 		LHAPDF::pathsPrepend("./");
 		tmd_set = LHAPDF::mkPDF("CJ15lo", 0);
 		ff_set = LHAPDF::mkPDF("dsspipLO", 0);
+		ff_set->setForcePositive(0);
 	}
 	Impl(Impl const& impl) = delete;
 	Impl& operator=(Impl const& impl) = delete;
