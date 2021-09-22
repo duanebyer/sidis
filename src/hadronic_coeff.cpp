@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "sidis/cut.hpp"
 #include "sidis/frame.hpp"
 #include "sidis/kinematics.hpp"
 #include "sidis/structure_function.hpp"
@@ -327,7 +328,7 @@ HadRadFUU::HadRadFUU(KinematicsRad const& kin, SfSet const& sf, HadUU const& had
 	H_20 = had.H_20;
 	H_30 = had.H_30;
 	H_40 = had.H_40;
-	Real delta_R = kin.R_max*DELTA_R_REL;
+	Real delta_R = cut::R_bound(kin.project(), kin.tau, kin.phi_k).max()*DELTA_R_REL;
 	if (kin.R < delta_R) {
 		Real R_1 = delta_R;
 		Real R_2 = 2.*delta_R;
@@ -363,7 +364,7 @@ HadRadFUP::HadRadFUP(KinematicsRad const& kin, SfSet const& sf, HadUP const& had
 	Vec3 had_0_H_4 = Vec3(0., had_0.H_42, 0.);
 	Vec3 had_0_H_6 = Vec3(had_0.H_61, 0., had_0.H_63);
 	Vec3 had_0_H_8 = Vec3(had_0.H_81, 0., had_0.H_83);
-	Real delta_R = kin.R_max*DELTA_R_REL;
+	Real delta_R = cut::R_bound(kin.project(), kin.tau, kin.phi_k).max()*DELTA_R_REL;
 	if (kin.R < delta_R) {
 		Real R_1 = delta_R;
 		Real R_2 = 2.*delta_R;
@@ -392,7 +393,7 @@ HadRadFLU::HadRadFLU(KinematicsRad const& kin, SfSet const& sf, HadLU const& had
 	}
 	HadRadLU had(kin, sf);
 	H_50 = had.H_50;
-	Real delta_R = kin.R_max*DELTA_R_REL;
+	Real delta_R = cut::R_bound(kin.project(), kin.tau, kin.phi_k).max()*DELTA_R_REL;
 	if (kin.R < delta_R) {
 		Real R_1 = delta_R;
 		Real R_2 = 2.*delta_R;
@@ -416,7 +417,7 @@ HadRadFLP::HadRadFLP(KinematicsRad const& kin, SfSet const& sf, HadLP const& had
 	Vec3 had_0_H_5 = Vec3(0., had_0.H_52, 0.);
 	Vec3 had_0_H_7 = Vec3(had_0.H_71, 0., had_0.H_73);
 	Vec3 had_0_H_9 = Vec3(had_0.H_91, 0., had_0.H_93);
-	Real delta_R = kin.R_max*DELTA_R_REL;
+	Real delta_R = cut::R_bound(kin.project(), kin.tau, kin.phi_k).max()*DELTA_R_REL;
 	if (kin.R < delta_R) {
 		Real R_1 = delta_R;
 		Real R_2 = 2.*delta_R;

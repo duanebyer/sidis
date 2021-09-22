@@ -404,8 +404,6 @@ struct KinematicsRad {
 	Real tau_min;
 	/// The upper kinematic bound on \f$\tau\f$.
 	Real tau_max;
-	/// The upper kinematic bound on \f$R\f$.
-	Real R_max;
 	/// The ratio \f$\frac{k p_h}{k p}\f$.
 	Real mu;
 	/// The ratio \f$\frac{k_1 k}{p k}\f$.

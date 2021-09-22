@@ -140,10 +140,22 @@ Bound cut::R_bound(Kinematics const& kin, Real tau, Real phi_k) {
 			- 2.*kin.M*kin.ph_t*std::cos(kin.phi_h - phi_k)*std::sqrt(
 				(tau - tau_b.min())*(tau_b.max() - tau)));
 	// Equation [1.44].
-	Real R_max = 1./(1. + tau - mu)*(kin.mx_sq - sq(kin.Mth));
-	Bound kin_b(0., R_max);
-
-	return Bound::POSITIVE & kin_b;
+	Bound rad(0., 1./(1. + tau - mu)*(kin.mx_sq - sq(kin.Mth)));
+	// It's unclear whether these bounds are necessary. For now, they are
+	// commented out.
+	/*
+	// These additional bounds ensure that the shifted structure functions are
+	// evaluated at valid points.
+	// Shifted x and z variables must be between zero and one.
+	Bound x(0., (1. - kin.x) / (1. + tau) * kin.S_x);
+	Bound z(0., (1. - kin.z) * kin.S_x);
+	// Shifted Q-squared must be positive.
+	Bound Q_sq = tau < 0. ? Bound(0., -kin.Q_sq / tau) : Bound::POSITIVE;
+	// TODO: Missing an additional bound to ensure shifted `ph_t_sq` is
+	// positive.
+	*/
+	Bound kin_b = rad;
+	return kin_b;
 }
 
 // TODO: Verify the extra kinematics cuts.
@@ -275,8 +287,18 @@ bool cut::valid(KinematicsRad const& kin_rad) {
 		return false;
 	} else if (!std::isfinite(kin_rad.phi_k)) {
 		return false;
-	} else if (!(kin_rad.R >= 0. && kin_rad.R <= kin_rad.R_max)) {
+	// TODO: Perhaps there should be an upper boundn check on R, but it isn't
+	// clear what that upper bound would be.
+	} else if (!(kin_rad.R >= 0.)) {
 		return false;
+	/*} else if (!(kin_rad.shift_x >= 0. && kin_rad.shift_x <= 1.)) {
+		return false;
+	} else if (!(kin_rad.shift_z >= 0. && kin_rad.shift_z <= 1.)) {
+		return false;
+	} else if (!(kin_rad.shift_Q_sq >= 0.)) {
+		return false;
+	} else if (!(kin_rad.shift_ph_t_sq >= 0.)) {
+		return false;*/
 	} else {
 		return true;
 	}

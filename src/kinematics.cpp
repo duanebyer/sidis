@@ -196,9 +196,6 @@ KinematicsRad::KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R
 	// Alternative definition of `mu`. Undefined at `R=0`.
 	//   mu = (z*R*S_x - lambda_RV)/(2.*sq(M)*R);
 
-	// Equation [1.44].
-	R_max = (mx_sq - sq(Mth))/(1. + tau - mu);
-
 	// Equation [1.B4].
 	lambda_z = (tau_max - tau)*(tau - tau_min)*lambda_1;
 	lambda_z_sqrt = std::sqrt(lambda_z);
