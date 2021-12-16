@@ -183,14 +183,13 @@ public:
 		if (dim != 9) {
 			return 0.;
 		}
-		kin::KinematicsRad kin_rad;
+		kin::KinematicsRad kin;
 		Real jacobian;
-		if (!cut::take(cut, cut_rad, ps, S, vec_unit, &kin_rad, &jacobian)) {
+		if (!cut::take(cut, cut_rad, ps, S, vec_unit, &kin, &jacobian)) {
 			return 0.;
 		}
-		kin::Kinematics kin = kin_rad.project();
 		math::Vec3 eta = frame::hadron_from_target(kin) * *params.target_pol;
-		Real xs = xs::rad(kin_rad, sf, *params.beam_pol, eta);
+		Real xs = xs::rad(kin, sf, *params.beam_pol, eta);
 		if (std::isnan(xs)) {
 			return 0.;
 		} else {

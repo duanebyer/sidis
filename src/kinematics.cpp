@@ -51,9 +51,11 @@ Kinematics::Kinematics(Particles const& ps, Real S, PhaseSpace const& ph_space) 
 	S_x = S*y;
 	S_p = S*(2. - y);
 	lambda_S = sq(S) - 4.*sq(M)*sq(m);
+	lambda_X = sq(X) - 4.*sq(M)*sq(m);
 	lambda_Y = sq(S_x) + 4.*sq(M)*Q_sq;
 	lambda_1 = Q_sq*(S*X - sq(M)*Q_sq) - sq(m)*lambda_Y;
 	lambda_S_sqrt = std::sqrt(lambda_S);
+	lambda_X_sqrt = std::sqrt(lambda_X);
 	lambda_Y_sqrt = std::sqrt(lambda_Y);
 	lambda_1_sqrt = std::sqrt(lambda_1);
 
@@ -110,62 +112,7 @@ Kinematics::Kinematics(Particles const& ps, Real S, PhaseSpace const& ph_space) 
 }
 
 KinematicsRad::KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R) :
-		target(kin.target),
-		beam(kin.beam),
-		hadron(kin.hadron),
-		S(kin.S),
-		M(kin.M),
-		m(kin.m),
-		mh(kin.mh),
-		Mth(kin.Mth),
-		x(kin.x),
-		y(kin.y),
-		z(kin.z),
-		ph_t_sq(kin.ph_t_sq),
-		phi_h(kin.phi_h),
-		phi(kin.phi),
-		Q_sq(kin.Q_sq),
-		Q(kin.Q),
-		t(kin.t),
-		W_sq(kin.W_sq),
-		X(kin.X),
-		S_x(kin.S_x),
-		S_p(kin.S_p),
-		V_1(kin.V_1),
-		V_2(kin.V_2),
-		V_m(kin.V_m),
-		V_p(kin.V_p),
-		lambda_S(kin.lambda_S),
-		lambda_Y(kin.lambda_Y),
-		lambda_1(kin.lambda_1),
-		lambda_2(kin.lambda_2),
-		lambda_3(kin.lambda_3),
-		lambda_S_sqrt(kin.lambda_S_sqrt),
-		lambda_Y_sqrt(kin.lambda_Y_sqrt),
-		lambda_1_sqrt(kin.lambda_1_sqrt),
-		lambda_2_sqrt(kin.lambda_2_sqrt),
-		lambda_3_sqrt(kin.lambda_3_sqrt),
-		mx_sq(kin.mx_sq),
-		mx(kin.mx),
-		vol_phi_h(kin.vol_phi_h),
-		C_1(kin.C_1),
-		ph_0(kin.ph_0),
-		ph_t(kin.ph_t),
-		ph_l(kin.ph_l),
-		cos_phi_h(kin.cos_phi_h),
-		sin_phi_h(kin.sin_phi_h),
-		q_0(kin.q_0),
-		q_t(kin.q_t),
-		q_l(kin.q_l),
-		phi_q(kin.phi_q),
-		cos_phi_q(kin.cos_phi_q),
-		sin_phi_q(kin.sin_phi_q),
-		k2_0(kin.k2_0),
-		k2_t(kin.k2_t),
-		k2_l(kin.k2_l),
-		k1_t(kin.k1_t),
-		cos_phi(kin.cos_phi),
-		sin_phi(kin.sin_phi),
+		Kinematics(kin),
 		tau(tau),
 		phi_k(phi_k),
 		R(R) {
@@ -218,13 +165,14 @@ KinematicsRad::KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R
 	k_0_bar = ((1. + tau - mu)*R)/(2.*mx);
 
 	// Equation [1.B5].
-	F_22 = 1./sq(z_2);
-	F_21 = 1./sq(z_1);
-	F_2p = F_22 + F_21;
-	F_2m = F_22 - F_21;
+	m_sq_F_22 = sq(m/z_2);
+	m_sq_F_21 = sq(m/z_1);
+	m_sq_F_2p = m_sq_F_22 + m_sq_F_21;
+	m_sq_F_2m = m_sq_F_22 - m_sq_F_21;
 	F_d = 1./(z_1*z_2);
 	F_1p = 1./z_1 + 1./z_2;
-	F_IR = sq(m)*F_2p - (Q_sq + 2.*sq(m))*F_d;
+	F_IR = m_sq_F_2p - (Q_sq + 2.*sq(m))*F_d;
+	F_C = 1.;
 
 	// Equation [1.30]. Modified to remove the factor of `R`.
 	// TODO: Why does this equation require a negative sign compared to what is
@@ -310,88 +258,12 @@ KinematicsRad::KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R
 	shift_phi_q = std::atan2(shift_sin_phi_q, shift_cos_phi_q);
 }
 
-Kinematics KinematicsRad::project() const {
-	Kinematics kin;
-	kin.target = target;
-	kin.beam = beam;
-	kin.hadron = hadron;
-
-	kin.S = S;
-	kin.M = M;
-	kin.m = m;
-	kin.mh = mh;
-	kin.Mth = Mth;
-
-	kin.x = x;
-	kin.y = y;
-	kin.z = z;
-	kin.ph_t_sq = ph_t_sq;
-	kin.phi_h = phi_h;
-	kin.phi = phi;
-
-	kin.Q_sq = Q_sq;
-	kin.Q = Q;
-	kin.t = t;
-	kin.W_sq = W_sq;
-	kin.X = X;
-	kin.S_x = S_x;
-	kin.S_p = S_p;
-	kin.V_1 = V_1;
-	kin.V_2 = V_2;
-	kin.V_m = V_m;
-	kin.V_p = V_p;
-
-	kin.lambda_S = lambda_S;
-	kin.lambda_Y = lambda_Y;
-	kin.lambda_1 = lambda_1;
-	kin.lambda_2 = lambda_2;
-	kin.lambda_3 = lambda_3;
-	kin.lambda_S_sqrt = lambda_S_sqrt;
-	kin.lambda_Y_sqrt = lambda_Y_sqrt;
-	kin.lambda_1_sqrt = lambda_1_sqrt;
-	kin.lambda_2_sqrt = lambda_2_sqrt;
-	kin.lambda_3_sqrt = lambda_3_sqrt;
-
-	kin.mx_sq = mx_sq;
-	kin.mx = mx;
-	kin.vol_phi_h = vol_phi_h;
-
-	kin.C_1 = C_1;
-
-	kin.ph_0 = ph_0;
-	kin.ph_t = ph_t;
-	kin.ph_l = ph_l;
-	kin.cos_phi_h = cos_phi_h;
-	kin.sin_phi_h = sin_phi_h;
-	kin.q_0 = q_0;
-	kin.q_t = q_t;
-	kin.q_l = q_l;
-	kin.phi_q = phi_q;
-	kin.cos_phi_q = cos_phi_q;
-	kin.sin_phi_q = sin_phi_q;
-	kin.k2_0 = k2_0;
-	kin.k2_t = k2_t;
-	kin.k2_l = k2_l;
-	kin.k1_t = k1_t;
-	kin.cos_phi = cos_phi;
-	kin.sin_phi = sin_phi;
-
-	return kin;
-}
-
-Kinematics KinematicsRad::project_shift() const {
+Kinematics KinematicsRad::shift() const {
 	// TODO: Verify that `project_shift` will take a valid radiative kinematics
 	// to a valid non-radiative kinematics.
-	Kinematics kin;
-	kin.target = target;
-	kin.beam = beam;
-	kin.hadron = hadron;
-
-	kin.S = S;
-	kin.M = M;
-	kin.m = m;
-	kin.mh = mh;
-	kin.Mth = Mth;
+	// TODO: Potentially override `shift` in `KinematicsUra` to be more
+	// efficient, mainly by taking advantage of `phi_k = 0`.
+	Kinematics kin = *this;
 
 	kin.x = shift_x;
 	kin.y = shift_y;
@@ -413,11 +285,13 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.V_p = V_p;
 
 	kin.lambda_S = lambda_S;
+	kin.lambda_X = lambda_X;
 	kin.lambda_Y = shift_lambda_Y;
 	kin.lambda_1 = shift_lambda_1;
 	kin.lambda_2 = shift_lambda_2;
 	kin.lambda_3 = shift_lambda_3;
 	kin.lambda_S_sqrt = lambda_S_sqrt;
+	kin.lambda_X_sqrt = lambda_X_sqrt;
 	kin.lambda_Y_sqrt = shift_lambda_Y_sqrt;
 	kin.lambda_1_sqrt = shift_lambda_1_sqrt;
 	kin.lambda_2_sqrt = shift_lambda_2_sqrt;
@@ -450,6 +324,44 @@ Kinematics KinematicsRad::project_shift() const {
 	return kin;
 }
 
+KinematicsUra::KinematicsUra(Kinematics const& kin, Real R, PhotonDir k_dir) :
+		KinematicsRad(
+			kin,
+			k_dir == PhotonDir::WITH_INCOMING ?
+				(kin.S_x*kin.S/(2.*sq(kin.M))*sqrt1p_1m(-4.*sq(kin.M*kin.m/kin.S)) - kin.Q_sq)/kin.lambda_S_sqrt :
+				(kin.S_x*kin.X/(2.*sq(kin.M))*sqrt1p_1m(-4.*sq(kin.M*kin.m/kin.X)) + kin.Q_sq)/kin.lambda_X_sqrt,
+			0.,
+			R),
+		k_dir(k_dir) {
+	// Because in the URA phase space the `phi_k` and `tau` degrees of freedom
+	// have been removed, the functions `F_21`, `F_22`, etc. have been replaced
+	// with their integrated versions over `phi_k` and `tau` (in the URA
+	// approximation). This allows for the `KinematicsUra` instance to be used
+	// for approximating integrated lepton coefficients with the `LepRadXX`
+	// structures.
+	F_d = 0.;
+	F_C = 2.*PI*kin.lambda_Y_sqrt/sq(kin.M);
+	if (k_dir == PhotonDir::WITH_INCOMING) {
+		m_sq_F_21 = 2.*PI*kin.lambda_Y_sqrt;
+		m_sq_F_22 = 0.;
+		m_sq_F_2p = m_sq_F_21;
+		m_sq_F_2m = m_sq_F_21;
+		F_IR = m_sq_F_2p;
+		F_1p = 2.*PI*kin.lambda_Y_sqrt/kin.lambda_S_sqrt*std::log(
+			-(1. + kin.lambda_S_sqrt/kin.S)
+			/sqrt1p_1m(-4.*kin.M*kin.m/kin.S));
+	} else {
+		m_sq_F_21 = 0.;
+		m_sq_F_22 = 2.*PI*kin.lambda_Y_sqrt;
+		m_sq_F_2p = m_sq_F_22;
+		m_sq_F_2m = -m_sq_F_22;
+		F_IR = m_sq_F_2p;
+		F_1p = 2.*PI*kin.lambda_Y_sqrt/kin.lambda_X_sqrt*std::log(
+			-(1. + kin.lambda_X_sqrt/kin.X)
+			/sqrt1p_1m(-4.*kin.M*kin.m/kin.X));
+	}
+}
+
 Final::Final(Initial const& init, Vec3 target_pol, Kinematics const& kin) {
 	beam = kin.beam;
 	hadron = kin.hadron;
@@ -471,7 +383,7 @@ FinalRad::FinalRad(Initial const& init, Vec3 target_pol, KinematicsRad const& ki
 	beam = kin.beam;
 	hadron = kin.hadron;
 	Transform4 lab_from_target = frame::lab_from_target(init, target_pol);
-	Transform4 lab_from_lepton = lab_from_target * frame::target_from_lepton(kin.project());
+	Transform4 lab_from_lepton = lab_from_target * frame::target_from_lepton(kin);
 	q = lab_from_lepton * Vec4(kin.q_0, 0., 0., kin.lambda_Y_sqrt/(2.*kin.M));
 	k2 = lab_from_target * Vec4(
 		kin.k2_0,

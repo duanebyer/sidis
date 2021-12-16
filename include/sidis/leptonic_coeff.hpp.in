@@ -150,58 +150,89 @@ gen_struct.generate_structs_pol(
 	["U", "L"], ["U", "P"],
 	{
 		"UU": [
-			["Real", "theta_011"],
-			["Real", "theta_012"],
-			["Real", "theta_013"],
-			["Real", "theta_021"],
-			["Real", "theta_022"],
-			["Real", "theta_023"],
-			["Real", "theta_031"],
-			["Real", "theta_032"],
-			["Real", "theta_033"],
-			["Real", "theta_041"],
-			["Real", "theta_042"],
-			["Real", "theta_043"],
+			["Real", "theta_01_ir"],
+			["Real", "theta_01"],
+			["Real", "theta_02_ir"],
+			["Real", "theta_02"],
+			["Real", "theta_03_ir"],
+			["Real", "theta_03"],
+			["Real", "theta_04_ir"],
+			["Real", "theta_04"],
 		],
 		"UP": [
-			["Real", "theta_061"],
-			["Real", "theta_062"],
-			["Real", "theta_063"],
-			["Real", "theta_064"],
-			["Real", "theta_081"],
-			["Real", "theta_082"],
-			["Real", "theta_083"],
-			["Real", "theta_084"],
+			["Real", "theta_06_ir"],
+			["Real", "theta_06"],
+			["Real", "theta_08_ir"],
+			["Real", "theta_08"],
 		],
 		"LU": [
-			["Real", "theta_051"],
-			["Real", "theta_052"],
-			["Real", "theta_053"],
-			["Real", "theta_151"],
-			["Real", "theta_152"],
-			["Real", "theta_153"],
+			["Real", "theta_05_ir"],
+			["Real", "theta_05"],
+			["Real", "theta_15_ir"],
+			["Real", "theta_15"],
 		],
 		"LP": [
-			["Real", "theta_071"],
-			["Real", "theta_072"],
-			["Real", "theta_073"],
-			["Real", "theta_074"],
-			["Real", "theta_171"],
-			["Real", "theta_172"],
-			["Real", "theta_173"],
-			["Real", "theta_174"],
-			["Real", "theta_091"],
-			["Real", "theta_092"],
-			["Real", "theta_093"],
-			["Real", "theta_094"],
-			["Real", "theta_191"],
-			["Real", "theta_192"],
-			["Real", "theta_193"],
-			["Real", "theta_194"],
+			["Real", "theta_07_ir"],
+			["Real", "theta_07"],
+			["Real", "theta_17_ir"],
+			["Real", "theta_17"],
+			["Real", "theta_09_ir"],
+			["Real", "theta_09"],
+			["Real", "theta_19_ir"],
+			["Real", "theta_19"],
 		],
 	},
 	constructors=[
 		[["kin::KinematicsRad", "kin"]],
+	]
+)
+]]]*/
+/*[[[end]]]*/
+
+/**
+ * \defgroup LepUraGroup Radiative lepton coefficients for URA
+ * Coefficients \f$\theta_{i}^{\,j}\f$ for the radiative SIDIS diagrams with
+ * ultra-relativistic approximation applied.
+ */
+/// \{
+/*[[[cog
+import gen_struct
+gen_struct.generate_structs_pol(
+	"LepUra",
+	["U", "L"], ["U", "P"],
+	{
+		"UU": [
+			["Real", "theta_01_ir"],
+			["Real", "theta_01"],
+			["Real", "theta_02_ir"],
+			["Real", "theta_02"],
+			["Real", "theta_03_ir"],
+			["Real", "theta_03"],
+			["Real", "theta_04_ir"],
+			["Real", "theta_04"],
+		],
+		"UP": [
+			["Real", "theta_06_ir"],
+			["Real", "theta_06"],
+			["Real", "theta_08_ir"],
+			["Real", "theta_08"],
+		],
+		"LU": [
+			["Real", "theta_05_ir"],
+			["Real", "theta_05"],
+			["Real", "theta_15"],
+		],
+		"LP": [
+			["Real", "theta_07_ir"],
+			["Real", "theta_07"],
+			["Real", "theta_17"],
+			["Real", "theta_09_ir"],
+			["Real", "theta_09"],
+			["Real", "theta_19"],
+		],
+	},
+	constructors=[
+		[["kin::KinematicsUra", "kin"]],
 	]
 )
 ]]]*/

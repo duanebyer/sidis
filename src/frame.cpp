@@ -85,7 +85,7 @@ Transform3 frame::target_from_real_photon(KinematicsRad const& kin) {
 		kin.cos_phi_k, -kin.sin_phi_k, 0.,
 		kin.sin_phi_k, kin.cos_phi_k, 0.,
 		0., 0., 1.);
-	return target_from_lepton(kin.project()) * rotate;
+	return target_from_lepton(kin) * rotate;
 }
 Transform3 frame::real_photon_from_target(KinematicsRad const& kin) {
 	return target_from_real_photon(kin).transpose();
@@ -93,7 +93,7 @@ Transform3 frame::real_photon_from_target(KinematicsRad const& kin) {
 
 Transform3 frame::target_from_shift(KinematicsRad const& kin) {
 	// TODO: See if this can be calculated more accurately by doing it directly.
-	return target_from_hadron(kin.project()) * hadron_from_shift(kin);
+	return target_from_hadron(kin) * hadron_from_shift(kin);
 }
 Transform3 frame::shift_from_target(KinematicsRad const& kin) {
 	return target_from_shift(kin).transpose();

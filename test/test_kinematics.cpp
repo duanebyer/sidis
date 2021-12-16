@@ -328,7 +328,7 @@ TEST_CASE(
 		<< "φ_k   = " << ph_space.phi_k   << std::endl;
 	INFO(ss.str());
 
-	test_kin_nrad(init, kin.project_shift(), false);
+	test_kin_nrad(init, kin.shift(), false);
 }
 
 // The following `[kin-rand]` tests will likely have a handful of failures,
@@ -906,7 +906,7 @@ TEST_CASE(
 	kin::FinalRad fin(init, math::Vec3::Y, kin);
 	// Reference frames.
 	math::Transform4 target_from_shift = frame::target_from_shift(kin);
-	math::Transform4 target_from_hadron = frame::target_from_hadron(kin.project_shift());
+	math::Transform4 target_from_hadron = frame::target_from_hadron(kin.shift());
 	math::Transform4 target_from_real_photon = frame::target_from_real_photon(kin);
 	// Get 4-momenta of particles.
 	math::Vec4 p = init.p;
@@ -990,7 +990,7 @@ TEST_CASE(
 	CHECK_THAT(k_test.y, AbsMatcher<Real>(0., prec));
 
 	// Check that the shift frame is the same as the one obtained by using
-	// `project_shift` with the hadron frame.
+	// `shift` with the hadron frame.
 	CHECK_THAT(target_from_shift.t.t, RelMatcher<Real>(target_from_hadron.t.t, prec));
 	CHECK_THAT(target_from_shift.t.x, RelMatcher<Real>(target_from_hadron.t.x, prec));
 	CHECK_THAT(target_from_shift.t.y, RelMatcher<Real>(target_from_hadron.t.y, prec));

@@ -9,8 +9,11 @@ namespace sidis {
 namespace kin {
 	struct PhaseSpace;
 	struct PhaseSpaceRad;
+	struct PhaseSpaceUra;
 	struct Kinematics;
 	struct KinematicsRad;
+	struct KinematicsUra;
+	enum class PhotonDir;
 }
 
 namespace part {
@@ -85,6 +88,22 @@ struct CutRad {
 	CutRad();
 };
 
+/**
+ * Contains additional cuts for use with radiative SIDIS processes with
+ * ultra-relativistic approximation (URA) only.
+ */
+struct CutUra {
+	/// Base cuts
+	/// \{
+	math::Bound R;
+	math::Bound k_0_bar;
+	/// \}
+
+	math::Bound k_0;
+
+	CutUra();
+};
+
 /// Minimum value that \f$S\f$ can take for a given set of particles.
 Real S_min(part::Particles const& ps);
 
@@ -118,6 +137,8 @@ math::Bound ph_t_sq_bound(part::Particles const& ps, Real S, Real x, Real y, Rea
 math::Bound tau_bound(kin::Kinematics const& kin);
 /// Kinematic limits on \f$R\f$.
 math::Bound R_bound(kin::Kinematics const& kin, Real tau, Real phi_k);
+/// Kinematic limits on \f$R\f$.
+math::Bound R_bound(kin::Kinematics const& kin, kin::PhotonDir k_dir);
 /// \}
 
 /// \name Cut limits
@@ -140,6 +161,8 @@ math::Bound ph_t_sq_bound(Cut const& cut, part::Particles const& ps, Real S, Rea
 math::Bound tau_bound(CutRad const& cut, kin::Kinematics const& kin);
 /// Kinematic limits on \f$R\f$, including Cut%s.
 math::Bound R_bound(CutRad const& cut, kin::Kinematics const& kin, Real tau, Real phi_k);
+/// Kinematic limits on \f$R\f$, including Cut%s.
+math::Bound R_bound(CutUra const& cut, kin::Kinematics const& kin, kin::PhotonDir k_dir);
 /// \}
 
 /// \name Validity checks
@@ -154,6 +177,9 @@ bool valid(kin::Kinematics const& kin);
 /// Check whether a set of KinematicsRad are within the allowed phase space of
 /// radiative SIDIS.
 bool valid(kin::KinematicsRad const& kin);
+/// Check whether a set of KinematicsUra are within the allowed phase space of
+/// radiative SIDIS with ultra-relativistic approximation (URA).
+bool valid(kin::KinematicsUra const& kin);
 /// Check whether a set of Kinematics satisfy some kinematic Cut%s. Also checks
 /// kinematic validity.
 bool valid(Cut const& cut, kin::Kinematics const& kin);
@@ -163,6 +189,12 @@ bool valid(Cut const& cut, CutRad const& cut_rad, kin::KinematicsRad const& kin)
 /// Check whether a set of KinematicsRad satisfy some kinematic Cut%s. Also
 /// checks kinematic validity.
 bool valid(CutRad const& cut, kin::KinematicsRad const& kin);
+/// Check whether a set of KinematicsUra satisfy some kinematic Cut%s. Also
+/// checks kinematic validity.
+bool valid(Cut const& cut, CutUra const& cut_ura, kin::KinematicsUra const& kin);
+/// Check whether a set of KinematicsUra satisfy some kinematic Cut%s. Also
+/// checks kinematic validity.
+bool valid(CutUra const& cut, kin::KinematicsUra const& kin);
 /// \}
 
 /// \name Phase space sampling
@@ -211,6 +243,32 @@ bool take(
 bool take(
 	CutRad const& cut, kin::Kinematics const& kin, const Real point[3],
 	kin::KinematicsRad* kin_out, Real* jacobian_out);
+
+/// Draw from the radiative SIDIS phase space with URA.
+bool take(
+	part::Particles const& ps, Real S, const Real point[7], kin::PhotonDir k_dir,
+	kin::PhaseSpaceUra* ph_space_out, Real* jacobian_out);
+/// Draw from the radiative SIDIS phase space with URA.
+bool take(
+	part::Particles const& ps, Real S, const Real point[7], kin::PhotonDir k_dir,
+	kin::KinematicsUra* kin_out, Real* jacobian_out);
+/// Draw from the radiative SIDIS phase space with URA subject to Cut%s.
+bool take(
+	Cut const& cut, CutUra const& cut_ura,
+	part::Particles const& ps, Real S, const Real point[7], kin::PhotonDir k_dir,
+	kin::KinematicsUra* kin_out, Real* jacobian_out);
+/// Draw from the radiative SIDIS phase space with URA.
+bool take(
+	kin::Kinematics const& kin, const Real point[1], kin::PhotonDir k_dir,
+	kin::PhaseSpaceUra* ph_space_out, Real* jacobian_out);
+/// Draw from the radiative SIDIS phase space with URA.
+bool take(
+	kin::Kinematics const& kin, const Real point[1], kin::PhotonDir k_dir,
+	kin::KinematicsUra* kin_out, Real* jacobian_out);
+/// Draw from the radiative SIDIS phase space with URA subject to Cut%s.
+bool take(
+	CutUra const& cut, kin::Kinematics const& kin, const Real point[1], kin::PhotonDir k_dir,
+	kin::KinematicsUra* kin_out, Real* jacobian_out);
 /// \}
 /// \}
 

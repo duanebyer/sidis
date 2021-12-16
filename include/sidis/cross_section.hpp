@@ -13,6 +13,7 @@ namespace math {
 namespace kin {
 	struct Kinematics;
 	struct KinematicsRad;
+	struct KinematicsUra;
 }
 namespace lep {
 	struct LepBornUU;
@@ -46,6 +47,14 @@ namespace lep {
 	struct LepRadLP;
 	struct LepRadLX;
 	struct LepRadXX;
+
+	struct LepUraUU;
+	struct LepUraUP;
+	struct LepUraUX;
+	struct LepUraLU;
+	struct LepUraLP;
+	struct LepUraLX;
+	struct LepUraXX;
 }
 namespace had {
 	struct HadUU;
@@ -139,6 +148,7 @@ Real born(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::
 /// Anomalous magnetic moment cross-section \f$\sigma_{AMM}\f$, related to
 /// vertex correction diagram.
 Real amm(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
+
 /// Non-radiative cross-section neglecting infrared-divergent-free soft photon
 /// part \f$\sigma_{\text{nrad}}^{IR}\f$.
 Real nrad_ir(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF);
@@ -182,6 +192,29 @@ Real delta_vac_lep(kin::Kinematics const& kin);
 /// Factor \f$\frac{\alpha}{\pi}\delta_{\text{vac}}^{\text{had}}\sigma_{B}\f$
 /// gives the vacuum polarization cross-section due to hadron loops.
 Real delta_vac_had(kin::Kinematics const& kin);
+/// \}
+
+/**
+ * \defgroup GeneralXsUraGroup General cross-section functions with URA
+ * These functions are similar to the general cross-section functions, but with
+ * the ultra-relativistic approximation (URA) applied. The URA allows for the
+ * integration over the \f$\tau\f$ and \f$\phi_k\f$ degrees of freedom to be
+ * done analytically. Requires \f$m^2 \ll Q^2\f$ to be valid.
+ * \ingroup XsGroup
+ */
+/// \{
+
+/// \copydoc nrad
+Real nrad_ura(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, unsigned max_evals=1000000, Real prec=1e-6);
+/// \copydoc rad_f
+Real rad_f_ura(kin::KinematicsUra const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
+/// \copydoc rad
+Real rad_ura(kin::KinematicsUra const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
+
+/// \copydoc rad_f_integ
+Real rad_f_ura_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, unsigned max_evals=1000000, Real prec=1e-6);
+/// \copydoc rad_integ
+Real rad_ura_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, unsigned max_evals=1000000, Real prec=1e-6);
 /// \}
 
 /**
@@ -292,6 +325,16 @@ Real rad_f_uu_base(Rad const& b, lep::LepRadUU const& lep, had::HadRadFUU const&
 math::Vec3 rad_f_up_base(Rad const& b, lep::LepRadUX const& lep, had::HadRadFUP const& had);
 Real rad_f_lu_base(Rad const& b, lep::LepRadLU const& lep, had::HadRadFLU const& had);
 math::Vec3 rad_f_lp_base(Rad const& b, lep::LepRadLX const& lep, had::HadRadFLP const& had);
+
+Real rad_f_ura_uu_base(Rad const& b, lep::LepUraUU const& lep, had::HadRadFUU const& had);
+math::Vec3 rad_f_ura_up_base(Rad const& b, lep::LepUraUX const& lep, had::HadRadFUP const& had);
+Real rad_f_ura_lu_base(Rad const& b, lep::LepUraLU const& lep, had::HadRadFLU const& had);
+math::Vec3 rad_f_ura_lp_base(Rad const& b, lep::LepUraLX const& lep, had::HadRadFLP const& had);
+
+Real rad_ura_uu_base(Rad const& b, lep::LepUraUU const& lep, had::HadRadUU const& had);
+math::Vec3 rad_ura_up_base(Rad const& b, lep::LepUraUX const& lep, had::HadRadUP const& had);
+Real rad_ura_lu_base(Rad const& b, lep::LepUraLU const& lep, had::HadRadLU const& had);
+math::Vec3 rad_ura_lp_base(Rad const& b, lep::LepUraLX const& lep, had::HadRadLP const& had);
 /// \}
 
 }

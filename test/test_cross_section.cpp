@@ -239,7 +239,7 @@ TEST_CASE(
 	kin::KinematicsRad kin(ps, input.S, ph_space);
 	// Get beam and target polarizations.
 	Real beam_pol = input.beam_pol;
-	math::Vec3 eta = frame::hadron_from_target(kin.project()) * input.target_pol;
+	math::Vec3 eta = frame::hadron_from_target(kin) * input.target_pol;
 	// Compute the cross-sections.
 	Real rad_f = xs::rad_f(kin, *sf, beam_pol, eta);
 	Real rad = xs::rad(kin, *sf, beam_pol, eta);

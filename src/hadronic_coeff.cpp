@@ -276,7 +276,7 @@ HadRadLP::HadRadLP(KinematicsRad const& kin, SfSet const& sf) : HadRadLP(
 // coefficients near `R=0`.
 HadRadFUU::HadRadFUU(KinematicsRad const& kin, SfUU const& sf, SfUU const& shift_sf) {
 	HadRadUU had(kin, shift_sf);
-	HadUU had_0(kin.project(), sf);
+	HadUU had_0(kin, sf);
 	H_10 = had.H_10;
 	H_20 = had.H_20;
 	H_30 = had.H_30;
@@ -288,7 +288,7 @@ HadRadFUU::HadRadFUU(KinematicsRad const& kin, SfUU const& sf, SfUU const& shift
 }
 HadRadFUP::HadRadFUP(KinematicsRad const& kin, SfUP const& sf, SfUP const& shift_sf) {
 	HadRadUP had(kin, shift_sf);
-	HadUP had_0(kin.project(), sf);
+	HadUP had_0(kin, sf);
 	H_1 = had.H_1;
 	H_2 = had.H_2;
 	H_3 = had.H_3;
@@ -304,13 +304,13 @@ HadRadFUP::HadRadFUP(KinematicsRad const& kin, SfUP const& sf, SfUP const& shift
 }
 HadRadFLU::HadRadFLU(KinematicsRad const& kin, SfLU const& sf, SfLU const& shift_sf) {
 	HadRadLU had(kin, shift_sf);
-	HadLU had_0(kin.project(), sf);
+	HadLU had_0(kin, sf);
 	H_50 = had.H_50;
 	H_50_diff = (had.H_50 - had_0.H_50)/kin.R;
 }
 HadRadFLP::HadRadFLP(KinematicsRad const& kin, SfLP const& sf, SfLP const& shift_sf) {
 	HadRadLP had(kin, shift_sf);
-	HadLP had_0(kin.project(), sf);
+	HadLP had_0(kin, sf);
 	H_5 = had.H_5;
 	H_7 = had.H_7;
 	H_9 = had.H_9;
@@ -331,8 +331,8 @@ HadRadFUU::HadRadFUU(KinematicsRad const& kin, SfSet const& sf, HadUU const& had
 	if (kin.R < delta_R) {
 		Real R_1 = delta_R;
 		Real R_2 = 2.*delta_R;
-		KinematicsRad kin_1(kin.project(), kin.tau, kin.phi_k, R_1);
-		KinematicsRad kin_2(kin.project(), kin.tau, kin.phi_k, R_2);
+		KinematicsRad kin_1(kin, kin.tau, kin.phi_k, R_1);
+		KinematicsRad kin_2(kin, kin.tau, kin.phi_k, R_2);
 		HadRadUU had_1(kin_1, sf);
 		HadRadUU had_2(kin_2, sf);
 		H_10_diff = diff_R(kin.R, delta_R, had_0.H_10, had_1.H_10, had_2.H_10);
@@ -367,8 +367,8 @@ HadRadFUP::HadRadFUP(KinematicsRad const& kin, SfSet const& sf, HadUP const& had
 	if (kin.R < delta_R) {
 		Real R_1 = delta_R;
 		Real R_2 = 2.*delta_R;
-		KinematicsRad kin_1(kin.project(), kin.tau, kin.phi_k, R_1);
-		KinematicsRad kin_2(kin.project(), kin.tau, kin.phi_k, R_2);
+		KinematicsRad kin_1(kin, kin.tau, kin.phi_k, R_1);
+		KinematicsRad kin_2(kin, kin.tau, kin.phi_k, R_2);
 		HadRadUP had_1(kin_1, sf);
 		HadRadUP had_2(kin_2, sf);
 		H_1_diff = diff_R(kin.R, delta_R, had_0_H_1, had_1.H_1, had_2.H_1);
@@ -396,8 +396,8 @@ HadRadFLU::HadRadFLU(KinematicsRad const& kin, SfSet const& sf, HadLU const& had
 	if (kin.R < delta_R) {
 		Real R_1 = delta_R;
 		Real R_2 = 2.*delta_R;
-		KinematicsRad kin_1(kin.project(), kin.tau, kin.phi_k, R_1);
-		KinematicsRad kin_2(kin.project(), kin.tau, kin.phi_k, R_2);
+		KinematicsRad kin_1(kin, kin.tau, kin.phi_k, R_1);
+		KinematicsRad kin_2(kin, kin.tau, kin.phi_k, R_2);
 		HadRadLU had_1(kin_1, sf);
 		HadRadLU had_2(kin_2, sf);
 		H_50_diff = diff_R(kin.R, delta_R, had_0.H_50, had_1.H_50, had_2.H_50);
@@ -420,8 +420,8 @@ HadRadFLP::HadRadFLP(KinematicsRad const& kin, SfSet const& sf, HadLP const& had
 	if (kin.R < delta_R) {
 		Real R_1 = delta_R;
 		Real R_2 = 2.*delta_R;
-		KinematicsRad kin_1(kin.project(), kin.tau, kin.phi_k, R_1);
-		KinematicsRad kin_2(kin.project(), kin.tau, kin.phi_k, R_2);
+		KinematicsRad kin_1(kin, kin.tau, kin.phi_k, R_1);
+		KinematicsRad kin_2(kin, kin.tau, kin.phi_k, R_2);
 		HadRadLP had_1(kin_1, sf);
 		HadRadLP had_2(kin_2, sf);
 		H_5_diff = diff_R(kin.R, delta_R, had_0_H_5, had_1.H_5, had_2.H_5);
@@ -434,11 +434,11 @@ HadRadFLP::HadRadFLP(KinematicsRad const& kin, SfSet const& sf, HadLP const& had
 	}
 }
 HadRadFUU::HadRadFUU(KinematicsRad const& kin, SfSet const& sf) :
-	HadRadFUU(kin, sf, HadUU(kin.project(), sf)) { }
+	HadRadFUU(kin, sf, HadUU(kin, sf)) { }
 HadRadFUP::HadRadFUP(KinematicsRad const& kin, SfSet const& sf) :
-	HadRadFUP(kin, sf, HadUP(kin.project(), sf)) { }
+	HadRadFUP(kin, sf, HadUP(kin, sf)) { }
 HadRadFLU::HadRadFLU(KinematicsRad const& kin, SfSet const& sf) :
-	HadRadFLU(kin, sf, HadLU(kin.project(), sf)) { }
+	HadRadFLU(kin, sf, HadLU(kin, sf)) { }
 HadRadFLP::HadRadFLP(KinematicsRad const& kin, SfSet const& sf) :
-	HadRadFLP(kin, sf, HadLP(kin.project(), sf)) { }
+	HadRadFLP(kin, sf, HadLP(kin, sf)) { }
 

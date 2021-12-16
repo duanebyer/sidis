@@ -68,6 +68,41 @@ struct PhaseSpaceRad {
 };
 
 /**
+ * Direction of the radiated photon in the ultra-relativistic approximation.
+ * \sa PhaseSpaceUra
+ */
+enum class PhotonDir {
+	WITH_INCOMING,
+	WITH_OUTGOING,
+};
+
+/**
+ * Point in radiative phase space, with the ultra-relativistic approximation
+ * (URA) applied. Under the URA, the radiated photon can only be emitted in the
+ * direction of the incoming lepton, or in the direction of the outgoing lepton.
+ * As a result, the phase space is seven-dimensional.
+ * \sa PhaseSpaceRad
+ */
+struct PhaseSpaceUra {
+	/// \copydoc PhaseSpace::x
+	Real x;
+	/// \copydoc PhaseSpace::y
+	Real y;
+	/// \copydoc PhaseSpace::z
+	Real z;
+	/// \copydoc PhaseSpace::ph_t_sq
+	Real ph_t_sq;
+	/// \copydoc PhaseSpace::phi_h
+	Real phi_h;
+	/// \copydoc PhaseSpace::phi
+	Real phi;
+	/// \copydoc PhaseSpaceRad::R
+	Real R;
+	/// Direction of the radiated photon.
+	PhotonDir k_dir;
+};
+
+/**
  * Describes the kinematics of a SIDIS process. This structure is used to cache
  * various kinematic quantities so they can be re-used throughout the
  * cross-section calculations.
@@ -146,6 +181,8 @@ struct Kinematics {
 
 	/// Defined as \f$\lambda_S = 4 M^2 |\pmb{k}_1|^2\f$.
 	Real lambda_S;
+	/// Defined as \f$\lambda_X = 4 M^2 |\pmb{k}_2|^2\f$.
+	Real lambda_X;
 	/// Defined as \f$\lambda_Y = 4 M^2 |\pmb{q}|^2\f$.
 	Real lambda_Y;
 	/// Defined as \f$\lambda_1 = 4 M^2 q_t^2|\pmb{k_1}|^2\f$.
@@ -157,6 +194,8 @@ struct Kinematics {
 
 	/// Cached \f$\sqrt{\lambda_S}\f$.
 	Real lambda_S_sqrt;
+	/// Cached \f$\sqrt{\lambda_X}\f$.
+	Real lambda_X_sqrt;
 	/// Cached \f$\sqrt{\lambda_Y}\f$.
 	Real lambda_Y_sqrt;
 	/// Cached \f$\sqrt{\lambda_1}\f$.
@@ -237,150 +276,7 @@ struct Kinematics {
  * to cache various kinematic quantities so they can be re-used throughout the
  * cross-section calculations.
  */
-struct KinematicsRad {
-	/// \name %Initial state description
-	/// \{
-	/// \copydoc Kinematics::target
-	part::Nucleus target;
-	/// \copydoc Kinematics::beam
-	part::Lepton beam;
-	/// \copydoc Kinematics::hadron
-	part::Hadron hadron;
-
-	/// \copydoc Kinematics::S
-	Real S;
-	/// \copydoc Kinematics::M
-	Real M;
-	/// \copydoc Kinematics::m
-	Real m;
-	/// \copydoc Kinematics::mh
-	Real mh;
-	/// \copydoc Kinematics::Mth
-	Real Mth;
-	/// \}
-
-	/// \name Base non-radiative kinematic variables
-	/// A minimum set of kinematic variables needed to describe the SIDIS
-	/// process.
-	/// \sa PhaseSpace
-	/// \{
-
-	/// \copydoc Kinematics::x
-	Real x;
-	/// \copydoc Kinematics::y
-	Real y;
-	/// \copydoc Kinematics::z
-	Real z;
-	/// \copydoc Kinematics::ph_t_sq
-	Real ph_t_sq;
-	/// \copydoc Kinematics::phi_h
-	Real phi_h;
-	/// \copydoc Kinematics::phi
-	Real phi;
-	/// \}
-
-	/// \name Additional non-radiative kinematic variables.
-	/// Additional kinematic variables that are needed for cross-section
-	/// calculations.
-	/// \{
-
-	/// \copydoc Kinematics::Q_sq
-	Real Q_sq;
-	/// \copydoc Kinematics::Q
-	Real Q;
-	/// \copydoc Kinematics::t
-	Real t;
-	/// \copydoc Kinematics::W_sq
-	Real W_sq;
-	/// \copydoc Kinematics::X
-	Real X;
-	/// \copydoc Kinematics::S_x
-	Real S_x;
-	/// \copydoc Kinematics::S_p
-	Real S_p;
-	/// \copydoc Kinematics::V_1
-	Real V_1;
-	/// \copydoc Kinematics::V_2
-	Real V_2;
-	/// \copydoc Kinematics::V_m
-	Real V_m;
-	/// \copydoc Kinematics::V_p
-	Real V_p;
-
-	/// \copydoc Kinematics::lambda_S
-	Real lambda_S;
-	/// \copydoc Kinematics::lambda_Y
-	Real lambda_Y;
-	/// \copydoc Kinematics::lambda_1
-	Real lambda_1;
-	/// \copydoc Kinematics::lambda_2
-	Real lambda_2;
-	/// \copydoc Kinematics::lambda_3
-	Real lambda_3;
-	/// \copydoc Kinematics::lambda_S_sqrt
-	Real lambda_S_sqrt;
-	/// \copydoc Kinematics::lambda_Y_sqrt
-	Real lambda_Y_sqrt;
-	/// \copydoc Kinematics::lambda_1_sqrt
-	Real lambda_1_sqrt;
-	/// \copydoc Kinematics::lambda_2_sqrt
-	Real lambda_2_sqrt;
-	/// \copydoc Kinematics::lambda_3_sqrt
-	Real lambda_3_sqrt;
-
-	/// \copydoc Kinematics::mx_sq
-	Real mx_sq;
-	/// \copydoc Kinematics::mx
-	Real mx;
-	/// \copydoc Kinematics::vol_phi_h
-	Real vol_phi_h;
-
-	/// \copydoc Kinematics::C_1
-	Real C_1;
-	/// \}
-
-	/// \name Non-radiative 4-momentum components
-	/// Energy, and momentum components of the particles in various frames. For
-	/// the definitions of the frames themselves, see the
-	/// \ref FrameGroup "frame" namespace.
-	/// \{
-
-	/// \copydoc Kinematics::ph_0
-	Real ph_0;
-	/// \copydoc Kinematics::ph_t
-	Real ph_t;
-	/// \copydoc Kinematics::ph_l
-	Real ph_l;
-	/// \copydoc Kinematics::cos_phi_h
-	Real cos_phi_h;
-	/// \copydoc Kinematics::sin_phi_h
-	Real sin_phi_h;
-	/// \copydoc Kinematics::q_0
-	Real q_0;
-	/// \copydoc Kinematics::q_t
-	Real q_t;
-	/// \copydoc Kinematics::q_l
-	Real q_l;
-	/// \copydoc Kinematics::phi_q
-	Real phi_q;
-	/// \copydoc Kinematics::cos_phi_q
-	Real cos_phi_q;
-	/// \copydoc Kinematics::sin_phi_q
-	Real sin_phi_q;
-	/// \copydoc Kinematics::k2_0
-	Real k2_0;
-	/// \copydoc Kinematics::k2_t
-	Real k2_t;
-	/// \copydoc Kinematics::k2_l
-	Real k2_l;
-	/// \copydoc Kinematics::k1_t
-	Real k1_t;
-	/// \copydoc Kinematics::cos_phi
-	Real cos_phi;
-	/// \copydoc Kinematics::sin_phi
-	Real sin_phi;
-	/// \}
-
+struct KinematicsRad : public Kinematics {
 	/// \name Base radiative kinematic variables
 	/// A minimum set of kinematic variables needed to describe the radiative
 	/// SIDIS process.
@@ -436,20 +332,22 @@ struct KinematicsRad {
 	/// \f$\varepsilon^{\mu\nu\rho\sigma}k_{\mu}p_{\nu}p_{h\rho}q_{\sigma}\f$
 	Real vol_phi_hk;
 
-	/// Defined as \f$F_{22} = \frac{1}{z_2^2}\f$.
-	Real F_22;
-	/// Defined as \f$F_{21} = \frac{1}{z_1^2}\f$.
-	Real F_21;
-	/// Defined as \f$F_{2+} = \frac{1}{z_2^2} + \frac{1}{z_1^2}\f$.
-	Real F_2p;
-	/// Defined as \f$F_{2-} = \frac{1}{z_2^2} - \frac{1}{z_1^2}\f$.
-	Real F_2m;
+	/// Defined as \f$m^2 F_{22} = m^2 \frac{1}{z_2^2}\f$.
+	Real m_sq_F_22;
+	/// Defined as \f$m^2 F_{21} = m^2 \frac{1}{z_1^2}\f$.
+	Real m_sq_F_21;
+	/// Defined as \f$m^2 F_{2+} = m^2 \frac{1}{z_2^2} + \frac{1}{z_1^2}\f$.
+	Real m_sq_F_2p;
+	/// Defined as \f$m^2 F_{2-} = m^2 \frac{1}{z_2^2} - \frac{1}{z_1^2}\f$.
+	Real m_sq_F_2m;
 	/// Defined as \f$F_d = \frac{1}{z_1 z_2}\f$.
 	Real F_d;
 	/// Defined as \f$F_{1+} = \frac{1}{z_1} + \frac{1}{z_2}\f$.
 	Real F_1p;
 	/// Defined as \f$F_{IR} = m^2 F_{2+} - (Q^2 + 2 m^2)F_d\f$.
 	Real F_IR;
+	/// Defined as \f$F_{C} = 1\f$.
+	Real F_C;
 	/// \}
 
 	/// \name Radiative 4-momentum components
@@ -529,12 +427,9 @@ struct KinematicsRad {
 	Real shift_k1_t;
 	/// \}
 
-	/// Discard the radiative kinematic variables to get a Kinematics describing
-	/// a point in the non-radiative PhaseSpace.
-	Kinematics project() const;
 	/// Use the shifted kinematic variables to get a Kinematics describing a
 	/// shifted point in the non-radiative PhaseSpace.
-	Kinematics project_shift() const;
+	Kinematics shift() const;
 
 	/// Initialize an empty KinematicsRad in an invalid state.
 	KinematicsRad() { }
@@ -561,6 +456,58 @@ struct KinematicsRad {
 	/// radiative variables \f$\tau\f$, \f$\phi_k\f$, and \f$R\f$, to form a
 	/// radiative KinematicsRad.
 	KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R);
+};
+
+/**
+ * Describes the kinematics of a radiative SIDIS process with the
+ * ultra-relativistic approximation (URA) applied. This structure is used to
+ * cache various kinematic quantities so they can be re-used throughout the
+ * cross-section calculations.
+ *
+ * Note that KinematicsUra simply enforces that the emitted photon is either in
+ * the direction of the incoming lepton, or the outgoing lepton, thus limiting
+ * the radiative phase space to be 1-dimensional. In particular, it does not
+ * enforce that the lepton mass is zero. However, the functions which give rise
+ * to the radiative peak at incoming/outgoing lepton direction (ex. \f$F_21\f$,
+ * \f$F_22\f$, etc.) are replaced with integrals over \f$\tau\f$ and
+ * \f$\phi_k\f$, so that if a KinematicsUra is used to calculate lepton
+ * coefficients with LepRadXX, the expected integrated results will be obtained
+ * (to leading order in lepton mass). For efficiency and convenience,
+ * alternative LepUraXX lepton coefficients should be used instead.
+ */
+struct KinematicsUra : public KinematicsRad {
+	/// \name Base URA kinematic variables
+	/// \sa PhaseSpaceUra
+	/// \{
+
+	/// \copydoc PhaseSpaceUra::k_dir
+	PhotonDir k_dir;
+	/// \}
+
+	/// Initialize an empty KinematicsUra in an invalid state.
+	KinematicsUra() { }
+	/// Fill in a KinematicsUra corresponding to particles \p ps, with beam
+	/// energy given by \p S (with \f$S = 2 p k_1\f$), and at a PhaseSpaceUra
+	/// point \p ph_space.
+	KinematicsUra(part::Particles const& ps, Real S, PhaseSpaceUra const& ph_space) :
+		KinematicsUra(
+			Kinematics(
+				ps,
+				S,
+				{
+					ph_space.x,
+					ph_space.y,
+					ph_space.z,
+					ph_space.ph_t_sq,
+					ph_space.phi_h,
+					ph_space.phi,
+				}),
+			ph_space.R,
+			ph_space.k_dir) { }
+	/// Take an existing non-radiative Kinematics, and add the additional base
+	/// radiative variables \f$\tau\f$, \f$\phi_k\f$, and \f$R\f$, to form a
+	/// radiative KinematicsUra.
+	KinematicsUra(Kinematics const& kin, Real R, PhotonDir k_dir);
 };
 
 /**

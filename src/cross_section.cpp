@@ -218,14 +218,14 @@ Real xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3
 			Real lu = rad_f_lu_base(b, lep, had);
 			Vec3 lp = rad_f_lp_base(b, lep, had);
 			Real xs = uu + dot(eta, up) + lambda_e*(lu + dot(eta, lp));
-			if (std::isnan(xs)) {
+			if (!std::isnan(xs)) {
+				return jacobian * xs;
+			} else {
 				// If the result is `NaN`, it most likely means we went out of
 				// the allowed region for the structure function grids (or we
 				// are in a kinematically disallowed region). In that case, just
 				// return zero.
 				return 0.;
-			} else {
-				return jacobian * xs;
 			}
 		},
 		cubature::Point<3, Real>{ 0., 0., 0. },
@@ -254,10 +254,10 @@ Real xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 e
 			Real lu = rad_lu_base(b, lep, had);
 			Vec3 lp = rad_lp_base(b, lep, had);
 			Real xs = uu + dot(eta, up) + lambda_e*(lu + dot(eta, lp));
-			if (std::isnan(xs)) {
-				return 0.;
-			} else {
+			if (!std::isnan(xs)) {
 				return jacobian * xs;
+			} else {
+				return 0.;
 			}
 		},
 		cubature::Point<3, Real>{ 0., 0., 0. },
@@ -265,6 +265,96 @@ Real xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 e
 		max_evals, 0., prec);
 	return xs_integ.val;
 }
+
+Real xs::nrad_ura(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
+	// The soft part of the radiative cross-section (below `k_0_bar`) is bundled
+	// into the return value here.
+	Real xs_nrad_ir = nrad_ir(kin, sf, lambda_e, eta, k_0_bar);
+	Real xs_rad_f = rad_f_ura_integ(kin, sf, lambda_e, eta, k_0_bar, max_evals, prec);
+	return xs_nrad_ir + xs_rad_f;
+}
+
+Real xs::rad_ura(KinematicsUra const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
+	Rad b(kin);
+	return SIDIS_MACRO_XS_FROM_BASE_P(rad_ura, LepUra, HadRad, kin, sf, b, lambda_e, eta);
+}
+
+Real xs::rad_f_ura(KinematicsUra const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
+	Rad b(kin);
+	return SIDIS_MACRO_XS_FROM_BASE_P(rad_f_ura, LepUra, HadRadF, kin, sf, b, lambda_e, eta);
+}
+
+Real xs::rad_f_ura_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
+	HadXX had_0(kin, sf);
+	CutUra cut;
+	cut.k_0_bar = Bound(0., k_0_bar);
+	cubature::EstErr<Real> xs_integ = cubature::cubature<1>(
+		[&](cubature::Point<1, Real> x) {
+			Real result = 0.;
+			for (std::size_t k_dir_idx = 0; k_dir_idx < 2; ++k_dir_idx) {
+				PhotonDir k_dir = (k_dir_idx == 0) ?
+					PhotonDir::WITH_INCOMING :
+					PhotonDir::WITH_OUTGOING;
+				Real point[1] = { x[0] };
+				KinematicsUra kin_ura;
+				Real jacobian;
+				if (!take(cut, kin, point, k_dir, &kin_ura, &jacobian)) {
+					continue;
+				}
+
+				Rad b(kin_ura);
+				LepUraXX lep(kin_ura);
+				HadRadFXX had(kin_ura, sf, had_0);
+				Real uu = rad_f_ura_uu_base(b, lep, had);
+				Vec3 up = rad_f_ura_up_base(b, lep, had);
+				Real lu = rad_f_ura_lu_base(b, lep, had);
+				Vec3 lp = rad_f_ura_lp_base(b, lep, had);
+				Real xs = uu + dot(eta, up) + lambda_e*(lu + dot(eta, lp));
+				if (!std::isnan(xs)) {
+					result += jacobian * xs;
+				}
+			}
+			return result;
+		},
+		cubature::Point<1, Real>{ 0. },
+		cubature::Point<1, Real>{ 1. },
+		max_evals, 0., prec);
+	return xs_integ.val;
+}
+
+/*
+Real xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
+	CutRad cut;
+	cut.k_0_bar = Bound(k_0_bar, INF);
+	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
+		[&](cubature::Point<3, Real> x) {
+			Real point[3] = { x[0], x[1], x[2] };
+			KinematicsRad kin_rad;
+			Real jacobian;
+			if (!take(cut, kin, point, &kin_rad, &jacobian)) {
+				return 0.;
+			}
+
+			Rad b(kin_rad);
+			LepRadXX lep(kin_rad);
+			HadRadXX had(kin_rad, sf);
+			Real uu = rad_uu_base(b, lep, had);
+			Vec3 up = rad_up_base(b, lep, had);
+			Real lu = rad_lu_base(b, lep, had);
+			Vec3 lp = rad_lp_base(b, lep, had);
+			Real xs = uu + dot(eta, up) + lambda_e*(lu + dot(eta, lp));
+			if (!std::isnan(xs)) {
+				return jacobian * xs;
+			} else {
+				return 0.;
+			}
+		},
+		cubature::Point<3, Real>{ 0., 0., 0. },
+		cubature::Point<3, Real>{ 1., 1., 1. },
+		max_evals, 0., prec);
+	return xs_integ.val;
+}
+*/
 
 // Radiative corrections to Born cross-section.
 Real xs::delta_vert_rad_ir(Kinematics const& kin, Real k_0_bar) {
@@ -517,141 +607,148 @@ Rad::Rad(KinematicsRad const& kin) {
 
 Real xs::rad_uu_base(Rad const& b, LepRadUU const& lep, HadRadUU const& had) {
 	return b.coeff*(
-		1./b.R*(
-			lep.theta_011*had.H_10
-			+ lep.theta_021*had.H_20
-			+ lep.theta_031*had.H_30
-			+ lep.theta_041*had.H_40)
-		+ (
-			lep.theta_012*had.H_10
-			+ lep.theta_022*had.H_20
-			+ lep.theta_032*had.H_30
-			+ lep.theta_042*had.H_40)
-		+ b.R*(
-			lep.theta_013*had.H_10
-			+ lep.theta_023*had.H_20
-			+ lep.theta_033*had.H_30
-			+ lep.theta_043*had.H_40));
+		had.H_10*(lep.theta_01_ir/b.R + lep.theta_01)
+		+ had.H_20*(lep.theta_02_ir/b.R + lep.theta_02)
+		+ had.H_30*(lep.theta_03_ir/b.R + lep.theta_03)
+		+ had.H_40*(lep.theta_04_ir/b.R + lep.theta_04));
 }
 Vec3 xs::rad_up_base(Rad const& b, LepRadUX const& lep, HadRadUP const& had) {
 	return b.coeff*(
-		1./b.R*(
-			lep.theta_011*had.H_1
-			+ lep.theta_021*had.H_2
-			+ lep.theta_031*had.H_3
-			+ lep.theta_041*had.H_4
-			+ lep.theta_061*had.H_6
-			+ lep.theta_081*had.H_8)
-		+ (
-			lep.theta_012*had.H_1
-			+ lep.theta_022*had.H_2
-			+ lep.theta_032*had.H_3
-			+ lep.theta_042*had.H_4
-			+ lep.theta_062*had.H_6
-			+ lep.theta_082*had.H_8)
-		+ b.R*(
-			lep.theta_013*had.H_1
-			+ lep.theta_023*had.H_2
-			+ lep.theta_033*had.H_3
-			+ lep.theta_043*had.H_4
-			+ lep.theta_063*had.H_6
-			+ lep.theta_083*had.H_8)
-		+ b.R*b.R*(
-			lep.theta_064*had.H_6
-			+ lep.theta_084*had.H_8));
+		had.H_1*(lep.theta_01_ir/b.R + lep.theta_01)
+		+ had.H_2*(lep.theta_02_ir/b.R + lep.theta_02)
+		+ had.H_3*(lep.theta_03_ir/b.R + lep.theta_03)
+		+ had.H_4*(lep.theta_04_ir/b.R + lep.theta_04)
+		+ had.H_6*(lep.theta_06_ir/b.R + lep.theta_06)
+		+ had.H_8*(lep.theta_08_ir/b.R + lep.theta_08));
 }
 Real xs::rad_lu_base(Rad const& b, LepRadLU const& lep, HadRadLU const& had) {
 	return b.coeff*(
-		1./b.R*(lep.theta_051 + lep.theta_151)*had.H_50
-		+ (lep.theta_052 + lep.theta_152)*had.H_50
-		+ b.R*(lep.theta_053 + lep.theta_153)*had.H_50);
+		had.H_50*(
+			(lep.theta_05_ir + lep.theta_15_ir)/b.R
+			+ (lep.theta_05 + lep.theta_15)));
 }
 Vec3 xs::rad_lp_base(Rad const& b, LepRadLX const& lep, HadRadLP const& had) {
 	return b.coeff*(
-		1./b.R*(
-			(lep.theta_051 + lep.theta_151)*had.H_5
-			+ (lep.theta_071 + lep.theta_171)*had.H_7
-			+ (lep.theta_091 + lep.theta_191)*had.H_9)
-		+ (
-		 	(lep.theta_052 + lep.theta_152)*had.H_5
-			+ (lep.theta_072 + lep.theta_172)*had.H_7
-			+ (lep.theta_092 + lep.theta_192)*had.H_9)
-		+ b.R*(
-		 	(lep.theta_053 + lep.theta_153)*had.H_5
-			+ (lep.theta_073 + lep.theta_173)*had.H_7
-			+ (lep.theta_093 + lep.theta_193)*had.H_9)
-		+ b.R*b.R*(
-			(lep.theta_074 + lep.theta_174)*had.H_7
-			+ (lep.theta_094 + lep.theta_194)*had.H_9));
+		had.H_5*(
+			(lep.theta_05_ir + lep.theta_15_ir)/b.R
+			+ (lep.theta_05 + lep.theta_15))
+		+ had.H_7*(
+			(lep.theta_07_ir + lep.theta_17_ir)/b.R
+			+ (lep.theta_07 + lep.theta_17))
+		+ had.H_9*(
+			(lep.theta_09_ir + lep.theta_19_ir)/b.R
+			+ (lep.theta_09 + lep.theta_19)));
 }
 
 Real xs::rad_f_uu_base(Rad const& b, LepRadUU const& lep, HadRadFUU const& had) {
 	return b.coeff*(
-		(
-			lep.theta_011*had.H_10_diff
-			+ lep.theta_021*had.H_20_diff
-			+ lep.theta_031*had.H_30_diff
-			+ lep.theta_041*had.H_40_diff)
-		+ (
-			lep.theta_012*had.H_10
-			+ lep.theta_022*had.H_20
-			+ lep.theta_032*had.H_30
-			+ lep.theta_042*had.H_40)
-		+ b.R*(
-			lep.theta_013*had.H_10
-			+ lep.theta_023*had.H_20
-			+ lep.theta_033*had.H_30
-			+ lep.theta_043*had.H_40));
+		had.H_10_diff*lep.theta_01_ir
+		+ had.H_20_diff*lep.theta_02_ir
+		+ had.H_30_diff*lep.theta_03_ir
+		+ had.H_40_diff*lep.theta_04_ir
+		+ had.H_10*lep.theta_01
+		+ had.H_20*lep.theta_02
+		+ had.H_30*lep.theta_03
+		+ had.H_40*lep.theta_04);
 }
 Vec3 xs::rad_f_up_base(Rad const& b, LepRadUX const& lep, HadRadFUP const& had) {
 	return b.coeff*(
-		(
-			lep.theta_011*had.H_1_diff
-			+ lep.theta_021*had.H_2_diff
-			+ lep.theta_031*had.H_3_diff
-			+ lep.theta_041*had.H_4_diff
-			+ lep.theta_061*had.H_6_diff
-			+ lep.theta_081*had.H_8_diff)
-		+ (
-			lep.theta_012*had.H_1
-			+ lep.theta_022*had.H_2
-			+ lep.theta_032*had.H_3
-			+ lep.theta_042*had.H_4
-			+ lep.theta_062*had.H_6
-			+ lep.theta_082*had.H_8)
-		+ b.R*(
-			lep.theta_013*had.H_1
-			+ lep.theta_023*had.H_2
-			+ lep.theta_033*had.H_3
-			+ lep.theta_043*had.H_4
-			+ lep.theta_063*had.H_6
-			+ lep.theta_083*had.H_8)
-		+ b.R*b.R*(
-			lep.theta_064*had.H_6
-			+ lep.theta_084*had.H_8));
+		had.H_1_diff*lep.theta_01_ir
+		+ had.H_2_diff*lep.theta_02_ir
+		+ had.H_3_diff*lep.theta_03_ir
+		+ had.H_4_diff*lep.theta_04_ir
+		+ had.H_6_diff*lep.theta_06_ir
+		+ had.H_8_diff*lep.theta_08_ir
+		+ had.H_1*lep.theta_01
+		+ had.H_2*lep.theta_02
+		+ had.H_3*lep.theta_03
+		+ had.H_4*lep.theta_04
+		+ had.H_6*lep.theta_06
+		+ had.H_8*lep.theta_08);
 }
 Real xs::rad_f_lu_base(Rad const& b, LepRadLU const& lep, HadRadFLU const& had) {
 	return b.coeff*(
-		(lep.theta_051 + lep.theta_151)*had.H_50_diff
-		+ (lep.theta_052 + lep.theta_152)*had.H_50
-		+ b.R*(lep.theta_053 + lep.theta_153)*had.H_50);
+		had.H_50_diff*(lep.theta_05_ir + lep.theta_15_ir)
+		+ had.H_50*(lep.theta_05 + lep.theta_15));
 }
 Vec3 xs::rad_f_lp_base(Rad const& b, LepRadLX const& lep, HadRadFLP const& had) {
 	return b.coeff*(
-		(
-			(lep.theta_051 + lep.theta_151)*had.H_5_diff
-			+ (lep.theta_071 + lep.theta_171)*had.H_7_diff
-			+ (lep.theta_091 + lep.theta_191)*had.H_9_diff)
-		+ (
-		 	(lep.theta_052 + lep.theta_152)*had.H_5
-			+ (lep.theta_072 + lep.theta_172)*had.H_7
-			+ (lep.theta_092 + lep.theta_192)*had.H_9)
-		+ b.R*(
-		 	(lep.theta_053 + lep.theta_153)*had.H_5
-			+ (lep.theta_073 + lep.theta_173)*had.H_7
-			+ (lep.theta_093 + lep.theta_193)*had.H_9)
-		+ b.R*b.R*(
-			(lep.theta_074 + lep.theta_174)*had.H_7
-			+ (lep.theta_094 + lep.theta_194)*had.H_9));
+		had.H_5_diff*(lep.theta_05_ir + lep.theta_15_ir)
+		+ had.H_7_diff*(lep.theta_07_ir + lep.theta_17_ir)
+		+ had.H_9_diff*(lep.theta_09_ir + lep.theta_19_ir)
+		+ had.H_5*(lep.theta_05 + lep.theta_15)
+		+ had.H_7*(lep.theta_07 + lep.theta_17)
+		+ had.H_9*(lep.theta_09 + lep.theta_19));
+}
+
+// Ultra-relativistic approximation variations.
+// TODO: See if there is a natural way to remove the code duplication between
+// this code and the non-URA variants.
+Real xs::rad_ura_uu_base(Rad const& b, LepUraUU const& lep, HadRadUU const& had) {
+	return b.coeff*(
+		had.H_10*(lep.theta_01_ir/b.R + lep.theta_01)
+		+ had.H_20*(lep.theta_02_ir/b.R + lep.theta_02)
+		+ had.H_30*(lep.theta_03_ir/b.R + lep.theta_03)
+		+ had.H_40*(lep.theta_04_ir/b.R + lep.theta_04));
+}
+Vec3 xs::rad_ura_up_base(Rad const& b, LepUraUX const& lep, HadRadUP const& had) {
+	return b.coeff*(
+		had.H_1*(lep.theta_01_ir/b.R + lep.theta_01)
+		+ had.H_2*(lep.theta_02_ir/b.R + lep.theta_02)
+		+ had.H_3*(lep.theta_03_ir/b.R + lep.theta_03)
+		+ had.H_4*(lep.theta_04_ir/b.R + lep.theta_04)
+		+ had.H_6*(lep.theta_06_ir/b.R + lep.theta_06)
+		+ had.H_8*(lep.theta_08_ir/b.R + lep.theta_08));
+}
+Real xs::rad_ura_lu_base(Rad const& b, LepUraLU const& lep, HadRadLU const& had) {
+	return b.coeff*(
+		had.H_50*(lep.theta_05_ir/b.R + (lep.theta_05 + lep.theta_15)));
+}
+Vec3 xs::rad_ura_lp_base(Rad const& b, LepUraLX const& lep, HadRadLP const& had) {
+	return b.coeff*(
+		had.H_5*(lep.theta_05_ir/b.R + (lep.theta_05 + lep.theta_15))
+		+ had.H_7*(lep.theta_07_ir/b.R + (lep.theta_07 + lep.theta_17))
+		+ had.H_9*(lep.theta_09_ir/b.R + (lep.theta_09 + lep.theta_19)));
+}
+
+Real xs::rad_f_ura_uu_base(Rad const& b, LepUraUU const& lep, HadRadFUU const& had) {
+	return b.coeff*(
+		had.H_10_diff*lep.theta_01_ir
+		+ had.H_20_diff*lep.theta_02_ir
+		+ had.H_30_diff*lep.theta_03_ir
+		+ had.H_40_diff*lep.theta_04_ir
+		+ had.H_10*lep.theta_01
+		+ had.H_20*lep.theta_02
+		+ had.H_30*lep.theta_03
+		+ had.H_40*lep.theta_04);
+}
+Vec3 xs::rad_f_ura_up_base(Rad const& b, LepUraUX const& lep, HadRadFUP const& had) {
+	return b.coeff*(
+		had.H_1_diff*lep.theta_01_ir
+		+ had.H_2_diff*lep.theta_02_ir
+		+ had.H_3_diff*lep.theta_03_ir
+		+ had.H_4_diff*lep.theta_04_ir
+		+ had.H_6_diff*lep.theta_06_ir
+		+ had.H_8_diff*lep.theta_08_ir
+		+ had.H_1*lep.theta_01
+		+ had.H_2*lep.theta_02
+		+ had.H_3*lep.theta_03
+		+ had.H_4*lep.theta_04
+		+ had.H_6*lep.theta_06
+		+ had.H_8*lep.theta_08);
+}
+Real xs::rad_f_ura_lu_base(Rad const& b, LepUraLU const& lep, HadRadFLU const& had) {
+	return b.coeff*(
+		had.H_50_diff*lep.theta_05_ir
+		+ had.H_50*(lep.theta_05 + lep.theta_15));
+}
+Vec3 xs::rad_f_ura_lp_base(Rad const& b, LepUraLX const& lep, HadRadFLP const& had) {
+	return b.coeff*(
+		had.H_5_diff*lep.theta_05_ir
+		+ had.H_7_diff*lep.theta_07_ir
+		+ had.H_9_diff*lep.theta_09_ir
+		+ had.H_5*(lep.theta_05 + lep.theta_15)
+		+ had.H_7*(lep.theta_07 + lep.theta_17)
+		+ had.H_9*(lep.theta_09 + lep.theta_19));
 }
 

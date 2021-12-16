@@ -41,6 +41,11 @@ CutRad::CutRad() :
 	k_0(Bound::INVALID),
 	theta_k(Bound::INVALID) { }
 
+CutUra::CutUra() :
+	R(Bound::INVALID),
+	k_0_bar(Bound::INVALID),
+	k_0(Bound::INVALID) { }
+
 // Bound of kinematic variables.
 // TODO: Some of the calculations in this section are redundant with earlier
 // kinematic calculations. This should be refactored to avoid that later.
@@ -140,7 +145,24 @@ Bound cut::R_bound(Kinematics const& kin, Real tau, Real phi_k) {
 			- 2.*kin.M*kin.ph_t*std::cos(kin.phi_h - phi_k)*std::sqrt(
 				(tau - tau_b.min())*(tau_b.max() - tau)));
 	// Equation [1.44].
-	Real R_max = 1./(1. + tau - mu)*(kin.mx_sq - sq(kin.Mth));
+	Real R_max = (kin.mx_sq - sq(kin.Mth))/(1. + tau - mu);
+	Bound kin_b(0., R_max);
+
+	return Bound::POSITIVE & kin_b;
+}
+Bound cut::R_bound(Kinematics const& kin, PhotonDir k_dir) {
+	Real tau, mu;
+	if (k_dir == PhotonDir::WITH_INCOMING) {
+		Real zmin = -kin.S/(2.*sq(kin.M))*sqrt1p_1m(-4.*sq(kin.M*kin.m/kin.S));
+		tau = -(kin.S_x*zmin + kin.Q_sq)/kin.lambda_S_sqrt;
+		mu = (kin.V_1 - kin.z*kin.S_x*zmin)/kin.lambda_S_sqrt;
+	} else {
+		Real zmin = -kin.X/(2.*sq(kin.M))*sqrt1p_1m(-4.*sq(kin.M*kin.m/kin.X));
+		tau = -(kin.S_x*zmin - kin.Q_sq)/kin.lambda_X_sqrt;
+		mu = (kin.V_2 - kin.z*kin.S_x*zmin)/kin.lambda_X_sqrt;
+	}
+	// Equation [1.44].
+	Real R_max = (kin.mx_sq - sq(kin.Mth))/(1. + tau - mu);
 	Bound kin_b(0., R_max);
 
 	return Bound::POSITIVE & kin_b;
@@ -229,6 +251,27 @@ Bound cut::R_bound(CutRad const& cut, Kinematics const& kin, Real tau, Real phi_
 	}
 	return result;
 }
+Bound cut::R_bound(CutUra const& cut, Kinematics const& kin, PhotonDir k_dir) {
+	Bound result = R_bound(kin, k_dir);
+	if (cut.R.valid()) {
+		result &= cut.R;
+	}
+	if (cut.k_0_bar.valid()) {
+		Real tau, mu;
+		if (k_dir == PhotonDir::WITH_INCOMING) {
+			Real zmin = -kin.S/(2.*sq(kin.M))*sqrt1p_1m(-4.*sq(kin.M*kin.m/kin.S));
+			tau = -(kin.S_x*zmin + kin.Q_sq)/kin.lambda_S_sqrt;
+			mu = (kin.V_1 - kin.z*kin.S_x*zmin)/kin.lambda_S_sqrt;
+		} else {
+			Real zmin = -kin.X/(2.*sq(kin.M))*sqrt1p_1m(-4.*sq(kin.M*kin.m/kin.X));
+			tau = -(kin.S_x*zmin - kin.Q_sq)/kin.lambda_X_sqrt;
+			mu = (kin.V_2 - kin.z*kin.S_x*zmin)/kin.lambda_X_sqrt;
+		}
+		Bound k_0_bar = (2.*kin.mx*cut.k_0_bar)/(1. + tau - mu);
+		result &= k_0_bar;
+	}
+	return result;
+}
 
 // Check whether within kinematic bound.
 bool cut::valid(Kinematics const& kin) {
@@ -269,13 +312,22 @@ bool cut::valid(Kinematics const& kin) {
 bool cut::valid(KinematicsRad const& kin_rad) {
 	// TODO: Instead of checking if things are within bound, check whether the
 	// photon can be constructed (which should be equivalent, but more useful).
-	if (!valid(kin_rad.project())) {
+	if (!valid(kin_rad)) {
 		return false;
 	} else if (!(kin_rad.tau >= kin_rad.tau_min && kin_rad.tau <= kin_rad.tau_max)) {
 		return false;
 	} else if (!std::isfinite(kin_rad.phi_k)) {
 		return false;
 	} else if (!(kin_rad.R >= 0. && kin_rad.R <= kin_rad.R_max)) {
+		return false;
+	} else {
+		return true;
+	}
+}
+bool cut::valid(KinematicsUra const& kin_ura) {
+	if (!valid(kin_ura)) {
+		return false;
+	} else if (!(kin_ura.R >= 0. && kin_ura.R <= kin_ura.R_max)) {
 		return false;
 	} else {
 		return true;
@@ -332,7 +384,6 @@ bool cut::valid(Cut const& cut, Kinematics const& kin) {
 		return true;
 	}
 }
-
 bool cut::valid(CutRad const& cut, KinematicsRad const& kin) {
 	Real theta_k = std::acos((kin.S_x - 2.*sq(kin.M)*kin.tau)/kin.lambda_Y_sqrt);
 	if (!valid(kin)) {
@@ -353,11 +404,32 @@ bool cut::valid(CutRad const& cut, KinematicsRad const& kin) {
 		return true;
 	}
 }
-
 bool cut::valid(Cut const& cut, CutRad const& cut_rad, KinematicsRad const& kin) {
-	if (!valid(cut, kin.project())) {
+	if (!valid(cut, kin)) {
 		return false;
 	} else if (!valid(cut_rad, kin)) {
+		return false;
+	} else {
+		return true;
+	}
+}
+bool cut::valid(CutUra const& cut, KinematicsUra const& kin) {
+	if (!valid(kin)) {
+		return false;
+	} else if (cut.R.valid() && !cut.R.contains(kin.R)) {
+		return false;
+	} else if (cut.k_0_bar.valid() && !cut.k_0_bar.contains(kin.k_0_bar)) {
+		return false;
+	} else if (cut.k_0.valid() && !cut.k_0.contains(kin.k_0)) {
+		return false;
+	} else {
+		return true;
+	}
+}
+bool cut::valid(Cut const& cut, CutUra const& cut_ura, KinematicsUra const& kin) {
+	if (!valid(cut, kin)) {
+		return false;
+	} else if (!valid(cut_ura, kin)) {
 		return false;
 	} else {
 		return true;
@@ -537,5 +609,105 @@ bool cut::take(
 		*jacobian_out = tau_b.size() * phi_k_b.size() * R_b.size();
 	}
 	return valid(cut, kin_rad);
+}
+
+bool cut::take(
+		Particles const& ps, Real S, const Real point[7], PhotonDir k_dir,
+		PhaseSpaceUra* ph_space_out, Real* jacobian_out) {
+	Kinematics kin;
+	Real jacobian;
+	if (!take(ps, S, point, &kin, &jacobian)) {
+		return false;
+	}
+	if (!take(kin, point + 6, k_dir, ph_space_out, jacobian_out)) {
+		return false;
+	}
+	if (jacobian_out != nullptr) {
+		*jacobian_out *= jacobian;
+	}
+	return true;
+}
+
+bool cut::take(
+		Particles const& ps, Real S, const Real point[7], PhotonDir k_dir,
+		KinematicsUra* kin_out, Real* jacobian_out) {
+	Kinematics kin;
+	Real jacobian;
+	if (!take(ps, S, point, &kin, &jacobian)) {
+		return false;
+	}
+	if (!take(kin, point + 6, k_dir, kin_out, jacobian_out)) {
+		return false;
+	}
+	if (jacobian_out != nullptr) {
+		*jacobian_out *= jacobian;
+	}
+	return true;
+}
+
+bool cut::take(
+		Cut const& cut, CutUra const& cut_ura,
+		Particles const& ps, Real S, const Real point[7], PhotonDir k_dir,
+		KinematicsUra* kin_out, Real* jacobian_out) {
+	Kinematics kin;
+	Real jacobian;
+	if (!take(cut, ps, S, point, &kin, &jacobian)) {
+		return false;
+	}
+	if (!take(cut_ura, kin, point + 6, k_dir, kin_out, jacobian_out)) {
+		return false;
+	}
+	if (jacobian_out != nullptr) {
+		*jacobian_out *= jacobian;
+	}
+	return true;
+}
+
+bool cut::take(
+		Kinematics const& kin, const Real point[1], PhotonDir k_dir,
+		PhaseSpaceUra* ph_space_out, Real* jacobian_out) {
+	Bound R_b = R_bound(kin, k_dir);
+	Real R = R_b.lerp(point[0]);
+	if (ph_space_out != nullptr) {
+		*ph_space_out = {
+			kin.x, kin.y, kin.z,
+			kin.ph_t_sq, kin.phi_h, kin.phi,
+			R, k_dir,
+		};
+	}
+	if (jacobian_out != nullptr) {
+		*jacobian_out = R_b.size();
+	}
+	// TODO: Should we check explicitly for validity here?
+	return true;
+}
+
+bool cut::take(
+		Kinematics const& kin, const Real point[1], PhotonDir k_dir,
+		KinematicsUra* kin_out, Real* jacobian_out) {
+	PhaseSpaceUra ph_space;
+	if (!cut::take(kin, point, k_dir, &ph_space, jacobian_out)) {
+		return false;
+	}
+	if (kin_out != nullptr) {
+		*kin_out = KinematicsUra(kin, ph_space.R, ph_space.k_dir);
+	}
+	return true;
+}
+
+bool cut::take(
+		CutUra const& cut,
+		Kinematics const& kin, const Real point[1], PhotonDir k_dir,
+		KinematicsUra* kin_out, Real* jacobian_out) {
+	Bound R_b = R_bound(cut, kin, k_dir);
+	Real R = R_b.lerp(point[0]);
+	KinematicsUra kin_ura(kin, R, k_dir);
+	if (kin_out != nullptr) {
+		*kin_out = kin_ura;
+	}
+	if (jacobian_out != nullptr) {
+		*jacobian_out = R_b.size();
+	}
+	return valid(cut, kin_ura);
 }
 
