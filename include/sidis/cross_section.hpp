@@ -204,16 +204,16 @@ Real delta_vac_had(kin::Kinematics const& kin);
  */
 /// \{
 
-/// \copydoc nrad
+/// \copydoc nrad()
 Real nrad_ura(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, unsigned max_evals=1000000, Real prec=1e-6);
-/// \copydoc rad_f
+/// \copydoc rad_f()
 Real rad_f_ura(kin::KinematicsUra const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
-/// \copydoc rad
+/// \copydoc rad()
 Real rad_ura(kin::KinematicsUra const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
 
-/// \copydoc rad_f_integ
+/// \copydoc rad_f_integ()
 Real rad_f_ura_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, unsigned max_evals=1000000, Real prec=1e-6);
-/// \copydoc rad_integ
+/// \copydoc rad_integ()
 Real rad_ura_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, unsigned max_evals=1000000, Real prec=1e-6);
 /// \}
 
