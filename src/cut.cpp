@@ -312,7 +312,7 @@ bool cut::valid(Kinematics const& kin) {
 bool cut::valid(KinematicsRad const& kin_rad) {
 	// TODO: Instead of checking if things are within bound, check whether the
 	// photon can be constructed (which should be equivalent, but more useful).
-	if (!valid(kin_rad)) {
+	if (!valid(static_cast<Kinematics const&>(kin_rad))) {
 		return false;
 	} else if (!(kin_rad.tau >= kin_rad.tau_min && kin_rad.tau <= kin_rad.tau_max)) {
 		return false;
@@ -325,7 +325,7 @@ bool cut::valid(KinematicsRad const& kin_rad) {
 	}
 }
 bool cut::valid(KinematicsUra const& kin_ura) {
-	if (!valid(kin_ura)) {
+	if (!valid(static_cast<Kinematics const&>(kin_ura))) {
 		return false;
 	} else if (!(kin_ura.R >= 0. && kin_ura.R <= kin_ura.R_max)) {
 		return false;
