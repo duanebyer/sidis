@@ -322,39 +322,42 @@ Real xs::rad_f_ura_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, 
 	return xs_integ.val;
 }
 
-/*
-Real xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
-	CutRad cut;
+Real xs::rad_ura_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, unsigned max_evals, Real prec) {
+	CutUra cut;
 	cut.k_0_bar = Bound(k_0_bar, INF);
-	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
-		[&](cubature::Point<3, Real> x) {
-			Real point[3] = { x[0], x[1], x[2] };
-			KinematicsRad kin_rad;
-			Real jacobian;
-			if (!take(cut, kin, point, &kin_rad, &jacobian)) {
-				return 0.;
-			}
+	cubature::EstErr<Real> xs_integ = cubature::cubature<1>(
+		[&](cubature::Point<1, Real> x) {
+			Real result = 0.;
+			for (std::size_t k_dir_idx = 0; k_dir_idx < 2; ++k_dir_idx) {
+				PhotonDir k_dir = (k_dir_idx == 0) ?
+					PhotonDir::WITH_INCOMING :
+					PhotonDir::WITH_OUTGOING;
+				Real point[1] = { x[0] };
+				KinematicsUra kin_ura;
+				Real jacobian;
+				if (!take(cut, kin, point, k_dir, &kin_ura, &jacobian)) {
+					continue;
+				}
 
-			Rad b(kin_rad);
-			LepRadXX lep(kin_rad);
-			HadRadXX had(kin_rad, sf);
-			Real uu = rad_uu_base(b, lep, had);
-			Vec3 up = rad_up_base(b, lep, had);
-			Real lu = rad_lu_base(b, lep, had);
-			Vec3 lp = rad_lp_base(b, lep, had);
-			Real xs = uu + dot(eta, up) + lambda_e*(lu + dot(eta, lp));
-			if (!std::isnan(xs)) {
-				return jacobian * xs;
-			} else {
-				return 0.;
+				Rad b(kin_ura);
+				LepUraXX lep(kin_ura);
+				HadRadXX had(kin_ura, sf);
+				Real uu = rad_ura_uu_base(b, lep, had);
+				Vec3 up = rad_ura_up_base(b, lep, had);
+				Real lu = rad_ura_lu_base(b, lep, had);
+				Vec3 lp = rad_ura_lp_base(b, lep, had);
+				Real xs = uu + dot(eta, up) + lambda_e*(lu + dot(eta, lp));
+				if (!std::isnan(xs)) {
+					result += jacobian * xs;
+				}
 			}
+			return result;
 		},
-		cubature::Point<3, Real>{ 0., 0., 0. },
-		cubature::Point<3, Real>{ 1., 1., 1. },
+		cubature::Point<1, Real>{ 0. },
+		cubature::Point<1, Real>{ 1. },
 		max_evals, 0., prec);
 	return xs_integ.val;
 }
-*/
 
 // Radiative corrections to Born cross-section.
 Real xs::delta_vert_rad_ir(Kinematics const& kin, Real k_0_bar) {
