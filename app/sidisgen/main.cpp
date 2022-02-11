@@ -503,7 +503,7 @@ int command_generate(char const* params_file_name) {
 	events.Branch("tau", &tau);
 	events.Branch("phi_k", &phi_k);
 	events.Branch("R", &R);
-	if (*params.gen_rad && *params.write_momenta) {
+	if (*params.write_momenta) {
 		events.Branch("p", "TLorentzVector", &p);
 		events.Branch("k1", "TLorentzVector", &k1);
 		events.Branch("q", "TLorentzVector", &q);
