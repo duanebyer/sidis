@@ -591,6 +591,7 @@ int command_generate(char const* params_file_name) {
 					q = convert_vec4(fin.q);
 					k2 = convert_vec4(fin.k2);
 					ph = convert_vec4(fin.ph);
+					k = TLorentzVector();
 				}
 			}
 			break;
