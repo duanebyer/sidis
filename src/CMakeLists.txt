@@ -6,6 +6,7 @@ set(
 	"sidis/cross_section.hpp"
 	"sidis/cut.hpp"
 	"sidis/frame.hpp"
+	"sidis/integ.hpp"
 	"sidis/kinematics.hpp"
 	"sidis/particle.hpp"
 	"sidis/tmd.hpp"

@@ -142,11 +142,11 @@ int main(int argc, char** argv) {
 		std::cout << "σ_AMM     = " << amm << std::endl;
 		Real nrad_ir = xs::nrad_ir(kin, *sf, beam_pol, eta, k0_cut);
 		std::cout << "σ_nrad_ir = " << nrad_ir << std::endl;
-		Real rad_f = xs::rad_f_integ(kin, *sf, beam_pol, eta, k0_cut);
+		Real rad_f = xs::rad_f_integ(kin, *sf, beam_pol, eta, k0_cut).val;
 		std::cout << "σ_rad_f   = " << rad_f << std::endl;
-		Real nrad = xs::nrad(kin, *sf, beam_pol, eta, k0_cut);
+		Real nrad = xs::nrad_integ(kin, *sf, beam_pol, eta, k0_cut).val;
 		std::cout << "σ_nrad    = " << nrad << std::endl;
-		Real rad = xs::rad_integ(kin, *sf, beam_pol, eta, k0_cut);
+		Real rad = xs::rad_integ(kin, *sf, beam_pol, eta, k0_cut).val;
 		std::cout << "σ_rad     = " << rad << std::endl;
 		std::cout << "σ_tot     = " << nrad + rad << std::endl;
 	} else {

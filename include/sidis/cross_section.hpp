@@ -2,13 +2,13 @@
 #define SIDIS_CROSS_SECTION_HPP
 
 #include "sidis/constant.hpp"
+#include "sidis/integ.hpp"
 #include "sidis/numeric.hpp"
 
 namespace sidis {
 
 namespace math {
 	struct Vec3;
-	struct Transform3;
 }
 namespace kin {
 	struct Kinematics;
@@ -75,6 +75,8 @@ namespace sf {
 }
 
 namespace xs {
+
+math::IntegParams const DEFAULT_INTEG_PARAMS { 1000000, 1e-6, 0. };
 
 /**
  * \defgroup XsGroup Cross-sections
@@ -143,7 +145,7 @@ Real amm(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::V
 /// part \f$\sigma_{\text{nrad}}^{IR}\f$.
 Real nrad_ir(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF);
 /// Non-radiative cross-section \f$\sigma_{\text{nrad}}\f$.
-Real nrad(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, Real* err=nullptr, unsigned max_evals=1000000, Real prec=1e-6);
+math::EstErr nrad_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
 /// Radiative cross-section with infrared divergence removed
 /// \f$\sigma_{R}^{F}\f$.
 Real rad_f(kin::KinematicsRad const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
@@ -152,13 +154,11 @@ Real rad(kin::KinematicsRad const& kin, sf::SfSet const& sf, Real lambda_e, math
 
 /// Radiative cross-section with infrared divergence removed integrated over
 /// radiated photon degrees of freedom, with radiated photon energy above soft
-/// photon cutoff \p k_0_bar. Evaluates the integral using cubature to the
-/// specified relative precision.
-Real rad_f_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, Real* err=nullptr, unsigned max_evals=1000000, Real prec=1e-6);
+/// photon cutoff \p k_0_bar.
+math::EstErr rad_f_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
 /// Radiative cross-section integrated over radiated photon degrees of freedom,
-/// with radiated photon energy above soft photon cutoff \p k_0_bar. Evaluates
-/// the integral using cubature to the specified relative precision.
-Real rad_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, Real* err=nullptr, unsigned max_evals=1000000, Real prec=1e-6);
+/// with radiated photon energy above soft photon cutoff \p k_0_bar.
+math::EstErr rad_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
 /// \}
 
 /// \name Born correction factors

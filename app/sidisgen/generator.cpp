@@ -96,7 +96,7 @@ Real NradDensity::operator()(Point<6> const& vec) const noexcept {
 		xs = xs::nrad_ir(kin, _sf, *_params.beam_pol, eta, *_params.k_0_bar);
 		break;
 	case RcMethod::EXACT:
-		xs = xs::nrad(kin, _sf, *_params.beam_pol, eta, *_params.k_0_bar);
+		xs = xs::nrad_integ(kin, _sf, *_params.beam_pol, eta, *_params.k_0_bar).val;
 		break;
 	default:
 		xs = 0.;
