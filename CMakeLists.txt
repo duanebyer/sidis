@@ -49,6 +49,10 @@ set(
 	Sidis_BUILD_APPS YES
 	CACHE BOOL
 	"should the apps (generator) be built")
+set(
+	Sidis_BUILD_SCRATCH NO
+	CACHE BOOL
+	"should the scratch be built")
 
 # Documentation is by default built if Latex was found.
 set(
@@ -122,6 +126,9 @@ if(Sidis_BUILD_EXAMPLES)
 endif()
 if(Sidis_BUILD_APPS)
 	add_subdirectory(app/sidisgen)
+endif()
+if(Sidis_BUILD_SCRATCH)
+	add_subdirectory(scratch)
 endif()
 # Set up the test builds.
 if(Sidis_BUILD_TESTS)
