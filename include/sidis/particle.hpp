@@ -14,9 +14,10 @@ namespace part {
 
 /// Beam leptons types.
 enum class Lepton {
-	E,   ///< Electron \f$e^{-}\f$
-	MU,  ///< Muon \f$\mu^{-}\f$
-	TAU, ///< Tau lepton \f$\tau^{-}\f$
+	E,          ///< Electron \f$e^{-}\f$
+	MU,         ///< Muon \f$\mu^{-}\f$
+	TAU,        ///< Tau lepton \f$\tau^{-}\f$
+	MASSLESS_E, ///< "Massless" electron \f$e^{-}\f$
 };
 
 /// Target nuclei types.
@@ -77,6 +78,8 @@ inline Real mass(Lepton lepton) {
 		return MASS_MU;
 	case Lepton::TAU:
 		return MASS_TAU;
+	case Lepton::MASSLESS_E:
+		return 0.;
 	}
 	return 0.;
 }
@@ -121,6 +124,7 @@ inline Real charge(Lepton lepton) {
 	case Lepton::E:
 	case Lepton::MU:
 	case Lepton::TAU:
+	case Lepton::MASSLESS_E:
 		return -1.;
 	}
 	return 0.;
@@ -165,6 +169,8 @@ inline char const* name(Lepton lepton) {
 		return "μ";
 	case Lepton::TAU:
 		return "τ";
+	case Lepton::MASSLESS_E:
+		return "e";
 	}
 	return "<error>";
 }
