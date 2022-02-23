@@ -51,9 +51,11 @@ Kinematics::Kinematics(Particles const& ps, Real S, PhaseSpace const& ph_space) 
 	S_x = S*y;
 	S_p = S*(2. - y);
 	lambda_S = sq(S) - 4.*sq(M)*sq(m);
+	lambda_X = sq(X) - 4.*sq(M)*sq(m);
 	lambda_Y = sq(S_x) + 4.*sq(M)*Q_sq;
 	lambda_1 = Q_sq*(S*X - sq(M)*Q_sq) - sq(m)*lambda_Y;
 	lambda_S_sqrt = std::sqrt(lambda_S);
+	lambda_X_sqrt = std::sqrt(lambda_X);
 	lambda_Y_sqrt = std::sqrt(lambda_Y);
 	lambda_1_sqrt = std::sqrt(lambda_1);
 
@@ -136,11 +138,13 @@ KinematicsRad::KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R
 		V_m(kin.V_m),
 		V_p(kin.V_p),
 		lambda_S(kin.lambda_S),
+		lambda_X(kin.lambda_X),
 		lambda_Y(kin.lambda_Y),
 		lambda_1(kin.lambda_1),
 		lambda_2(kin.lambda_2),
 		lambda_3(kin.lambda_3),
 		lambda_S_sqrt(kin.lambda_S_sqrt),
+		lambda_X_sqrt(kin.lambda_X_sqrt),
 		lambda_Y_sqrt(kin.lambda_Y_sqrt),
 		lambda_1_sqrt(kin.lambda_1_sqrt),
 		lambda_2_sqrt(kin.lambda_2_sqrt),
@@ -339,11 +343,13 @@ Kinematics KinematicsRad::project() const {
 	kin.V_p = V_p;
 
 	kin.lambda_S = lambda_S;
+	kin.lambda_X = lambda_X;
 	kin.lambda_Y = lambda_Y;
 	kin.lambda_1 = lambda_1;
 	kin.lambda_2 = lambda_2;
 	kin.lambda_3 = lambda_3;
 	kin.lambda_S_sqrt = lambda_S_sqrt;
+	kin.lambda_X_sqrt = lambda_X_sqrt;
 	kin.lambda_Y_sqrt = lambda_Y_sqrt;
 	kin.lambda_1_sqrt = lambda_1_sqrt;
 	kin.lambda_2_sqrt = lambda_2_sqrt;
@@ -410,11 +416,13 @@ Kinematics KinematicsRad::project_shift() const {
 	kin.V_p = V_p;
 
 	kin.lambda_S = lambda_S;
+	kin.lambda_X = lambda_X;
 	kin.lambda_Y = shift_lambda_Y;
 	kin.lambda_1 = shift_lambda_1;
 	kin.lambda_2 = shift_lambda_2;
 	kin.lambda_3 = shift_lambda_3;
 	kin.lambda_S_sqrt = lambda_S_sqrt;
+	kin.lambda_X_sqrt = lambda_X_sqrt;
 	kin.lambda_Y_sqrt = shift_lambda_Y_sqrt;
 	kin.lambda_1_sqrt = shift_lambda_1_sqrt;
 	kin.lambda_2_sqrt = shift_lambda_2_sqrt;

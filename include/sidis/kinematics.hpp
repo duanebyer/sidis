@@ -146,6 +146,8 @@ struct Kinematics {
 
 	/// Defined as \f$\lambda_S = 4 M^2 |\pmb{k}_1|^2\f$.
 	Real lambda_S;
+	/// Defined as \f$\lambda_X = 4 M^2 |\pmb{k}_2|^2\f$.
+	Real lambda_X;
 	/// Defined as \f$\lambda_Y = 4 M^2 |\pmb{q}|^2\f$.
 	Real lambda_Y;
 	/// Defined as \f$\lambda_1 = 4 M^2 q_t^2|\pmb{k_1}|^2\f$.
@@ -157,6 +159,8 @@ struct Kinematics {
 
 	/// Cached \f$\sqrt{\lambda_S}\f$.
 	Real lambda_S_sqrt;
+	/// Cached \f$\sqrt{\lambda_X}\f$.
+	Real lambda_X_sqrt;
 	/// Cached \f$\sqrt{\lambda_Y}\f$.
 	Real lambda_Y_sqrt;
 	/// Cached \f$\sqrt{\lambda_1}\f$.
@@ -309,6 +313,8 @@ struct KinematicsRad {
 
 	/// \copydoc Kinematics::lambda_S
 	Real lambda_S;
+	/// \copydoc Kinematics::lambda_X
+	Real lambda_X;
 	/// \copydoc Kinematics::lambda_Y
 	Real lambda_Y;
 	/// \copydoc Kinematics::lambda_1
@@ -319,6 +325,8 @@ struct KinematicsRad {
 	Real lambda_3;
 	/// \copydoc Kinematics::lambda_S_sqrt
 	Real lambda_S_sqrt;
+	/// \copydoc Kinematics::lambda_X_sqrt
+	Real lambda_X_sqrt;
 	/// \copydoc Kinematics::lambda_Y_sqrt
 	Real lambda_Y_sqrt;
 	/// \copydoc Kinematics::lambda_1_sqrt
