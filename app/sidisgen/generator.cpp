@@ -14,23 +14,23 @@ namespace {
 cut::Cut get_cut_from_params(Params const& params) {
 	Real const DEG = PI / 180.;
 	cut::Cut result;
-	result.x = params.x_cut.get_or(math::Bound::INVALID);
-	result.y = params.y_cut.get_or(math::Bound::INVALID);
-	result.z = params.z_cut.get_or(math::Bound::INVALID);
-	result.ph_t_sq = params.ph_t_sq_cut.get_or(math::Bound::INVALID);
-	result.phi_h = DEG * params.phi_h_cut.get_or(math::Bound::INVALID);
-	result.phi = DEG * params.phi_cut.get_or(math::Bound::INVALID);
-	result.Q_sq = params.Q_sq_cut.get_or(math::Bound::INVALID);
-	result.t = params.t_cut.get_or(math::Bound::INVALID);
-	result.W_sq = params.W_sq_cut.get_or(math::Bound::INVALID);
-	result.r = params.r_cut.get_or(math::Bound::INVALID);
-	result.mx_sq = params.mx_sq_cut.get_or(math::Bound::INVALID);
-	result.q_0 = params.q_0_cut.get_or(math::Bound::INVALID);
-	result.k2_0 = params.k2_0_cut.get_or(math::Bound::INVALID);
-	result.ph_0 = params.ph_0_cut.get_or(math::Bound::INVALID);
-	result.theta_q = DEG * params.theta_q_cut.get_or(math::Bound::INVALID);
-	result.theta_k2 = DEG * params.theta_k2_cut.get_or(math::Bound::INVALID);
-	result.theta_h = DEG * params.theta_h_cut.get_or(math::Bound::INVALID);
+	result.x = params.cut_x.get_or(math::Bound::INVALID);
+	result.y = params.cut_y.get_or(math::Bound::INVALID);
+	result.z = params.cut_z.get_or(math::Bound::INVALID);
+	result.ph_t_sq = params.cut_ph_t_sq.get_or(math::Bound::INVALID);
+	result.phi_h = DEG * params.cut_phi_h.get_or(math::Bound::INVALID);
+	result.phi = DEG * params.cut_phi.get_or(math::Bound::INVALID);
+	result.Q_sq = params.cut_Q_sq.get_or(math::Bound::INVALID);
+	result.t = params.cut_t.get_or(math::Bound::INVALID);
+	result.W_sq = params.cut_W_sq.get_or(math::Bound::INVALID);
+	result.r = params.cut_r.get_or(math::Bound::INVALID);
+	result.mx_sq = params.cut_mx_sq.get_or(math::Bound::INVALID);
+	result.q_0 = params.cut_q_0.get_or(math::Bound::INVALID);
+	result.k2_0 = params.cut_k2_0.get_or(math::Bound::INVALID);
+	result.ph_0 = params.cut_ph_0.get_or(math::Bound::INVALID);
+	result.theta_q = DEG * params.cut_theta_q.get_or(math::Bound::INVALID);
+	result.theta_k2 = DEG * params.cut_theta_k2.get_or(math::Bound::INVALID);
+	result.theta_h = DEG * params.cut_theta_h.get_or(math::Bound::INVALID);
 	return result;
 }
 
@@ -38,14 +38,14 @@ cut::CutRad get_cut_rad_from_params(Params const& params) {
 	Real const DEG = PI / 180.;
 	cut::CutRad result;
 	if (*params.gen_rad) {
-		result.tau = params.tau_cut.get_or(math::Bound::INVALID);
-		result.phi_k = DEG * params.phi_k_cut.get_or(math::Bound::INVALID);
-		result.R = params.R_cut.get_or(math::Bound::INVALID);
+		result.tau = params.cut_tau.get_or(math::Bound::INVALID);
+		result.phi_k = DEG * params.cut_phi_k.get_or(math::Bound::INVALID);
+		result.R = params.cut_R.get_or(math::Bound::INVALID);
 		// The `k_0_bar` cut is mandatory.
-		result.k_0_bar = *params.k_0_bar_cut
+		result.k_0_bar = *params.cut_k_0_bar
 			& math::Bound(*params.k_0_bar, INF);
-		result.k_0 = params.k_0_cut.get_or(math::Bound::INVALID);
-		result.theta_k = DEG * params.theta_k_cut.get_or(math::Bound::INVALID);
+		result.k_0 = params.cut_k_0.get_or(math::Bound::INVALID);
+		result.theta_k = DEG * params.cut_theta_k.get_or(math::Bound::INVALID);
 	}
 	return result;
 }

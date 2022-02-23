@@ -476,58 +476,58 @@ void compatible_common(Params const& p1, Params const& p2) {
 	} else if ((*p1.rc_method == RcMethod::APPROX || *p1.rc_method == RcMethod::EXACT)
 			&& *p1.k_0_bar != *p2.k_0_bar) {
 		throw std::runtime_error("Different soft photon cutoffs.");
-	} else if (p1.x_cut.get_or(Bound::UNIT) != p2.x_cut.get_or(Bound::UNIT)) {
+	} else if (p1.cut_x.get_or(Bound::UNIT) != p2.cut_x.get_or(Bound::UNIT)) {
 		throw std::runtime_error("Different cuts on x.");
-	} else if (p1.y_cut.get_or(Bound::UNIT) != p2.y_cut.get_or(Bound::UNIT)) {
+	} else if (p1.cut_y.get_or(Bound::UNIT) != p2.cut_y.get_or(Bound::UNIT)) {
 		throw std::runtime_error("Different cuts on y.");
-	} else if (p1.z_cut.get_or(Bound::UNIT) != p2.z_cut.get_or(Bound::UNIT)) {
+	} else if (p1.cut_z.get_or(Bound::UNIT) != p2.cut_z.get_or(Bound::UNIT)) {
 		throw std::runtime_error("Different cuts on z.");
-	} else if (p1.ph_t_sq_cut != p2.ph_t_sq_cut) {
+	} else if (p1.cut_ph_t_sq != p2.cut_ph_t_sq) {
 		throw std::runtime_error("Different cuts on ph_t².");
-	} else if (p1.phi_h_cut != p2.phi_h_cut) {
+	} else if (p1.cut_phi_h != p2.cut_phi_h) {
 		throw std::runtime_error("Different cuts on φ_h.");
-	} else if (p1.phi_cut != p2.phi_cut) {
+	} else if (p1.cut_phi != p2.cut_phi) {
 		throw std::runtime_error("Different cuts on φ.");
-	} else if (p1.Q_sq_cut != p2.Q_sq_cut) {
+	} else if (p1.cut_Q_sq != p2.cut_Q_sq) {
 		throw std::runtime_error("Different cuts on Q².");
-	} else if (p1.t_cut != p2.t_cut) {
+	} else if (p1.cut_t != p2.cut_t) {
 		throw std::runtime_error("Different cuts on t.");
-	} else if (p1.W_sq_cut != p2.W_sq_cut) {
+	} else if (p1.cut_W_sq != p2.cut_W_sq) {
 		throw std::runtime_error("Different cuts on W².");
-	} else if (p1.r_cut != p2.r_cut) {
+	} else if (p1.cut_r != p2.cut_r) {
 		throw std::runtime_error("Different cuts on r.");
-	} else if (p1.mx_sq_cut != p2.mx_sq_cut) {
+	} else if (p1.cut_mx_sq != p2.cut_mx_sq) {
 		throw std::runtime_error("Different cuts on mx².");
-	} else if (p1.q_0_cut != p2.q_0_cut) {
+	} else if (p1.cut_q_0 != p2.cut_q_0) {
 		throw std::runtime_error("Different cuts on q_0.");
-	} else if (p1.k2_0_cut != p2.k2_0_cut) {
+	} else if (p1.cut_k2_0 != p2.cut_k2_0) {
 		throw std::runtime_error("Different cuts on k2_0.");
-	} else if (p1.ph_0_cut != p2.ph_0_cut) {
+	} else if (p1.cut_ph_0 != p2.cut_ph_0) {
 		throw std::runtime_error("Different cuts on ph_0.");
-	} else if (p1.theta_q_cut != p2.theta_q_cut) {
+	} else if (p1.cut_theta_q != p2.cut_theta_q) {
 		throw std::runtime_error("Different cuts on θ_q.");
-	} else if (p1.theta_k2_cut != p2.theta_k2_cut) {
+	} else if (p1.cut_theta_k2 != p2.cut_theta_k2) {
 		throw std::runtime_error("Different cuts on θ_k2.");
-	} else if (p1.theta_h_cut != p2.theta_h_cut) {
+	} else if (p1.cut_theta_h != p2.cut_theta_h) {
 		throw std::runtime_error("Different cuts on θ_h.");
 	}
 }
 
 void compatible_common_rad(Params const& p1, Params const& p2) {
 	if (*p1.gen_rad && *p2.gen_rad) {
-		if (p1.tau_cut != p2.tau_cut) {
+		if (p1.cut_tau != p2.cut_tau) {
 			throw std::runtime_error("Different cuts on τ.");
-		} else if (p1.phi_k_cut != p2.phi_k_cut) {
+		} else if (p1.cut_phi_k != p2.cut_phi_k) {
 			throw std::runtime_error("Different cuts on φ_k.");
-		} else if (p1.R_cut != p2.R_cut) {
+		} else if (p1.cut_R != p2.cut_R) {
 			throw std::runtime_error("Different cuts on R.");
-		} else if (p1.k_0_bar_cut != p2.k_0_bar_cut) {
+		} else if (p1.cut_k_0_bar != p2.cut_k_0_bar) {
 			throw std::runtime_error(
-				std::string("Different '") + p1.k_0_bar_cut.name() + "'.");
-		} else if (p1.k_0_cut != p2.k_0_cut) {
+				std::string("Different '") + p1.cut_k_0_bar.name() + "'.");
+		} else if (p1.cut_k_0 != p2.cut_k_0) {
 			throw std::runtime_error(
-				std::string("Different '") + p1.k_0_cut.name() + "'.");
-		} else if (p1.theta_k_cut != p2.theta_k_cut) {
+				std::string("Different '") + p1.cut_k_0.name() + "'.");
+		} else if (p1.cut_theta_k != p2.cut_theta_k) {
 			throw std::runtime_error("Different cuts on θ_k.");
 		}
 	}
@@ -565,29 +565,29 @@ void Params::write_root(TFile& file) const {
 	write_param_root_dir(*dir, target_pol);
 	write_param_root_dir(*dir, beam_pol);
 	write_param_root_dir(*dir, k_0_bar);
-	write_param_root_dir(*dir, x_cut);
-	write_param_root_dir(*dir, y_cut);
-	write_param_root_dir(*dir, z_cut);
-	write_param_root_dir(*dir, ph_t_sq_cut);
-	write_param_root_dir(*dir, phi_h_cut);
-	write_param_root_dir(*dir, phi_cut);
-	write_param_root_dir(*dir, Q_sq_cut);
-	write_param_root_dir(*dir, t_cut);
-	write_param_root_dir(*dir, W_sq_cut);
-	write_param_root_dir(*dir, r_cut);
-	write_param_root_dir(*dir, mx_sq_cut);
-	write_param_root_dir(*dir, q_0_cut);
-	write_param_root_dir(*dir, k2_0_cut);
-	write_param_root_dir(*dir, ph_0_cut);
-	write_param_root_dir(*dir, theta_q_cut);
-	write_param_root_dir(*dir, theta_k2_cut);
-	write_param_root_dir(*dir, theta_h_cut);
-	write_param_root_dir(*dir, tau_cut);
-	write_param_root_dir(*dir, phi_k_cut);
-	write_param_root_dir(*dir, R_cut);
-	write_param_root_dir(*dir, k_0_bar_cut);
-	write_param_root_dir(*dir, k_0_cut);
-	write_param_root_dir(*dir, theta_k_cut);
+	write_param_root_dir(*dir, cut_x);
+	write_param_root_dir(*dir, cut_y);
+	write_param_root_dir(*dir, cut_z);
+	write_param_root_dir(*dir, cut_ph_t_sq);
+	write_param_root_dir(*dir, cut_phi_h);
+	write_param_root_dir(*dir, cut_phi);
+	write_param_root_dir(*dir, cut_Q_sq);
+	write_param_root_dir(*dir, cut_t);
+	write_param_root_dir(*dir, cut_W_sq);
+	write_param_root_dir(*dir, cut_r);
+	write_param_root_dir(*dir, cut_mx_sq);
+	write_param_root_dir(*dir, cut_q_0);
+	write_param_root_dir(*dir, cut_k2_0);
+	write_param_root_dir(*dir, cut_ph_0);
+	write_param_root_dir(*dir, cut_theta_q);
+	write_param_root_dir(*dir, cut_theta_k2);
+	write_param_root_dir(*dir, cut_theta_h);
+	write_param_root_dir(*dir, cut_tau);
+	write_param_root_dir(*dir, cut_phi_k);
+	write_param_root_dir(*dir, cut_R);
+	write_param_root_dir(*dir, cut_k_0_bar);
+	write_param_root_dir(*dir, cut_k_0);
+	write_param_root_dir(*dir, cut_theta_k);
 	file.cd();
 }
 
@@ -627,29 +627,29 @@ void Params::read_root(TFile& file) {
 	read_param_root_dir(*dir, target_pol);
 	read_param_root_dir(*dir, beam_pol);
 	read_param_root_dir(*dir, k_0_bar);
-	read_param_root_dir(*dir, x_cut);
-	read_param_root_dir(*dir, y_cut);
-	read_param_root_dir(*dir, z_cut);
-	read_param_root_dir(*dir, ph_t_sq_cut);
-	read_param_root_dir(*dir, phi_h_cut);
-	read_param_root_dir(*dir, phi_cut);
-	read_param_root_dir(*dir, Q_sq_cut);
-	read_param_root_dir(*dir, t_cut);
-	read_param_root_dir(*dir, W_sq_cut);
-	read_param_root_dir(*dir, r_cut);
-	read_param_root_dir(*dir, mx_sq_cut);
-	read_param_root_dir(*dir, q_0_cut);
-	read_param_root_dir(*dir, k2_0_cut);
-	read_param_root_dir(*dir, ph_0_cut);
-	read_param_root_dir(*dir, theta_q_cut);
-	read_param_root_dir(*dir, theta_k2_cut);
-	read_param_root_dir(*dir, theta_h_cut);
-	read_param_root_dir(*dir, tau_cut);
-	read_param_root_dir(*dir, phi_k_cut);
-	read_param_root_dir(*dir, R_cut);
-	read_param_root_dir(*dir, k_0_bar_cut);
-	read_param_root_dir(*dir, k_0_cut);
-	read_param_root_dir(*dir, theta_k_cut);
+	read_param_root_dir(*dir, cut_x);
+	read_param_root_dir(*dir, cut_y);
+	read_param_root_dir(*dir, cut_z);
+	read_param_root_dir(*dir, cut_ph_t_sq);
+	read_param_root_dir(*dir, cut_phi_h);
+	read_param_root_dir(*dir, cut_phi);
+	read_param_root_dir(*dir, cut_Q_sq);
+	read_param_root_dir(*dir, cut_t);
+	read_param_root_dir(*dir, cut_W_sq);
+	read_param_root_dir(*dir, cut_r);
+	read_param_root_dir(*dir, cut_mx_sq);
+	read_param_root_dir(*dir, cut_q_0);
+	read_param_root_dir(*dir, cut_k2_0);
+	read_param_root_dir(*dir, cut_ph_0);
+	read_param_root_dir(*dir, cut_theta_q);
+	read_param_root_dir(*dir, cut_theta_k2);
+	read_param_root_dir(*dir, cut_theta_h);
+	read_param_root_dir(*dir, cut_tau);
+	read_param_root_dir(*dir, cut_phi_k);
+	read_param_root_dir(*dir, cut_R);
+	read_param_root_dir(*dir, cut_k_0_bar);
+	read_param_root_dir(*dir, cut_k_0);
+	read_param_root_dir(*dir, cut_theta_k);
 }
 
 void Params::write_stream(std::ostream& file) const {
@@ -675,29 +675,29 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, target_pol);
 	write_param_stream(file, beam_pol);
 	write_param_stream(file, k_0_bar);
-	write_param_stream(file, x_cut);
-	write_param_stream(file, y_cut);
-	write_param_stream(file, z_cut);
-	write_param_stream(file, ph_t_sq_cut);
-	write_param_stream(file, phi_h_cut);
-	write_param_stream(file, phi_cut);
-	write_param_stream(file, Q_sq_cut);
-	write_param_stream(file, t_cut);
-	write_param_stream(file, W_sq_cut);
-	write_param_stream(file, r_cut);
-	write_param_stream(file, mx_sq_cut);
-	write_param_stream(file, q_0_cut);
-	write_param_stream(file, k2_0_cut);
-	write_param_stream(file, ph_0_cut);
-	write_param_stream(file, theta_q_cut);
-	write_param_stream(file, theta_k2_cut);
-	write_param_stream(file, theta_h_cut);
-	write_param_stream(file, tau_cut);
-	write_param_stream(file, phi_k_cut);
-	write_param_stream(file, R_cut);
-	write_param_stream(file, k_0_bar_cut);
-	write_param_stream(file, k_0_cut);
-	write_param_stream(file, theta_k_cut);
+	write_param_stream(file, cut_x);
+	write_param_stream(file, cut_y);
+	write_param_stream(file, cut_z);
+	write_param_stream(file, cut_ph_t_sq);
+	write_param_stream(file, cut_phi_h);
+	write_param_stream(file, cut_phi);
+	write_param_stream(file, cut_Q_sq);
+	write_param_stream(file, cut_t);
+	write_param_stream(file, cut_W_sq);
+	write_param_stream(file, cut_r);
+	write_param_stream(file, cut_mx_sq);
+	write_param_stream(file, cut_q_0);
+	write_param_stream(file, cut_k2_0);
+	write_param_stream(file, cut_ph_0);
+	write_param_stream(file, cut_theta_q);
+	write_param_stream(file, cut_theta_k2);
+	write_param_stream(file, cut_theta_h);
+	write_param_stream(file, cut_tau);
+	write_param_stream(file, cut_phi_k);
+	write_param_stream(file, cut_R);
+	write_param_stream(file, cut_k_0_bar);
+	write_param_stream(file, cut_k_0);
+	write_param_stream(file, cut_theta_k);
 }
 void Params::read_stream(std::istream& file) {
 	std::unordered_map<std::string, std::string> map;
@@ -748,29 +748,29 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, target_pol);
 	consume_param_from_map(map, beam_pol);
 	consume_param_from_map(map, k_0_bar);
-	consume_param_from_map(map, x_cut);
-	consume_param_from_map(map, y_cut);
-	consume_param_from_map(map, z_cut);
-	consume_param_from_map(map, ph_t_sq_cut);
-	consume_param_from_map(map, phi_h_cut);
-	consume_param_from_map(map, phi_cut);
-	consume_param_from_map(map, Q_sq_cut);
-	consume_param_from_map(map, t_cut);
-	consume_param_from_map(map, W_sq_cut);
-	consume_param_from_map(map, r_cut);
-	consume_param_from_map(map, mx_sq_cut);
-	consume_param_from_map(map, q_0_cut);
-	consume_param_from_map(map, k2_0_cut);
-	consume_param_from_map(map, ph_0_cut);
-	consume_param_from_map(map, theta_q_cut);
-	consume_param_from_map(map, theta_k2_cut);
-	consume_param_from_map(map, theta_h_cut);
-	consume_param_from_map(map, tau_cut);
-	consume_param_from_map(map, phi_k_cut);
-	consume_param_from_map(map, R_cut);
-	consume_param_from_map(map, k_0_bar_cut);
-	consume_param_from_map(map, k_0_cut);
-	consume_param_from_map(map, theta_k_cut);
+	consume_param_from_map(map, cut_x);
+	consume_param_from_map(map, cut_y);
+	consume_param_from_map(map, cut_z);
+	consume_param_from_map(map, cut_ph_t_sq);
+	consume_param_from_map(map, cut_phi_h);
+	consume_param_from_map(map, cut_phi);
+	consume_param_from_map(map, cut_Q_sq);
+	consume_param_from_map(map, cut_t);
+	consume_param_from_map(map, cut_W_sq);
+	consume_param_from_map(map, cut_r);
+	consume_param_from_map(map, cut_mx_sq);
+	consume_param_from_map(map, cut_q_0);
+	consume_param_from_map(map, cut_k2_0);
+	consume_param_from_map(map, cut_ph_0);
+	consume_param_from_map(map, cut_theta_q);
+	consume_param_from_map(map, cut_theta_k2);
+	consume_param_from_map(map, cut_theta_h);
+	consume_param_from_map(map, cut_tau);
+	consume_param_from_map(map, cut_phi_k);
+	consume_param_from_map(map, cut_R);
+	consume_param_from_map(map, cut_k_0_bar);
+	consume_param_from_map(map, cut_k_0);
+	consume_param_from_map(map, cut_theta_k);
 
 	if (!map.empty()) {
 		std::ostringstream ss_err;
@@ -837,21 +837,21 @@ void Params::make_valid() {
 	// The process for determining whether radiative and non-radiative events
 	// are generated looks something like this:
 	//  * If RC are disabled, then no radiative events are generated.
-	//  * If `k_0_bar_cut` is above the soft threshold, then only radiative
+	//  * If `cut_k_0_bar` is above the soft threshold, then only radiative
 	//    events are generated.
-	//  * `k_0_bar_cut` cannot be partway between zero and the soft threshold,
+	//  * `cut_k_0_bar` cannot be partway between zero and the soft threshold,
 	//    because it is impossible to generate events according to that.
 	if (*rc_method == RcMethod::APPROX || *rc_method == RcMethod::EXACT) {
 		gen_rad.get_or_insert(true);
 		k_0_bar.get_or_insert(0.01);
-		if (gen_nrad.occupied() && !k_0_bar_cut.occupied()) {
+		if (gen_nrad.occupied() && !cut_k_0_bar.occupied()) {
 			if (*gen_nrad) {
-				k_0_bar_cut.reset(Bound::POSITIVE);
+				cut_k_0_bar.reset(Bound::POSITIVE);
 			} else {
-				k_0_bar_cut.reset(Bound::POSITIVE + *k_0_bar);
+				cut_k_0_bar.reset(Bound::POSITIVE + *k_0_bar);
 			}
 		} else {
-			k_0_bar_cut.get_or_insert(Bound::POSITIVE);
+			cut_k_0_bar.get_or_insert(Bound::POSITIVE);
 		}
 	} else {
 		if (gen_rad.occupied() && *gen_rad) {
@@ -874,7 +874,7 @@ void Params::make_valid() {
 		}
 	}
 	if (*gen_rad) {
-		if (k_0_bar_cut->min() <= 0.) {
+		if (cut_k_0_bar->min() <= 0.) {
 			gen_nrad.get_or_insert(true);
 			if (!*gen_nrad) {
 				if (*strict) {
@@ -882,17 +882,17 @@ void Params::make_valid() {
 						std::string("Cannot generate radiative events only "
 							"with photon energy minimum <= 0 (")
 						+ gen_rad.name() + ", " + gen_nrad.name()
-						+ ", " + k_0_bar_cut.name() + ").");
+						+ ", " + cut_k_0_bar.name() + ").");
 				}
 			}
-		} else if (*k_0_bar <= k_0_bar_cut->min()) {
+		} else if (*k_0_bar <= cut_k_0_bar->min()) {
 			if (gen_nrad.occupied() && *gen_nrad) {
 				if (*strict) {
 					throw std::runtime_error(
 						std::string("Cannot generate non-radiative events with "
 							"photon energy minimum > soft threshold (")
 						+ gen_nrad.name() + ", " + k_0_bar.name() + ", "
-						+ k_0_bar_cut.name() + ").");
+						+ cut_k_0_bar.name() + ").");
 				}
 			}
 			gen_nrad.reset(false);
@@ -901,7 +901,7 @@ void Params::make_valid() {
 				std::string("Cannot have photon energy cut minimum < soft "
 					"threshold without generating non-radiative events (")
 				+ gen_nrad.name() + ", " + k_0_bar.name() + ", "
-				+ k_0_bar_cut.name() + ").");
+				+ cut_k_0_bar.name() + ").");
 		}
 	} else {
 		gen_nrad.get_or_insert(true);
@@ -940,61 +940,61 @@ void Params::make_valid() {
 	}
 	// Cuts.
 	if (*gen_rad && *gen_nrad) {
-		if (tau_cut.occupied()
-				|| phi_k_cut.occupied()
-				|| R_cut.occupied()
-				|| k_0_cut.occupied()
-				|| theta_k_cut.occupied()) {
+		if (cut_tau.occupied()
+				|| cut_phi_k.occupied()
+				|| cut_R.occupied()
+				|| cut_k_0.occupied()
+				|| cut_theta_k.occupied()) {
 			throw std::runtime_error(
 				"Cannot apply radiative cuts to non-radiative events.");
 		}
 	}
 	// Verify that cuts make sense. This isn't comprehensive, but is primarily
 	// important to avoid cuts on the azimuthal angles larger than 360 degrees.
-	if (*strict && x_cut.occupied() && !Bound::UNIT.contains(*x_cut)) {
+	if (*strict && cut_x.occupied() && !Bound::UNIT.contains(*cut_x)) {
 		throw std::runtime_error(
 			std::string("Cut on x must lie between 0 and 1 (")
-			+ x_cut.name() + ").");
+			+ cut_x.name() + ").");
 	}
-	if (*strict && y_cut.occupied() && !Bound::UNIT.contains(*y_cut)) {
+	if (*strict && cut_y.occupied() && !Bound::UNIT.contains(*cut_y)) {
 		throw std::runtime_error(
 			std::string("Cut on y must lie between 0 and 1 (")
-			+ y_cut.name() + ").");
+			+ cut_y.name() + ").");
 	}
-	if (*strict && z_cut.occupied() && !Bound::UNIT.contains(*z_cut)) {
+	if (*strict && cut_z.occupied() && !Bound::UNIT.contains(*cut_z)) {
 		throw std::runtime_error(
 			std::string("Cut on z must lie between 0 and 1 (")
-			+ z_cut.name() + ").");
+			+ cut_z.name() + ").");
 	}
-	if (phi_h_cut.occupied() && phi_h_cut->size() >= 360.) {
+	if (cut_phi_h.occupied() && cut_phi_h->size() >= 360.) {
 		throw std::runtime_error(
 			std::string("Cut on φ_h must be smaller than 360 degrees (")
-			+ phi_h_cut.name() + ").");
+			+ cut_phi_h.name() + ").");
 	}
-	if (phi_cut.occupied() && phi_cut->size() >= 360.) {
+	if (cut_phi.occupied() && cut_phi->size() >= 360.) {
 		throw std::runtime_error(
 			std::string("Cut on φ must be smaller than 360 degrees (")
-			+ phi_cut.name() + ").");
+			+ cut_phi.name() + ").");
 	}
-	if (phi_k_cut.occupied() && phi_k_cut->size() >= 360.) {
+	if (cut_phi_k.occupied() && cut_phi_k->size() >= 360.) {
 		throw std::runtime_error(
 			std::string("Cut on φ_k must be smaller than 360 degrees (")
-			+ phi_k_cut.name() + ").");
+			+ cut_phi_k.name() + ").");
 	}
-	if (*strict && theta_q_cut.occupied() && !Bound(0., 180.).contains(*theta_q_cut)) {
+	if (*strict && cut_theta_q.occupied() && !Bound(0., 180.).contains(*cut_theta_q)) {
 		throw std::runtime_error(
 			std::string("Cut on θ_q must lie between 0 and 180 degrees (")
-			+ theta_q_cut.name() + ").");
+			+ cut_theta_q.name() + ").");
 	}
-	if (*strict && theta_h_cut.occupied() && !Bound(0., 180.).contains(*theta_h_cut)) {
+	if (*strict && cut_theta_h.occupied() && !Bound(0., 180.).contains(*cut_theta_h)) {
 		throw std::runtime_error(
 			std::string("Cut on θ_h must lie between 0 and 180 degrees (")
-			+ theta_h_cut.name() + ").");
+			+ cut_theta_h.name() + ").");
 	}
-	if (*strict && theta_k_cut.occupied() && !Bound(0., 180.).contains(*theta_k_cut)) {
+	if (*strict && cut_theta_k.occupied() && !Bound(0., 180.).contains(*cut_theta_k)) {
 		throw std::runtime_error(
 			std::string("Cut on θ_k must lie between 0 and 180 degrees (")
-			+ theta_k_cut.name() + ").");
+			+ cut_theta_k.name() + ").");
 	}
 }
 
@@ -1052,12 +1052,12 @@ void Params::merge(Params const& params) {
 		seed_init.reset(0.);
 	}
 	if (*gen_rad ^ *params.gen_rad) {
-		tau_cut.take_first(params.tau_cut);
-		phi_k_cut.take_first(params.phi_k_cut);
-		R_cut.take_first(params.R_cut);
-		k_0_bar_cut.take_first(params.k_0_bar_cut);
-		k_0_cut.take_first(params.k_0_cut);
-		theta_k_cut.take_first(params.theta_k_cut);
+		cut_tau.take_first(params.cut_tau);
+		cut_phi_k.take_first(params.cut_phi_k);
+		cut_R.take_first(params.cut_R);
+		cut_k_0_bar.take_first(params.cut_k_0_bar);
+		cut_k_0.take_first(params.cut_k_0);
+		cut_theta_k.take_first(params.cut_theta_k);
 	}
 }
 
@@ -1084,28 +1084,28 @@ bool Params::operator==(Params const& rhs) const {
 		&& target_pol == rhs.target_pol
 		&& beam_pol == rhs.beam_pol
 		&& k_0_bar == rhs.k_0_bar
-		&& x_cut == rhs.x_cut
-		&& y_cut == rhs.y_cut
-		&& z_cut == rhs.z_cut
-		&& ph_t_sq_cut == rhs.ph_t_sq_cut
-		&& phi_h_cut == rhs.phi_h_cut
-		&& phi_cut == rhs.phi_cut
-		&& Q_sq_cut == rhs.Q_sq_cut
-		&& t_cut == rhs.t_cut
-		&& W_sq_cut == rhs.W_sq_cut
-		&& r_cut == rhs.r_cut
-		&& mx_sq_cut == rhs.mx_sq_cut
-		&& q_0_cut == rhs.q_0_cut
-		&& k2_0_cut == rhs.k2_0_cut
-		&& ph_0_cut == rhs.ph_0_cut
-		&& theta_q_cut == rhs.theta_q_cut
-		&& theta_k2_cut == rhs.theta_k2_cut
-		&& theta_h_cut == rhs.theta_h_cut
-		&& tau_cut == rhs.tau_cut
-		&& phi_k_cut == rhs.phi_k_cut
-		&& R_cut == rhs.R_cut
-		&& k_0_bar_cut == rhs.k_0_bar_cut
-		&& k_0_cut == rhs.k_0_cut
-		&& theta_k_cut == rhs.theta_k_cut;
+		&& cut_x == rhs.cut_x
+		&& cut_y == rhs.cut_y
+		&& cut_z == rhs.cut_z
+		&& cut_ph_t_sq == rhs.cut_ph_t_sq
+		&& cut_phi_h == rhs.cut_phi_h
+		&& cut_phi == rhs.cut_phi
+		&& cut_Q_sq == rhs.cut_Q_sq
+		&& cut_t == rhs.cut_t
+		&& cut_W_sq == rhs.cut_W_sq
+		&& cut_r == rhs.cut_r
+		&& cut_mx_sq == rhs.cut_mx_sq
+		&& cut_q_0 == rhs.cut_q_0
+		&& cut_k2_0 == rhs.cut_k2_0
+		&& cut_ph_0 == rhs.cut_ph_0
+		&& cut_theta_q == rhs.cut_theta_q
+		&& cut_theta_k2 == rhs.cut_theta_k2
+		&& cut_theta_h == rhs.cut_theta_h
+		&& cut_tau == rhs.cut_tau
+		&& cut_phi_k == rhs.cut_phi_k
+		&& cut_R == rhs.cut_R
+		&& cut_k_0_bar == rhs.cut_k_0_bar
+		&& cut_k_0 == rhs.cut_k_0
+		&& cut_theta_k == rhs.cut_theta_k;
 }
 

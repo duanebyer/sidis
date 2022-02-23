@@ -174,29 +174,29 @@ struct Params {
 	Param<sidis::math::Vec3> target_pol;
 	Param<sidis::Real> beam_pol;
 	Param<sidis::Real> k_0_bar;
-	Param<sidis::math::Bound> x_cut;
-	Param<sidis::math::Bound> y_cut;
-	Param<sidis::math::Bound> z_cut;
-	Param<sidis::math::Bound> ph_t_sq_cut;
-	Param<sidis::math::Bound> phi_h_cut;
-	Param<sidis::math::Bound> phi_cut;
-	Param<sidis::math::Bound> Q_sq_cut;
-	Param<sidis::math::Bound> t_cut;
-	Param<sidis::math::Bound> W_sq_cut;
-	Param<sidis::math::Bound> r_cut;
-	Param<sidis::math::Bound> mx_sq_cut;
-	Param<sidis::math::Bound> q_0_cut;
-	Param<sidis::math::Bound> k2_0_cut;
-	Param<sidis::math::Bound> ph_0_cut;
-	Param<sidis::math::Bound> theta_q_cut;
-	Param<sidis::math::Bound> theta_k2_cut;
-	Param<sidis::math::Bound> theta_h_cut;
-	Param<sidis::math::Bound> tau_cut;
-	Param<sidis::math::Bound> phi_k_cut;
-	Param<sidis::math::Bound> R_cut;
-	Param<sidis::math::Bound> k_0_bar_cut;
-	Param<sidis::math::Bound> k_0_cut;
-	Param<sidis::math::Bound> theta_k_cut;
+	Param<sidis::math::Bound> cut_x;
+	Param<sidis::math::Bound> cut_y;
+	Param<sidis::math::Bound> cut_z;
+	Param<sidis::math::Bound> cut_ph_t_sq;
+	Param<sidis::math::Bound> cut_phi_h;
+	Param<sidis::math::Bound> cut_phi;
+	Param<sidis::math::Bound> cut_Q_sq;
+	Param<sidis::math::Bound> cut_t;
+	Param<sidis::math::Bound> cut_W_sq;
+	Param<sidis::math::Bound> cut_r;
+	Param<sidis::math::Bound> cut_mx_sq;
+	Param<sidis::math::Bound> cut_q_0;
+	Param<sidis::math::Bound> cut_k2_0;
+	Param<sidis::math::Bound> cut_ph_0;
+	Param<sidis::math::Bound> cut_theta_q;
+	Param<sidis::math::Bound> cut_theta_k2;
+	Param<sidis::math::Bound> cut_theta_h;
+	Param<sidis::math::Bound> cut_tau;
+	Param<sidis::math::Bound> cut_phi_k;
+	Param<sidis::math::Bound> cut_R;
+	Param<sidis::math::Bound> cut_k_0_bar;
+	Param<sidis::math::Bound> cut_k_0;
+	Param<sidis::math::Bound> cut_theta_k;
 
 	Params() :
 		version("version"),
@@ -221,29 +221,29 @@ struct Params {
 		target_pol("target_pol"),
 		beam_pol("beam_pol"),
 		k_0_bar("soft_threshold"),
-		x_cut("x_cut"),
-		y_cut("y_cut"),
-		z_cut("z_cut"),
-		ph_t_sq_cut("ph_t_sq_cut"),
-		phi_h_cut("phi_h_cut"),
-		phi_cut("phi_cut"),
-		Q_sq_cut("Q_sq_cut"),
-		t_cut("t_cut"),
-		W_sq_cut("W_sq_cut"),
-		r_cut("r_cut"),
-		mx_sq_cut("mx_sq_cut"),
-		q_0_cut("q_0_cut"),
-		k2_0_cut("k2_0_cut"),
-		ph_0_cut("ph_0_cut"),
-		theta_q_cut("theta_q_cut"),
-		theta_k2_cut("theta_k2_cut"),
-		theta_h_cut("theta_h_cut"),
-		tau_cut("tau_cut"),
-		phi_k_cut("phi_k_cut"),
-		R_cut("R_cut"),
-		k_0_bar_cut("k_0_bar_cut"),
-		k_0_cut("k_0_cut"),
-		theta_k_cut("theta_k_cut") { }
+		cut_x("cut.x"),
+		cut_y("cut.y"),
+		cut_z("cut.z"),
+		cut_ph_t_sq("cut.ph_t_sq"),
+		cut_phi_h("cut.phi_h"),
+		cut_phi("cut.phi"),
+		cut_Q_sq("cut.Q_sq"),
+		cut_t("cut.t"),
+		cut_W_sq("cut.W_sq"),
+		cut_r("cut.r"),
+		cut_mx_sq("cut.mx_sq"),
+		cut_q_0("cut.q_0"),
+		cut_k2_0("cut.k2_0"),
+		cut_ph_0("cut.ph_0"),
+		cut_theta_q("cut.theta_q"),
+		cut_theta_k2("cut.theta_k2"),
+		cut_theta_h("cut.theta_h"),
+		cut_tau("cut.tau"),
+		cut_phi_k("cut.phi_k"),
+		cut_R("cut.R"),
+		cut_k_0_bar("cut.k_0_bar"),
+		cut_k_0("cut.k_0"),
+		cut_theta_k("cut.theta_k") { }
 
 	void write_root(TFile& file) const;
 	void read_root(TFile& file);

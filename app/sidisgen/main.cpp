@@ -281,29 +281,29 @@ int command_help_params() {
 		<< "beam_pol       <real in [-1, 1]>"                << std::endl
 		<< "target_pol     <vector in unit sphere>"          << std::endl
 		<< "soft_threshold <energy (GeV)>"                   << std::endl
-		<< "k_0_bar_cut    <min> <max>"                      << std::endl
-		<< "x_cut          <min> <max>"                      << std::endl
-		<< "y_cut          <min> <max>"                      << std::endl
-		<< "z_cut          <min> <max>"                      << std::endl
-		<< "ph_t_sq_cut    <min> <max>"                      << std::endl
-		<< "phi_h_cut      <min> <max>"                      << std::endl
-		<< "phi_cut        <min> <max>"                      << std::endl
-		<< "tau_cut        <min> <max>"                      << std::endl
-		<< "phi_k_cut      <min> <max>"                      << std::endl
-		<< "R_cut          <min> <max>"                      << std::endl
-		<< "Q_sq_cut       <min> <max>"                      << std::endl
-		<< "t_cut          <min> <max>"                      << std::endl
-		<< "W_sq_cut       <min> <max>"                      << std::endl
-		<< "r_cut          <min> <max>"                      << std::endl
-		<< "mx_sq_cut      <min> <max>"                      << std::endl
-		<< "q_0_cut        <min> <max>"                      << std::endl
-		<< "k2_0_cut       <min> <max>"                      << std::endl
-		<< "ph_0_cut       <min> <max>"                      << std::endl
-		<< "k_0_cut        <min> <max>"                      << std::endl
-		<< "theta_q_cut    <min> <max>"                      << std::endl
-		<< "theta_k2_cut   <min> <max>"                      << std::endl
-		<< "theta_ph_cut   <min> <max>"                      << std::endl
-		<< "theta_k_cut    <min> <max>"                      << std::endl;
+		<< "cut.k_0_bar    <min> <max>"                      << std::endl
+		<< "cut.x          <min> <max>"                      << std::endl
+		<< "cut.y          <min> <max>"                      << std::endl
+		<< "cut.z          <min> <max>"                      << std::endl
+		<< "cut.ph_t_sq    <min> <max>"                      << std::endl
+		<< "cut.phi_h      <min> <max>"                      << std::endl
+		<< "cut.phi        <min> <max>"                      << std::endl
+		<< "cut.tau        <min> <max>"                      << std::endl
+		<< "cut.phi_k      <min> <max>"                      << std::endl
+		<< "cut.R          <min> <max>"                      << std::endl
+		<< "cut.Q_sq       <min> <max>"                      << std::endl
+		<< "cut.t          <min> <max>"                      << std::endl
+		<< "cut.W_sq       <min> <max>"                      << std::endl
+		<< "cut.r          <min> <max>"                      << std::endl
+		<< "cut.mx_sq      <min> <max>"                      << std::endl
+		<< "cut.q_0        <min> <max>"                      << std::endl
+		<< "cut.k2_0       <min> <max>"                      << std::endl
+		<< "cut.ph_0       <min> <max>"                      << std::endl
+		<< "cut.k_0        <min> <max>"                      << std::endl
+		<< "cut.theta_q    <min> <max>"                      << std::endl
+		<< "cut.theta_k2   <min> <max>"                      << std::endl
+		<< "cut.theta_ph   <min> <max>"                      << std::endl
+		<< "cut.theta_k    <min> <max>"                      << std::endl;
 	return SUCCESS;
 }
 
