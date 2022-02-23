@@ -258,52 +258,56 @@ int command_help() {
 
 int command_help_params() {
 	std::cout
-		<< "Parameter file format summary."                  << std::endl
-		<< "For more detailed information, see docs."        << std::endl
+		<< "Parameter file format summary."                    << std::endl
+		<< "For more detailed information, see docs."          << std::endl
 		<< std::endl
-		<< "event_file     <ROOT file>"                      << std::endl
-		<< "rc_method      <none, approx, exact>"            << std::endl
-		<< "gen_nrad       <on, off>"                        << std::endl
-		<< "gen_rad        <on, off>"                        << std::endl
-		<< "write_momenta  <on, off>"                        << std::endl
-		<< "write_photon   <on, off>"                        << std::endl
-		<< "foam_file      <ROOT file>"                      << std::endl
-		<< "sf_set         <prokudin, test, ROOT dict.>"     << std::endl
-		<< "num_events     <integer>"                        << std::endl
-		<< "rej_weight     <real in [1, ∞)>"                 << std::endl
-		<< "seed           <integer>"                        << std::endl
-		<< "seed_init      <integer>"                        << std::endl
-		<< "beam_energy    <energy (GeV)>"                   << std::endl
-		<< "beam           <pid>"                            << std::endl
-		<< "target         <pid>"                            << std::endl
-		<< "mass_threshold <mass (GeV)>"                     << std::endl
-		<< "hadron         <pid>"                            << std::endl
-		<< "beam_pol       <real in [-1, 1]>"                << std::endl
-		<< "target_pol     <vector in unit sphere>"          << std::endl
-		<< "soft_threshold <energy (GeV)>"                   << std::endl
-		<< "cut.k_0_bar    <min> <max>"                      << std::endl
-		<< "cut.x          <min> <max>"                      << std::endl
-		<< "cut.y          <min> <max>"                      << std::endl
-		<< "cut.z          <min> <max>"                      << std::endl
-		<< "cut.ph_t_sq    <min> <max>"                      << std::endl
-		<< "cut.phi_h      <min> <max>"                      << std::endl
-		<< "cut.phi        <min> <max>"                      << std::endl
-		<< "cut.tau        <min> <max>"                      << std::endl
-		<< "cut.phi_k      <min> <max>"                      << std::endl
-		<< "cut.R          <min> <max>"                      << std::endl
-		<< "cut.Q_sq       <min> <max>"                      << std::endl
-		<< "cut.t          <min> <max>"                      << std::endl
-		<< "cut.W_sq       <min> <max>"                      << std::endl
-		<< "cut.r          <min> <max>"                      << std::endl
-		<< "cut.mx_sq      <min> <max>"                      << std::endl
-		<< "cut.q_0        <min> <max>"                      << std::endl
-		<< "cut.k2_0       <min> <max>"                      << std::endl
-		<< "cut.ph_0       <min> <max>"                      << std::endl
-		<< "cut.k_0        <min> <max>"                      << std::endl
-		<< "cut.theta_q    <min> <max>"                      << std::endl
-		<< "cut.theta_k2   <min> <max>"                      << std::endl
-		<< "cut.theta_ph   <min> <max>"                      << std::endl
-		<< "cut.theta_k    <min> <max>"                      << std::endl;
+		<< "file.event_out      <ROOT file>"                   << std::endl
+		<< "file.write_momenta  <on, off>"                     << std::endl
+		<< "file.write_photon   <on, off>"                     << std::endl
+		<< "file.foam_out       <ROOT file>"                   << std::endl
+		<< std::endl
+		<< "mc.gen_nrad    <on, off>"                          << std::endl
+		<< "mc.gen_rad     <on, off>"                          << std::endl
+		<< "mc.num_events  <integer>"                          << std::endl
+		<< "mc.rej_weight  <real in [1, ∞)>"                   << std::endl
+		<< "mc.seed        <integer>"                          << std::endl
+		<< "mc.seed_init   <integer>"                          << std::endl
+		<< std::endl
+		<< "setup.beam_energy  <energy (GeV)>"                 << std::endl
+		<< "setup.beam         <pid>"                          << std::endl
+		<< "setup.target       <pid>"                          << std::endl
+		<< "setup.hadron       <pid>"                          << std::endl
+		<< "setup.beam_pol     <real in [-1, 1]>"              << std::endl
+		<< "setup.target_pol   <vector in unit sphere>"        << std::endl
+		<< std::endl
+		<< "phys.sf_set          <prokudin, test, ROOT dict.>" << std::endl
+		<< "phys.rc_method       <none, approx, exact>"        << std::endl
+		<< "phys.mass_threshold  <mass (GeV)>"                 << std::endl
+		<< "phys.soft_threshold  <energy (GeV)>"               << std::endl
+		<< std::endl
+		<< "cut.k_0_bar   <min> <max>"                         << std::endl
+		<< "cut.x         <min> <max>"                         << std::endl
+		<< "cut.y         <min> <max>"                         << std::endl
+		<< "cut.z         <min> <max>"                         << std::endl
+		<< "cut.ph_t_sq   <min> <max>"                         << std::endl
+		<< "cut.phi_h     <min> <max>"                         << std::endl
+		<< "cut.phi       <min> <max>"                         << std::endl
+		<< "cut.tau       <min> <max>"                         << std::endl
+		<< "cut.phi_k     <min> <max>"                         << std::endl
+		<< "cut.R         <min> <max>"                         << std::endl
+		<< "cut.Q_sq      <min> <max>"                         << std::endl
+		<< "cut.t         <min> <max>"                         << std::endl
+		<< "cut.W_sq      <min> <max>"                         << std::endl
+		<< "cut.r         <min> <max>"                         << std::endl
+		<< "cut.mx_sq     <min> <max>"                         << std::endl
+		<< "cut.q_0       <min> <max>"                         << std::endl
+		<< "cut.k2_0      <min> <max>"                         << std::endl
+		<< "cut.ph_0      <min> <max>"                         << std::endl
+		<< "cut.k_0       <min> <max>"                         << std::endl
+		<< "cut.theta_q   <min> <max>"                         << std::endl
+		<< "cut.theta_k2  <min> <max>"                         << std::endl
+		<< "cut.theta_ph  <min> <max>"                         << std::endl
+		<< "cut.theta_k   <min> <max>"                         << std::endl;
 	return SUCCESS;
 }
 
