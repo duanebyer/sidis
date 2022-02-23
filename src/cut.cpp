@@ -287,9 +287,7 @@ bool cut::valid(KinematicsRad const& kin_rad) {
 		return false;
 	} else if (!std::isfinite(kin_rad.phi_k)) {
 		return false;
-	// TODO: Perhaps there should be an upper boundn check on R, but it isn't
-	// clear what that upper bound would be.
-	} else if (!(kin_rad.R >= 0.)) {
+	} else if (!(kin_rad.R >= 0 && kin_rad.R <= cut::R_bound(kin_rad.project(), kin_rad.tau, kin_rad.phi_k).max())) {
 		return false;
 	/*} else if (!(kin_rad.shift_x >= 0. && kin_rad.shift_x <= 1.)) {
 		return false;
