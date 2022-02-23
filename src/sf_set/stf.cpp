@@ -340,7 +340,11 @@ Real StfTmdSet::charge(unsigned fl) const {
 
 Real StfTmdSet::xf1(unsigned fl, Real x, Real Q_sq) const {
 	int pdg = pdg_id(fl);
-	return _impl->tmd_set->xfxQ2(pdg, x, Q_sq);
+	try {
+		return _impl->tmd_set->xfxQ2(pdg, x, Q_sq);
+	} catch (LHAPDF::RangeError const& e) {
+		return std::numeric_limits<Real>::quiet_NaN();
+	}
 }
 
 Real StfTmdSet::xf1Tperp(unsigned fl, Real x, Real Q_sq) const {
@@ -356,7 +360,11 @@ Real StfTmdSet::D1(part::Hadron h, unsigned fl, Real z, Real Q_sq) const {
 	int pdg = pdg_id(fl);
 	switch (h) {
 	case part::Hadron::PI_P:
-		return _impl->ff_set->xfxQ2(pdg, z, Q_sq)/z;
+		try {
+			return _impl->ff_set->xfxQ2(pdg, z, Q_sq)/z;
+		} catch (LHAPDF::RangeError const& e) {
+			return std::numeric_limits<Real>::quiet_NaN();
+		}
 	case part::Hadron::PI_M:
 		// TODO: Handle this case later.
 	default:
