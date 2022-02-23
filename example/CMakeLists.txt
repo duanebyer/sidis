@@ -44,18 +44,18 @@ if(NOT ROOT_FOUND)
 	message(WARNING "Couldn't find ROOT, so some examples will not be built.")
 endif()
 if(ROOT_FOUND)
-	add_executable(plot_transverse_asymmetry plot_transverse_asymmetry.cpp)
-	target_link_libraries(plot_transverse_asymmetry PRIVATE
+	add_executable(plot_ssa plot_ssa.cpp)
+	target_link_libraries(plot_ssa PRIVATE
 		sidis
 		cubature
 		ROOT::Core ROOT::Gpad ROOT::Graf)
-	target_compile_features(plot_transverse_asymmetry PRIVATE cxx_std_11)
+	target_compile_features(plot_ssa PRIVATE cxx_std_11)
 	set_target_properties(
-		plot_transverse_asymmetry PROPERTIES
+		plot_ssa PROPERTIES
 		CXX_EXTENSIONS OFF
 		INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 	target_compile_options(
-		plot_transverse_asymmetry
+		plot_ssa
 		PRIVATE
 		$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
 		$<$<CXX_COMPILER_ID:MSVC>:/W4>)
