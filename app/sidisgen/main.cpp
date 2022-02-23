@@ -278,7 +278,7 @@ int command_help_params() {
 		<< "target         <pid>"                            << std::endl
 		<< "mass_threshold <mass (GeV)>"                     << std::endl
 		<< "hadron         <pid>"                            << std::endl
-		<< "beam_pol       <real in [0, 1]>"                 << std::endl
+		<< "beam_pol       <real in [-1, 1]>"                << std::endl
 		<< "target_pol     <vector in unit sphere>"          << std::endl
 		<< "soft_threshold <energy (GeV)>"                   << std::endl
 		<< "k_0_bar_cut    <min> <max>"                      << std::endl
