@@ -244,7 +244,7 @@ KinematicsRad::KinematicsRad(Kinematics const& kin, Real tau, Real phi_k, Real R
 
 	shift_x = shift_Q_sq/shift_S_x;
 	shift_y = y - R/S;
-	shift_z = (2.*M*ph_0)/shift_S_x;
+	shift_z = S_x/shift_S_x*z;
 	// TODO: Fill in equation number in derivations.
 	shift_t = t - R*tau + (z*R*S_x - lambda_RV)/(2.*sq(M));
 	shift_W_sq = W_sq - R*(1. + tau);
