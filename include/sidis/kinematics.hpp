@@ -600,6 +600,15 @@ struct Initial {
 		beam(ps.beam),
 		p(math::Vec4(ps.M, 0., 0., 0.)),
 		k1(math::Vec4::from_length_and_t(ps.m, beam_energy, math::Vec3::Z)) { }
+
+	/// Prepare the initial state with information from kinematics object
+	/// \p kin, with the target at rest, and with the beam pointed along
+	/// \f$\pmb{e}_z\f$.
+	Initial(kin::Kinematics const& kin) :
+		target(kin.target),
+		beam(kin.beam),
+		p(math::Vec4(kin.M, 0., 0., 0.)),
+		k1(math::Vec4::from_length_and_t(kin.m, kin.S / (2. * kin.M), math::Vec3::Z)) { }
 };
 
 /**
