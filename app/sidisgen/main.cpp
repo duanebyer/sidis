@@ -992,6 +992,9 @@ int main(int argc, char** argv) {
 			return SUCCESS;
 		}
 		std::string command = argv[1];
+		if (command[0] == '-' && command[1] == '-' && command[2] != '-') {
+			command = command.substr(2);
+		}
 		if (command == "help" || command == "-?") {
 			return command_help();
 		} else if (command == "help-params") {
