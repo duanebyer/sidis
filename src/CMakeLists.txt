@@ -1,6 +1,7 @@
 set(
 	HEADER_LIST_BASE
 	"sidis/sidis.hpp"
+	"sidis/asymmetry.hpp"
 	"sidis/bound.hpp"
 	"sidis/constant.hpp"
 	"sidis/cross_section.hpp"
@@ -70,6 +71,7 @@ find_package(LHAPDF REQUIRED)
 
 add_library(
 	sidis
+	asymmetry.cpp
 	bound.cpp
 	constant.cpp
 	cross_section.cpp
