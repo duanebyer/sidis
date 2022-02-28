@@ -61,11 +61,9 @@ public:
 	Real transform(Point<8> const&, PointFull*) const noexcept { return 0.; };
 };
 
-struct BuilderParams {
-	bubble::ExploreProgressReporter<Real>* explore_progress_reporter = nullptr;
-	bubble::TuneProgressReporter<Real>* tune_progress_reporter = nullptr;
-	std::size_t num_init = 16384;
-	Seed seed = 0;
+struct BuilderReporters {
+	bubble::ExploreProgressReporter<Real>* explore_progress = nullptr;
+	bubble::TuneProgressReporter<Real>* tune_progress = nullptr;
 };
 
 // Builds a generator and writes it to a stream.
@@ -88,7 +86,7 @@ public:
 
 	Builder(
 		EventType type,
-		BuilderParams const& builder_params,
+		BuilderReporters const& builder_reporters,
 		Params const& params,
 		sidis::sf::SfSet const& sf);
 	Builder(Builder const& other) = delete;
@@ -106,10 +104,6 @@ public:
 	void write(std::ostream& os);
 	// Calculates the relative variance (with uncertainty).
 	Real rel_var(Real* err_out=nullptr) const;
-};
-
-struct GeneratorParams {
-	Seed seed = 0;
 };
 
 // Loads a generator from a stream and produces events from it.
@@ -133,7 +127,6 @@ class Generator {
 public:
 	Generator(
 		EventType type,
-		GeneratorParams const& generator_params,
 		Params const& params,
 		sidis::sf::SfSet const& sf,
 		std::istream& is);

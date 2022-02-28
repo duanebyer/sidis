@@ -37,7 +37,7 @@ cut::Cut get_cut_from_params(Params const& params) {
 cut::CutRad get_cut_rad_from_params(Params const& params) {
 	Real const DEG = PI / 180.;
 	cut::CutRad result;
-	if (*params.gen_rad) {
+	if (*params.rad_gen) {
 		result.tau = params.cut_tau.get_or(math::Bound::INVALID);
 		result.phi_k = DEG * params.cut_phi_k.get_or(math::Bound::INVALID);
 		result.R = params.cut_R.get_or(math::Bound::INVALID);
@@ -49,6 +49,8 @@ cut::CutRad get_cut_rad_from_params(Params const& params) {
 	}
 	return result;
 }
+
+std::random_device rnd_dev;
 
 }
 
@@ -155,47 +157,51 @@ Real RadDensity::operator()(Point<9> const& vec) const noexcept {
 
 Builder::Builder(
 		EventType type,
-		BuilderParams const& builder_params,
+		BuilderReporters const& builder_reporters,
 		Params const& params,
 		sf::SfSet const& sf) :
 		_type(type) {
+	std::minstd_rand seed_rnd(rnd_dev());
+	std::minstd_rand seed_rnd_fixed;
+	std::uniform_int_distribution<Seed> seed_dist;
 	switch (_type) {
 	case EventType::NRAD:
+		seed_rnd_fixed.seed(*params.nrad_seed_init);
 		new (&_builder.nrad) NradBuilder(
 			NradDensity(params, sf),
-			builder_params.seed);
-		_builder.nrad.explore_progress_reporter = builder_params.explore_progress_reporter;
-		_builder.nrad.tune_progress_reporter = builder_params.tune_progress_reporter;
-		_builder.nrad.check_samples = builder_params.num_init;
-		_builder.nrad.target_rel_var = 0.25;
-		_builder.nrad.scale_exp_est = 0.60;
-		_builder.nrad.min_cell_explore_samples = 2;
+			*params.nrad_seed_init == 0 ? seed_dist(seed_rnd) : seed_dist(seed_rnd_fixed));
+		_builder.nrad.explore_progress_reporter = builder_reporters.explore_progress;
+		_builder.nrad.tune_progress_reporter = builder_reporters.tune_progress;
+		_builder.nrad.check_samples = 16384;
+		_builder.nrad.target_rel_var =
+			std::expm1(-2. * std::log(*params.nrad_target_eff));
+		_builder.nrad.scale_exp_est = *params.nrad_scale_exp;
+		_builder.nrad.min_cell_explore_samples = 32;
 		_builder.nrad.hist_num_per_bin = 2;
-		_builder.nrad.max_explore_cells = 16777216;
+		_builder.nrad.max_explore_cells = *params.nrad_max_cells;
 		break;
 	case EventType::RAD:
+		seed_rnd_fixed.seed(*params.rad_seed_init);
 		new (&_builder.rad) RadBuilder(
 			RadDensity(params, sf),
-			builder_params.seed);
-		_builder.rad.explore_progress_reporter = builder_params.explore_progress_reporter;
-		_builder.rad.tune_progress_reporter = builder_params.tune_progress_reporter;
-		_builder.rad.check_samples = builder_params.num_init;
-		_builder.rad.check_samples = builder_params.num_init;
-		_builder.rad.target_rel_var = 1.0;
-		_builder.rad.scale_exp_est = 0.20;
-		_builder.rad.min_cell_explore_samples = 2;
+			*params.rad_seed_init == 0 ? seed_dist(seed_rnd) : seed_dist(seed_rnd_fixed));
+		_builder.rad.explore_progress_reporter = builder_reporters.explore_progress;
+		_builder.rad.tune_progress_reporter = builder_reporters.tune_progress;
+		_builder.rad.check_samples = 16384;
+		_builder.rad.target_rel_var =
+			std::expm1(-2. * std::log(*params.rad_target_eff));
+		_builder.rad.scale_exp_est = *params.rad_scale_exp;
+		_builder.rad.min_cell_explore_samples = 32;
 		_builder.rad.hist_num_per_bin = 2;
-		_builder.rad.max_explore_cells = 16777216;
+		_builder.rad.max_explore_cells = *params.rad_max_cells;
 		break;
 	case EventType::EXCL:
 		new (&_builder.excl) ExclBuilder(
 			ExclDensity(params, sf),
-			builder_params.seed);
-		_builder.excl.explore_progress_reporter = builder_params.explore_progress_reporter;
-		_builder.excl.tune_progress_reporter = builder_params.tune_progress_reporter;
-		_builder.excl.check_samples = builder_params.num_init;
-		_builder.excl.check_samples = builder_params.num_init;
-		_builder.excl.check_samples = builder_params.num_init;
+			seed_dist(seed_rnd));
+		_builder.excl.explore_progress_reporter = builder_reporters.explore_progress;
+		_builder.excl.tune_progress_reporter = builder_reporters.tune_progress;
+		_builder.excl.check_samples = 16384;
 		_builder.excl.target_rel_var = 0.25;
 		_builder.excl.scale_exp_est = 0.25;
 		_builder.excl.min_cell_explore_samples = 2;
@@ -291,28 +297,29 @@ Real Builder::rel_var(Real* err_out) const {
 
 Generator::Generator(
 		EventType type,
-		GeneratorParams const& generator_params,
 		Params const& params,
 		sf::SfSet const& sf,
 		std::istream& is) :
 		_type(type) {
+	std::minstd_rand seed_rnd(*params.seed >= 0 ? *params.seed : rnd_dev());
+	std::uniform_int_distribution<Seed> seed_dist;
 	switch (_type) {
 	case EventType::NRAD:
 		new (&_generator.nrad) NradGenerator(
 			NradDensity(params, sf),
-			generator_params.seed);
+			seed_dist(seed_rnd));
 		_generator.nrad.read(is);
 		break;
 	case EventType::RAD:
 		new (&_generator.rad) RadGenerator(
 			RadDensity(params, sf),
-			generator_params.seed);
+			seed_dist(seed_rnd));
 		_generator.rad.read(is);
 		break;
 	case EventType::EXCL:
 		new (&_generator.excl) ExclGenerator(
 			ExclDensity(params, sf),
-			generator_params.seed);
+			seed_dist(seed_rnd));
 		_generator.excl.read(is);
 		break;
 	}

@@ -266,12 +266,19 @@ int command_help_params() {
 		<< "file.write_photon   <on, off>"                     << std::endl
 		<< "file.foam_out       <ROOT file>"                   << std::endl
 		<< std::endl
-		<< "mc.gen_nrad    <on, off>"                          << std::endl
-		<< "mc.gen_rad     <on, off>"                          << std::endl
-		<< "mc.num_events  <integer>"                          << std::endl
-		<< "mc.rej_weight  <real in [1, ∞)>"                   << std::endl
-		<< "mc.seed        <integer>"                          << std::endl
-		<< "mc.seed_init   <integer>"                          << std::endl
+		<< "mc.nrad.gen              <on, off>"                << std::endl
+		<< "mc.nrad.init.seed        <integer>"                << std::endl
+		<< "mc.nrad.init.max_cells   <integer>"                << std::endl
+		<< "mc.nrad.init.target_eff  <real in [0, 1]>"         << std::endl
+		<< "mc.nrad.init.scale_exp   <real>"                   << std::endl
+		<< "mc.rad.gen               <on, off>"                << std::endl
+		<< "mc.rad.init.seed         <integer>"                << std::endl
+		<< "mc.rad.init.max_cells    <integer>"                << std::endl
+		<< "mc.rad.init.target_eff   <real in [0, 1]>"         << std::endl
+		<< "mc.rad.init.scale_exp    <real>"                   << std::endl
+		<< "mc.num_events            <integer>"                << std::endl
+		<< "mc.rej_weight            <real in [1, ∞)>"         << std::endl
+		<< "mc.seed                  <integer>"                << std::endl
 		<< std::endl
 		<< "setup.beam_energy  <energy (GeV)>"                 << std::endl
 		<< "setup.beam         <pid>"                          << std::endl
@@ -431,9 +438,7 @@ int command_initialize(char const* params_file_name) {
 	std::unique_ptr<sf::TmdSet> tmd;
 	alloc_sf(params, &sf, &tmd);
 
-	BuilderParams builder_params;
-	std::minstd_rand seed_rnd(*params.seed_init >= 0 ? *params.seed_init : 0);
-	std::uniform_int_distribution<Seed> seed_dist;
+	BuilderReporters builder_reporters;
 
 	// Create FOAM file.
 	std::string file_name = *params.foam_file;
@@ -448,10 +453,10 @@ int command_initialize(char const* params_file_name) {
 
 	// Build FOAMs and write to file.
 	std::vector<EventType> gen_types;
-	if (*params.gen_nrad) {
+	if (*params.nrad_gen) {
 		gen_types.push_back(EventType::NRAD);
 	}
-	if (*params.gen_rad) {
+	if (*params.rad_gen) {
 		gen_types.push_back(EventType::RAD);
 	}
 	for (EventType gen_type : gen_types) {
@@ -459,10 +464,9 @@ int command_initialize(char const* params_file_name) {
 		char const* gen_key = event_type_short_name(gen_type);
 		std::cout << "Building " << gen_name << " FOAM." << std::endl;
 		DrawProgressBar progress_reporter;
-		builder_params.explore_progress_reporter = &progress_reporter;
-		builder_params.tune_progress_reporter = &progress_reporter;
-		builder_params.seed = seed_dist(seed_rnd);
-		Builder builder(gen_type, builder_params, params, *sf);
+		builder_reporters.explore_progress = &progress_reporter;
+		builder_reporters.tune_progress = &progress_reporter;
+		Builder builder(gen_type, builder_reporters, params, *sf);
 		try {
 			std::cout << "Exploration phase." << std::endl;
 			write_progress_bar(std::cout, 0);
@@ -553,16 +557,12 @@ int command_generate(char const* params_file_name) {
 			std::string("Couldn't create file '") + *params.event_file + "'.");
 	}
 
-	GeneratorParams generator_params;
-	std::minstd_rand seed_rnd(*params.seed >= 0 ? *params.seed : 0);
-	std::uniform_int_distribution<Seed> seed_dist;
-
 	// Load the event generators from file.
 	std::vector<EventType> gen_types;
-	if (*params.gen_nrad) {
+	if (*params.nrad_gen) {
 		gen_types.push_back(EventType::NRAD);
 	}
-	if (*params.gen_rad) {
+	if (*params.rad_gen) {
 		gen_types.push_back(EventType::RAD);
 	}
 	std::vector<Generator> gens;
@@ -581,8 +581,7 @@ int command_generate(char const* params_file_name) {
 					+ "file '" + foam_file_name + "'.");
 			}
 			std::istringstream is(*data);
-			generator_params.seed = seed_dist(seed_rnd);
-			gens.emplace_back(gen_type, generator_params, params, *sf, is);
+			gens.emplace_back(gen_type, params, *sf, is);
 		} catch (std::exception const& e) {
 			throw Exception(
 				ERROR_READING_FOAM,
@@ -621,13 +620,13 @@ int command_generate(char const* params_file_name) {
 	events.Branch("tau", &tau);
 	events.Branch("phi_k", &phi_k);
 	events.Branch("R", &R);
-	if (*params.gen_rad && *params.write_momenta) {
+	if (*params.rad_gen && *params.write_momenta) {
 		events.Branch("p", "TLorentzVector", &p);
 		events.Branch("k1", "TLorentzVector", &k1);
 		events.Branch("q", "TLorentzVector", &q);
 		events.Branch("k2", "TLorentzVector", &k2);
 		events.Branch("ph", "TLorentzVector", &ph);
-		if (*params.gen_rad && *params.write_photon) {
+		if (*params.rad_gen && *params.write_photon) {
 			events.Branch("k", "TLorentzVector", &k);
 		}
 	}

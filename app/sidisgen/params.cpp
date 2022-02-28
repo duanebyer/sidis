@@ -514,7 +514,7 @@ void compatible_common(Params const& p1, Params const& p2) {
 }
 
 void compatible_common_rad(Params const& p1, Params const& p2) {
-	if (*p1.gen_rad && *p2.gen_rad) {
+	if (*p1.rad_gen && *p2.rad_gen) {
 		if (p1.cut_tau != p2.cut_tau) {
 			throw std::runtime_error("Different cuts on τ.");
 		} else if (p1.cut_phi_k != p2.cut_phi_k) {
@@ -547,8 +547,14 @@ void Params::write_root(TFile& file) const {
 	write_param_root_dir(*dir, strict);
 	write_param_root_dir(*dir, event_file);
 	write_param_root_dir(*dir, rc_method);
-	write_param_root_dir(*dir, gen_nrad);
-	write_param_root_dir(*dir, gen_rad);
+	write_param_root_dir(*dir, nrad_gen);
+	write_param_root_dir(*dir, nrad_max_cells);
+	write_param_root_dir(*dir, nrad_target_eff);
+	write_param_root_dir(*dir, nrad_scale_exp);
+	write_param_root_dir(*dir, rad_gen);
+	write_param_root_dir(*dir, rad_max_cells);
+	write_param_root_dir(*dir, rad_target_eff);
+	write_param_root_dir(*dir, rad_scale_exp);
 	write_param_root_dir(*dir, write_momenta);
 	write_param_root_dir(*dir, write_photon);
 	write_param_root_dir(*dir, foam_file);
@@ -556,7 +562,8 @@ void Params::write_root(TFile& file) const {
 	write_param_root_dir(*dir, num_events);
 	write_param_root_dir(*dir, rej_weight);
 	write_param_root_dir(*dir, seed);
-	write_param_root_dir(*dir, seed_init);
+	write_param_root_dir(*dir, nrad_seed_init);
+	write_param_root_dir(*dir, rad_seed_init);
 	write_param_root_dir(*dir, beam_energy);
 	write_param_root_dir(*dir, beam);
 	write_param_root_dir(*dir, target);
@@ -609,8 +616,14 @@ void Params::read_root(TFile& file) {
 	read_param_root_dir(*dir, strict);
 	read_param_root_dir(*dir, event_file);
 	read_param_root_dir(*dir, rc_method);
-	read_param_root_dir(*dir, gen_nrad);
-	read_param_root_dir(*dir, gen_rad);
+	read_param_root_dir(*dir, nrad_gen);
+	read_param_root_dir(*dir, nrad_max_cells);
+	read_param_root_dir(*dir, nrad_target_eff);
+	read_param_root_dir(*dir, nrad_scale_exp);
+	read_param_root_dir(*dir, rad_gen);
+	read_param_root_dir(*dir, rad_max_cells);
+	read_param_root_dir(*dir, rad_target_eff);
+	read_param_root_dir(*dir, rad_scale_exp);
 	read_param_root_dir(*dir, write_momenta);
 	read_param_root_dir(*dir, write_photon);
 	read_param_root_dir(*dir, foam_file);
@@ -618,7 +631,8 @@ void Params::read_root(TFile& file) {
 	read_param_root_dir(*dir, num_events);
 	read_param_root_dir(*dir, rej_weight);
 	read_param_root_dir(*dir, seed);
-	read_param_root_dir(*dir, seed_init);
+	read_param_root_dir(*dir, nrad_seed_init);
+	read_param_root_dir(*dir, rad_seed_init);
 	read_param_root_dir(*dir, beam_energy);
 	read_param_root_dir(*dir, beam);
 	read_param_root_dir(*dir, target);
@@ -657,8 +671,14 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, strict);
 	write_param_stream(file, event_file);
 	write_param_stream(file, rc_method);
-	write_param_stream(file, gen_nrad);
-	write_param_stream(file, gen_rad);
+	write_param_stream(file, nrad_gen);
+	write_param_stream(file, nrad_max_cells);
+	write_param_stream(file, nrad_target_eff);
+	write_param_stream(file, nrad_scale_exp);
+	write_param_stream(file, rad_gen);
+	write_param_stream(file, rad_max_cells);
+	write_param_stream(file, rad_target_eff);
+	write_param_stream(file, rad_scale_exp);
 	write_param_stream(file, write_momenta);
 	write_param_stream(file, write_photon);
 	write_param_stream(file, foam_file);
@@ -666,7 +686,8 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, num_events);
 	write_param_stream(file, rej_weight);
 	write_param_stream(file, seed);
-	write_param_stream(file, seed_init);
+	write_param_stream(file, nrad_seed_init);
+	write_param_stream(file, rad_seed_init);
 	write_param_stream(file, beam_energy);
 	write_param_stream(file, beam);
 	write_param_stream(file, target);
@@ -730,8 +751,14 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, strict);
 	consume_param_from_map(map, event_file);
 	consume_param_from_map(map, rc_method);
-	consume_param_from_map(map, gen_nrad);
-	consume_param_from_map(map, gen_rad);
+	consume_param_from_map(map, nrad_gen);
+	consume_param_from_map(map, nrad_max_cells);
+	consume_param_from_map(map, nrad_target_eff);
+	consume_param_from_map(map, nrad_scale_exp);
+	consume_param_from_map(map, rad_gen);
+	consume_param_from_map(map, rad_max_cells);
+	consume_param_from_map(map, rad_target_eff);
+	consume_param_from_map(map, rad_scale_exp);
 	consume_param_from_map(map, write_momenta);
 	consume_param_from_map(map, write_photon);
 	consume_param_from_map(map, foam_file);
@@ -739,7 +766,8 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, num_events);
 	consume_param_from_map(map, rej_weight);
 	consume_param_from_map(map, seed);
-	consume_param_from_map(map, seed_init);
+	consume_param_from_map(map, nrad_seed_init);
+	consume_param_from_map(map, rad_seed_init);
 	consume_param_from_map(map, beam_energy);
 	consume_param_from_map(map, beam);
 	consume_param_from_map(map, target);
@@ -829,7 +857,6 @@ void Params::make_valid() {
 	rc_method.get_or_insert(RcMethod::APPROX);
 	rej_weight.get_or_insert(1.1);
 	seed.get_or_insert(0);
-	seed_init.get_or_insert(0);
 	target_pol.get_or_insert(Vec3::ZERO);
 	beam_pol.get_or_insert(0.);
 	write_momenta.get_or_insert(true);
@@ -842,10 +869,10 @@ void Params::make_valid() {
 	//  * `cut_k_0_bar` cannot be partway between zero and the soft threshold,
 	//    because it is impossible to generate events according to that.
 	if (*rc_method == RcMethod::APPROX || *rc_method == RcMethod::EXACT) {
-		gen_rad.get_or_insert(true);
+		rad_gen.get_or_insert(true);
 		k_0_bar.get_or_insert(0.01);
-		if (gen_nrad.occupied() && !cut_k_0_bar.occupied()) {
-			if (*gen_nrad) {
+		if (nrad_gen.occupied() && !cut_k_0_bar.occupied()) {
+			if (*nrad_gen) {
 				cut_k_0_bar.reset(Bound::POSITIVE);
 			} else {
 				cut_k_0_bar.reset(Bound::POSITIVE + *k_0_bar);
@@ -854,15 +881,15 @@ void Params::make_valid() {
 			cut_k_0_bar.get_or_insert(Bound::POSITIVE);
 		}
 	} else {
-		if (gen_rad.occupied() && *gen_rad) {
+		if (rad_gen.occupied() && *rad_gen) {
 			if (*strict) {
 				throw std::runtime_error(
 					std::string("Cannot generate radiative events without "
 						"radiative corrections enabled (")
-					+ gen_rad.name() + ", " + rc_method.name() + ").");
+					+ rad_gen.name() + ", " + rc_method.name() + ").");
 			}
 		}
-		gen_rad.reset(false);
+		rad_gen.reset(false);
 		if (k_0_bar.occupied()) {
 			if (*strict) {
 				throw std::runtime_error(
@@ -873,47 +900,47 @@ void Params::make_valid() {
 			k_0_bar.reset();
 		}
 	}
-	if (*gen_rad) {
+	if (*rad_gen) {
 		if (cut_k_0_bar->min() <= 0.) {
-			gen_nrad.get_or_insert(true);
-			if (!*gen_nrad) {
+			nrad_gen.get_or_insert(true);
+			if (!*nrad_gen) {
 				if (*strict) {
 					throw std::runtime_error(
 						std::string("Cannot generate radiative events only "
 							"with photon energy minimum <= 0 (")
-						+ gen_rad.name() + ", " + gen_nrad.name()
+						+ rad_gen.name() + ", " + nrad_gen.name()
 						+ ", " + cut_k_0_bar.name() + ").");
 				}
 			}
 		} else if (*k_0_bar <= cut_k_0_bar->min()) {
-			if (gen_nrad.occupied() && *gen_nrad) {
+			if (nrad_gen.occupied() && *nrad_gen) {
 				if (*strict) {
 					throw std::runtime_error(
 						std::string("Cannot generate non-radiative events with "
 							"photon energy minimum > soft threshold (")
-						+ gen_nrad.name() + ", " + k_0_bar.name() + ", "
+						+ nrad_gen.name() + ", " + k_0_bar.name() + ", "
 						+ cut_k_0_bar.name() + ").");
 				}
 			}
-			gen_nrad.reset(false);
+			nrad_gen.reset(false);
 		} else {
 			throw std::runtime_error(
 				std::string("Cannot have photon energy cut minimum < soft "
 					"threshold without generating non-radiative events (")
-				+ gen_nrad.name() + ", " + k_0_bar.name() + ", "
+				+ nrad_gen.name() + ", " + k_0_bar.name() + ", "
 				+ cut_k_0_bar.name() + ").");
 		}
 	} else {
-		gen_nrad.get_or_insert(true);
+		nrad_gen.get_or_insert(true);
 	}
-	if (!*gen_nrad && !*gen_rad) {
+	if (!*nrad_gen && !*rad_gen) {
 		throw std::runtime_error(
 			std::string("Cannot disable all event types (")
-			+ gen_nrad.name() + ", " + gen_rad.name() + ").");
+			+ nrad_gen.name() + ", " + rad_gen.name() + ").");
 	}
 	// Basic options associated with radiative and non-radiative events in
 	// particular.
-	if (*gen_rad) {
+	if (*rad_gen) {
 		if (write_momenta.occupied() && *write_momenta) {
 			write_photon.get_or_insert(true);
 		} else {
@@ -927,6 +954,10 @@ void Params::make_valid() {
 				}
 			}
 		}
+		rad_max_cells.get_or_insert(1048576);
+		rad_target_eff.get_or_insert(0.65);
+		rad_scale_exp.get_or_insert(0.20);
+		rad_seed_init.get_or_insert(0);
 	} else {
 		if (write_photon.occupied() && *write_photon) {
 			if (*strict) {
@@ -937,9 +968,56 @@ void Params::make_valid() {
 				write_photon.reset();
 			}
 		}
+		if (*strict && rad_max_cells.occupied()) {
+			throw std::runtime_error(
+				std::string("Cannot specify '") + rad_max_cells.name()
+				+ "' when no radiative events are being generated.");
+		}
+		if (*strict && rad_target_eff.occupied()) {
+			throw std::runtime_error(
+				std::string("Cannot specify '") + rad_target_eff.name()
+				+ "' when no radiative events are being generated.");
+		}
+		if (*strict && rad_scale_exp.occupied()) {
+			throw std::runtime_error(
+				std::string("Cannot specify '") + rad_scale_exp.name()
+				+ "' when no radiative events are being generated.");
+		}
+		if (*strict && rad_seed_init.occupied()) {
+			throw std::runtime_error(
+				std::string("Cannot specify '") + rad_seed_init.name()
+				+ "' when no radiative events are being generated.");
+		}
+	}
+	if (*nrad_gen) {
+		nrad_max_cells.get_or_insert(1048576);
+		nrad_target_eff.get_or_insert(0.95);
+		nrad_scale_exp.get_or_insert(0.60);
+		nrad_seed_init.get_or_insert(0);
+	} else {
+		if (*strict && nrad_max_cells.occupied()) {
+			throw std::runtime_error(
+				std::string("Cannot specify '") + nrad_max_cells.name()
+				+ "' when no non-radiative events are being generated.");
+		}
+		if (*strict && nrad_target_eff.occupied()) {
+			throw std::runtime_error(
+				std::string("Cannot specify '") + nrad_target_eff.name()
+				+ "' when no non-radiative events are being generated.");
+		}
+		if (*strict && nrad_scale_exp.occupied()) {
+			throw std::runtime_error(
+				std::string("Cannot specify '") + nrad_scale_exp.name()
+				+ "' when no non-radiative events are being generated.");
+		}
+		if (*strict && nrad_seed_init.occupied()) {
+			throw std::runtime_error(
+				std::string("Cannot specify '") + nrad_seed_init.name()
+				+ "' when no non-radiative events are being generated.");
+		}
 	}
 	// Cuts.
-	if (*gen_rad && *gen_nrad) {
+	if (*rad_gen && *nrad_gen) {
 		if (cut_tau.occupied()
 				|| cut_phi_k.occupied()
 				|| cut_R.occupied()
@@ -1001,16 +1079,30 @@ void Params::make_valid() {
 void Params::compatible_with_foam(EventType type, Params const& foam_params) const {
 	if (strict && !foam_params.strict) {
 		throw std::runtime_error("Incompatible strictness levels.");
-	} else if (type == EventType::NRAD && *gen_nrad && !*foam_params.gen_nrad) {
+	} else if (type == EventType::NRAD && *nrad_gen && !*foam_params.nrad_gen) {
 		throw std::runtime_error("No non-radiative FOAM available.");
-	} else if (type == EventType::RAD && *gen_rad && !*foam_params.gen_rad) {
+	} else if (type == EventType::RAD && *rad_gen && !*foam_params.rad_gen) {
 		throw std::runtime_error("No radiative FOAM available.");
-	} else if (*seed_init != 0 && *foam_params.seed_init != *seed_init) {
-		throw std::runtime_error("Different initialization seed.");
-	} else if (type == EventType::NRAD && *gen_nrad && !*foam_params.gen_nrad) {
+	} else if (type == EventType::NRAD && *nrad_seed_init != 0 && (*foam_params.nrad_seed_init != *nrad_seed_init || *foam_params.nrad_max_cells != *nrad_max_cells || *foam_params.nrad_target_eff != *nrad_target_eff || *foam_params.nrad_scale_exp != *nrad_scale_exp)) {
+		throw std::runtime_error("Different non-radiative initialization seed/conditions.");
+	} else if (type == EventType::RAD && *rad_seed_init != 0 && (*foam_params.rad_seed_init != *rad_seed_init || *foam_params.rad_max_cells != *rad_max_cells || *foam_params.rad_target_eff != *rad_target_eff || *foam_params.rad_scale_exp != *rad_scale_exp)) {
+		throw std::runtime_error("Different radiative initializalation seed/conditions.");
+	} else if (type == EventType::NRAD && *nrad_gen && !*foam_params.nrad_gen) {
 		throw std::runtime_error("FOAM doesn't support non-radiative events.");
-	} else if (type == EventType::RAD && *gen_rad && !*foam_params.gen_rad) {
+	} else if (type == EventType::RAD && *rad_gen && !*foam_params.rad_gen) {
 		throw std::runtime_error("FOAM doesn't support radiative events.");
+	} else if (type == EventType::NRAD && *nrad_max_cells > *foam_params.nrad_max_cells) {
+		throw std::runtime_error("Non-radiative FOAM doesn't have sufficient max cells.");
+	} else if (type == EventType::RAD && *rad_max_cells > *foam_params.rad_max_cells) {
+		throw std::runtime_error("Radiative FOAM doesn't have sufficient max cells.");
+	} else if (type == EventType::NRAD && *nrad_target_eff > *foam_params.nrad_target_eff) {
+		throw std::runtime_error("Non-radiative FOAM doesn't have sufficient target efficiency.");
+	} else if (type == EventType::RAD && *rad_target_eff > *foam_params.rad_target_eff) {
+		throw std::runtime_error("Radiative FOAM doesn't have sufficient target efficiency.");
+	} else if (type == EventType::NRAD && *nrad_scale_exp != *foam_params.nrad_scale_exp) {
+		throw std::runtime_error("Non-radiative FOAM has different scaling exponent.");
+	} else if (type == EventType::RAD && *rad_scale_exp != *foam_params.rad_scale_exp) {
+		throw std::runtime_error("Radiative FOAM has different scaling exponent.");
 	}
 	compatible_common(*this, foam_params);
 	if (type == EventType::RAD) {
@@ -1034,8 +1126,8 @@ void Params::merge(Params const& params) {
 	version->v_minor = std::max(version->v_minor, params.version->v_minor);
 	*strict = *strict && *params.strict;
 	event_file.reset("<undefined>");
-	*gen_nrad = *gen_nrad || *params.gen_nrad;
-	*gen_rad = *gen_rad || *params.gen_rad;
+	*nrad_gen = *nrad_gen || *params.nrad_gen;
+	*rad_gen = *rad_gen || *params.rad_gen;
 	*write_momenta = *write_momenta && *params.write_momenta;
 	if (*write_momenta) {
 		*write_photon = *write_photon && *params.write_photon;
@@ -1048,10 +1140,13 @@ void Params::merge(Params const& params) {
 		rej_weight.reset(0.);
 	}
 	*seed = 0;
-	if (seed_init != params.seed_init) {
-		seed_init.reset(0.);
+	if (*nrad_gen && nrad_seed_init != params.nrad_seed_init) {
+		nrad_seed_init.reset(0.);
 	}
-	if (*gen_rad ^ *params.gen_rad) {
+	if (*rad_gen && rad_seed_init != params.rad_seed_init) {
+		rad_seed_init.reset(0.);
+	}
+	if (*rad_gen ^ *params.rad_gen) {
 		cut_tau.take_first(params.cut_tau);
 		cut_phi_k.take_first(params.cut_phi_k);
 		cut_R.take_first(params.cut_R);
@@ -1066,8 +1161,14 @@ bool Params::operator==(Params const& rhs) const {
 		&& strict == rhs.strict
 		&& event_file == rhs.event_file
 		&& rc_method == rhs.rc_method
-		&& gen_nrad == rhs.gen_nrad
-		&& gen_rad == rhs.gen_rad
+		&& nrad_gen == rhs.nrad_gen
+		&& nrad_max_cells == rhs.nrad_max_cells
+		&& nrad_target_eff == rhs.nrad_target_eff
+		&& nrad_scale_exp == rhs.nrad_scale_exp
+		&& rad_gen == rhs.rad_gen
+		&& rad_max_cells == rhs.rad_max_cells
+		&& rad_target_eff == rhs.rad_target_eff
+		&& rad_scale_exp == rhs.rad_scale_exp
 		&& write_momenta == rhs.write_momenta
 		&& write_photon == rhs.write_photon
 		&& foam_file == rhs.foam_file
@@ -1075,7 +1176,8 @@ bool Params::operator==(Params const& rhs) const {
 		&& num_events == rhs.num_events
 		&& rej_weight == rhs.rej_weight
 		&& seed == rhs.seed
-		&& seed_init == rhs.seed_init
+		&& rad_seed_init == rhs.rad_seed_init
+		&& nrad_seed_init == rhs.nrad_seed_init
 		&& beam_energy == rhs.beam_energy
 		&& beam == rhs.beam
 		&& target == rhs.target

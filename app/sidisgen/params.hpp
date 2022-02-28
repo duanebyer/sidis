@@ -156,8 +156,14 @@ struct Params {
 	Param<Toggle> strict;
 	Param<std::string> event_file;
 	Param<RcMethod> rc_method;
-	Param<Toggle> gen_nrad;
-	Param<Toggle> gen_rad;
+	Param<Toggle> nrad_gen;
+	Param<Int_t> nrad_max_cells;
+	Param<Double_t> nrad_target_eff;
+	Param<Double_t> nrad_scale_exp;
+	Param<Toggle> rad_gen;
+	Param<Int_t> rad_max_cells;
+	Param<Double_t> rad_target_eff;
+	Param<Double_t> rad_scale_exp;
 	Param<Toggle> write_momenta;
 	Param<Toggle> write_photon;
 	Param<std::string> foam_file;
@@ -165,7 +171,8 @@ struct Params {
 	Param<Long_t> num_events;
 	Param<Double_t> rej_weight;
 	Param<Int_t> seed;
-	Param<Int_t> seed_init;
+	Param<Int_t> nrad_seed_init;
+	Param<Int_t> rad_seed_init;
 	Param<sidis::Real> beam_energy;
 	Param<sidis::part::Lepton> beam;
 	Param<sidis::part::Nucleus> target;
@@ -198,13 +205,20 @@ struct Params {
 	Param<sidis::math::Bound> cut_k_0;
 	Param<sidis::math::Bound> cut_theta_k;
 
+	// TODO: Re-order these to be compatible with the help command.
 	Params() :
 		version("version"),
 		strict("strict"),
 		event_file("file.event_out"),
 		rc_method("phys.rc_method"),
-		gen_nrad("mc.gen_nrad"),
-		gen_rad("mc.gen_rad"),
+		nrad_gen("mc.nrad.gen"),
+		nrad_max_cells("mc.nrad.init.max_cells"),
+		nrad_target_eff("mc.nrad.init.target_eff"),
+		nrad_scale_exp("mc.nrad.init.scale_exp"),
+		rad_gen("mc.rad.gen"),
+		rad_max_cells("mc.rad.init.max_cells"),
+		rad_target_eff("mc.rad.init.target_eff"),
+		rad_scale_exp("mc.rad.init.scale_exp"),
 		write_momenta("file.write_momenta"),
 		write_photon("file.write_photon"),
 		foam_file("file.foam_out"),
@@ -212,7 +226,8 @@ struct Params {
 		num_events("mc.num_events"),
 		rej_weight("mc.rej_weight"),
 		seed("mc.seed"),
-		seed_init("mc.seed_init"),
+		nrad_seed_init("mc.nrad.init.seed"),
+		rad_seed_init("mc.rad.init.seed"),
 		beam_energy("setup.beam_energy"),
 		beam("setup.beam"),
 		target("setup.target"),
