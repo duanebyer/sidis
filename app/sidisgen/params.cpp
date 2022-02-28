@@ -812,7 +812,7 @@ void Params::read_stream(std::istream& file) {
 	}
 }
 
-void Params::make_valid() {
+void Params::fill_defaults() {
 	// This function is somewhat complicated because it tries to consider many
 	// possible combinations of options and sort through them to produce a
 	// "normalized" form of any parameter file.

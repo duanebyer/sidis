@@ -268,13 +268,13 @@ struct Params {
 
 	// Takes the supplied parameters and fills in missing ones to make a valid
 	// run card. If unable to do so, throw an exception. If `strict` is enabled,
-	// then `make_valid` will never change a parameter that has been set by the
-	// user (for example, disabling `write_photon` when no radiative corrections
-	// are being applied).
-	void make_valid();
+	// then `fill_defaults` will never change a parameter that has been set by
+	// the user (for example, disabling `write_photon` when no radiative
+	// corrections are being applied).
+	void fill_defaults();
 	bool valid() const {
 		Params other = *this;
-		other.make_valid();
+		other.fill_defaults();
 		return other == *this;
 	}
 

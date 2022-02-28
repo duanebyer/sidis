@@ -425,7 +425,7 @@ int command_initialize(char const* params_file_name) {
 	params.write_stream(std::cout);
 	std::cout << std::endl;
 	try {
-		params.make_valid();
+		params.fill_defaults();
 	} catch (std::exception const& e) {
 		throw Exception(
 			ERROR_PARAMS_INVALID,
@@ -534,7 +534,7 @@ int command_generate(char const* params_file_name) {
 	params.write_stream(std::cout);
 	std::cout << std::endl;
 	try {
-		params.make_valid();
+		params.fill_defaults();
 	} catch (std::exception const& e) {
 		throw Exception(
 			ERROR_PARAMS_INVALID,
