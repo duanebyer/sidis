@@ -3,6 +3,7 @@
 
 #include <istream>
 #include <ostream>
+#include <set>
 #include <stdexcept>
 #include <string>
 
@@ -15,8 +16,8 @@
 // Within a major version, there is forward compatibility (e.x. 1.4 is
 // forward-compatible with 1.5). Between major versions, there is no
 // compatibility.
-#define SIDIS_PARAMS_VERSION_MAJOR 2
-#define SIDIS_PARAMS_VERSION_MINOR 1
+#define SIDIS_PARAMS_VERSION_MAJOR 3
+#define SIDIS_PARAMS_VERSION_MINOR 0
 
 struct Toggle {
 	bool on;
@@ -170,7 +171,7 @@ struct Params {
 	Param<std::string> sf_set;
 	Param<Long_t> num_events;
 	Param<Double_t> rej_weight;
-	Param<Int_t> seed;
+	Param<std::multiset<Int_t> > seed;
 	Param<Int_t> nrad_seed_init;
 	Param<Int_t> rad_seed_init;
 	Param<sidis::Real> beam_energy;
@@ -278,13 +279,13 @@ struct Params {
 		return other == *this;
 	}
 
-	// Check whether a FOAM generated for one set of parameters can be used for
-	// another set. If not compatible, throws an exception with a message
-	// describing the incompatibility.
+	// Check whether a FOAM produced using a set of parameters can be used to
+	// generate events with this set of parameters. If not compatible, throws an
+	// exception with a message describing the incompatibility.
 	void compatible_with_foam(EventType type, Params const& foam_params) const;
 	// Checks whether two parameter files used for event generation can be
 	// merged together.
-	void compatible_with_event(Params const& foam_params) const;
+	void compatible_with_merge(Params const& other_params) const;
 	// Combine two parameter files together. If the parameter files cannot be
 	// combined, then throws an exception.
 	void merge(Params const& params);

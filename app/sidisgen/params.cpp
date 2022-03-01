@@ -232,6 +232,26 @@ struct RootParser<std::string> {
 		}
 	}
 };
+// Multisets.
+template<typename T>
+struct RootParser<std::multiset<T> > {
+	static void write_root_dir(TDirectory& file, Param<std::multiset<T> > const& param) {
+		Int_t result = file.WriteObject<std::multiset<T> >(&*param, param.name());
+		if (result == 0) {
+			throw std::runtime_error(
+				std::string("Could not write parameter '")
+				+ param.name() + "' to ROOT file.");
+		}
+	}
+	static void read_root_dir(TDirectory& file, Param<std::multiset<T> >& param) {
+		auto object = file.Get<std::multiset<T> >(param.name());
+		if (object != nullptr) {
+			param.reset(*object);
+		} else {
+			param.reset();
+		}
+	}
+};
 // Math types.
 template<>
 struct RootParser<Vec3> {
@@ -427,6 +447,28 @@ std::istream& operator>>(std::istream& is, part::Hadron& hadron) {
 	}
 	return is;
 }
+// Multiset.
+template<typename T>
+std::ostream& operator<<(std::ostream& os, std::multiset<T> const& set) {
+	bool first = true;
+	for (T const& value : set) {
+		if (!first) {
+			os << " ";
+		}
+		first = false;
+		os << value;
+	}
+	return os;
+}
+template<typename T>
+std::istream& operator>>(std::istream& is, std::multiset<T>& set) {
+	while (is && !is.eof()) {
+		T value;
+		is >> value;
+		set.insert(value);
+	}
+	return is;
+}
 // Math types.
 std::ostream& operator<<(std::ostream& os, Vec3 const& vec) {
 	return os << vec.x << " " << vec.y << " " << vec.z;
@@ -451,85 +493,136 @@ std::istream& operator>>(std::istream& is, Bound& bounds) {
 	return is;
 }
 
-// Common part to `compatible_with_foam` and `compatible_with_event`.
-void compatible_common(Params const& p1, Params const& p2) {
-	if (p1.version->v_major != p2.version->v_major) {
-		throw std::runtime_error("Incompatible versions.");
-	} else if (*p1.rc_method != *p2.rc_method) {
+// Check whether the non-radiative FOAMs are equivalent.
+void equivalent_foam_nrad(Params const& prod, Params const& cons) {
+	if (*prod.nrad_seed_init != *cons.nrad_seed_init) {
+		throw std::runtime_error("Non-radiative FOAM has different seed.");
+	} else if (*prod.nrad_max_cells != *cons.nrad_max_cells) {
+		throw std::runtime_error("Non-radiative FOAM has different max cells.");
+	} else if (*prod.nrad_target_eff != *cons.nrad_target_eff) {
+		throw std::runtime_error("Non-radiative FOAM has different target efficiency.");
+	} else if (*prod.nrad_scale_exp != *cons.nrad_scale_exp) {
+		throw std::runtime_error("Non-radiative FOAM has different scaling exponent.");
+	}
+}
+void compatible_foam_nrad(Params const& prod, Params const& cons) {
+	if (*cons.nrad_seed_init != 0) {
+		// If the seed is non-zero, then the two FOAMs are required to be
+		// exactly equivalent to one another, to ensure that the resulting FOAMs
+		// have the same deterministic generation.
+		equivalent_foam_nrad(prod, cons);
+	} else if (*prod.nrad_max_cells < *cons.nrad_max_cells) {
+		throw std::runtime_error("Non-radiative FOAM doesn't have sufficient max cells.");
+	} else if (*prod.nrad_target_eff < *cons.nrad_target_eff) {
+		throw std::runtime_error("Non-radiative FOAM doesn't have sufficient target efficiency.");
+	} else if (*prod.nrad_scale_exp != *cons.nrad_scale_exp) {
+		throw std::runtime_error("Non-radiative FOAM has different scaling exponent.");
+	}
+}
+
+// Check whether the radiative FOAMs are equivalent.
+void equivalent_foam_rad(Params const& prod, Params const& cons) {
+	if (*prod.rad_seed_init != *cons.rad_seed_init) {
+		throw std::runtime_error("Radiative FOAM has different seed.");
+	} else if (*prod.rad_max_cells != *cons.rad_max_cells) {
+		throw std::runtime_error("Radiative FOAM has different max cells.");
+	} else if (*prod.rad_target_eff != *cons.rad_target_eff) {
+		throw std::runtime_error("Radiative FOAM has different target efficiency.");
+	} else if (*prod.rad_scale_exp != *cons.rad_scale_exp) {
+		throw std::runtime_error("Radiative FOAM has different scaling exponent.");
+	}
+}
+void compatible_foam_rad(Params const& prod, Params const& cons) {
+	if (*cons.rad_seed_init != 0) {
+		equivalent_foam_rad(prod, cons);
+	} else if (*prod.rad_max_cells < *cons.rad_max_cells) {
+		throw std::runtime_error("Radiative FOAM doesn't have sufficient max cells.");
+	} else if (*prod.rad_target_eff < *cons.rad_target_eff) {
+		throw std::runtime_error("Radiative FOAM doesn't have sufficient target efficiency.");
+	} else if (*prod.rad_scale_exp != *cons.rad_scale_exp) {
+		throw std::runtime_error("Radiative FOAM has different scaling exponent.");
+	}
+}
+
+// Check whether the non-radiative cross-section produced by two different
+// parameters is equivalent. If not, throws an error saying why.
+void equivalent_xs_nrad(Params const& prod, Params const& cons) {
+	if (*prod.rc_method != *cons.rc_method) {
 		throw std::runtime_error("Different rc methods.");
-	} else if (*p1.sf_set != *p2.sf_set) {
+	} else if (*prod.sf_set != *cons.sf_set) {
 		throw std::runtime_error("Different sf set.");
-	} else if (*p1.beam_energy != *p2.beam_energy) {
+	} else if (*prod.beam_energy != *cons.beam_energy) {
 		throw std::runtime_error("Different beam energies.");
-	} else if (*p1.beam != *p2.beam) {
+	} else if (*prod.beam != *cons.beam) {
 		throw std::runtime_error("Different beam lepton type.");
-	} else if (*p1.target != *p2.target) {
+	} else if (*prod.target != *cons.target) {
 		throw std::runtime_error("Different target nucleus type.");
-	} else if (*p1.hadron != *p2.hadron) {
+	} else if (*prod.hadron != *cons.hadron) {
 		throw std::runtime_error("Different leading hadron type.");
-	} else if (*p1.Mth != *p2.Mth) {
+	} else if (*prod.Mth != *cons.Mth) {
 		throw std::runtime_error("Different mass thresholds.");
-	} else if (*p1.target_pol != *p2.target_pol) {
+	} else if (*prod.target_pol != *cons.target_pol) {
 		throw std::runtime_error("Different target polarizations.");
-	} else if (*p1.beam_pol != *p2.beam_pol) {
+	} else if (*prod.beam_pol != *cons.beam_pol) {
 		throw std::runtime_error("Different beam polarizations.");
-	} else if ((*p1.rc_method == RcMethod::APPROX || *p1.rc_method == RcMethod::EXACT)
-			&& *p1.k_0_bar != *p2.k_0_bar) {
+	} else if ((*prod.rc_method == RcMethod::APPROX || *prod.rc_method == RcMethod::EXACT)
+			&& *prod.k_0_bar != *cons.k_0_bar) {
 		throw std::runtime_error("Different soft photon cutoffs.");
-	} else if (p1.cut_x.get_or(Bound::UNIT) != p2.cut_x.get_or(Bound::UNIT)) {
+	} else if (prod.cut_x.get_or(Bound::UNIT) != cons.cut_x.get_or(Bound::UNIT)) {
 		throw std::runtime_error("Different cuts on x.");
-	} else if (p1.cut_y.get_or(Bound::UNIT) != p2.cut_y.get_or(Bound::UNIT)) {
+	} else if (prod.cut_y.get_or(Bound::UNIT) != cons.cut_y.get_or(Bound::UNIT)) {
 		throw std::runtime_error("Different cuts on y.");
-	} else if (p1.cut_z.get_or(Bound::UNIT) != p2.cut_z.get_or(Bound::UNIT)) {
+	} else if (prod.cut_z.get_or(Bound::UNIT) != cons.cut_z.get_or(Bound::UNIT)) {
 		throw std::runtime_error("Different cuts on z.");
-	} else if (p1.cut_ph_t_sq != p2.cut_ph_t_sq) {
+	} else if (prod.cut_ph_t_sq != cons.cut_ph_t_sq) {
 		throw std::runtime_error("Different cuts on ph_t².");
-	} else if (p1.cut_phi_h != p2.cut_phi_h) {
+	} else if (prod.cut_phi_h != cons.cut_phi_h) {
 		throw std::runtime_error("Different cuts on φ_h.");
-	} else if (p1.cut_phi != p2.cut_phi) {
+	} else if (prod.cut_phi != cons.cut_phi) {
 		throw std::runtime_error("Different cuts on φ.");
-	} else if (p1.cut_Q_sq != p2.cut_Q_sq) {
+	} else if (prod.cut_Q_sq != cons.cut_Q_sq) {
 		throw std::runtime_error("Different cuts on Q².");
-	} else if (p1.cut_t != p2.cut_t) {
+	} else if (prod.cut_t != cons.cut_t) {
 		throw std::runtime_error("Different cuts on t.");
-	} else if (p1.cut_W_sq != p2.cut_W_sq) {
+	} else if (prod.cut_W_sq != cons.cut_W_sq) {
 		throw std::runtime_error("Different cuts on W².");
-	} else if (p1.cut_r != p2.cut_r) {
+	} else if (prod.cut_r != cons.cut_r) {
 		throw std::runtime_error("Different cuts on r.");
-	} else if (p1.cut_mx_sq != p2.cut_mx_sq) {
+	} else if (prod.cut_mx_sq != cons.cut_mx_sq) {
 		throw std::runtime_error("Different cuts on mx².");
-	} else if (p1.cut_q_0 != p2.cut_q_0) {
+	} else if (prod.cut_q_0 != cons.cut_q_0) {
 		throw std::runtime_error("Different cuts on q_0.");
-	} else if (p1.cut_k2_0 != p2.cut_k2_0) {
+	} else if (prod.cut_k2_0 != cons.cut_k2_0) {
 		throw std::runtime_error("Different cuts on k2_0.");
-	} else if (p1.cut_ph_0 != p2.cut_ph_0) {
+	} else if (prod.cut_ph_0 != cons.cut_ph_0) {
 		throw std::runtime_error("Different cuts on ph_0.");
-	} else if (p1.cut_theta_q != p2.cut_theta_q) {
+	} else if (prod.cut_theta_q != cons.cut_theta_q) {
 		throw std::runtime_error("Different cuts on θ_q.");
-	} else if (p1.cut_theta_k2 != p2.cut_theta_k2) {
+	} else if (prod.cut_theta_k2 != cons.cut_theta_k2) {
 		throw std::runtime_error("Different cuts on θ_k2.");
-	} else if (p1.cut_theta_h != p2.cut_theta_h) {
+	} else if (prod.cut_theta_h != cons.cut_theta_h) {
 		throw std::runtime_error("Different cuts on θ_h.");
 	}
 }
 
-void compatible_common_rad(Params const& p1, Params const& p2) {
-	if (*p1.rad_gen && *p2.rad_gen) {
-		if (p1.cut_tau != p2.cut_tau) {
-			throw std::runtime_error("Different cuts on τ.");
-		} else if (p1.cut_phi_k != p2.cut_phi_k) {
-			throw std::runtime_error("Different cuts on φ_k.");
-		} else if (p1.cut_R != p2.cut_R) {
-			throw std::runtime_error("Different cuts on R.");
-		} else if (p1.cut_k_0_bar != p2.cut_k_0_bar) {
-			throw std::runtime_error(
-				std::string("Different '") + p1.cut_k_0_bar.name() + "'.");
-		} else if (p1.cut_k_0 != p2.cut_k_0) {
-			throw std::runtime_error(
-				std::string("Different '") + p1.cut_k_0.name() + "'.");
-		} else if (p1.cut_theta_k != p2.cut_theta_k) {
-			throw std::runtime_error("Different cuts on θ_k.");
-		}
+// Check whether the radiative cross-section produced by two different
+// parameters is equivalent.
+void equivalent_xs_rad(Params const& prod, Params const& cons) {
+	equivalent_xs_nrad(prod, cons);
+	if (prod.cut_tau != cons.cut_tau) {
+		throw std::runtime_error("Different cuts on τ.");
+	} else if (prod.cut_phi_k != cons.cut_phi_k) {
+		throw std::runtime_error("Different cuts on φ_k.");
+	} else if (prod.cut_R != cons.cut_R) {
+		throw std::runtime_error("Different cuts on R.");
+	} else if (prod.cut_k_0_bar != cons.cut_k_0_bar) {
+		throw std::runtime_error(
+			std::string("Different '") + prod.cut_k_0_bar.name() + "'.");
+	} else if (prod.cut_k_0 != cons.cut_k_0) {
+		throw std::runtime_error(
+			std::string("Different '") + prod.cut_k_0.name() + "'.");
+	} else if (prod.cut_theta_k != cons.cut_theta_k) {
+		throw std::runtime_error("Different cuts on θ_k.");
 	}
 }
 
@@ -856,7 +949,7 @@ void Params::fill_defaults() {
 	event_file.get_or_insert("gen.root");
 	rc_method.get_or_insert(RcMethod::APPROX);
 	rej_weight.get_or_insert(1.1);
-	seed.get_or_insert(0);
+	seed.get_or_insert({ 0 });
 	target_pol.get_or_insert(Vec3::ZERO);
 	beam_pol.get_or_insert(0.);
 	write_momenta.get_or_insert(true);
@@ -955,7 +1048,7 @@ void Params::fill_defaults() {
 			}
 		}
 		rad_max_cells.get_or_insert(1048576);
-		rad_target_eff.get_or_insert(0.65);
+		rad_target_eff.get_or_insert(0.30);
 		rad_scale_exp.get_or_insert(0.20);
 		rad_seed_init.get_or_insert(0);
 	} else {
@@ -1079,50 +1172,52 @@ void Params::fill_defaults() {
 void Params::compatible_with_foam(EventType type, Params const& foam_params) const {
 	if (strict && !foam_params.strict) {
 		throw std::runtime_error("Incompatible strictness levels.");
-	} else if (type == EventType::NRAD && *nrad_gen && !*foam_params.nrad_gen) {
-		throw std::runtime_error("No non-radiative FOAM available.");
-	} else if (type == EventType::RAD && *rad_gen && !*foam_params.rad_gen) {
-		throw std::runtime_error("No radiative FOAM available.");
-	} else if (type == EventType::NRAD && *nrad_seed_init != 0 && (*foam_params.nrad_seed_init != *nrad_seed_init || *foam_params.nrad_max_cells != *nrad_max_cells || *foam_params.nrad_target_eff != *nrad_target_eff || *foam_params.nrad_scale_exp != *nrad_scale_exp)) {
-		throw std::runtime_error("Different non-radiative initialization seed/conditions.");
-	} else if (type == EventType::RAD && *rad_seed_init != 0 && (*foam_params.rad_seed_init != *rad_seed_init || *foam_params.rad_max_cells != *rad_max_cells || *foam_params.rad_target_eff != *rad_target_eff || *foam_params.rad_scale_exp != *rad_scale_exp)) {
-		throw std::runtime_error("Different radiative initializalation seed/conditions.");
-	} else if (type == EventType::NRAD && *nrad_gen && !*foam_params.nrad_gen) {
-		throw std::runtime_error("FOAM doesn't support non-radiative events.");
-	} else if (type == EventType::RAD && *rad_gen && !*foam_params.rad_gen) {
-		throw std::runtime_error("FOAM doesn't support radiative events.");
-	} else if (type == EventType::NRAD && *nrad_max_cells > *foam_params.nrad_max_cells) {
-		throw std::runtime_error("Non-radiative FOAM doesn't have sufficient max cells.");
-	} else if (type == EventType::RAD && *rad_max_cells > *foam_params.rad_max_cells) {
-		throw std::runtime_error("Radiative FOAM doesn't have sufficient max cells.");
-	} else if (type == EventType::NRAD && *nrad_target_eff > *foam_params.nrad_target_eff) {
-		throw std::runtime_error("Non-radiative FOAM doesn't have sufficient target efficiency.");
-	} else if (type == EventType::RAD && *rad_target_eff > *foam_params.rad_target_eff) {
-		throw std::runtime_error("Radiative FOAM doesn't have sufficient target efficiency.");
-	} else if (type == EventType::NRAD && *nrad_scale_exp != *foam_params.nrad_scale_exp) {
-		throw std::runtime_error("Non-radiative FOAM has different scaling exponent.");
-	} else if (type == EventType::RAD && *rad_scale_exp != *foam_params.rad_scale_exp) {
-		throw std::runtime_error("Radiative FOAM has different scaling exponent.");
 	}
-	compatible_common(*this, foam_params);
-	if (type == EventType::RAD) {
-		compatible_common_rad(*this, foam_params);
+	if (version->v_major != foam_params.version->v_major
+			|| version->v_minor > foam_params.version->v_minor) {
+		throw std::runtime_error("Incompatible versions.");
+	}
+	if (type == EventType::NRAD && *nrad_gen) {
+		if (!*foam_params.nrad_gen) {
+			throw std::runtime_error("No non-radiative FOAM available.");
+		}
+		compatible_foam_nrad(*this, foam_params);
+		equivalent_xs_nrad(*this, foam_params);
+	} else if (type == EventType::RAD && *rad_gen) {
+		if (!*foam_params.rad_gen) {
+			throw std::runtime_error("No radiative FOAM available.");
+		}
+		compatible_foam_rad(*this, foam_params);
+		equivalent_xs_rad(*this, foam_params);
 	}
 }
 
-void Params::compatible_with_event(Params const& params) const {
-	if (*seed == *params.seed && *seed != 0) {
-		throw std::runtime_error("Can't merge parameters with same seed.");
+void Params::compatible_with_merge(Params const& params) const {
+	std::multiset<Int_t> merged_seeds = *seed;
+	merged_seeds.insert(params.seed->begin(), params.seed->end());
+	for (Int_t merged_seed : merged_seeds) {
+		if (merged_seed != 0 && merged_seeds.count(merged_seed) > 1) {
+			throw std::runtime_error("Identical seed used for generated events.");
+		}
 	}
 	if (*rej_weight != *params.rej_weight) {
-		throw std::runtime_error("Can't merge parameters with different rejection weights.");
+		throw std::runtime_error("Different rejection weights.");
 	}
-	compatible_common(*this, params);
-	compatible_common_rad(*this, params);
+	if (version->v_major != params.version->v_major) {
+		throw std::runtime_error("Incompatible versions.");
+	}
+	if (*params.nrad_gen) {
+		equivalent_foam_nrad(*this, params);
+		equivalent_xs_nrad(*this, params);
+	}
+	if (*params.rad_gen) {
+		equivalent_foam_rad(*this, params);
+		equivalent_xs_rad(*this, params);
+	}
 }
 
 void Params::merge(Params const& params) {
-	compatible_with_event(params);
+	compatible_with_merge(params);
 	version->v_minor = std::max(version->v_minor, params.version->v_minor);
 	*strict = *strict && *params.strict;
 	event_file.reset("<undefined>");
@@ -1139,13 +1234,7 @@ void Params::merge(Params const& params) {
 	if (rej_weight != params.rej_weight) {
 		rej_weight.reset(0.);
 	}
-	*seed = 0;
-	if (*nrad_gen && nrad_seed_init != params.nrad_seed_init) {
-		nrad_seed_init.reset(0.);
-	}
-	if (*rad_gen && rad_seed_init != params.rad_seed_init) {
-		rad_seed_init.reset(0.);
-	}
+	seed->insert(params.seed->begin(), params.seed->end());
 	if (*rad_gen ^ *params.rad_gen) {
 		cut_tau.take_first(params.cut_tau);
 		cut_phi_k.take_first(params.cut_phi_k);

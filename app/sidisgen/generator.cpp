@@ -157,21 +157,33 @@ Real RadDensity::operator()(Point<9> const& vec) const noexcept {
 
 Builder::Builder(
 		EventType type,
-		BuilderReporters const& builder_reporters,
+		BuilderReporters const& reporters,
 		Params const& params,
 		sf::SfSet const& sf) :
 		_type(type) {
-	std::minstd_rand seed_rnd(rnd_dev());
-	std::minstd_rand seed_rnd_fixed;
+	switch (_type) {
+	case EventType::NRAD:
+		_seed = *params.nrad_seed_init;
+		break;
+	case EventType::RAD:
+		_seed = *params.rad_seed_init;
+		break;
+	case EventType::EXCL:
+		_seed = 0;
+		break;
+	}
+	if (_seed == 0) {
+		_seed = rnd_dev();
+	}
+	std::minstd_rand seed_rnd(_seed);
 	std::uniform_int_distribution<Seed> seed_dist;
 	switch (_type) {
 	case EventType::NRAD:
-		seed_rnd_fixed.seed(*params.nrad_seed_init);
 		new (&_builder.nrad) NradBuilder(
 			NradDensity(params, sf),
-			*params.nrad_seed_init == 0 ? seed_dist(seed_rnd) : seed_dist(seed_rnd_fixed));
-		_builder.nrad.explore_progress_reporter = builder_reporters.explore_progress;
-		_builder.nrad.tune_progress_reporter = builder_reporters.tune_progress;
+			seed_dist(seed_rnd));
+		_builder.nrad.explore_progress_reporter = reporters.explore_progress;
+		_builder.nrad.tune_progress_reporter = reporters.tune_progress;
 		_builder.nrad.check_samples = 16384;
 		_builder.nrad.target_rel_var =
 			std::expm1(-2. * std::log(*params.nrad_target_eff));
@@ -181,12 +193,11 @@ Builder::Builder(
 		_builder.nrad.max_explore_cells = *params.nrad_max_cells;
 		break;
 	case EventType::RAD:
-		seed_rnd_fixed.seed(*params.rad_seed_init);
 		new (&_builder.rad) RadBuilder(
 			RadDensity(params, sf),
-			*params.rad_seed_init == 0 ? seed_dist(seed_rnd) : seed_dist(seed_rnd_fixed));
-		_builder.rad.explore_progress_reporter = builder_reporters.explore_progress;
-		_builder.rad.tune_progress_reporter = builder_reporters.tune_progress;
+			seed_dist(seed_rnd));
+		_builder.rad.explore_progress_reporter = reporters.explore_progress;
+		_builder.rad.tune_progress_reporter = reporters.tune_progress;
 		_builder.rad.check_samples = 16384;
 		_builder.rad.target_rel_var =
 			std::expm1(-2. * std::log(*params.rad_target_eff));
@@ -199,8 +210,8 @@ Builder::Builder(
 		new (&_builder.excl) ExclBuilder(
 			ExclDensity(params, sf),
 			seed_dist(seed_rnd));
-		_builder.excl.explore_progress_reporter = builder_reporters.explore_progress;
-		_builder.excl.tune_progress_reporter = builder_reporters.tune_progress;
+		_builder.excl.explore_progress_reporter = reporters.explore_progress;
+		_builder.excl.tune_progress_reporter = reporters.tune_progress;
 		_builder.excl.check_samples = 16384;
 		_builder.excl.target_rel_var = 0.25;
 		_builder.excl.scale_exp_est = 0.25;
@@ -301,7 +312,11 @@ Generator::Generator(
 		sf::SfSet const& sf,
 		std::istream& is) :
 		_type(type) {
-	std::minstd_rand seed_rnd(*params.seed >= 0 ? *params.seed : rnd_dev());
+	_seed = *params.seed->begin();
+	if (_seed == 0) {
+		_seed = rnd_dev();
+	}
+	std::minstd_rand seed_rnd(_seed);
 	std::uniform_int_distribution<Seed> seed_dist;
 	switch (_type) {
 	case EventType::NRAD:

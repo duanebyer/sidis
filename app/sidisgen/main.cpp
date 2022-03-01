@@ -535,6 +535,9 @@ int command_generate(char const* params_file_name) {
 	std::cout << std::endl;
 	try {
 		params.fill_defaults();
+		if (params.seed->size() != 1) {
+			throw std::runtime_error("Exactly one seed must be provided.");
+		}
 	} catch (std::exception const& e) {
 		throw Exception(
 			ERROR_PARAMS_INVALID,

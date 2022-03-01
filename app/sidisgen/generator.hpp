@@ -81,12 +81,13 @@ class Builder {
 		BuilderImpl() { }
 		~BuilderImpl() { }
 	} _builder;
+	Int_t _seed;
 
 public:
 
 	Builder(
 		EventType type,
-		BuilderReporters const& builder_reporters,
+		BuilderReporters const& reporters,
 		Params const& params,
 		sidis::sf::SfSet const& sf);
 	Builder(Builder const& other) = delete;
@@ -96,6 +97,9 @@ public:
 
 	EventType type() const {
 		return _type;
+	}
+	Int_t seed() const {
+		return _seed;
 	}
 	// Constructs the generator.
 	void explore();
@@ -119,7 +123,8 @@ class Generator {
 		GeneratorImpl() { }
 		~GeneratorImpl() { }
 	} _generator;
-	EventType const _type;
+	EventType _type;
+	Int_t _seed;
 
 	// Stores statistics about the produced weights.
 	StatsAccum _weights;
@@ -137,6 +142,9 @@ public:
 
 	EventType type() const {
 		return _type;
+	}
+	Int_t seed() const {
+		return _seed;
 	}
 	// Produces an event with a certain weight.
 	Real generate(Real* out);
