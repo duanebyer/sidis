@@ -599,6 +599,7 @@ int command_generate(char const* params_file_name) {
 	}
 	foam_file.Close();
 
+	// Setup initial conditions.
 	part::Nucleus target = *params.target;
 	part::Lepton beam = *params.beam;
 	part::Hadron hadron = *params.hadron;
@@ -609,6 +610,7 @@ int command_generate(char const* params_file_name) {
 	kin::Initial init(ps, *params.beam_energy);
 	ULong_t N_gen = *params.num_events >= 0 ? *params.num_events : 0;
 
+	// Prepare branches in output ROOT file.
 	event_file.cd();
 	TTree events("events", "events");
 	Int_t type;
@@ -638,6 +640,7 @@ int command_generate(char const* params_file_name) {
 			events.Branch("k", "TLorentzVector", &k);
 		}
 	}
+	// Write parameter file.
 	params.write_root(event_file);
 
 	std::cout << "Generating events." << std::endl;
