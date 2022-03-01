@@ -352,10 +352,15 @@ int command_inspect(char const* file_name) {
 	TArrayD* norm_arr = file.Get<TArrayD>("stats/norm");
 	if (
 			prime_arr == nullptr
+			|| prime_arr->GetSize() != NUM_EVENT_TYPES + 1
 			|| weight_moms_arr == nullptr
+			|| weight_moms_arr->GetSize() != 4 * (NUM_EVENT_TYPES + 1)
 			|| weight_max_arr == nullptr
+			|| weight_max_arr->GetSize() != NUM_EVENT_TYPES + 1
 			|| num_events_arr == nullptr
-			|| norm_arr == nullptr) {
+			|| num_events_arr->GetSize() != NUM_EVENT_TYPES + 1
+			|| norm_arr == nullptr
+			|| norm_arr->GetSize() != NUM_EVENT_TYPES + 1) {
 		throw Exception(
 			ERROR_FILE_NOT_FOUND,
 			std::string("Couldn't find statistics in file '") + file_name
@@ -873,8 +878,8 @@ int command_merge_soft(
 	params_out.write_root(file_out);
 
 	std::cout << "Merging statistics from files." << std::endl;
-	Real primes[NUM_EVENT_TYPES + 1];
-	Stats stats_total[NUM_EVENT_TYPES + 1];
+	Real primes[NUM_EVENT_TYPES + 1] = {};
+	Stats stats_total[NUM_EVENT_TYPES + 1] = {};
 	first = true;
 	for (char const* file_name : file_names) {
 		// TODO: Ensure that the merged statistics come from the same underlying
@@ -892,10 +897,15 @@ int command_merge_soft(
 		TArrayD* norm_arr = file.Get<TArrayD>("stats/norm");
 		if (
 				prime_arr == nullptr
+				|| prime_arr->GetSize() != NUM_EVENT_TYPES + 1
 				|| weight_moms_arr == nullptr
+				|| weight_moms_arr->GetSize() != 4 * (NUM_EVENT_TYPES + 1)
 				|| weight_max_arr == nullptr
+				|| weight_max_arr->GetSize() != NUM_EVENT_TYPES + 1
 				|| num_events_arr == nullptr
-				|| norm_arr == nullptr) {
+				|| num_events_arr->GetSize() != NUM_EVENT_TYPES + 1
+				|| norm_arr == nullptr
+				|| norm_arr->GetSize() != NUM_EVENT_TYPES + 1) {
 			throw Exception(
 				ERROR_FILE_NOT_FOUND,
 				std::string("Couldn't find statistics in file '") + file_name
@@ -923,8 +933,8 @@ int command_merge_soft(
 						+ "' has incompatible prime.");
 				}
 			}
-			first = false;
 		}
+		first = false;
 	}
 	TDirectory* stats_dir = file_out.mkdir("stats");
 	if (stats_dir == nullptr) {
@@ -934,7 +944,7 @@ int command_merge_soft(
 	}
 	stats_dir->cd();
 	TArrayD prime_arr_out(NUM_EVENT_TYPES + 1);
-	TArrayD weight_moms_arr_out(NUM_EVENT_TYPES + 1);
+	TArrayD weight_moms_arr_out(4 * (NUM_EVENT_TYPES + 1));
 	TArrayD weight_max_arr_out(NUM_EVENT_TYPES + 1);
 	TArrayL num_events_arr_out(NUM_EVENT_TYPES + 1);
 	TArrayD norm_arr_out(NUM_EVENT_TYPES + 1);
