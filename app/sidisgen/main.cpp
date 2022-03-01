@@ -454,7 +454,6 @@ int command_initialize(char const* params_file_name) {
 			ERROR_FILE_NOT_CREATED,
 			std::string("Couldn't create file '") + file_name + "'.");
 	}
-	params.write_root(file);
 
 	// Build FOAMs and write to file.
 	std::vector<EventType> gen_types;
@@ -472,6 +471,14 @@ int command_initialize(char const* params_file_name) {
 		builder_reporters.explore_progress = &progress_reporter;
 		builder_reporters.tune_progress = &progress_reporter;
 		Builder builder(gen_type, builder_reporters, params, *sf);
+		// Overwrite the seed parameter with the chosen seed.
+		if (gen_type == EventType::NRAD) {
+			params.nrad_seed_init.reset(builder.seed());
+		} else if (gen_type == EventType::RAD) {
+			params.rad_seed_init.reset(builder.seed());
+		} else if (gen_type == EventType::EXCL) {
+			// Not yet implemented.
+		}
 		try {
 			std::cout << "Exploration phase." << std::endl;
 			write_progress_bar(std::cout, 0);
@@ -511,6 +518,7 @@ int command_initialize(char const* params_file_name) {
 				+ "FOAM to file '" + file_name + "': " + e.what());
 		}
 	}
+	params.write_root(file);
 
 	std::cout << "Finished!" << std::endl;
 	return SUCCESS;
@@ -590,6 +598,9 @@ int command_generate(char const* params_file_name) {
 			}
 			std::istringstream is(*data);
 			gens.emplace_back(gen_type, params, *sf, is);
+			// Overwrite the seed parameter with the actual seed that was chosen
+			// in the case that the seed was asked to be chosen randomly.
+			params.seed.reset({ gens.back().seed() });
 		} catch (std::exception const& e) {
 			throw Exception(
 				ERROR_READING_FOAM,
