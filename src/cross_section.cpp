@@ -193,6 +193,8 @@ EstErr xs::nrad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec
 	// The soft part of the radiative cross-section (below `k_0_bar`) is bundled
 	// into the return value here.
 	Real xs_nrad_ir = nrad_ir(kin, sf, lambda_e, eta, k_0_bar);
+	// TODO: The integration parameters should be modified here to account for
+	// the `xs_nrad_ir` contribution.
 	EstErr xs_rad_f = rad_f_integ(kin, sf, lambda_e, eta, k_0_bar, params);
 	return { xs_nrad_ir + xs_rad_f.val, xs_rad_f.err };
 }
