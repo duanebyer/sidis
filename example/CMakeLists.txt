@@ -47,7 +47,6 @@ if(ROOT_FOUND)
 	add_executable(plot_ssa plot_ssa.cpp)
 	target_link_libraries(plot_ssa PRIVATE
 		sidis
-		cubature
 		ROOT::Core ROOT::Gpad ROOT::Graf)
 	target_compile_features(plot_ssa PRIVATE cxx_std_11)
 	set_target_properties(
