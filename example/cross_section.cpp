@@ -7,6 +7,7 @@
 
 #include <sidis/sidis.hpp>
 #include <sidis/sf_set/prokudin.hpp>
+#include <sidis/sf_set/stf.hpp>
 #include <sidis/sf_set/mask.hpp>
 #include <sidis/sf_set/test.hpp>
 
@@ -29,10 +30,12 @@ int main(int argc, char** argv) {
 	Real beam_pol;
 	Vec3 target_pol;
 	std::unique_ptr<sidis::sf::SfSet> sf;
+	std::unique_ptr<sidis::sf::TmdSet> tmd;
 	Real x, y, z, ph_t_sq, phi_h, phi;
 	Real k0_cut = 0.01;
 	Real tau = 0., phi_k = 0., R = 0.;
 	bool radiative;
+	math::IntegParams params { 1000000, 0e-6, 0. };
 	try {
 		if (argc != 12 && argc != 14) {
 			throw std::invalid_argument(
@@ -60,6 +63,10 @@ int main(int argc, char** argv) {
 
 		if (set_idx == 0) {
 			sf.reset(new sf::set::ProkudinSfSet());
+		} else if (set_idx == 1) {
+			sf::set::StfTmdSet* stf_tmd = new sf::set::StfTmdSet();
+			tmd.reset(stf_tmd);
+			sf.reset(new sf::GaussianTmdSfSet(*stf_tmd));
 		} else if (set_idx <= -1 && set_idx >= -static_cast<int>(sf::set::NUM_SF)) {
 			bool mask[sf::set::NUM_SF] = { false };
 			mask[-set_idx - 1] = true;
@@ -67,7 +74,7 @@ int main(int argc, char** argv) {
 				mask, new sf::set::TestSfSet(target)));
 		} else {
 			throw std::out_of_range(
-				"SF set index must be Prokudin (0) or Test ("
+				"SF set index must be Prokudin (0), STF(1), or Test ("
 				+ std::to_string(-sf::set::NUM_SF) + " to -1)");
 		}
 
@@ -142,13 +149,13 @@ int main(int argc, char** argv) {
 		std::cout << "σ_AMM     = " << amm << std::endl;
 		Real nrad_ir = xs::nrad_ir(kin, *sf, beam_pol, eta, k0_cut);
 		std::cout << "σ_nrad_ir = " << nrad_ir << std::endl;
-		Real rad_f = xs::rad_f_integ(kin, *sf, beam_pol, eta, k0_cut).val;
-		std::cout << "σ_rad_f   = " << rad_f << std::endl;
-		Real nrad = xs::nrad_integ(kin, *sf, beam_pol, eta, k0_cut).val;
-		std::cout << "σ_nrad    = " << nrad << std::endl;
-		Real rad = xs::rad_integ(kin, *sf, beam_pol, eta, k0_cut).val;
-		std::cout << "σ_rad     = " << rad << std::endl;
-		std::cout << "σ_tot     = " << nrad + rad << std::endl;
+		EstErr rad_f = xs::rad_f_integ(kin, *sf, beam_pol, eta, k0_cut, params);
+		std::cout << "σ_rad_f   = " << rad_f.val << " ± " << rad_f.err << std::endl;
+		EstErr nrad = xs::nrad_integ(kin, *sf, beam_pol, eta, k0_cut, params);
+		std::cout << "σ_nrad    = " << nrad.val << " ± " << nrad.err << std::endl;
+		EstErr rad = xs::rad_integ(kin, *sf, beam_pol, eta, k0_cut, params);
+		std::cout << "σ_rad     = " << rad.val << " ± " << rad.err << std::endl;
+		std::cout << "σ_tot     = " << nrad.val + rad.val << " ± " << nrad.err + rad.err << std::endl;
 	} else {
 		// Do radiative kinematics checks.
 		if (!cut::tau_bound(kin).contains(tau)) {
