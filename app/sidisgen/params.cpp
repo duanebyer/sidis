@@ -1047,9 +1047,9 @@ void Params::fill_defaults() {
 				}
 			}
 		}
-		rad_max_cells.get_or_insert(1048576);
-		rad_target_eff.get_or_insert(0.30);
-		rad_scale_exp.get_or_insert(0.20);
+		rad_max_cells.get_or_insert(262144);
+		rad_target_eff.get_or_insert(0.50);
+		rad_scale_exp.get_or_insert(0.16);
 		rad_seed_init.get_or_insert(0);
 	} else {
 		if (write_photon.occupied() && *write_photon) {
@@ -1083,9 +1083,9 @@ void Params::fill_defaults() {
 		}
 	}
 	if (*nrad_gen) {
-		nrad_max_cells.get_or_insert(1048576);
+		nrad_max_cells.get_or_insert(262144);
 		nrad_target_eff.get_or_insert(0.95);
-		nrad_scale_exp.get_or_insert(0.60);
+		nrad_scale_exp.get_or_insert(0.50);
 		nrad_seed_init.get_or_insert(0);
 	} else {
 		if (*strict && nrad_max_cells.occupied()) {
