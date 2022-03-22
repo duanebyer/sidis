@@ -175,42 +175,42 @@ bool valid(CutRad const& cut, kin::KinematicsRad const& kin);
 /// Draw from non-radiative SIDIS phase space.
 bool take(
 	part::Particles const& ps, Real S, const Real point[6],
-	kin::PhaseSpace* ph_space_out, Real* jacobian_out);
+	kin::PhaseSpace* ph_space_out, Real* jac_out);
 /// Draw from non-radiative SIDIS phase space.
 bool take(
 	part::Particles const& ps, Real S, const Real point[6],
-	kin::Kinematics* kin_out, Real* jacobian_out);
+	kin::Kinematics* kin_out, Real* jac_out);
 /// Draw from non-radiative SIDIS phase space subject to Cut%s.
 bool take(
 	Cut const& cut,
 	part::Particles const& ps, Real S, const Real point[6],
-	kin::Kinematics* kin_out, Real* jacobian_out);
+	kin::Kinematics* kin_out, Real* jac_out);
 
 /// Draw from the radiative SIDIS phase space.
 bool take(
 	part::Particles const& ps, Real S, const Real point[9],
-	kin::PhaseSpaceRad* ph_space_out, Real* jacobian_out);
+	kin::PhaseSpaceRad* ph_space_out, Real* jac_out);
 /// Draw from the radiative SIDIS phase space.
 bool take(
 	part::Particles const& ps, Real S, const Real point[9],
-	kin::KinematicsRad* kin_out, Real* jacobian_out);
+	kin::KinematicsRad* kin_out, Real* jac_out);
 /// Draw from the radiative SIDIS phase space subject to Cut%s.
 bool take(
 	Cut const& cut, CutRad const& cut_rad,
 	part::Particles const& ps, Real S, const Real point[9],
-	kin::KinematicsRad* kin_out, Real* jacobian_out);
+	kin::KinematicsRad* kin_out, Real* jac_out);
 /// Draw from the radiative SIDIS phase space.
 bool take(
 	kin::Kinematics const& kin, const Real point[3],
-	kin::PhaseSpaceRad* ph_space_out, Real* jacobian_out);
+	kin::PhaseSpaceRad* ph_space_out, Real* jac_out);
 /// Draw from the radiative SIDIS phase space.
 bool take(
 	kin::Kinematics const& kin, const Real point[3],
-	kin::KinematicsRad* kin_out, Real* jacobian_out);
+	kin::KinematicsRad* kin_out, Real* jac_out);
 /// Draw from the radiative SIDIS phase space subject to Cut%s.
 bool take(
 	CutRad const& cut, kin::Kinematics const& kin, const Real point[3],
-	kin::KinematicsRad* kin_out, Real* jacobian_out);
+	kin::KinematicsRad* kin_out, Real* jac_out);
 /// \}
 /// \}
 

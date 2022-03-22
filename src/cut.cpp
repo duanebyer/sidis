@@ -14,6 +14,142 @@ using namespace sidis::kin;
 using namespace sidis::math;
 using namespace sidis::part;
 
+namespace {
+
+// To improve quality of numerical integration of the cross-section over the
+// phase space, we introduce some possible variable transformations. These
+// transformations are designed to "flatten" the integrand. They get used in the
+// `take` methods below.
+
+// Some constants used for the transformations.
+
+// This is from emperical measurements. It doesn't have to be exactly right to
+// still improve the integration substantially. Within an order or so will do.
+static Real const PH_T_SQ_DECAY_WIDTH = 0.25;
+// This x cutoff is chosen specifically because a lot of parameterizations of
+// structure functions don't extend much below 1e-3.
+static Real const X_CUTOFF = 1e-3;
+
+// Trivial linear transformation.
+struct Linear {
+	Real u(Real x) const {
+		return x;
+	}
+	Real x(Real u, Real* jac) const {
+		*jac = 1.;
+		return u;
+	}
+};
+
+// Transforms according to reciprocal function.
+struct Inverse {
+	Real offset;
+	Inverse(Real offset=0.) : offset(offset) { }
+	Real u(Real x) const {
+		return -1. / (x + offset);
+	}
+	Real x(Real u, Real* jac) const {
+		*jac = sq(1. / u);
+		return -1. / u - offset;
+	}
+};
+
+// Transforms according to logarithm.
+struct Log {
+	Real offset;
+	Log(Real offset=0.) : offset(offset) { }
+	Real u(Real x) const {
+		return std::log(x + offset);
+	}
+	Real x(Real u, Real* jac) const {
+		Real exp = std::exp(u);
+		*jac = exp;
+		return exp - offset;
+	}
+};
+
+// Transforms according to decaying exponential.
+struct Decay {
+	Real length;
+	Decay(Real length=1.) : length(length) { }
+	Real u(Real x) const {
+		return -std::expm1(-x / length);
+	}
+	Real x(Real u, Real* jac) const {
+		*jac = 1. / (1. - u / length);
+		return -length * std::log1p(-u / length);
+	}
+};
+
+// Transforms according to sigmoid. Useful for peaked functions.
+struct Sigmoid {
+	Real center;
+	Real width;
+	Sigmoid(Real center=0., Real width=1.) : center(center), width(width) { }
+	Real u(Real x) const {
+		// Use the `arcsinh` function here, as it has logarithmic tails which
+		// allows for the non-peak part of the integrand to still be captured
+		// accurately, even with fat tails.
+		return std::asinh((x - center) / width);
+	}
+	Real x(Real u, Real* jac) const {
+		*jac = width * std::cosh(u);
+		return width * std::sinh(u) + center;
+	}
+};
+
+// Transforms according to a double-sigmoid. Useful for doubly-peaked
+// integrands. One of the peaks is specified in the regular way, and then the
+// other peak is specified by the ratio of its center and width to those of the
+// first peak.
+struct Sigmoid2 {
+	Real center;
+	Real width;
+	// Ratio between second sigmoid center and first one.
+	Real center_r;
+	// Ratio between second sigmoid width and first one.
+	Real width_r;
+	Sigmoid2(Real center=0., Real width=1., Real center_r=-1., Real width_r=1.) :
+		center(center),
+		width(width),
+		center_r(center_r),
+		width_r(width_r) { }
+	Real u(Real x) const {
+		Real t1 = (x - center) / width;
+		Real t2 = (x - center * center_r) / (width * width_r);
+		return std::asinh(t1) + std::asinh(t2);
+	}
+	Real x(Real u, Real* jac) const {
+		// Against all odds, this function really can be inverted.
+		Real sinhu = std::sinh(u);
+		Real coshu = std::cosh(u);
+		Real a = center_r + sq(width_r) + width_r * (1. + center_r) * coshu;
+		Real b = 1. + sq(width_r) + 2. * width_r * coshu;
+		Real c = sq((center_r - 1.) * (center / width));
+		Real det = std::sqrt(b + c);
+		Real a_p = width_r * (1. + center_r) * sinhu;
+		Real b_p = 2. * width_r * sinhu;
+		Real num = center * a + width * width_r * det * sinhu;
+		*jac = (center * a_p
+			+ width * width_r * (det * coshu + 0.5 * sinhu * b_p / det)
+			- num * b_p / b) / b;
+		return num / b;
+	}
+};
+
+// Uses the specified transform to take a point `p` in the range `[0, 1)` and
+// map it into another `bound`, with a resulting Jacobian `jac`.
+template<typename T>
+Real transform(T const& t, Real p, Bound bound, Real* jac) {
+	Bound u_bound(t.u(bound.min()), t.u(bound.max()));
+	Real u = u_bound.lerp(p);
+	Real x = t.x(u, jac);
+	*jac *= u_bound.size();
+	return x;
+}
+
+}
+
 Cut::Cut() :
 	x(Bound::INVALID),
 	y(Bound::INVALID),
@@ -386,25 +522,24 @@ bool cut::valid(Cut const& cut, CutRad const& cut_rad, KinematicsRad const& kin)
 
 bool cut::take(
 		Particles const& ps, Real S, const Real point[6],
-		PhaseSpace* ph_space_out, Real* jacobian_out) {
-	Bound x_b = x_bound(ps, S);
-	Real x = x_b.lerp(point[0]);
-	Bound y_b = y_bound(ps, S, x);
-	Real y = y_b.lerp(point[1]);
-	Bound z_b = z_bound(ps, S, x, y);
-	Real z = z_b.lerp(point[2]);
-	Bound ph_t_sq_b = ph_t_sq_bound(ps, S, x, y, z);
-	Real ph_t_sq = ph_t_sq_b.lerp(point[3]);
-	Bound phi_h_b = Bound(-PI, PI);
-	Real phi_h = phi_h_b.lerp(point[4]);
-	Bound phi_b = Bound(-PI, PI);
-	Real phi = phi_b.lerp(point[5]);
+		PhaseSpace* ph_space_out, Real* jac_out) {
+	// TODO: A lot of these transformations have been chosen based on how the
+	// Born cross-section scales with these variables. However, in certain
+	// kinematic regions they might result in very bad integrands--it would be
+	// good to investigate these choices further.
+	Real jac_x, jac_y, jac_z, jac_ph_t_sq, jac_phi_h, jac_phi;
+	Real x = transform(Inverse(X_CUTOFF), point[0], x_bound(ps, S), &jac_x);
+	Real y = transform(Inverse(), point[1], y_bound(ps, S, x), &jac_y);
+	Real z = transform(Linear(), point[2], z_bound(ps, S, x, y), &jac_z);
+	Real ph_t_sq = transform(Decay(PH_T_SQ_DECAY_WIDTH), point[3], ph_t_sq_bound(ps, S, x, y, z), &jac_ph_t_sq);
+	Real phi_h = transform(Linear(), point[4], Bound(-PI, PI), &jac_phi_h);
+	Real phi = transform(Linear(), point[5], Bound(-PI, PI), &jac_phi);
+
 	if (ph_space_out != nullptr) {
 		*ph_space_out = PhaseSpace { x, y, z, ph_t_sq, phi_h, phi };
 	}
-	if (jacobian_out != nullptr) {
-		*jacobian_out = x_b.size() * y_b.size() * z_b.size()
-			* ph_t_sq_b.size() * phi_h_b.size() * phi_b.size();
+	if (jac_out != nullptr) {
+		*jac_out = jac_x * jac_y * jac_z * jac_ph_t_sq * jac_phi_h * jac_phi;
 	}
 	// TODO: Should we check for validity explicitly here?
 	return true;
@@ -412,9 +547,9 @@ bool cut::take(
 
 bool cut::take(
 		Particles const& ps, Real S, const Real point[6],
-		Kinematics* kin_out, Real* jacobian_out) {
+		Kinematics* kin_out, Real* jac_out) {
 	PhaseSpace ph_space;
-	if (!cut::take(ps, S, point, &ph_space, jacobian_out)) {
+	if (!cut::take(ps, S, point, &ph_space, jac_out)) {
 		return false;
 	}
 	if (kin_out != nullptr) {
@@ -426,61 +561,56 @@ bool cut::take(
 bool cut::take(
 		Cut const& cut,
 		Particles const& ps, Real S, const Real point[6],
-		Kinematics* kin_out, Real* jacobian_out) {
-	Bound x_b = x_bound(cut, ps, S);
-	Real x = x_b.lerp(point[0]);
-	Bound y_b = y_bound(cut, ps, S, x);
-	Real y = y_b.lerp(point[1]);
-	Bound z_b = z_bound(cut, ps, S, x, y);
-	Real z = z_b.lerp(point[2]);
-	Bound ph_t_sq_b = ph_t_sq_bound(cut, ps, S, x, y, z);
-	Real ph_t_sq = ph_t_sq_b.lerp(point[3]);
-	Bound phi_h_b = cut.phi_h.valid() ? cut.phi_h : Bound(-PI, PI);
-	Real phi_h = phi_h_b.lerp(point[4]);
-	Bound phi_b = cut.phi.valid() ? cut.phi : Bound(-PI, PI);
-	Real phi = phi_b.lerp(point[5]);
+		Kinematics* kin_out, Real* jac_out) {
+	Real jac_x, jac_y, jac_z, jac_ph_t_sq, jac_phi_h, jac_phi;
+	Real x = transform(Inverse(X_CUTOFF), point[0], x_bound(cut, ps, S), &jac_x);
+	Real y = transform(Inverse(), point[1], y_bound(cut, ps, S, x), &jac_y);
+	Real z = transform(Linear(), point[2], z_bound(cut, ps, S, x, y), &jac_z);
+	Real ph_t_sq = transform(Decay(PH_T_SQ_DECAY_WIDTH), point[3], ph_t_sq_bound(cut, ps, S, x, y, z), &jac_ph_t_sq);
+	Real phi_h = transform(Linear(), point[4], cut.phi_h.valid() ? cut.phi_h : Bound(-PI, PI), &jac_phi_h);
+	Real phi = transform(Linear(), point[5], cut.phi.valid() ? cut.phi : Bound(-PI, PI), &jac_phi);
+
 	PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, phi };
 	Kinematics kin(ps, S, ph_space);
 	if (kin_out != nullptr) {
 		*kin_out = kin;
 	}
-	if (jacobian_out != nullptr) {
-		*jacobian_out = x_b.size() * y_b.size() * z_b.size()
-			* ph_t_sq_b.size() * phi_h_b.size() * phi_b.size();
+	if (jac_out != nullptr) {
+		*jac_out = jac_x * jac_y * jac_z * jac_ph_t_sq * jac_phi_h * jac_phi;
 	}
 	return valid(cut, kin);
 }
 
 bool cut::take(
 		Particles const& ps, Real S, const Real point[9],
-		PhaseSpaceRad* ph_space_out, Real* jacobian_out) {
+		PhaseSpaceRad* ph_space_out, Real* jac_out) {
 	Kinematics kin;
-	Real jacobian;
-	if (!take(ps, S, point, &kin, &jacobian)) {
+	Real jac;
+	if (!take(ps, S, point, &kin, &jac)) {
 		return false;
 	}
-	if (!take(kin, point + 6, ph_space_out, jacobian_out)) {
+	if (!take(kin, point + 6, ph_space_out, jac_out)) {
 		return false;
 	}
-	if (jacobian_out != nullptr) {
-		*jacobian_out *= jacobian;
+	if (jac_out != nullptr) {
+		*jac_out *= jac;
 	}
 	return true;
 }
 
 bool cut::take(
 		Particles const& ps, Real S, const Real point[9],
-		KinematicsRad* kin_out, Real* jacobian_out) {
+		KinematicsRad* kin_out, Real* jac_out) {
 	Kinematics kin;
-	Real jacobian;
-	if (!take(ps, S, point, &kin, &jacobian)) {
+	Real jac;
+	if (!take(ps, S, point, &kin, &jac)) {
 		return false;
 	}
-	if (!take(kin, point + 6, kin_out, jacobian_out)) {
+	if (!take(kin, point + 6, kin_out, jac_out)) {
 		return false;
 	}
-	if (jacobian_out != nullptr) {
-		*jacobian_out *= jacobian;
+	if (jac_out != nullptr) {
+		*jac_out *= jac;
 	}
 	return true;
 }
@@ -488,30 +618,46 @@ bool cut::take(
 bool cut::take(
 		Cut const& cut, CutRad const& cut_rad,
 		Particles const& ps, Real S, const Real point[9],
-		KinematicsRad* kin_out, Real* jacobian_out) {
+		KinematicsRad* kin_out, Real* jac_out) {
 	Kinematics kin;
-	Real jacobian;
-	if (!take(cut, ps, S, point, &kin, &jacobian)) {
+	Real jac;
+	if (!take(cut, ps, S, point, &kin, &jac)) {
 		return false;
 	}
-	if (!take(cut_rad, kin, point + 6, kin_out, jacobian_out)) {
+	if (!take(cut_rad, kin, point + 6, kin_out, jac_out)) {
 		return false;
 	}
-	if (jacobian_out != nullptr) {
-		*jacobian_out *= jacobian;
+	if (jac_out != nullptr) {
+		*jac_out *= jac;
 	}
 	return true;
 }
 
 bool cut::take(
 		Kinematics const& kin, const Real point[3],
-		PhaseSpaceRad* ph_space_out, Real* jacobian_out) {
-	Bound tau_b = tau_bound(kin);
-	Real tau = tau_b.lerp(point[0]);
-	Bound phi_k_b = Bound(-PI, PI);
-	Real phi_k = phi_k_b.lerp(point[1]);
-	Bound R_b = R_bound(kin, tau, phi_k);
-	Real R = R_b.lerp(point[2]);
+		PhaseSpaceRad* ph_space_out, Real* jac_out) {
+	// Calculate peaks in radiative distribution.
+	Real tau_p1 = kin.Q_sq / kin.X;
+	Real tau_pr = -(1. - kin.y);
+	Real tau_lim1 = SQRT_2 * kin.lambda_1_sqrt * kin.m / sq(kin.X);
+	Real tau_limr = sq(1. - kin.y);
+	Real phi_k_lim = kin.lambda_Y_sqrt / kin.lambda_1_sqrt / SQRT_2 * kin.m;
+	// Estimate of the point at which `R` starts behaving like inverse `tau`.
+	// TODO: The factor of 128 is arbitrary right now, try to tune it.
+	Real R_trans = (kin.mx_sq - sq(kin.Mth))
+		/ (1. + kin.S_x / sq(kin.M) - kin.ph_l / kin.M) / 128.;
+
+	Real jac_tau, jac_phi_k, jac_R;
+	Real tau = transform(
+		Sigmoid2(tau_p1, tau_lim1, tau_pr, tau_limr),
+		point[0], tau_bound(kin), &jac_tau);
+	Real phi_k = transform(
+		Sigmoid(0., phi_k_lim),
+		point[1], Bound(-PI, PI), &jac_phi_k);
+	Real R = transform(
+		Log(R_trans),
+		point[2], R_bound(kin, tau, phi_k), &jac_R);
+
 	if (ph_space_out != nullptr) {
 		*ph_space_out = {
 			kin.x, kin.y, kin.z,
@@ -519,8 +665,8 @@ bool cut::take(
 			tau, phi_k, R,
 		};
 	}
-	if (jacobian_out != nullptr) {
-		*jacobian_out = tau_b.size() * phi_k_b.size() * R_b.size();
+	if (jac_out != nullptr) {
+		*jac_out = jac_tau * jac_phi_k * jac_R;
 	}
 	// TODO: Should we check explicitly for validity here?
 	return true;
@@ -528,9 +674,9 @@ bool cut::take(
 
 bool cut::take(
 		Kinematics const& kin, const Real point[3],
-		KinematicsRad* kin_out, Real* jacobian_out) {
+		KinematicsRad* kin_out, Real* jac_out) {
 	PhaseSpaceRad ph_space;
-	if (!cut::take(kin, point, &ph_space, jacobian_out)) {
+	if (!cut::take(kin, point, &ph_space, jac_out)) {
 		return false;
 	}
 	if (kin_out != nullptr) {
@@ -542,19 +688,32 @@ bool cut::take(
 bool cut::take(
 		CutRad const& cut,
 		Kinematics const& kin, const Real point[3],
-		KinematicsRad* kin_out, Real* jacobian_out) {
-	Bound tau_b = tau_bound(cut, kin);
-	Real tau = tau_b.lerp(point[0]);
-	Bound phi_k_b = cut.phi_k.valid() ? cut.phi_k : Bound(-PI, PI);
-	Real phi_k = phi_k_b.lerp(point[1]);
-	Bound R_b = R_bound(cut, kin, tau, phi_k);
-	Real R = R_b.lerp(point[2]);
+		KinematicsRad* kin_out, Real* jac_out) {
+	Real tau_p1 = kin.Q_sq / kin.X;
+	Real tau_pr = -(1. - kin.y);
+	Real tau_lim1 = SQRT_2 * kin.lambda_1_sqrt * kin.m / sq(kin.X);
+	Real tau_limr = sq(1. - kin.y);
+	Real phi_k_lim = kin.lambda_Y_sqrt / kin.lambda_1_sqrt / SQRT_2 * kin.m;
+	Real R_trans = (kin.mx_sq - sq(kin.Mth))
+		/ (1. + kin.S_x / sq(kin.M) - kin.ph_l / kin.M) / 128.;
+
+	Real jac_tau, jac_phi_k, jac_R;
+	Real tau = transform(
+		Sigmoid2(tau_p1, tau_lim1, tau_pr, tau_limr),
+		point[0], tau_bound(cut, kin), &jac_tau);
+	Real phi_k = transform(
+		Sigmoid(0., phi_k_lim),
+		point[1], cut.phi_k.valid() ? cut.phi_k : Bound(-PI, PI), &jac_phi_k);
+	Real R = transform(
+		Log(R_trans),
+		point[2], R_bound(cut, kin, tau, phi_k), &jac_R);
+
 	KinematicsRad kin_rad(kin, tau, phi_k, R);
 	if (kin_out != nullptr) {
 		*kin_out = kin_rad;
 	}
-	if (jacobian_out != nullptr) {
-		*jacobian_out = tau_b.size() * phi_k_b.size() * R_b.size();
+	if (jac_out != nullptr) {
+		*jac_out = jac_tau * jac_phi_k * jac_R;
 	}
 	return valid(cut, kin_rad);
 }
