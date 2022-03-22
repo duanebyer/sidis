@@ -28,8 +28,8 @@ namespace sidis {
  * cross-section with lowest order radiative corrections, following the work in
  * \cite akushevich2019sidis. To get started quickly see the
  * \ref ExampleSection "example" below. Then, read the documentation for the
- * xs::born(), xs::nrad(), and xs::rad() functions. For a thorough introduction
- * to the `sidis` library, read this page.
+ * xs::born(), xs::nrad_integ(), and xs::rad() functions. For a thorough
+ * introduction to the `sidis` library, read this page.
  *
  * \section IntroductionSection Introduction to the SIDIS process
  *
@@ -255,9 +255,9 @@ namespace sidis {
  * \include quick_start.cpp
  *
  * To extend this example, try replacing xs::born() with another kind of
- * cross-section, such as xs::amm(), xs::nrad(), or even xs::rad(). You can also
- * experiment with the integrated radiative cross-sections xs::rad_integ() and
- * xs::rad_f_integ().
+ * cross-section, such as xs::amm(), xs::nrad_integ(), or even xs::rad(). You
+ * can also experiment with the integrated radiative cross-sections
+ * xs::rad_integ() and xs::rad_f_integ().
  *
  * \example quick_start.cpp
  * Demonstrates how to compute a cross-section with the `sidis` library.
