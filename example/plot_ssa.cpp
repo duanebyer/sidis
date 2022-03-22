@@ -22,9 +22,9 @@ int main(int argc, char** argv) {
 
 	Real E_b = 10.6;
 	Particles ps(
-		part::Nucleus::P,
-		part::Lepton::E,
-		part::Hadron::PI_P,
+		Nucleus::P,
+		Lepton::E,
+		Hadron::PI_P,
 		MASS_P + MASS_PI_0);
 	Real S = 2. * ps.M * E_b;
 	Real x = 0.2;
