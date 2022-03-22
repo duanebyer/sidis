@@ -188,7 +188,7 @@ Builder::Builder(
 		_builder.nrad.target_rel_var =
 			std::expm1(-2. * std::log(*params.nrad_target_eff));
 		_builder.nrad.scale_exp_est = *params.nrad_scale_exp;
-		_builder.nrad.min_cell_explore_samples = 32;
+		_builder.nrad.min_cell_explore_samples = 512;
 		_builder.nrad.hist_num_per_bin = 2;
 		_builder.nrad.max_explore_cells = *params.nrad_max_cells;
 		break;
@@ -202,7 +202,7 @@ Builder::Builder(
 		_builder.rad.target_rel_var =
 			std::expm1(-2. * std::log(*params.rad_target_eff));
 		_builder.rad.scale_exp_est = *params.rad_scale_exp;
-		_builder.rad.min_cell_explore_samples = 32;
+		_builder.rad.min_cell_explore_samples = 512;
 		_builder.rad.hist_num_per_bin = 2;
 		_builder.rad.max_explore_cells = *params.rad_max_cells;
 		break;
@@ -303,6 +303,19 @@ Real Builder::rel_var(Real* err_out) const {
 		return _builder.excl.rel_var(err_out);
 	default:
 		return std::numeric_limits<Real>::quiet_NaN();
+	}
+}
+
+std::size_t Builder::size() const {
+	switch (_type) {
+	case EventType::NRAD:
+		return _builder.nrad.tree().size();
+	case EventType::RAD:
+		return _builder.rad.tree().size();
+	case EventType::EXCL:
+		return _builder.excl.tree().size();
+	default:
+		return 0;
 	}
 }
 

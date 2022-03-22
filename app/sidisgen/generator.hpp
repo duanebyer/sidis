@@ -108,6 +108,8 @@ public:
 	void write(std::ostream& os);
 	// Calculates the relative variance (with uncertainty).
 	Real rel_var(Real* err_out=nullptr) const;
+	// Number of cells.
+	std::size_t size() const;
 };
 
 // Loads a generator from a stream and produces events from it.
