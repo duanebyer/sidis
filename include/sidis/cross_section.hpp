@@ -127,11 +127,9 @@ math::IntegParams const DEFAULT_INTEG_PARAMS { 1000000, 1e-6, 0. };
 
 /**
  * \defgroup GeneralXsGroup General cross-section functions
- * These functions are the easiest to use for general cross-section
- * calculations. They take a Kinematics, an SfSet for structure functions, and
- * the beam and target polarizations. The base cross-section functions can give
- * better performance situationally, but usually these functions will be the
- * best choice.
+ * Functions for doing various kinds of cross-section calculations. They take a
+ * kin::Kinematics, an sf::SfSet for structure functions, and the beam and
+ * target polarizations.
  * \ingroup XsGroup
  */
 /// \{
@@ -144,7 +142,10 @@ Real amm(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::V
 /// Non-radiative cross-section neglecting infrared-divergent-free soft photon
 /// part \f$\sigma_{\text{nrad}}^{IR}\f$.
 Real nrad_ir(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF);
-/// Non-radiative cross-section \f$\sigma_{\text{nrad}}\f$.
+/// Non-radiative cross-section \f$\sigma_{\text{nrad}}\f$, integrated over the
+/// radiated photon with energy below soft cutoff \p k_0_bar (if \p k_0_bar is
+/// set to infinity (default), then the entire radiative part is integrated
+/// over).
 math::EstErr nrad_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
 /// Radiative cross-section with infrared divergence removed
 /// \f$\sigma_{R}^{F}\f$.
@@ -152,12 +153,12 @@ Real rad_f(kin::KinematicsRad const& kin, sf::SfSet const& sf, Real lambda_e, ma
 /// Radiative cross-section \f$\sigma_{R}\f$.
 Real rad(kin::KinematicsRad const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
 
-/// Radiative cross-section with infrared divergence removed integrated over
-/// radiated photon degrees of freedom, with radiated photon energy above soft
-/// photon cutoff \p k_0_bar.
+/// Radiative cross-section with infrared divergence removed
+/// \f$\sigma_{R}^{F}\f$, integrated over the radiated photon with energy above
+/// soft cutoff \p k_0_bar.
 math::EstErr rad_f_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
-/// Radiative cross-section integrated over radiated photon degrees of freedom,
-/// with radiated photon energy above soft photon cutoff \p k_0_bar.
+/// Radiative cross-section \f$\sigma_{R}\f$, integrated over the radiated
+/// photon with energy above soft cutoff \p k_0_bar.
 math::EstErr rad_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
 /// \}
 
@@ -173,8 +174,8 @@ math::EstErr rad_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lam
 Real delta_vert_rad_ir(kin::Kinematics const& kin, Real k_0_bar=INF);
 /// Factor \f$\frac{\alpha}{\pi}\delta_{H}\sigma_{B}\f$ gives the integral over
 /// the hard photon part of \f$\sigma_{R}^{IR}\f$. For the most part, this
-/// function isn't very useful, but it is provided to give completeness together
-/// with xs::delta_vert_rad_ir.
+/// function isn't very useful, but it is provided for completeness with
+/// xs::delta_vert_rad_ir.
 Real delta_rad_ir_hard(kin::Kinematics const& kin, Real k_0_bar=INF);
 /// Factor \f$\frac{\alpha}{\pi}\delta_{\text{vac}}^{\text{lep}}\sigma_{B}\f$
 /// gives the vacuum polarization cross-section due to lepton loops.
