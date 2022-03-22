@@ -8,6 +8,10 @@ namespace math {
 
 /**
  * An integral estimate combined with a symmetric error bar.
+ *
+ * \sa xs::nrad_integ()
+ * \sa xs::rad_f_integ()
+ * \sa xs::rad_integ()
  */
 struct EstErr {
 	Real val;
@@ -16,6 +20,10 @@ struct EstErr {
 
 /**
  * Parameters to be used for numerical integration.
+ *
+ * \sa xs::nrad_integ()
+ * \sa xs::rad_f_integ()
+ * \sa xs::rad_integ()
  */
 struct IntegParams {
 	/// Maximum number of evaluations of the integrand.
