@@ -509,8 +509,10 @@ int command_initialize(char const* params_file_name) {
 		}
 		Real rel_var_err;
 		Real rel_var = builder.rel_var(&rel_var_err);
-		std::cout << "Constructed " << gen_name << " FOAM with relative "
-			<< "variance " << rel_var << " ± " << rel_var_err << std::endl;
+		std::cout << "Constructed " << gen_name << " FOAM with size "
+			<< builder.size() << "." << std::endl;
+		std::cout << "\tRelative variance: " << rel_var
+			<< " ± " << rel_var_err << std::endl;
 		std::cout << "Writing " << gen_name << " FOAM to file." << std::endl;
 		try {
 			std::ostringstream os;
