@@ -245,6 +245,136 @@ void test_kin_nrad(
 	}
 }
 
+void test_kin_rad(
+		kin::Initial init,
+		kin::KinematicsRad kin,
+		bool complete,
+		Real rel_prec=1e4) {
+	kin::FinalRad fin(init, math::Vec3::ZERO, kin);
+	// Get 4-momenta of particles.
+	math::Vec4 p = init.p;
+	math::Vec4 k1 = init.k1;
+	math::Vec4 q = fin.q;
+	math::Vec4 k2 = fin.k2;
+	math::Vec4 k = fin.k;
+	math::Vec4 ph = fin.ph;
+	math::Vec4 px = (p + k1) - (k2 + ph);
+	// Basis vectors for angle checks.
+	math::Vec3 e_y = cross(k1.r(), k2.r()).unit();
+	math::Vec3 e_x = cross(e_y, q.r()).unit();
+	math::Vec3 shift_e_y = cross(k1.r(), (k2 + k).r()).unit();
+	math::Vec3 shift_e_x = cross(shift_e_y, (q - k).r()).unit();
+
+	// Do comparisons.
+	Real prec = rel_prec*std::numeric_limits<Real>::epsilon();
+
+	// Kinematic variables.
+	CHECK_THAT(
+		dot(k, q)/dot(k, p),
+		RelMatcher<Real>(kin.tau, prec));
+	CHECK_THAT(
+		2.*dot(k, p),
+		RelMatcher<Real>(kin.R, prec));
+	CHECK_THAT(
+		dot(k1, k)/dot(p, k),
+		RelMatcher<Real>(kin.z_1, prec));
+	CHECK_THAT(
+		dot(k2, k)/dot(p, k),
+		RelMatcher<Real>(kin.z_2, prec));
+	CHECK_THAT(
+		dot(k, ph)/dot(k, p),
+		RelMatcher<Real>(kin.mu, prec));
+	CHECK_THAT(
+		(k1 / kin.z_1 - k2 / kin.z_2).norm_sq(),
+		RelMatcher<Real>(kin.F_IR, prec));
+
+	// 3-momenta dot products.
+	CHECK_THAT(
+		dot(k.r(), ph.r()),
+		RelMatcher<Real>(kin.lambda_RV/(4.*kin.M*kin.M), prec));
+	CHECK_THAT(
+		dot(k.r(), q.r()),
+		RelMatcher<Real>(kin.lambda_RY/(4.*kin.M*kin.M), prec));
+	CHECK_THAT(
+		dot(q.r(), ph.r()),
+		RelMatcher<Real>(kin.lambda_V/(4.*kin.M*kin.M), prec));
+	CHECK_THAT(
+		ph.r().norm_sq(),
+		RelMatcher<Real>(kin.lambda_H/(4.*kin.M*kin.M), prec));
+
+	// Volume parts.
+	CHECK_THAT(
+		dot(cross(k1.r(), q.r()), k.r()),
+		RelMatcher<Real>(kin.R*kin.vol_phi_k_R/kin.M, prec));
+	CHECK_THAT(
+		dot(cross(k.r(), ph.r()), q.r()),
+		RelMatcher<Real>(kin.vol_phi_hk/kin.M, prec));
+
+	// Angles.
+	CHECK_THAT(
+		std::atan2(dot(e_y, k.r()), dot(e_x, k.r())),
+		RelMatcher<Real>(kin.phi_k, prec));
+
+	// Particle masses.
+	CHECK(
+		std::abs(k.norm_sq()) <=
+		std::abs(prec*k.t*k.t));
+
+	// Shifted kinematic variables.
+	CHECK_THAT(
+		-dot(q - k, q - k)/(2.*dot(q - k, p)),
+		RelMatcher<Real>(kin.shift_x, prec));
+	CHECK_THAT(
+		dot(ph, p)/dot(p, q - k),
+		RelMatcher<Real>(kin.shift_z, prec));
+	CHECK_THAT(
+		(q - k - ph).norm_sq(),
+		RelMatcher<Real>(kin.shift_t, prec));
+	CHECK_THAT(
+		-(q - k).norm_sq(),
+		RelMatcher<Real>(kin.shift_Q_sq, prec));
+	CHECK_THAT(
+		2.*dot(p, q - k),
+		RelMatcher<Real>(kin.shift_S_x, prec));
+	CHECK_THAT(
+		dot(q - k, ph),
+		RelMatcher<Real>(kin.shift_V_m, prec));
+
+	// Shifted 3-momenta magnitudes.
+	CHECK_THAT(
+		(q - k).r().norm(),
+		RelMatcher<Real>(kin.shift_lambda_Y_sqrt/(2.*kin.M), prec));
+
+	// Shifted 3-momenta components.
+	CHECK_THAT(
+		dot(ph.r(), (q - k).r().unit()),
+		RelMatcher<Real>(kin.shift_ph_l, prec));
+	CHECK_THAT(
+		cross(ph.r(), (q - k).r().unit()).norm(),
+		RelMatcher<Real>(kin.shift_ph_t, prec));
+	CHECK_THAT(
+		cross(k1.r(), (q - k).r().unit()).norm(),
+		RelMatcher<Real>(kin.shift_k1_t, prec));
+	CHECK_THAT(
+		dot((q - k).r(), k1.r().unit()),
+		RelMatcher<Real>(kin.shift_q_l, prec));
+	CHECK_THAT(
+		cross((q - k).r(), k1.r().unit()).norm(),
+		RelMatcher<Real>(kin.shift_q_t, prec));
+
+	// Shifted volume parts.
+	CHECK_THAT(
+		dot(cross(k1.r(), (q - k).r()), ph.r()),
+		RelMatcher<Real>(kin.shift_vol_phi_h/kin.M, prec));
+
+	// Shifted angles.
+	CHECK_THAT(
+		std::atan2(dot(shift_e_y, ph.r()), dot(shift_e_x, ph.r())),
+		RelMatcher<Real>(kin.shift_phi_h, prec));
+	CHECK_THAT(
+		std::atan2((q - k).x, -(q - k).y),
+		RelMatcher<Real>(kin.shift_phi_q, prec));
+}
 
 }
 
@@ -329,6 +459,49 @@ TEST_CASE(
 	INFO(ss.str());
 
 	test_kin_nrad(init, kin.project_shift(), false);
+}
+
+TEST_CASE(
+		"Radiative kinematics checks",
+		"[kin]") {
+	InputRad input = GENERATE(
+		from_stream<InputRad>(
+			std::move(std::ifstream("data/phase_space_rad_vals.dat")),
+			true));
+	Real E_b = input.beam_energy;
+	Real M = MASS_P;
+	part::Lepton lep;
+	if (input.particle_id == 'e') {
+		lep = part::Lepton::E;
+	} else if (input.particle_id == 'm') {
+		lep = part::Lepton::MU;
+	} else if (input.particle_id == 't') {
+		lep = part::Lepton::TAU;
+	}
+	Real Mth = MASS_P + MASS_PI_0;
+	part::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
+	Real S = 2.*ps.M*E_b;
+	kin::Initial init(ps, E_b);
+	kin::PhaseSpaceRad ph_space = input.ph_space;
+	kin::KinematicsRad kin(ps, S, ph_space);
+
+	// Print state information.
+	std::stringstream ss;
+	ss
+		<< "pid   = " << input.particle_id   << std::endl
+		<< "E_b   = " << E_b                 << std::endl
+		<< "x     = " << ph_space.x       << std::endl
+		<< "y     = " << ph_space.y       << std::endl
+		<< "z     = " << ph_space.z       << std::endl
+		<< "ph_t² = " << ph_space.ph_t_sq << std::endl
+		<< "φ_h   = " << ph_space.phi_h   << std::endl
+		<< "φ     = " << ph_space.phi     << std::endl
+		<< "τ     = " << ph_space.tau     << std::endl
+		<< "R     = " << ph_space.R       << std::endl
+		<< "φ_k   = " << ph_space.phi_k   << std::endl;
+	INFO(ss.str());
+
+	test_kin_rad(init, kin, 1e4);
 }
 
 // The following `[kin-rand]` tests will likely have a handful of failures,
@@ -429,171 +602,6 @@ TEST_CASE(
 	INFO(ss.str());
 
 	test_kin_nrad(init, kin, true, 1e6);
-}
-
-TEST_CASE(
-		"Radiative kinematics checks",
-		"[kin]") {
-	InputRad input = GENERATE(
-		from_stream<InputRad>(
-			std::move(std::ifstream("data/phase_space_rad_vals.dat")),
-			true));
-	Real E_b = input.beam_energy;
-	Real M = MASS_P;
-	part::Lepton lep;
-	if (input.particle_id == 'e') {
-		lep = part::Lepton::E;
-	} else if (input.particle_id == 'm') {
-		lep = part::Lepton::MU;
-	} else if (input.particle_id == 't') {
-		lep = part::Lepton::TAU;
-	}
-	Real Mth = MASS_P + MASS_PI_0;
-	part::Particles ps(part::Nucleus::P, lep, part::Hadron::PI_P, Mth);
-	Real S = 2.*ps.M*E_b;
-	kin::Initial init(ps, E_b);
-	kin::PhaseSpaceRad ph_space = input.ph_space;
-	kin::KinematicsRad kin(ps, S, ph_space);
-	kin::FinalRad fin(init, math::Vec3::ZERO, kin);
-	// Get 4-momenta of particles.
-	math::Vec4 p = init.p;
-	math::Vec4 k1 = init.k1;
-	math::Vec4 q = fin.q;
-	math::Vec4 k2 = fin.k2;
-	math::Vec4 k = fin.k;
-	math::Vec4 ph = fin.ph;
-	math::Vec4 px = (p + k1) - (k2 + ph);
-	// Basis vectors for angle checks.
-	math::Vec3 e_y = cross(k1.r(), k2.r()).unit();
-	math::Vec3 e_x = cross(e_y, q.r()).unit();
-	math::Vec3 shift_e_y = cross(k1.r(), (k2 + k).r()).unit();
-	math::Vec3 shift_e_x = cross(shift_e_y, (q - k).r()).unit();
-
-	// Print state information.
-	std::stringstream ss;
-	ss
-		<< "pid   = " << input.particle_id   << std::endl
-		<< "E_b   = " << E_b                 << std::endl
-		<< "x     = " << ph_space.x       << std::endl
-		<< "y     = " << ph_space.y       << std::endl
-		<< "z     = " << ph_space.z       << std::endl
-		<< "ph_t² = " << ph_space.ph_t_sq << std::endl
-		<< "φ_h   = " << ph_space.phi_h   << std::endl
-		<< "φ     = " << ph_space.phi     << std::endl
-		<< "τ     = " << ph_space.tau     << std::endl
-		<< "R     = " << ph_space.R       << std::endl
-		<< "φ_k   = " << ph_space.phi_k   << std::endl;
-	INFO(ss.str());
-
-	// Do comparisons.
-	Real prec = 1e4 * std::numeric_limits<Real>::epsilon();
-
-	// Kinematic variables.
-	CHECK_THAT(
-		dot(k, q)/dot(k, p),
-		RelMatcher<Real>(kin.tau, prec));
-	CHECK_THAT(
-		2.*dot(k, p),
-		RelMatcher<Real>(kin.R, prec));
-	CHECK_THAT(
-		dot(k1, k)/dot(p, k),
-		RelMatcher<Real>(kin.z_1, prec));
-	CHECK_THAT(
-		dot(k2, k)/dot(p, k),
-		RelMatcher<Real>(kin.z_2, prec));
-	CHECK_THAT(
-		dot(k, ph)/dot(k, p),
-		RelMatcher<Real>(kin.mu, prec));
-	CHECK_THAT(
-		(k1 / kin.z_1 - k2 / kin.z_2).norm_sq(),
-		RelMatcher<Real>(kin.F_IR, prec));
-
-	// 3-momenta dot products.
-	CHECK_THAT(
-		dot(k.r(), ph.r()),
-		RelMatcher<Real>(kin.lambda_RV/(4.*M*M), prec));
-	CHECK_THAT(
-		dot(k.r(), q.r()),
-		RelMatcher<Real>(kin.lambda_RY/(4.*M*M), prec));
-	CHECK_THAT(
-		dot(q.r(), ph.r()),
-		RelMatcher<Real>(kin.lambda_V/(4.*M*M), prec));
-	CHECK_THAT(
-		ph.r().norm_sq(),
-		RelMatcher<Real>(kin.lambda_H/(4.*M*M), prec));
-
-	// Volume parts.
-	CHECK_THAT(
-		dot(cross(k1.r(), q.r()), k.r()),
-		RelMatcher<Real>(kin.R*kin.vol_phi_k_R/M, prec));
-	CHECK_THAT(
-		dot(cross(k.r(), ph.r()), q.r()),
-		RelMatcher<Real>(kin.vol_phi_hk/M, prec));
-
-	// Angles.
-	CHECK_THAT(
-		std::atan2(dot(e_y, k.r()), dot(e_x, k.r())),
-		RelMatcher<Real>(kin.phi_k, prec));
-
-	// Particle masses.
-	CHECK(
-		std::abs(k.norm_sq()) <=
-		std::abs(prec*k.t*k.t));
-
-	// Shifted kinematic variables.
-	CHECK_THAT(
-		-dot(q - k, q - k)/(2.*dot(q - k, p)),
-		RelMatcher<Real>(kin.shift_x, prec));
-	CHECK_THAT(
-		dot(ph, p)/dot(p, q - k),
-		RelMatcher<Real>(kin.shift_z, prec));
-	CHECK_THAT(
-		(q - k - ph).norm_sq(),
-		RelMatcher<Real>(kin.shift_t, prec));
-	CHECK_THAT(
-		-(q - k).norm_sq(),
-		RelMatcher<Real>(kin.shift_Q_sq, prec));
-	CHECK_THAT(
-		2.*dot(p, q - k),
-		RelMatcher<Real>(kin.shift_S_x, prec));
-	CHECK_THAT(
-		dot(q - k, ph),
-		RelMatcher<Real>(kin.shift_V_m, prec));
-
-	// Shifted 3-momenta magnitudes.
-	CHECK_THAT(
-		(q - k).r().norm(),
-		RelMatcher<Real>(kin.shift_lambda_Y_sqrt/(2.*M), prec));
-
-	// Shifted 3-momenta components.
-	CHECK_THAT(
-		dot(ph.r(), (q - k).r().unit()),
-		RelMatcher<Real>(kin.shift_ph_l, prec));
-	CHECK_THAT(
-		cross(ph.r(), (q - k).r().unit()).norm(),
-		RelMatcher<Real>(kin.shift_ph_t, prec));
-	CHECK_THAT(
-		cross(k1.r(), (q - k).r().unit()).norm(),
-		RelMatcher<Real>(kin.shift_k1_t, prec));
-	CHECK_THAT(
-		dot((q - k).r(), k1.r().unit()),
-		RelMatcher<Real>(kin.shift_q_l, prec));
-	CHECK_THAT(
-		cross((q - k).r(), k1.r().unit()).norm(),
-		RelMatcher<Real>(kin.shift_q_t, prec));
-
-	// Shifted volume parts.
-	CHECK_THAT(
-		dot(cross(k1.r(), (q - k).r()), ph.r()),
-		RelMatcher<Real>(kin.shift_vol_phi_h/M, prec));
-
-	// Shifted angles.
-	CHECK_THAT(
-		std::atan2(dot(shift_e_y, ph.r()), dot(shift_e_x, ph.r())),
-		RelMatcher<Real>(kin.shift_phi_h, prec));
-	CHECK_THAT(
-		std::atan2((q - k).x, -(q - k).y),
-		RelMatcher<Real>(kin.shift_phi_q, prec));
 }
 
 TEST_CASE(
