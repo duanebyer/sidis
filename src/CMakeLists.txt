@@ -21,7 +21,8 @@ set(
 	"sidis/extra/integrate.hpp"
 	"sidis/extra/interpolate.hpp"
 	"sidis/extra/interpolate.ipp"
-	"sidis/extra/math.hpp")
+	"sidis/extra/math.hpp"
+	"sidis/extra/map.hpp")
 set(
 	HEADER_LIST_GENERATE
 	"sidis/hadronic_coeff.hpp"
