@@ -271,44 +271,54 @@ void test_kin_rad(
 	// Kinematic variables.
 	CHECK_THAT(
 		dot(k, q)/dot(k, p),
-		RelMatcher<Real>(kin.tau, prec));
+		RelMatcher<Real>(
+			kin.tau,
+			2.*prec*std::hypot(k.t*q.t/dot(k, q), k.t*p.t/dot(k, p))));
 	CHECK_THAT(
 		2.*dot(k, p),
-		RelMatcher<Real>(kin.R, prec));
+		AbsMatcher<Real>(kin.R, 4.*prec*k.t*p.t));
 	CHECK_THAT(
 		dot(k1, k)/dot(p, k),
-		RelMatcher<Real>(kin.z_1, prec));
+		RelMatcher<Real>(
+			kin.z_1,
+			2.*prec*std::hypot(k1.t*k.t/dot(k1, k), p.t*k.t/dot(p, k))));
 	CHECK_THAT(
 		dot(k2, k)/dot(p, k),
-		RelMatcher<Real>(kin.z_2, prec));
+		RelMatcher<Real>(
+			kin.z_2,
+			2.*prec*std::hypot(k2.t*k.t/dot(k2, k), p.t*k.t/dot(p, k))));
 	CHECK_THAT(
 		dot(k, ph)/dot(k, p),
-		RelMatcher<Real>(kin.mu, prec));
+		RelMatcher<Real>(
+			kin.mu,
+			2.*prec*std::hypot(k.t*ph.t/dot(k, ph), k.t*p.t/dot(k, p))));
 	CHECK_THAT(
 		(k1 / kin.z_1 - k2 / kin.z_2).norm_sq(),
-		RelMatcher<Real>(kin.F_IR, prec));
+		AbsMatcher<Real>(
+			kin.F_IR,
+			6.*prec*std::hypot(k1.t / kin.z_1, k2.t / kin.z_2)*norm_euc(k1 / kin.z_1 - k2 / kin.z_2)));
 
 	// 3-momenta dot products.
 	CHECK_THAT(
 		dot(k.r(), ph.r()),
-		RelMatcher<Real>(kin.lambda_RV/(4.*kin.M*kin.M), prec));
+		RelMatcher<Real>(kin.lambda_RV/(4.*kin.M*kin.M), 2.*prec));
 	CHECK_THAT(
 		dot(k.r(), q.r()),
-		RelMatcher<Real>(kin.lambda_RY/(4.*kin.M*kin.M), prec));
+		RelMatcher<Real>(kin.lambda_RY/(4.*kin.M*kin.M), 2.*prec));
 	CHECK_THAT(
 		dot(q.r(), ph.r()),
-		RelMatcher<Real>(kin.lambda_V/(4.*kin.M*kin.M), prec));
+		RelMatcher<Real>(kin.lambda_V/(4.*kin.M*kin.M), 2.*prec));
 	CHECK_THAT(
 		ph.r().norm_sq(),
-		RelMatcher<Real>(kin.lambda_H/(4.*kin.M*kin.M), prec));
+		RelMatcher<Real>(kin.lambda_H/(4.*kin.M*kin.M), 2.*prec));
 
 	// Volume parts.
 	CHECK_THAT(
 		dot(cross(k1.r(), q.r()), k.r()),
-		RelMatcher<Real>(kin.R*kin.vol_phi_k_R/kin.M, prec));
+		RelMatcher<Real>(kin.R*kin.vol_phi_k_R/kin.M, 4.*prec));
 	CHECK_THAT(
 		dot(cross(k.r(), ph.r()), q.r()),
-		RelMatcher<Real>(kin.vol_phi_hk/kin.M, prec));
+		RelMatcher<Real>(kin.vol_phi_hk/kin.M, 4.*prec));
 
 	// Angles.
 	CHECK_THAT(
@@ -323,57 +333,63 @@ void test_kin_rad(
 	// Shifted kinematic variables.
 	CHECK_THAT(
 		-dot(q - k, q - k)/(2.*dot(q - k, p)),
-		RelMatcher<Real>(kin.shift_x, prec));
+		RelMatcher<Real>(
+			kin.shift_x,
+			2.*prec*std::hypot(2.*math::sq(q.t - k.t)/dot(q - k, q - k), (q.t - k.t)*p.t/dot(q - k, p))));
 	CHECK_THAT(
 		dot(ph, p)/dot(p, q - k),
-		RelMatcher<Real>(kin.shift_z, prec));
+		RelMatcher<Real>(
+			kin.shift_z,
+			2.*prec*std::hypot(ph.t*p.t/dot(ph, p), p.t*(q.t - k.t)/dot(p, q - k))));
 	CHECK_THAT(
 		(q - k - ph).norm_sq(),
-		RelMatcher<Real>(kin.shift_t, prec));
+		RelMatcher<Real>(
+			kin.shift_t,
+			6.*prec*std::hypot(q.t - k.t, ph.t)*norm_euc(q - k - ph)));
 	CHECK_THAT(
 		-(q - k).norm_sq(),
-		RelMatcher<Real>(kin.shift_Q_sq, prec));
+		AbsMatcher<Real>(kin.shift_Q_sq, 4.*prec*math::sq(q.t - k.t)));
 	CHECK_THAT(
 		2.*dot(p, q - k),
-		RelMatcher<Real>(kin.shift_S_x, prec));
+		AbsMatcher<Real>(kin.shift_S_x, 4.*prec*p.t*(q.t - k.t)));
 	CHECK_THAT(
 		dot(q - k, ph),
-		RelMatcher<Real>(kin.shift_V_m, prec));
+		AbsMatcher<Real>(kin.shift_V_m, 2.*prec*(q.t - k.t)*ph.t));
 
 	// Shifted 3-momenta magnitudes.
 	CHECK_THAT(
 		(q - k).r().norm(),
-		RelMatcher<Real>(kin.shift_lambda_Y_sqrt/(2.*kin.M), prec));
+		RelMatcher<Real>(kin.shift_lambda_Y_sqrt/(2.*kin.M), 2.*prec));
 
 	// Shifted 3-momenta components.
 	CHECK_THAT(
 		dot(ph.r(), (q - k).r().unit()),
-		RelMatcher<Real>(kin.shift_ph_l, prec));
+		RelMatcher<Real>(kin.shift_ph_l, 2.*prec));
 	CHECK_THAT(
 		cross(ph.r(), (q - k).r().unit()).norm(),
-		RelMatcher<Real>(kin.shift_ph_t, prec));
+		RelMatcher<Real>(kin.shift_ph_t, 2.*prec));
 	CHECK_THAT(
 		cross(k1.r(), (q - k).r().unit()).norm(),
-		RelMatcher<Real>(kin.shift_k1_t, prec));
+		RelMatcher<Real>(kin.shift_k1_t, 2.*prec));
 	CHECK_THAT(
 		dot((q - k).r(), k1.r().unit()),
-		RelMatcher<Real>(kin.shift_q_l, prec));
+		RelMatcher<Real>(kin.shift_q_l, 2.*prec));
 	CHECK_THAT(
 		cross((q - k).r(), k1.r().unit()).norm(),
-		RelMatcher<Real>(kin.shift_q_t, prec));
+		RelMatcher<Real>(kin.shift_q_t, 2.*prec));
 
 	// Shifted volume parts.
 	CHECK_THAT(
 		dot(cross(k1.r(), (q - k).r()), ph.r()),
-		RelMatcher<Real>(kin.shift_vol_phi_h/kin.M, prec));
+		RelMatcher<Real>(kin.shift_vol_phi_h/kin.M, 4.*prec));
 
 	// Shifted angles.
 	CHECK_THAT(
 		std::atan2(dot(shift_e_y, ph.r()), dot(shift_e_x, ph.r())),
-		RelMatcher<Real>(kin.shift_phi_h, prec));
+		RelMatcher<Real>(kin.shift_phi_h, 2.*prec));
 	CHECK_THAT(
 		std::atan2((q - k).x, -(q - k).y),
-		RelMatcher<Real>(kin.shift_phi_q, prec));
+		RelMatcher<Real>(kin.shift_phi_q, 2.*2.*prec));
 }
 
 }
