@@ -341,7 +341,7 @@ TEST_CASE(
 		"[.][kin-rand]") {
 	// Generate a random point just outside the phase space boundary, then check
 	// that it is not kinematically valid.
-	Real E_b = 3.;
+	Real E_b = GENERATE(3., 12., 140., 3000., 12000.);
 	Real Mth = MASS_P + MASS_PI_0;
 	part::Nucleus target = part::Nucleus::P;
 	part::Lepton lepton = part::Lepton::TAU;
@@ -350,7 +350,7 @@ TEST_CASE(
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpace ph_space = GENERATE_COPY(
-		take(1000000, gen_phase_space_surface(ps, S, -0.0001)));
+		take(200000, gen_phase_space_surface(ps, S, -0.0001)));
 	kin::Kinematics kin(ps, S, ph_space);
 
 	std::stringstream ss;
@@ -372,7 +372,7 @@ TEST_CASE(
 		"[.][kin-rand]") {
 	// Generate a random point just inside phase space boundary, then check that
 	// it is kinematically valid.
-	Real E_b = 3.;
+	Real E_b = GENERATE(3., 12., 140., 3000., 12000.);
 	Real Mth = MASS_P + MASS_PI_0;
 	part::Nucleus target = part::Nucleus::P;
 	part::Lepton lepton = part::Lepton::TAU;
@@ -381,7 +381,7 @@ TEST_CASE(
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpace ph_space = GENERATE_COPY(
-		take(1000000, gen_phase_space_surface(ps, S, 0.0001)));
+		take(200000, gen_phase_space_surface(ps, S, 0.0001)));
 	kin::Kinematics kin(ps, S, ph_space);
 
 	std::stringstream ss;
@@ -404,7 +404,7 @@ TEST_CASE(
 		"[.][kin-rand]") {
 	// We choose these conditions to ensure that the phase space is explored
 	// even in the region between non-relativistic and ultra-relativistic.
-	Real E_b = 3.;
+	Real E_b = GENERATE(3., 12., 140., 3000., 12000.);
 	Real Mth = MASS_P + MASS_PI_0;
 	part::Nucleus target = part::Nucleus::P;
 	part::Lepton lepton = part::Lepton::TAU;
@@ -413,7 +413,7 @@ TEST_CASE(
 	Real S = 2.*ps.M*E_b;
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpace ph_space = GENERATE_COPY(
-		take(1000000, gen_phase_space(ps, S)));
+		take(200000, gen_phase_space(ps, S)));
 	kin::Kinematics kin(ps, S, ph_space);
 
 	std::stringstream ss;
