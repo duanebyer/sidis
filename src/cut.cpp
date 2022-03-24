@@ -76,7 +76,7 @@ struct Decay {
 		return -std::expm1(-x / length);
 	}
 	Real x(Real u, Real* jac) const {
-		*jac = 1. / (1. - u / length);
+		*jac = length / (1. - u);
 		return -length * std::log1p(-u);
 	}
 };
