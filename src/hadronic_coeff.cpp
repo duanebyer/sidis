@@ -51,19 +51,19 @@ HadUU::HadUU(Kinematics const& kin, SfUU const& sf) {
 		+ kin.ph_t*kin.Q*kin.lambda_Y_sqrt*H_01);
 }
 HadUL::HadUL(Kinematics const& kin, SfUL const& sf) {
-	Real H_023 = kin.C_1*sf.F_UL_sin_phih;
-	Real H_123 = -kin.C_1*sf.F_UL_sin_2phih;
+	Real H_023 = -kin.C_1*sf.F_UL_sin_phih;
+	Real H_123 = kin.C_1*sf.F_UL_sin_2phih;
 	H_63 = 4./(std::pow(kin.lambda_Y_sqrt, 3)*kin.ph_t_sq)*(
-		kin.Q*kin.ph_t*kin.lambda_Y_sqrt*H_023
-		- kin.lambda_3*kin.S_x*H_123);
-	H_83 = 2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_123;
+		kin.lambda_3*kin.S_x*H_123
+		-kin.Q*kin.ph_t*kin.lambda_Y_sqrt*H_023);
+	H_83 = -2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_123;
 }
 HadUT::HadUT(Kinematics const& kin, SfUT const& sf) {
 	Real H_002 = kin.C_1*sf.F_UTL_sin_phih_m_phis;
 	Real H_012 = kin.C_1*(sf.F_UT_sin_phis - sf.F_UT_sin_2phih_m_phis);
-	Real H_021 = kin.C_1*(sf.F_UT_sin_2phih_m_phis + sf.F_UT_sin_phis);
+	Real H_021 = -kin.C_1*(sf.F_UT_sin_2phih_m_phis + sf.F_UT_sin_phis);
 	Real H_112 = kin.C_1*(sf.F_UT_sin_3phih_m_phis + sf.F_UTT_sin_phih_m_phis - sf.F_UT_sin_phih_p_phis);
-	Real H_121 = -kin.C_1*(sf.F_UT_sin_3phih_m_phis + sf.F_UT_sin_phih_p_phis);
+	Real H_121 = kin.C_1*(sf.F_UT_sin_3phih_m_phis + sf.F_UT_sin_phih_p_phis);
 	Real H_222 = kin.C_1*(sf.F_UT_sin_phih_p_phis + sf.F_UTT_sin_phih_m_phis - sf.F_UT_sin_3phih_m_phis);
 	H_12 = -H_222;
 	H_22 = 4./(sq(kin.lambda_Y)*kin.ph_t_sq)*(
@@ -76,31 +76,31 @@ HadUT::HadUT(Kinematics const& kin, SfUT const& sf) {
 		kin.lambda_3*kin.S_x*(H_112 - H_222)
 		- kin.ph_t*kin.Q*kin.lambda_Y_sqrt*H_012);
 	H_61 = 4./(std::pow(kin.lambda_Y_sqrt, 3)*kin.ph_t_sq)*(
-		kin.Q*kin.ph_t*kin.lambda_Y_sqrt*H_021
-		- kin.lambda_3*kin.S_x*H_121);
-	H_81 = 2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_121;
+		kin.lambda_3*kin.S_x*H_121
+		- kin.Q*kin.ph_t*kin.lambda_Y_sqrt*H_021);
+	H_81 = -2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_121;
 }
 HadLU::HadLU(Kinematics const& kin, SfLU const& sf) {
 	Real H_01 = -kin.C_1*sf.F_LU_sin_phih;
 	H_50 = (2.*kin.Q)/(kin.ph_t*kin.lambda_Y_sqrt)*H_01;
 }
 HadLL::HadLL(Kinematics const& kin, SfLL const& sf) {
-	Real H_023 = -kin.C_1*sf.F_LL_cos_phih;
-	Real H_123 = kin.C_1*sf.F_LL;
+	Real H_023 = kin.C_1*sf.F_LL_cos_phih;
+	Real H_123 = -kin.C_1*sf.F_LL;
 	H_73 = 4./(std::pow(kin.lambda_Y_sqrt, 3)*kin.ph_t_sq)*(
-		kin.Q*kin.ph_t*kin.lambda_Y_sqrt*H_023
-		- kin.lambda_3*kin.S_x*H_123);
-	H_93 = 2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_123;
+		kin.lambda_3*kin.S_x*H_123
+		- kin.Q*kin.ph_t*kin.lambda_Y_sqrt*H_023);
+	H_93 = -2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_123;
 }
 HadLT::HadLT(Kinematics const& kin, SfLT const& sf) {
 	Real H_012 = -kin.C_1*(sf.F_LT_cos_phis - sf.F_LT_cos_2phih_m_phis);
-	Real H_021 = -kin.C_1*(sf.F_LT_cos_2phih_m_phis + sf.F_LT_cos_phis);
-	Real H_121 = kin.C_1*sf.F_LT_cos_phih_m_phis;
+	Real H_021 = kin.C_1*(sf.F_LT_cos_2phih_m_phis + sf.F_LT_cos_phis);
+	Real H_121 = -kin.C_1*sf.F_LT_cos_phih_m_phis;
 	H_52 = -(2.*kin.Q)/(kin.ph_t*kin.lambda_Y_sqrt)*H_012;
 	H_71 = 4./(std::pow(kin.lambda_Y_sqrt, 3)*kin.ph_t_sq)*(
-		kin.Q*kin.ph_t*kin.lambda_Y_sqrt*H_021
-		- kin.lambda_3*kin.S_x*H_121);
-	H_91 = 2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_121;
+		kin.lambda_3*kin.S_x*H_121
+		- kin.Q*kin.ph_t*kin.lambda_Y_sqrt*H_021);
+	H_91 = -2./(kin.lambda_Y_sqrt*kin.ph_t_sq)*H_121;
 }
 HadUU::HadUU(Kinematics const& kin, SfSet const& sf) : HadUU(
 		kin,
@@ -170,11 +170,11 @@ HadRadUP::HadRadUP(KinematicsRad const& kin, SfUP const& shift_sf) {
 	Transform3 shift_rot = frame::hadron_from_shift(kin);
 	Real H_002 = kin.shift_C_1*shift_sf.F_UTL_sin_phih_m_phis;
 	Real H_012 = kin.shift_C_1*(shift_sf.F_UT_sin_phis - shift_sf.F_UT_sin_2phih_m_phis);
-	Real H_021 = kin.shift_C_1*(shift_sf.F_UT_sin_2phih_m_phis + shift_sf.F_UT_sin_phis);
-	Real H_023 = kin.shift_C_1*shift_sf.F_UL_sin_phih;
+	Real H_021 = -kin.shift_C_1*(shift_sf.F_UT_sin_2phih_m_phis + shift_sf.F_UT_sin_phis);
+	Real H_023 = -kin.shift_C_1*shift_sf.F_UL_sin_phih;
 	Real H_112 = kin.shift_C_1*(shift_sf.F_UT_sin_3phih_m_phis + shift_sf.F_UTT_sin_phih_m_phis - shift_sf.F_UT_sin_phih_p_phis);
-	Real H_121 = -kin.shift_C_1*(shift_sf.F_UT_sin_3phih_m_phis + shift_sf.F_UT_sin_phih_p_phis);
-	Real H_123 = -kin.shift_C_1*shift_sf.F_UL_sin_2phih;
+	Real H_121 = kin.shift_C_1*(shift_sf.F_UT_sin_3phih_m_phis + shift_sf.F_UT_sin_phih_p_phis);
+	Real H_123 = kin.shift_C_1*shift_sf.F_UL_sin_2phih;
 	Real H_222 = kin.shift_C_1*(shift_sf.F_UT_sin_phih_p_phis + shift_sf.F_UTT_sin_phih_m_phis - shift_sf.F_UT_sin_3phih_m_phis);
 	H_1 = dot(shift_rot, Vec3(
 		0.,
@@ -200,16 +200,16 @@ HadRadUP::HadRadUP(KinematicsRad const& kin, SfUP const& shift_sf) {
 		0.));
 	H_6 = dot(shift_rot, Vec3(
 		4./(std::pow(kin.shift_lambda_Y_sqrt, 3)*kin.shift_ph_t_sq)*(
-			kin.shift_Q*kin.shift_ph_t*kin.shift_lambda_Y_sqrt*H_021
-			- kin.shift_lambda_3*kin.shift_S_x*H_121),
+			kin.shift_lambda_3*kin.shift_S_x*H_121
+			- kin.shift_Q*kin.shift_ph_t*kin.shift_lambda_Y_sqrt*H_021),
 		0.,
 		4./(std::pow(kin.shift_lambda_Y_sqrt, 3)*kin.shift_ph_t_sq)*(
-			kin.shift_Q*kin.shift_ph_t*kin.shift_lambda_Y_sqrt*H_023
-			- kin.shift_lambda_3*kin.shift_S_x*H_123)));
+			kin.shift_lambda_3*kin.shift_S_x*H_123
+			- kin.shift_Q*kin.shift_ph_t*kin.shift_lambda_Y_sqrt*H_023)));
 	H_8 = dot(shift_rot, Vec3(
-		2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_121,
+		-2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_121,
 		0.,
-		2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_123));
+		-2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_123));
 }
 HadRadLU::HadRadLU(KinematicsRad const& kin, SfLU const& shift_sf) {
 	Real H_01 = -kin.shift_C_1*shift_sf.F_LU_sin_phih;
@@ -218,26 +218,26 @@ HadRadLU::HadRadLU(KinematicsRad const& kin, SfLU const& shift_sf) {
 HadRadLP::HadRadLP(KinematicsRad const& kin, SfLP const& shift_sf) {
 	Transform3 shift_rot = frame::hadron_from_shift(kin);
 	Real H_012 = -kin.shift_C_1*(shift_sf.F_LT_cos_phis - shift_sf.F_LT_cos_2phih_m_phis);
-	Real H_021 = -kin.shift_C_1*(shift_sf.F_LT_cos_2phih_m_phis + shift_sf.F_LT_cos_phis);
-	Real H_023 = -kin.shift_C_1*shift_sf.F_LL_cos_phih;
-	Real H_121 = kin.shift_C_1*shift_sf.F_LT_cos_phih_m_phis;
-	Real H_123 = kin.shift_C_1*shift_sf.F_LL;
+	Real H_021 = kin.shift_C_1*(shift_sf.F_LT_cos_2phih_m_phis + shift_sf.F_LT_cos_phis);
+	Real H_023 = kin.shift_C_1*shift_sf.F_LL_cos_phih;
+	Real H_121 = -kin.shift_C_1*shift_sf.F_LT_cos_phih_m_phis;
+	Real H_123 = -kin.shift_C_1*shift_sf.F_LL;
 	H_5 = dot(shift_rot, Vec3(
 		0.,
 		-(2.*kin.shift_Q)/(kin.shift_ph_t*kin.shift_lambda_Y_sqrt)*H_012,
 		0.));
 	H_7 = dot(shift_rot, Vec3(
 		4./(std::pow(kin.shift_lambda_Y_sqrt, 3)*kin.shift_ph_t_sq)*(
-			kin.shift_Q*kin.shift_ph_t*kin.shift_lambda_Y_sqrt*H_021
-			- kin.shift_lambda_3*kin.shift_S_x*H_121),
+			kin.shift_lambda_3*kin.shift_S_x*H_121
+			- kin.shift_Q*kin.shift_ph_t*kin.shift_lambda_Y_sqrt*H_021),
 		0.,
 		4./(std::pow(kin.shift_lambda_Y_sqrt, 3)*kin.shift_ph_t_sq)*(
-			kin.shift_Q*kin.shift_ph_t*kin.shift_lambda_Y_sqrt*H_023
-			- kin.shift_lambda_3*kin.shift_S_x*H_123)));
+			kin.shift_lambda_3*kin.shift_S_x*H_123
+			- kin.shift_Q*kin.shift_ph_t*kin.shift_lambda_Y_sqrt*H_023)));
 	H_9 = dot(shift_rot, Vec3(
-		2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_121,
+		-2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_121,
 		0.,
-		2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_123));
+		-2./(kin.shift_lambda_Y_sqrt*kin.shift_ph_t_sq)*H_123));
 }
 HadRadUU::HadRadUU(KinematicsRad const& kin, SfSet const& sf) : HadRadUU(
 		kin,
