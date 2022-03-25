@@ -1049,7 +1049,7 @@ void Params::fill_defaults() {
 		}
 		rad_max_cells.get_or_insert(262144);
 		rad_target_eff.get_or_insert(0.50);
-		rad_scale_exp.get_or_insert(0.16);
+		rad_scale_exp.get_or_insert(0.18);
 		rad_seed_init.get_or_insert(0);
 	} else {
 		if (write_photon.occupied() && *write_photon) {
