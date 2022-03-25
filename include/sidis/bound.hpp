@@ -49,9 +49,9 @@ public:
 	/// `min <= max` is not satisfied, then sets the Bound to be the invalid
 	/// Bound instead.
 	Bound(Real min, Real max);
-	/// Is \p x contained in the half-open interval?
+	/// Is \p x contained in the interval?
 	bool contains(Real x) const {
-		return _min <= x && x < _max;
+		return _min <= x && x <= _max;
 	}
 	/// Are both ends of \p bound contained within this Bound?
 	bool contains(Bound other) const {
