@@ -144,13 +144,17 @@ install(
 	ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 	INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 get_target_property(MSTWPDF_TYPE mstwpdf TYPE)
-if(
-		MSTWPDF_TYPE STREQUAL "SHARED_LIBRARY"
-		AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.21)
-	# TODO: As of writing, there is no way to use the MSTWPDF alias in this
-	# command with CMake, even though that would be ideal.
-	install(
-		IMPORTED_RUNTIME_ARTIFACTS mstwpdf
-		LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+if(MSTWPDF_TYPE STREQUAL "SHARED_LIBRARY")
+	if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.21)
+		# TODO: As of writing, there is no way to use the MSTWPDF alias in this
+		# command with CMake, even though that would be ideal.
+		install(
+			IMPORTED_RUNTIME_ARTIFACTS mstwpdf
+			LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+	else()
+		message(
+			WARNING
+			"MSTWPDF must be installed as a shared library manually")
+	endif()
 endif()
 
