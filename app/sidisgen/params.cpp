@@ -947,6 +947,7 @@ void Params::fill_defaults() {
 			+ sf_set.name() + ").");
 	}
 	event_file.get_or_insert("gen.root");
+	foam_file.get_or_insert("foam.root");
 	rc_method.get_or_insert(RcMethod::APPROX);
 	rej_weight.get_or_insert(1.1);
 	seed.get_or_insert({ 0 });
