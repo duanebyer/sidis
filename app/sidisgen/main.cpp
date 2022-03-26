@@ -32,6 +32,7 @@
 #include <sidis/extra/math.hpp>
 #include <sidis/sf_set/mask.hpp>
 #include <sidis/sf_set/prokudin.hpp>
+#include <sidis/sf_set/stf.hpp>
 #include <sidis/sf_set/test.hpp>
 
 #include "generator.hpp"
@@ -110,6 +111,11 @@ void alloc_sf(
 		std::cout << "Using Prokudin structure functions." << std::endl;
 		tmd_out->reset();
 		sf_out->reset(new sf::set::ProkudinSfSet());
+	} else if (base == "stf") {
+		std::cout << "Using STF structure functions." << std::endl;
+		sf::GaussianTmdSet* tmd_ptr = new sf::set::StfTmdSet();
+		tmd_out->reset(tmd_ptr);
+		sf_out->reset(new sf::GaussianTmdSfSet(*tmd_ptr));
 	} else if (base == "test") {
 		std::cout << "Using test structure functions." << std::endl;
 		tmd_out->reset();

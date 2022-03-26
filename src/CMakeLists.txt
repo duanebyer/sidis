@@ -15,6 +15,7 @@ set(
 	"sidis/vector.hpp"
 	"sidis/sf_set/mask.hpp"
 	"sidis/sf_set/prokudin.hpp"
+	"sidis/sf_set/stf.hpp"
 	"sidis/sf_set/test.hpp"
 	"sidis/extra/exception.hpp"
 	"sidis/extra/integrate.hpp"
@@ -66,6 +67,9 @@ foreach(HEADER ${HEADER_LIST_GENERATE})
 		VERBATIM)
 endforeach(HEADER)
 
+# Additional required packages.
+find_package(LHAPDF REQUIRED)
+
 add_library(
 	sidis
 	asymmetry.cpp
@@ -85,8 +89,9 @@ add_library(
 	transform.cpp
 	vector.cpp
 	sf_set/prokudin.cpp
+	sf_set/stf.cpp
 	${HEADER_LIST_SOURCE})
-target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature)
+target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf LHAPDF Cubature::cubature)
 target_include_directories(
 	sidis PUBLIC
 	"${Sidis_SOURCE_DIR}/include"

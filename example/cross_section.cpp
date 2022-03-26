@@ -7,6 +7,7 @@
 
 #include <sidis/sidis.hpp>
 #include <sidis/sf_set/prokudin.hpp>
+#include <sidis/sf_set/stf.hpp>
 #include <sidis/sf_set/mask.hpp>
 #include <sidis/sf_set/test.hpp>
 
@@ -62,6 +63,10 @@ int main(int argc, char** argv) {
 
 		if (set_idx == 0) {
 			sf.reset(new sf::set::ProkudinSfSet());
+		} else if (set_idx == 1) {
+			sf::set::StfTmdSet* stf_tmd = new sf::set::StfTmdSet();
+			tmd.reset(stf_tmd);
+			sf.reset(new sf::GaussianTmdSfSet(*stf_tmd));
 		} else if (set_idx <= -1 && set_idx >= -static_cast<int>(sf::set::NUM_SF)) {
 			bool mask[sf::set::NUM_SF] = { false };
 			mask[-set_idx - 1] = true;
