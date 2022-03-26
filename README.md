@@ -13,17 +13,17 @@ The `sidisgen` generator uses a parameter file. The allowed options are listed
 by `sidisgen --help`. As an example:
 
 ```csv
-num_events     10000
-sf_set         prokudin
-rc_method      approx
-soft_threshold 0.01
-beam_energy    10.6
-beam           e
-target         p
-hadron         pi+
-mass_threshold 1.073249081
-beam_pol       0
-target_pol     0 0 0
+mc.num_events        10000
+phys.sf_set          prokudin
+phys.rc_method       approx
+phys.soft_threshold  0.01
+phys.mass_threshold  1.073249081
+setup.beam           e
+setup.target         p
+setup.hadron         pi+
+setup.beam_energy    10.6
+setup.beam_pol       0
+setup.target_pol     0 0 0
 ```
 
 Then, initialize a FOAM to approximate the differential cross-section in the
