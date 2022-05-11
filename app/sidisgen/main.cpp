@@ -264,6 +264,7 @@ int command_help_params() {
 		<< "file.event_out      <ROOT file>"                   << std::endl
 		<< "file.write_momenta  <on, off>"                     << std::endl
 		<< "file.write_photon   <on, off>"                     << std::endl
+		<< "file.write_sf_set   <on, off>"                     << std::endl
 		<< "file.foam_out       <ROOT file>"                   << std::endl
 		<< std::endl
 		<< "mc.nrad.gen              <on, off>"                << std::endl
@@ -653,6 +654,15 @@ int command_generate(char const* params_file_name) {
 			events.Branch("k", "TLorentzVector", &k);
 		}
 	}
+	sf::SfXX sf_out;
+	if (*params.write_sf_set) {
+		// TODO: Right now, this is depending on the `SfXX` structure having a
+		// very specific format. This isn't guaranteed to be true in the future,
+		// if things get reorganized. Not sure what a better approach is, as
+		// ROOT doesn't have a better way of writing plain C-structs into trees.
+		events.Branch("sf", &sf_out,
+			"F_UUL/D:F_UUT/D:F_UU_cos_phih/D:F_UU_cos_2phih/D:F_UL_sin_phih/D:F_UL_sin_2phih/D:F_UTL_sin_phih_m_phis/D:F_UTT_sin_phih_m_phis/D:F_UT_sin_2phih_m_phis/D:F_UT_sin_3phih_m_phis/D:F_UT_sin_phis/D:F_UT_sin_phih_p_phis/D:F_LU_sin_phih/D:F_LL/D:F_LL_cos_phih/D:F_LT_cos_phih_m_phis/D:F_LT_cos_2phih_m_phis/D:F_LT_cos_phis/D");
+	}
 	// Write parameter file.
 	params.write_root(event_file);
 
@@ -735,6 +745,9 @@ int command_generate(char const* params_file_name) {
 					ph = convert_vec4(fin.ph);
 					k = TLorentzVector();
 				}
+				if (*params.write_sf_set) {
+					sf_out = sf->sf(hadron, x, z, S * x * y, ph_t_sq);
+				}
 			}
 			break;
 		case EventType::RAD:
@@ -764,6 +777,9 @@ int command_generate(char const* params_file_name) {
 					k2 = convert_vec4(fin.k2);
 					ph = convert_vec4(fin.ph);
 					k = convert_vec4(fin.k);
+				}
+				if (*params.write_sf_set) {
+					sf_out = sf->sf(hadron, x, z, S * x * y, ph_t_sq);
 				}
 			}
 			break;
