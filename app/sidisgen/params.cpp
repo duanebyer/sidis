@@ -650,6 +650,7 @@ void Params::write_root(TFile& file) const {
 	write_param_root_dir(*dir, rad_scale_exp);
 	write_param_root_dir(*dir, write_momenta);
 	write_param_root_dir(*dir, write_photon);
+	write_param_root_dir(*dir, write_sf_set);
 	write_param_root_dir(*dir, foam_file);
 	write_param_root_dir(*dir, sf_set);
 	write_param_root_dir(*dir, num_events);
@@ -719,6 +720,7 @@ void Params::read_root(TFile& file) {
 	read_param_root_dir(*dir, rad_scale_exp);
 	read_param_root_dir(*dir, write_momenta);
 	read_param_root_dir(*dir, write_photon);
+	read_param_root_dir(*dir, write_sf_set);
 	read_param_root_dir(*dir, foam_file);
 	read_param_root_dir(*dir, sf_set);
 	read_param_root_dir(*dir, num_events);
@@ -774,6 +776,7 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, rad_scale_exp);
 	write_param_stream(file, write_momenta);
 	write_param_stream(file, write_photon);
+	write_param_stream(file, write_sf_set);
 	write_param_stream(file, foam_file);
 	write_param_stream(file, sf_set);
 	write_param_stream(file, num_events);
@@ -854,6 +857,7 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, rad_scale_exp);
 	consume_param_from_map(map, write_momenta);
 	consume_param_from_map(map, write_photon);
+	consume_param_from_map(map, write_sf_set);
 	consume_param_from_map(map, foam_file);
 	consume_param_from_map(map, sf_set);
 	consume_param_from_map(map, num_events);
@@ -954,6 +958,7 @@ void Params::fill_defaults() {
 	target_pol.get_or_insert(Vec3::ZERO);
 	beam_pol.get_or_insert(0.);
 	write_momenta.get_or_insert(true);
+	write_sf_set.get_or_insert(false);
 	// RC methods.
 	// The process for determining whether radiative and non-radiative events
 	// are generated looks something like this:
@@ -1225,6 +1230,7 @@ void Params::merge(Params const& params) {
 	*nrad_gen = *nrad_gen || *params.nrad_gen;
 	*rad_gen = *rad_gen || *params.rad_gen;
 	*write_momenta = *write_momenta && *params.write_momenta;
+	*write_sf_set = *write_sf_set && *params.write_sf_set;
 	if (*write_momenta) {
 		*write_photon = *write_photon && *params.write_photon;
 	}
@@ -1261,6 +1267,7 @@ bool Params::operator==(Params const& rhs) const {
 		&& rad_scale_exp == rhs.rad_scale_exp
 		&& write_momenta == rhs.write_momenta
 		&& write_photon == rhs.write_photon
+		&& write_sf_set == rhs.write_sf_set
 		&& foam_file == rhs.foam_file
 		&& sf_set == rhs.sf_set
 		&& num_events == rhs.num_events

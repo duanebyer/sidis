@@ -167,6 +167,7 @@ struct Params {
 	Param<Double_t> rad_scale_exp;
 	Param<Toggle> write_momenta;
 	Param<Toggle> write_photon;
+	Param<Toggle> write_sf_set;
 	Param<std::string> foam_file;
 	Param<std::string> sf_set;
 	Param<Long_t> num_events;
@@ -222,6 +223,7 @@ struct Params {
 		rad_scale_exp("mc.rad.init.scale_exp"),
 		write_momenta("file.write_momenta"),
 		write_photon("file.write_photon"),
+		write_sf_set("file.write_sf_set"),
 		foam_file("file.foam_out"),
 		sf_set("phys.sf_set"),
 		num_events("mc.num_events"),
