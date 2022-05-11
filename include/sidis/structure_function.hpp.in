@@ -333,6 +333,7 @@ gen_struct.generate_structs_pol(
 		],
 	},
 	constructor_fields=True,
+	constructor_default=True,
 	generate_target_p=True
 )
 ]]]*/

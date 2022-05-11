@@ -211,6 +211,19 @@ class ConstructorFields(object):
             indent(self._args_declare()),
             indent(",\n".join(results)))
 
+class ConstructorDefault(object):
+    def __init__(self, owner):
+        self.owner = owner;
+    def declare(self):
+        return "{}();\n".format(self.owner.name())
+    def define(self):
+        results = []
+        for field in self.owner.fields:
+            results.append("{0}()".format(field.use()))
+        return "inline {0}::{0}() :\n{1} {{ }}\n".format(
+            self.owner.name(),
+            indent(",\n".join(results)))
+
 class Struct(object):
     def __init__(self, base_name, pol, base_fields):
         self.base_name = str(base_name)
@@ -225,6 +238,7 @@ class Struct(object):
         self.constructor_delegate = []
         self.constructor_base = []
         self.constructor_fields = None
+        self.constructor_default = None
     def name(self):
         return struct_name(self.base_name, self.pol)
     def declare(self):
@@ -244,6 +258,8 @@ class Struct(object):
             result += indent(cons.declare())
         if self.constructor_fields is not None:
             result += indent(self.constructor_fields.declare())
+        if self.constructor_default is not None:
+            result += indent(self.constructor_default.declare())
         result += "};\n"
         return result
     def define_methods(self):
@@ -258,6 +274,8 @@ class Struct(object):
             result += cons.define()
         if self.constructor_fields is not None:
             result += self.constructor_fields.define()
+        if self.constructor_default is not None:
+            result += self.constructor_default.define()
         return result
     def add_constructor_compose(self, child_pols):
         self.constructor_compose.append(
@@ -273,6 +291,8 @@ class Struct(object):
             ConstructorBase(self, args))
     def add_constructor_fields(self):
         self.constructor_fields = ConstructorFields(self)
+    def add_constructor_default(self):
+        self.constructor_default = ConstructorDefault(self)
 
 # Generates a set of structs for all combinations of beam and target
 # polarizations, as well as conversions between them.
@@ -283,6 +303,7 @@ def generate_structs_pol(
         base_fields,
         constructors=None,
         constructor_fields=None,
+        constructor_default=None,
         generate_target_p=None):
     constructor_args = []
     if constructors is not None:
@@ -384,6 +405,9 @@ def generate_structs_pol(
     if constructor_fields:
         for struct in structs:
             struct.add_constructor_fields()
+    if constructor_default:
+        for struct in structs:
+            struct.add_constructor_default()
 
     # Output the structs.
     for struct in structs:
