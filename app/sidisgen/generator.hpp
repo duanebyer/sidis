@@ -15,7 +15,6 @@ using Real = sidis::Real;
 using Seed = bubble::Seed;
 template<bubble::Dim DIM>
 using Point = bubble::Point<DIM, Real>;
-using PointFull = std::array<Real, 9>;
 using Stats = bubble::Stats<Real>;
 using StatsAccum = bubble::StatsAccum<Real>;
 
@@ -35,7 +34,7 @@ class NradDensity {
 public:
 	NradDensity(Params const& params, sidis::sf::SfSet const& sf);
 	Real operator()(Point<6> const& vec) const noexcept;
-	Real transform(Point<6> const& vec, PointFull* ph_out) const noexcept;
+	Real transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept;
 };
 
 class RadDensity {
@@ -49,7 +48,7 @@ class RadDensity {
 public:
 	RadDensity(Params const& params, sidis::sf::SfSet const& sf);
 	Real operator()(Point<9> const& vec) const noexcept;
-	Real transform(Point<9> const& vec, PointFull* ph_out) const noexcept;
+	Real transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept;
 };
 
 class ExclDensity {
@@ -58,7 +57,7 @@ public:
 	// TODO: Throw an exception to ensure this doesn't get called by accident.
 	ExclDensity(Params const&, sidis::sf::SfSet const&) { }
 	Real operator()(Point<8> const&) const noexcept { return 0.; }
-	Real transform(Point<8> const&, PointFull*) const noexcept { return 0.; };
+	Real transform(Point<8> const&, Point<8>*) const noexcept { return 0.; };
 };
 
 struct BuilderReporters {
@@ -149,7 +148,11 @@ public:
 		return _seed;
 	}
 	// Produces an event with a certain weight.
-	Real generate(Real* out);
+	Real generate(Real* ph_out, Real* unit_out);
+	Real generate(Real* ph_out) {
+		Real unit_out[9];
+		return generate(ph_out, unit_out);
+	}
 	// Gets statistics related to the weights produced by the generator.
 	Stats weights() const {
 		return _weights.total();

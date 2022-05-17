@@ -16,8 +16,8 @@
 // Within a major version, there is forward compatibility (e.x. 1.4 is
 // forward-compatible with 1.5). Between major versions, there is no
 // compatibility.
-#define SIDIS_PARAMS_VERSION_MAJOR 3
-#define SIDIS_PARAMS_VERSION_MINOR 1
+#define SIDIS_PARAMS_VERSION_MAJOR 4
+#define SIDIS_PARAMS_VERSION_MINOR 0
 
 struct Toggle {
 	bool on;
@@ -168,6 +168,7 @@ struct Params {
 	Param<Toggle> write_momenta;
 	Param<Toggle> write_photon;
 	Param<Toggle> write_sf_set;
+	Param<Toggle> write_mc_coords;
 	Param<std::string> foam_file;
 	Param<std::string> sf_set;
 	Param<Long_t> num_events;
@@ -194,18 +195,19 @@ struct Params {
 	Param<sidis::math::Bound> cut_W_sq;
 	Param<sidis::math::Bound> cut_r;
 	Param<sidis::math::Bound> cut_mx_sq;
-	Param<sidis::math::Bound> cut_q_0;
-	Param<sidis::math::Bound> cut_k2_0;
-	Param<sidis::math::Bound> cut_ph_0;
-	Param<sidis::math::Bound> cut_theta_q;
-	Param<sidis::math::Bound> cut_theta_k2;
-	Param<sidis::math::Bound> cut_theta_h;
+	Param<sidis::math::Bound> cut_qt_to_Q;
+	Param<sidis::math::Bound> cut_lab_mom_q;
+	Param<sidis::math::Bound> cut_lab_mom_k2;
+	Param<sidis::math::Bound> cut_lab_mom_h;
+	Param<sidis::math::Bound> cut_lab_theta_q;
+	Param<sidis::math::Bound> cut_lab_theta_k2;
+	Param<sidis::math::Bound> cut_lab_theta_h;
 	Param<sidis::math::Bound> cut_tau;
 	Param<sidis::math::Bound> cut_phi_k;
 	Param<sidis::math::Bound> cut_R;
 	Param<sidis::math::Bound> cut_k_0_bar;
-	Param<sidis::math::Bound> cut_k_0;
-	Param<sidis::math::Bound> cut_theta_k;
+	Param<sidis::math::Bound> cut_lab_mom_k;
+	Param<sidis::math::Bound> cut_lab_theta_k;
 
 	// TODO: Re-order these to be compatible with the help command.
 	Params() :
@@ -224,6 +226,7 @@ struct Params {
 		write_momenta("file.write_momenta"),
 		write_photon("file.write_photon"),
 		write_sf_set("file.write_sf_set"),
+		write_mc_coords("file.write_mc_coords"),
 		foam_file("file.foam_out"),
 		sf_set("phys.sf_set"),
 		num_events("mc.num_events"),
@@ -250,18 +253,19 @@ struct Params {
 		cut_W_sq("cut.W_sq"),
 		cut_r("cut.r"),
 		cut_mx_sq("cut.mx_sq"),
-		cut_q_0("cut.q_0"),
-		cut_k2_0("cut.k2_0"),
-		cut_ph_0("cut.ph_0"),
-		cut_theta_q("cut.theta_q"),
-		cut_theta_k2("cut.theta_k2"),
-		cut_theta_h("cut.theta_h"),
+		cut_qt_to_Q("cut.qt_to_Q"),
+		cut_lab_mom_q("cut.lab_mom_q"),
+		cut_lab_mom_k2("cut.lab_mom_k2"),
+		cut_lab_mom_h("cut.lab_mom_h"),
+		cut_lab_theta_q("cut.lab_theta_q"),
+		cut_lab_theta_k2("cut.lab_theta_k2"),
+		cut_lab_theta_h("cut.lab_theta_h"),
 		cut_tau("cut.tau"),
 		cut_phi_k("cut.phi_k"),
 		cut_R("cut.R"),
 		cut_k_0_bar("cut.k_0_bar"),
-		cut_k_0("cut.k_0"),
-		cut_theta_k("cut.theta_k") { }
+		cut_lab_mom_k("cut.lab_mom_k"),
+		cut_lab_theta_k("cut.lab_theta_k") { }
 
 	void write_root(TFile& file) const;
 	void read_root(TFile& file);

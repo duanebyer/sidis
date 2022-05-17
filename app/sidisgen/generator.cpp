@@ -25,12 +25,13 @@ cut::Cut get_cut_from_params(Params const& params) {
 	result.W_sq = params.cut_W_sq.get_or(math::Bound::INVALID);
 	result.r = params.cut_r.get_or(math::Bound::INVALID);
 	result.mx_sq = params.cut_mx_sq.get_or(math::Bound::INVALID);
-	result.q_0 = params.cut_q_0.get_or(math::Bound::INVALID);
-	result.k2_0 = params.cut_k2_0.get_or(math::Bound::INVALID);
-	result.ph_0 = params.cut_ph_0.get_or(math::Bound::INVALID);
-	result.theta_q = DEG * params.cut_theta_q.get_or(math::Bound::INVALID);
-	result.theta_k2 = DEG * params.cut_theta_k2.get_or(math::Bound::INVALID);
-	result.theta_h = DEG * params.cut_theta_h.get_or(math::Bound::INVALID);
+	result.qt_to_Q = params.cut_qt_to_Q.get_or(math::Bound::INVALID);
+	result.lab_mom_q = params.cut_lab_mom_q.get_or(math::Bound::INVALID);
+	result.lab_mom_k2 = params.cut_lab_mom_k2.get_or(math::Bound::INVALID);
+	result.lab_mom_h = params.cut_lab_mom_h.get_or(math::Bound::INVALID);
+	result.lab_theta_q = DEG * params.cut_lab_theta_q.get_or(math::Bound::INVALID);
+	result.lab_theta_k2 = DEG * params.cut_lab_theta_k2.get_or(math::Bound::INVALID);
+	result.lab_theta_h = DEG * params.cut_lab_theta_h.get_or(math::Bound::INVALID);
 	return result;
 }
 
@@ -44,8 +45,8 @@ cut::CutRad get_cut_rad_from_params(Params const& params) {
 		// The `k_0_bar` cut is mandatory.
 		result.k_0_bar = *params.cut_k_0_bar
 			& math::Bound(*params.k_0_bar, INF);
-		result.k_0 = params.cut_k_0.get_or(math::Bound::INVALID);
-		result.theta_k = DEG * params.cut_theta_k.get_or(math::Bound::INVALID);
+		result.lab_mom_k = params.cut_lab_mom_k.get_or(math::Bound::INVALID);
+		result.lab_theta_k = DEG * params.cut_lab_theta_k.get_or(math::Bound::INVALID);
 	}
 	return result;
 }
@@ -61,18 +62,18 @@ NradDensity::NradDensity(Params const& params, sf::SfSet const& sf) :
 	_S(2. * mass(*params.target) * *params.beam_energy),
 	_sf(sf) { }
 
-Real NradDensity::transform(Point<6> const& vec, PointFull* ph_out) const noexcept {
+Real NradDensity::transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept {
 	Real jacobian;
 	kin::Kinematics kin;
-	if (!cut::take(_cut, _ps, _S, vec.data(), &kin, &jacobian)) {
+	if (!cut::take(_cut, _ps, _S, unit_vec.data(), &kin, &jacobian)) {
 		jacobian = 0.;
 	}
-	(*ph_out)[0] = kin.x;
-	(*ph_out)[1] = kin.y;
-	(*ph_out)[2] = kin.z;
-	(*ph_out)[3] = kin.ph_t_sq;
-	(*ph_out)[4] = kin.phi_h;
-	(*ph_out)[5] = kin.phi;
+	(*ph_vec)[0] = kin.x;
+	(*ph_vec)[1] = kin.y;
+	(*ph_vec)[2] = kin.z;
+	(*ph_vec)[3] = kin.ph_t_sq;
+	(*ph_vec)[4] = kin.phi_h;
+	(*ph_vec)[5] = kin.phi;
 	return jacobian;
 }
 
@@ -121,21 +122,21 @@ RadDensity::RadDensity(Params const& params, sf::SfSet const& sf) :
 	_S(2. * mass(*params.target) * *params.beam_energy),
 	_sf(sf) { }
 
-Real RadDensity::transform(Point<9> const& vec, PointFull* ph_out) const noexcept {
+Real RadDensity::transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept {
 	Real jacobian;
 	kin::KinematicsRad kin;
-	if (!cut::take(_cut, _cut_rad, _ps, _S, vec.data(), &kin, &jacobian)) {
+	if (!cut::take(_cut, _cut_rad, _ps, _S, unit_vec.data(), &kin, &jacobian)) {
 		jacobian = 0.;
 	}
-	(*ph_out)[0] = kin.x;
-	(*ph_out)[1] = kin.y;
-	(*ph_out)[2] = kin.z;
-	(*ph_out)[3] = kin.ph_t_sq;
-	(*ph_out)[4] = kin.phi_h;
-	(*ph_out)[5] = kin.phi;
-	(*ph_out)[6] = kin.tau;
-	(*ph_out)[7] = kin.phi_k;
-	(*ph_out)[8] = kin.R;
+	(*ph_vec)[0] = kin.x;
+	(*ph_vec)[1] = kin.y;
+	(*ph_vec)[2] = kin.z;
+	(*ph_vec)[3] = kin.ph_t_sq;
+	(*ph_vec)[4] = kin.phi_h;
+	(*ph_vec)[5] = kin.phi;
+	(*ph_vec)[6] = kin.tau;
+	(*ph_vec)[7] = kin.phi_k;
+	(*ph_vec)[8] = kin.R;
 	return jacobian;
 }
 
@@ -383,33 +384,37 @@ Generator::~Generator() {
 	}
 }
 
-Real Generator::generate(Real* out) {
+Real Generator::generate(Real* ph_out, Real* unit_out) {
 	Real weight;
-	PointFull ph_space;
 	switch (_type) {
 	case EventType::NRAD:
 		{
-			Point<6> vec;
-			_generator.nrad.generate(&weight, &vec);
-			_generator.nrad.func().transform(vec, &ph_space);
+			Point<6> unit_vec, ph_vec;
+			_generator.nrad.generate(&weight, &unit_vec);
+			_generator.nrad.func().transform(unit_vec, &ph_vec);
+			std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
+			std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
 		}
 		break;
 	case EventType::RAD:
 		{
-			Point<9> vec;
-			_generator.rad.generate(&weight, &vec);
-			_generator.rad.func().transform(vec, &ph_space);
+			Point<9> unit_vec, ph_vec;
+			_generator.rad.generate(&weight, &unit_vec);
+			_generator.rad.func().transform(unit_vec, &ph_vec);
+			std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
+			std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
 		}
 		break;
 	case EventType::EXCL:
 		{
-			Point<8> vec;
-			_generator.excl.generate(&weight, &vec);
-			_generator.excl.func().transform(vec, &ph_space);
+			Point<8> unit_vec, ph_vec;
+			_generator.excl.generate(&weight, &unit_vec);
+			_generator.excl.func().transform(unit_vec, &ph_vec);
+			std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
+			std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
 		}
 		break;
 	}
-	std::copy(ph_space.begin(), ph_space.end(), out);
 	_weights += weight;
 	return weight;
 }

@@ -47,21 +47,22 @@ struct Cut {
 	math::Bound t;
 	math::Bound W_sq;
 	math::Bound r;
-	/// \}
-
-	/// Energy cuts
-	/// \{
 	math::Bound mx_sq;
-	math::Bound q_0;
-	math::Bound k2_0;
-	math::Bound ph_0;
+	math::Bound qt_to_Q;
 	/// \}
 
-	/// Angle cuts
+	/// Momentum cuts in lab frame
 	/// \{
-	math::Bound theta_q;
-	math::Bound theta_k2;
-	math::Bound theta_h;
+	math::Bound lab_mom_q;
+	math::Bound lab_mom_k2;
+	math::Bound lab_mom_h;
+	/// \}
+
+	/// Angle cuts in lab frame
+	/// \{
+	math::Bound lab_theta_q;
+	math::Bound lab_theta_k2;
+	math::Bound lab_theta_h;
 	/// \}
 
 	Cut();
@@ -79,8 +80,11 @@ struct CutRad {
 	math::Bound k_0_bar;
 	/// \}
 
-	math::Bound k_0;
-	math::Bound theta_k;
+	/// Momentum cuts in lab frame
+	/// \{
+	math::Bound lab_mom_k;
+	math::Bound lab_theta_k;
+	/// \}
 
 	CutRad();
 };

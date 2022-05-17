@@ -261,11 +261,12 @@ int command_help_params() {
 		<< "Parameter file format summary."                    << std::endl
 		<< "For more detailed information, see docs."          << std::endl
 		<< std::endl
-		<< "file.event_out      <ROOT file>"                   << std::endl
-		<< "file.write_momenta  <on, off>"                     << std::endl
-		<< "file.write_photon   <on, off>"                     << std::endl
-		<< "file.write_sf_set   <on, off>"                     << std::endl
-		<< "file.foam_out       <ROOT file>"                   << std::endl
+		<< "file.event_out        <ROOT file>"                 << std::endl
+		<< "file.write_momenta    <on, off>"                   << std::endl
+		<< "file.write_photon     <on, off>"                   << std::endl
+		<< "file.write_sf_set     <on, off>"                   << std::endl
+		<< "file.write_mc_coords  <on, off>"                   << std::endl
+		<< "file.foam_out         <ROOT file>"                 << std::endl
 		<< std::endl
 		<< "mc.nrad.gen              <on, off>"                << std::endl
 		<< "mc.nrad.init.seed        <integer>"                << std::endl
@@ -293,29 +294,30 @@ int command_help_params() {
 		<< "phys.mass_threshold  <mass (GeV)>"                 << std::endl
 		<< "phys.soft_threshold  <energy (GeV)>"               << std::endl
 		<< std::endl
-		<< "cut.k_0_bar   <min> <max>"                         << std::endl
-		<< "cut.x         <min> <max>"                         << std::endl
-		<< "cut.y         <min> <max>"                         << std::endl
-		<< "cut.z         <min> <max>"                         << std::endl
-		<< "cut.ph_t_sq   <min> <max>"                         << std::endl
-		<< "cut.phi_h     <min> <max>"                         << std::endl
-		<< "cut.phi       <min> <max>"                         << std::endl
-		<< "cut.tau       <min> <max>"                         << std::endl
-		<< "cut.phi_k     <min> <max>"                         << std::endl
-		<< "cut.R         <min> <max>"                         << std::endl
-		<< "cut.Q_sq      <min> <max>"                         << std::endl
-		<< "cut.t         <min> <max>"                         << std::endl
-		<< "cut.W_sq      <min> <max>"                         << std::endl
-		<< "cut.r         <min> <max>"                         << std::endl
-		<< "cut.mx_sq     <min> <max>"                         << std::endl
-		<< "cut.q_0       <min> <max>"                         << std::endl
-		<< "cut.k2_0      <min> <max>"                         << std::endl
-		<< "cut.ph_0      <min> <max>"                         << std::endl
-		<< "cut.k_0       <min> <max>"                         << std::endl
-		<< "cut.theta_q   <min> <max>"                         << std::endl
-		<< "cut.theta_k2  <min> <max>"                         << std::endl
-		<< "cut.theta_ph  <min> <max>"                         << std::endl
-		<< "cut.theta_k   <min> <max>"                         << std::endl;
+		<< "cut.k_0_bar       <min> <max>"                     << std::endl
+		<< "cut.x             <min> <max>"                     << std::endl
+		<< "cut.y             <min> <max>"                     << std::endl
+		<< "cut.z             <min> <max>"                     << std::endl
+		<< "cut.ph_t_sq       <min> <max>"                     << std::endl
+		<< "cut.phi_h         <min> <max>"                     << std::endl
+		<< "cut.phi           <min> <max>"                     << std::endl
+		<< "cut.tau           <min> <max>"                     << std::endl
+		<< "cut.phi_k         <min> <max>"                     << std::endl
+		<< "cut.R             <min> <max>"                     << std::endl
+		<< "cut.Q_sq          <min> <max>"                     << std::endl
+		<< "cut.t             <min> <max>"                     << std::endl
+		<< "cut.W_sq          <min> <max>"                     << std::endl
+		<< "cut.r             <min> <max>"                     << std::endl
+		<< "cut.mx_sq         <min> <max>"                     << std::endl
+		<< "cut.qt_to_Q       <min> <max>"                     << std::endl
+		<< "cut.lab_mom_q     <min> <max>"                     << std::endl
+		<< "cut.lab_mom_k2    <min> <max>"                     << std::endl
+		<< "cut.lab_mom_h     <min> <max>"                     << std::endl
+		<< "cut.lab_mom_k     <min> <max>"                     << std::endl
+		<< "cut.lab_theta_q   <min> <max>"                     << std::endl
+		<< "cut.lab_theta_k2  <min> <max>"                     << std::endl
+		<< "cut.lab_theta_h   <min> <max>"                     << std::endl
+		<< "cut.lab_theta_k   <min> <max>"                     << std::endl;
 	return SUCCESS;
 }
 
@@ -663,6 +665,11 @@ int command_generate(char const* params_file_name) {
 		events.Branch("sf", &sf_out,
 			"F_UUL/D:F_UUT/D:F_UU_cos_phih/D:F_UU_cos_2phih/D:F_UL_sin_phih/D:F_UL_sin_2phih/D:F_UTL_sin_phih_m_phis/D:F_UTT_sin_phih_m_phis/D:F_UT_sin_2phih_m_phis/D:F_UT_sin_3phih_m_phis/D:F_UT_sin_phis/D:F_UT_sin_phih_p_phis/D:F_LU_sin_phih/D:F_LL/D:F_LL_cos_phih/D:F_LT_cos_phih_m_phis/D:F_LT_cos_2phih_m_phis/D:F_LT_cos_phis/D");
 	}
+	Real mc_coords[9];
+	Real ph_coords[9];
+	if (*params.write_mc_coords) {
+		events.Branch("mc_coords", &mc_coords, "mc_coords[9]/D");
+	}
 	// Write parameter file.
 	params.write_root(event_file);
 
@@ -710,8 +717,7 @@ int command_generate(char const* params_file_name) {
 
 		// The event vector can store up to the number of dimensions of any of
 		// the FOAMs.
-		Real event_vec[9];
-		weight = gens[choose_event_type].generate(event_vec);
+		weight = gens[choose_event_type].generate(ph_coords, mc_coords);
 		type = static_cast<Int_t>(gens[choose_event_type].type());
 
 		// Fill in the branches.
@@ -722,12 +728,12 @@ int command_generate(char const* params_file_name) {
 			// Non-radiative event.
 			{
 				// Fill in branches.
-				x = event_vec[0];
-				y = event_vec[1];
-				z = event_vec[2];
-				ph_t_sq = event_vec[3];
-				phi_h = event_vec[4];
-				phi = event_vec[5];
+				x = ph_coords[0];
+				y = ph_coords[1];
+				z = ph_coords[2];
+				ph_t_sq = ph_coords[3];
+				phi_h = ph_coords[4];
+				phi = ph_coords[5];
 				tau = 0.;
 				phi_k = 0.;
 				R = 0.;
@@ -754,15 +760,15 @@ int command_generate(char const* params_file_name) {
 			// Radiative event.
 			{
 				// Fill in branches.
-				x = event_vec[0];
-				y = event_vec[1];
-				z = event_vec[2];
-				ph_t_sq = event_vec[3];
-				phi_h = event_vec[4];
-				phi = event_vec[5];
-				tau = event_vec[6];
-				phi_k = event_vec[7];
-				R = event_vec[8];
+				x = ph_coords[0];
+				y = ph_coords[1];
+				z = ph_coords[2];
+				ph_t_sq = ph_coords[3];
+				phi_h = ph_coords[4];
+				phi = ph_coords[5];
+				tau = ph_coords[6];
+				phi_k = ph_coords[7];
+				R = ph_coords[8];
 				if (*params.write_momenta) {
 					kin::PhaseSpaceRad ph_space {
 						x, y, z,

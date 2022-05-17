@@ -590,17 +590,19 @@ void equivalent_xs_nrad(Params const& prod, Params const& cons) {
 		throw std::runtime_error("Different cuts on r.");
 	} else if (prod.cut_mx_sq != cons.cut_mx_sq) {
 		throw std::runtime_error("Different cuts on mx².");
-	} else if (prod.cut_q_0 != cons.cut_q_0) {
-		throw std::runtime_error("Different cuts on q_0.");
-	} else if (prod.cut_k2_0 != cons.cut_k2_0) {
-		throw std::runtime_error("Different cuts on k2_0.");
-	} else if (prod.cut_ph_0 != cons.cut_ph_0) {
-		throw std::runtime_error("Different cuts on ph_0.");
-	} else if (prod.cut_theta_q != cons.cut_theta_q) {
-		throw std::runtime_error("Different cuts on θ_q.");
-	} else if (prod.cut_theta_k2 != cons.cut_theta_k2) {
+	} else if (prod.cut_qt_to_Q != cons.cut_qt_to_Q) {
+		throw std::runtime_error("Different cuts on qT/Q.");
+	} else if (prod.cut_lab_mom_q != cons.cut_lab_mom_q) {
+		throw std::runtime_error("Different cuts on lab momentum q.");
+	} else if (prod.cut_lab_mom_k2 != cons.cut_lab_mom_k2) {
+		throw std::runtime_error("Different cuts on lab momentum k2.");
+	} else if (prod.cut_lab_mom_h != cons.cut_lab_mom_h) {
+		throw std::runtime_error("Different cuts on lab momentum ph.");
+	} else if (prod.cut_lab_theta_q != cons.cut_lab_theta_q) {
+		throw std::runtime_error("Different cuts on lab θ_q.");
+	} else if (prod.cut_lab_theta_k2 != cons.cut_lab_theta_k2) {
 		throw std::runtime_error("Different cuts on θ_k2.");
-	} else if (prod.cut_theta_h != cons.cut_theta_h) {
+	} else if (prod.cut_lab_theta_h != cons.cut_lab_theta_h) {
 		throw std::runtime_error("Different cuts on θ_h.");
 	}
 }
@@ -618,10 +620,9 @@ void equivalent_xs_rad(Params const& prod, Params const& cons) {
 	} else if (prod.cut_k_0_bar != cons.cut_k_0_bar) {
 		throw std::runtime_error(
 			std::string("Different '") + prod.cut_k_0_bar.name() + "'.");
-	} else if (prod.cut_k_0 != cons.cut_k_0) {
-		throw std::runtime_error(
-			std::string("Different '") + prod.cut_k_0.name() + "'.");
-	} else if (prod.cut_theta_k != cons.cut_theta_k) {
+	} else if (prod.cut_lab_mom_k != cons.cut_lab_mom_k) {
+		throw std::runtime_error("Different cuts on lab momentum k.");
+	} else if (prod.cut_lab_theta_k != cons.cut_lab_theta_k) {
 		throw std::runtime_error("Different cuts on θ_k.");
 	}
 }
@@ -651,6 +652,7 @@ void Params::write_root(TFile& file) const {
 	write_param_root_dir(*dir, write_momenta);
 	write_param_root_dir(*dir, write_photon);
 	write_param_root_dir(*dir, write_sf_set);
+	write_param_root_dir(*dir, write_mc_coords);
 	write_param_root_dir(*dir, foam_file);
 	write_param_root_dir(*dir, sf_set);
 	write_param_root_dir(*dir, num_events);
@@ -677,18 +679,19 @@ void Params::write_root(TFile& file) const {
 	write_param_root_dir(*dir, cut_W_sq);
 	write_param_root_dir(*dir, cut_r);
 	write_param_root_dir(*dir, cut_mx_sq);
-	write_param_root_dir(*dir, cut_q_0);
-	write_param_root_dir(*dir, cut_k2_0);
-	write_param_root_dir(*dir, cut_ph_0);
-	write_param_root_dir(*dir, cut_theta_q);
-	write_param_root_dir(*dir, cut_theta_k2);
-	write_param_root_dir(*dir, cut_theta_h);
+	write_param_root_dir(*dir, cut_qt_to_Q);
+	write_param_root_dir(*dir, cut_lab_mom_q);
+	write_param_root_dir(*dir, cut_lab_mom_k2);
+	write_param_root_dir(*dir, cut_lab_mom_h);
+	write_param_root_dir(*dir, cut_lab_theta_q);
+	write_param_root_dir(*dir, cut_lab_theta_k2);
+	write_param_root_dir(*dir, cut_lab_theta_h);
 	write_param_root_dir(*dir, cut_tau);
 	write_param_root_dir(*dir, cut_phi_k);
 	write_param_root_dir(*dir, cut_R);
 	write_param_root_dir(*dir, cut_k_0_bar);
-	write_param_root_dir(*dir, cut_k_0);
-	write_param_root_dir(*dir, cut_theta_k);
+	write_param_root_dir(*dir, cut_lab_mom_k);
+	write_param_root_dir(*dir, cut_lab_theta_k);
 	file.cd();
 }
 
@@ -721,6 +724,7 @@ void Params::read_root(TFile& file) {
 	read_param_root_dir(*dir, write_momenta);
 	read_param_root_dir(*dir, write_photon);
 	read_param_root_dir(*dir, write_sf_set);
+	read_param_root_dir(*dir, write_mc_coords);
 	read_param_root_dir(*dir, foam_file);
 	read_param_root_dir(*dir, sf_set);
 	read_param_root_dir(*dir, num_events);
@@ -747,18 +751,19 @@ void Params::read_root(TFile& file) {
 	read_param_root_dir(*dir, cut_W_sq);
 	read_param_root_dir(*dir, cut_r);
 	read_param_root_dir(*dir, cut_mx_sq);
-	read_param_root_dir(*dir, cut_q_0);
-	read_param_root_dir(*dir, cut_k2_0);
-	read_param_root_dir(*dir, cut_ph_0);
-	read_param_root_dir(*dir, cut_theta_q);
-	read_param_root_dir(*dir, cut_theta_k2);
-	read_param_root_dir(*dir, cut_theta_h);
+	read_param_root_dir(*dir, cut_qt_to_Q);
+	read_param_root_dir(*dir, cut_lab_mom_q);
+	read_param_root_dir(*dir, cut_lab_mom_k2);
+	read_param_root_dir(*dir, cut_lab_mom_h);
+	read_param_root_dir(*dir, cut_lab_theta_q);
+	read_param_root_dir(*dir, cut_lab_theta_k2);
+	read_param_root_dir(*dir, cut_lab_theta_h);
 	read_param_root_dir(*dir, cut_tau);
 	read_param_root_dir(*dir, cut_phi_k);
 	read_param_root_dir(*dir, cut_R);
 	read_param_root_dir(*dir, cut_k_0_bar);
-	read_param_root_dir(*dir, cut_k_0);
-	read_param_root_dir(*dir, cut_theta_k);
+	read_param_root_dir(*dir, cut_lab_mom_k);
+	read_param_root_dir(*dir, cut_lab_theta_k);
 }
 
 void Params::write_stream(std::ostream& file) const {
@@ -777,6 +782,7 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, write_momenta);
 	write_param_stream(file, write_photon);
 	write_param_stream(file, write_sf_set);
+	write_param_stream(file, write_mc_coords);
 	write_param_stream(file, foam_file);
 	write_param_stream(file, sf_set);
 	write_param_stream(file, num_events);
@@ -803,18 +809,19 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, cut_W_sq);
 	write_param_stream(file, cut_r);
 	write_param_stream(file, cut_mx_sq);
-	write_param_stream(file, cut_q_0);
-	write_param_stream(file, cut_k2_0);
-	write_param_stream(file, cut_ph_0);
-	write_param_stream(file, cut_theta_q);
-	write_param_stream(file, cut_theta_k2);
-	write_param_stream(file, cut_theta_h);
+	write_param_stream(file, cut_qt_to_Q);
+	write_param_stream(file, cut_lab_mom_q);
+	write_param_stream(file, cut_lab_mom_k2);
+	write_param_stream(file, cut_lab_mom_h);
+	write_param_stream(file, cut_lab_theta_q);
+	write_param_stream(file, cut_lab_theta_k2);
+	write_param_stream(file, cut_lab_theta_h);
 	write_param_stream(file, cut_tau);
 	write_param_stream(file, cut_phi_k);
 	write_param_stream(file, cut_R);
 	write_param_stream(file, cut_k_0_bar);
-	write_param_stream(file, cut_k_0);
-	write_param_stream(file, cut_theta_k);
+	write_param_stream(file, cut_lab_mom_k);
+	write_param_stream(file, cut_lab_theta_k);
 }
 void Params::read_stream(std::istream& file) {
 	std::unordered_map<std::string, std::string> map;
@@ -858,6 +865,7 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, write_momenta);
 	consume_param_from_map(map, write_photon);
 	consume_param_from_map(map, write_sf_set);
+	consume_param_from_map(map, write_mc_coords);
 	consume_param_from_map(map, foam_file);
 	consume_param_from_map(map, sf_set);
 	consume_param_from_map(map, num_events);
@@ -884,18 +892,19 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, cut_W_sq);
 	consume_param_from_map(map, cut_r);
 	consume_param_from_map(map, cut_mx_sq);
-	consume_param_from_map(map, cut_q_0);
-	consume_param_from_map(map, cut_k2_0);
-	consume_param_from_map(map, cut_ph_0);
-	consume_param_from_map(map, cut_theta_q);
-	consume_param_from_map(map, cut_theta_k2);
-	consume_param_from_map(map, cut_theta_h);
+	consume_param_from_map(map, cut_qt_to_Q);
+	consume_param_from_map(map, cut_lab_mom_q);
+	consume_param_from_map(map, cut_lab_mom_k2);
+	consume_param_from_map(map, cut_lab_mom_h);
+	consume_param_from_map(map, cut_lab_theta_q);
+	consume_param_from_map(map, cut_lab_theta_k2);
+	consume_param_from_map(map, cut_lab_theta_h);
 	consume_param_from_map(map, cut_tau);
 	consume_param_from_map(map, cut_phi_k);
 	consume_param_from_map(map, cut_R);
 	consume_param_from_map(map, cut_k_0_bar);
-	consume_param_from_map(map, cut_k_0);
-	consume_param_from_map(map, cut_theta_k);
+	consume_param_from_map(map, cut_lab_mom_k);
+	consume_param_from_map(map, cut_lab_theta_k);
 
 	if (!map.empty()) {
 		std::ostringstream ss_err;
@@ -959,6 +968,7 @@ void Params::fill_defaults() {
 	beam_pol.get_or_insert(0.);
 	write_momenta.get_or_insert(true);
 	write_sf_set.get_or_insert(false);
+	write_mc_coords.get_or_insert(false);
 	// RC methods.
 	// The process for determining whether radiative and non-radiative events
 	// are generated looks something like this:
@@ -1120,8 +1130,8 @@ void Params::fill_defaults() {
 		if (cut_tau.occupied()
 				|| cut_phi_k.occupied()
 				|| cut_R.occupied()
-				|| cut_k_0.occupied()
-				|| cut_theta_k.occupied()) {
+				|| cut_lab_mom_k.occupied()
+				|| cut_lab_theta_k.occupied()) {
 			throw std::runtime_error(
 				"Cannot apply radiative cuts to non-radiative events.");
 		}
@@ -1158,20 +1168,25 @@ void Params::fill_defaults() {
 			std::string("Cut on φ_k must be smaller than 360 degrees (")
 			+ cut_phi_k.name() + ").");
 	}
-	if (*strict && cut_theta_q.occupied() && !Bound(0., 180.).contains(*cut_theta_q)) {
+	if (*strict && cut_lab_theta_q.occupied() && !Bound(0., 180.).contains(*cut_lab_theta_q)) {
 		throw std::runtime_error(
-			std::string("Cut on θ_q must lie between 0 and 180 degrees (")
-			+ cut_theta_q.name() + ").");
+			std::string("Cut on lab θ_q must lie between 0 and 180 degrees (")
+			+ cut_lab_theta_q.name() + ").");
 	}
-	if (*strict && cut_theta_h.occupied() && !Bound(0., 180.).contains(*cut_theta_h)) {
+	if (*strict && cut_lab_theta_k2.occupied() && !Bound(0., 180.).contains(*cut_lab_theta_k2)) {
 		throw std::runtime_error(
-			std::string("Cut on θ_h must lie between 0 and 180 degrees (")
-			+ cut_theta_h.name() + ").");
+			std::string("Cut on lab θ_k2 must lie between 0 and 180 degrees (")
+			+ cut_lab_theta_k2.name() + ").");
 	}
-	if (*strict && cut_theta_k.occupied() && !Bound(0., 180.).contains(*cut_theta_k)) {
+	if (*strict && cut_lab_theta_h.occupied() && !Bound(0., 180.).contains(*cut_lab_theta_h)) {
 		throw std::runtime_error(
-			std::string("Cut on θ_k must lie between 0 and 180 degrees (")
-			+ cut_theta_k.name() + ").");
+			std::string("Cut on lab θ_h must lie between 0 and 180 degrees (")
+			+ cut_lab_theta_h.name() + ").");
+	}
+	if (*strict && cut_lab_theta_k.occupied() && !Bound(0., 180.).contains(*cut_lab_theta_k)) {
+		throw std::runtime_error(
+			std::string("Cut on lab θ_k must lie between 0 and 180 degrees (")
+			+ cut_lab_theta_k.name() + ").");
 	}
 }
 
@@ -1231,6 +1246,7 @@ void Params::merge(Params const& params) {
 	*rad_gen = *rad_gen || *params.rad_gen;
 	*write_momenta = *write_momenta && *params.write_momenta;
 	*write_sf_set = *write_sf_set && *params.write_sf_set;
+	*write_mc_coords = *write_mc_coords && *params.write_mc_coords;
 	if (*write_momenta) {
 		*write_photon = *write_photon && *params.write_photon;
 	}
@@ -1247,8 +1263,8 @@ void Params::merge(Params const& params) {
 		cut_phi_k.take_first(params.cut_phi_k);
 		cut_R.take_first(params.cut_R);
 		cut_k_0_bar.take_first(params.cut_k_0_bar);
-		cut_k_0.take_first(params.cut_k_0);
-		cut_theta_k.take_first(params.cut_theta_k);
+		cut_lab_mom_k.take_first(params.cut_lab_mom_k);
+		cut_lab_theta_k.take_first(params.cut_lab_theta_k);
 	}
 }
 
@@ -1268,6 +1284,7 @@ bool Params::operator==(Params const& rhs) const {
 		&& write_momenta == rhs.write_momenta
 		&& write_photon == rhs.write_photon
 		&& write_sf_set == rhs.write_sf_set
+		&& write_mc_coords == rhs.write_mc_coords
 		&& foam_file == rhs.foam_file
 		&& sf_set == rhs.sf_set
 		&& num_events == rhs.num_events
@@ -1294,17 +1311,18 @@ bool Params::operator==(Params const& rhs) const {
 		&& cut_W_sq == rhs.cut_W_sq
 		&& cut_r == rhs.cut_r
 		&& cut_mx_sq == rhs.cut_mx_sq
-		&& cut_q_0 == rhs.cut_q_0
-		&& cut_k2_0 == rhs.cut_k2_0
-		&& cut_ph_0 == rhs.cut_ph_0
-		&& cut_theta_q == rhs.cut_theta_q
-		&& cut_theta_k2 == rhs.cut_theta_k2
-		&& cut_theta_h == rhs.cut_theta_h
+		&& cut_qt_to_Q == rhs.cut_qt_to_Q
+		&& cut_lab_mom_q == rhs.cut_lab_mom_q
+		&& cut_lab_mom_k2 == rhs.cut_lab_mom_k2
+		&& cut_lab_mom_h == rhs.cut_lab_mom_h
+		&& cut_lab_theta_q == rhs.cut_lab_theta_q
+		&& cut_lab_theta_k2 == rhs.cut_lab_theta_k2
+		&& cut_lab_theta_h == rhs.cut_lab_theta_h
 		&& cut_tau == rhs.cut_tau
 		&& cut_phi_k == rhs.cut_phi_k
 		&& cut_R == rhs.cut_R
 		&& cut_k_0_bar == rhs.cut_k_0_bar
-		&& cut_k_0 == rhs.cut_k_0
-		&& cut_theta_k == rhs.cut_theta_k;
+		&& cut_lab_mom_k == rhs.cut_lab_mom_k
+		&& cut_lab_theta_k == rhs.cut_lab_theta_k;
 }
 
