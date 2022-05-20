@@ -8,7 +8,7 @@
 #include "sidis/cut.hpp"
 #include "sidis/frame.hpp"
 #include "sidis/hadronic_coeff.hpp"
-#include "sidis/integ.hpp"
+#include "sidis/integ_params.hpp"
 #include "sidis/kinematics.hpp"
 #include "sidis/leptonic_coeff.hpp"
 #include "sidis/numeric.hpp"
