@@ -37,8 +37,8 @@ int main(int argc, char** argv) {
 	Real z_min = 0.1;
 	Real z_max = 0.8;
 
-	IntegParams params_sivers { 1000000, 0., 1e-3 };
-	IntegParams params_collins { 1000000, 0., 1e-4 };
+	IntegParams params_sivers { IntegMethod::CUBATURE, 1000000, 0., 1e-3 };
+	IntegParams params_collins { IntegMethod::CUBATURE, 1000000, 0., 1e-4 };
 	TF1 f_sivers("Sivers Born", [&](Double_t* xs, Double_t* arr) {
 		Real z = static_cast<Real>(xs[0]);
 		Real ph_t_sq = static_cast<Real>(arr[0] * arr[0]);
