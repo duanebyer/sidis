@@ -1,7 +1,7 @@
 #ifndef SIDIS_ASYMMETRY_HPP
 #define SIDIS_ASYMMETRY_HPP
 
-#include "sidis/integ.hpp"
+#include "sidis/integ_params.hpp"
 #include "sidis/numeric.hpp"
 
 namespace sidis {
@@ -15,8 +15,18 @@ namespace sf {
 
 namespace asym {
 
-math::IntegParams const DEFAULT_INTEG_PARAMS { 1000000, 1e-6, 0. };
-math::IntegParams const DEFAULT_INTEG_PARAMS_ASYM { 1000000, 0., 1e-5 };
+math::IntegParams const DEFAULT_INTEG_PARAMS {
+	math::IntegMethod::CUBATURE,
+	1000000,
+	1e-6,
+	0.,
+};
+math::IntegParams const DEFAULT_INTEG_PARAMS_ASYM {
+	math::IntegMethod::CUBATURE,
+	1000000,
+	0.,
+	1e-5,
+};
 
 /**
  * \defgroup AsymGroup Transverse single-spin asymmetries

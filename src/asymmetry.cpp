@@ -2,8 +2,6 @@
 
 #include <cmath>
 
-#include <cubature.hpp>
-
 #include "sidis/cross_section.hpp"
 #include "sidis/cut.hpp"
 #include "sidis/hadronic_coeff.hpp"
@@ -12,6 +10,7 @@
 #include "sidis/particle.hpp"
 #include "sidis/structure_function.hpp"
 #include "sidis/vector.hpp"
+#include "sidis/extra/integrate.hpp"
 
 using namespace sidis;
 using namespace sidis::asym;
@@ -33,7 +32,7 @@ EstErr ut_integ_h(
 	Real Q_sq = S * x * y;
 	sf::SfUP sf = sf_set.sf_up(ps.hadron, x, z, Q_sq, ph_t_sq);
 	if (!include_rc) {
-		cubature::EstErr<Real> born_integ = cubature::cubature(
+		EstErr born_integ = integrate(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
@@ -49,10 +48,10 @@ EstErr ut_integ_h(
 				return result;
 			},
 			-PI, PI,
-			params.max_evals, params.err_abs, params.err_rel);
-		return { born_integ.val, born_integ.err };
+			params);
+		return born_integ;
 	} else {
-		cubature::EstErr<Real> nrad_ir_integ = cubature::cubature(
+		EstErr nrad_ir_integ = integrate(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
@@ -67,9 +66,9 @@ EstErr ut_integ_h(
 					+ eta.y * xs::nrad_ir_ut2_base(b, lep, had);
 			},
 			-PI, PI,
-			params.max_evals, params.err_abs, params.err_rel);
-		cubature::EstErr<Real> rad_f_integ = cubature::cubature(
-			[&](cubature::Point<4, Real> ph) {
+			params);
+		EstErr rad_f_integ = integrate(
+			[&](std::array<Real, 4> ph) {
 				Bound phi_h_b(-PI, PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
@@ -100,9 +99,9 @@ EstErr ut_integ_h(
 				}
 				return jacobian * xs;
 			},
-			cubature::Point<4, Real>{ 0., 0., 0., 0. },
-			cubature::Point<4, Real>{ 1., 1., 1., 1. },
-			params.max_evals, params.err_abs, params.err_rel);
+			std::array<Real, 4>{ 0., 0., 0., 0. },
+			std::array<Real, 4>{ 1., 1., 1., 1. },
+			params);
 		Real val = nrad_ir_integ.val + rad_f_integ.val;
 		Real err = std::hypot(nrad_ir_integ.err, rad_f_integ.err);
 		return { val, err };
@@ -124,7 +123,7 @@ EstErr asym::uu_integ(
 	sf::SfUU sf = sf_set.sf_uu(ps.hadron, x, z, Q_sq, ph_t_sq);
 	if (!include_rc) {
 		// Without radiative corrections, there is only the Born cross-section.
-		cubature::EstErr<Real> born_integ = cubature::cubature(
+		EstErr born_integ = integrate(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
@@ -134,7 +133,7 @@ EstErr asym::uu_integ(
 				return xs::born_uu_base(born, lep, had);
 			},
 			-PI, PI,
-			params.max_evals, params.err_abs, params.err_rel);
+			params);
 		Real val = 2. * PI * born_integ.val;
 		Real err = 2. * PI * born_integ.err;
 		return { val, err };
@@ -142,7 +141,7 @@ EstErr asym::uu_integ(
 		// Evaluate the "non-radiative" and "radiative" parts separately so we
 		// can take combine the `phi_h` integration with the photon degrees of
 		// freedom.
-		cubature::EstErr<Real> nrad_ir_integ = cubature::cubature(
+		EstErr nrad_ir_integ = integrate(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
@@ -152,9 +151,9 @@ EstErr asym::uu_integ(
 				return xs::nrad_ir_uu_base(b, lep, had);
 			},
 			-PI, PI,
-			params.max_evals, params.err_abs, params.err_rel);
-		cubature::EstErr<Real> rad_f_integ = cubature::cubature(
-			[&](cubature::Point<4, Real> ph) {
+			params);
+		EstErr rad_f_integ = integrate(
+			[&](std::array<Real, 4> ph) {
 				Bound phi_h_b(-PI, PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
@@ -180,9 +179,9 @@ EstErr asym::uu_integ(
 				}
 				return jacobian * xs;
 			},
-			cubature::Point<4, Real>{ 0., 0., 0., 0. },
-			cubature::Point<4, Real>{ 1., 1., 1., 1. },
-			params.max_evals, params.err_abs, params.err_rel);
+			std::array<Real, 4>{ 0., 0., 0., 0. },
+			std::array<Real, 4>{ 1., 1., 1., 1. },
+			params);
 		// It's unclear whether these two errors really are independent, but
 		// it's likely a good enough approximation.
 		Real val = 2. * PI * (nrad_ir_integ.val + rad_f_integ.val);
@@ -226,21 +225,29 @@ EstErr asym::ut_asym(
 	// true asymmetry value. It's guaranteed to be smaller than 1, but in
 	// practice it will be even smaller than that, so leave it at 0.5.
 	Real adjust = 0.5;
+	IntegParams uu_params {
+		params.method,
+		params.num_evals,
+		std::max(params.err_rel, 2. * adjust * params.err_abs),
+		0.,
+	};
 	EstErr uu = uu_integ(
 		sf_set,
 		ps, S, x, y, z, ph_t_sq,
 		include_rc,
-		{
-			params.max_evals,
-			std::max(params.err_rel, 2. * adjust * params.err_abs),
-			0.
-		});
+		uu_params);
+	IntegParams ut_params {
+		params.method,
+		params.num_evals,
+		params.err_rel,
+		2. * uu.val * params.err_abs,
+	};
 	EstErr ut = ut_integ(
 		sf_set,
 		ps, S, x, y, z, ph_t_sq,
 		phi_s_coeff, phi_h_coeff, offset,
 		include_rc,
-		{ params.max_evals, params.err_rel, 2. * uu.val * params.err_abs });
+		ut_params);
 	Real val = 2. * ut.val / uu.val;
 	Real err = std::hypot(ut.err / ut.val, uu.err / uu.val) * std::abs(val);
 	return { val, err };

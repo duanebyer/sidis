@@ -2,7 +2,7 @@
 #define SIDIS_CROSS_SECTION_HPP
 
 #include "sidis/constant.hpp"
-#include "sidis/integ.hpp"
+#include "sidis/integ_params.hpp"
 #include "sidis/numeric.hpp"
 
 namespace sidis {
@@ -76,7 +76,12 @@ namespace sf {
 
 namespace xs {
 
-math::IntegParams const DEFAULT_INTEG_PARAMS { 1000000, 1e-6, 0. };
+math::IntegParams const DEFAULT_INTEG_PARAMS {
+	math::IntegMethod::CUBATURE,
+	1000000,
+	1e-6,
+	0.,
+};
 
 /**
  * \defgroup XsGroup Cross-sections

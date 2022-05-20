@@ -4,8 +4,6 @@
 #include <limits>
 #include <string>
 
-#include <cubature.hpp>
-
 #include "sidis/bound.hpp"
 #include "sidis/constant.hpp"
 #include "sidis/cut.hpp"
@@ -15,6 +13,7 @@
 #include "sidis/leptonic_coeff.hpp"
 #include "sidis/structure_function.hpp"
 #include "sidis/vector.hpp"
+#include "sidis/extra/integrate.hpp"
 #include "sidis/extra/math.hpp"
 
 using namespace sidis;
@@ -203,12 +202,11 @@ EstErr xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Ve
 	HadXX had_0(kin, sf);
 	CutRad cut;
 	cut.k_0_bar = Bound(0., k_0_bar);
-	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
-		[&](cubature::Point<3, Real> x) {
-			Real point[3] = { x[0], x[1], x[2] };
+	EstErr xs_integ = integrate<3>(
+		[&](std::array<Real, 3> x) {
 			KinematicsRad kin_rad;
 			Real jacobian;
-			if (!take(cut, kin, point, &kin_rad, &jacobian)) {
+			if (!take(cut, kin, x.data(), &kin_rad, &jacobian)) {
 				return 0.;
 			}
 
@@ -230,21 +228,20 @@ EstErr xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Ve
 				return jacobian * xs;
 			}
 		},
-		cubature::Point<3, Real>{ 0., 0., 0. },
-		cubature::Point<3, Real>{ 1., 1., 1. },
-		params.max_evals, params.err_abs, params.err_rel);
-	return { xs_integ.val, xs_integ.err };
+		std::array<Real, 3>{ 0., 0., 0. },
+		std::array<Real, 3>{ 1., 1., 1. },
+		params);
+	return xs_integ;
 }
 
 EstErr xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
 	CutRad cut;
 	cut.k_0_bar = Bound(k_0_bar, INF);
-	cubature::EstErr<Real> xs_integ = cubature::cubature<3>(
-		[&](cubature::Point<3, Real> x) {
-			Real point[3] = { x[0], x[1], x[2] };
+	EstErr xs_integ = integrate<3>(
+		[&](std::array<Real, 3> x) {
 			KinematicsRad kin_rad;
 			Real jacobian;
-			if (!take(cut, kin, point, &kin_rad, &jacobian)) {
+			if (!take(cut, kin, x.data(), &kin_rad, &jacobian)) {
 				return 0.;
 			}
 
@@ -262,10 +259,10 @@ EstErr xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3
 				return jacobian * xs;
 			}
 		},
-		cubature::Point<3, Real>{ 0., 0., 0. },
-		cubature::Point<3, Real>{ 1., 1., 1. },
-		params.max_evals, params.err_abs, params.err_rel);
-	return { xs_integ.val, xs_integ.err };
+		std::array<Real, 3>{ 0., 0., 0. },
+		std::array<Real, 3>{ 1., 1., 1. },
+		params);
+	return xs_integ;
 }
 
 // Radiative corrections to Born cross-section.
