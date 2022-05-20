@@ -7,7 +7,7 @@ set(
 	"sidis/cross_section.hpp"
 	"sidis/cut.hpp"
 	"sidis/frame.hpp"
-	"sidis/integ.hpp"
+	"sidis/integ_params.hpp"
 	"sidis/kinematics.hpp"
 	"sidis/particle.hpp"
 	"sidis/tmd.hpp"
@@ -40,6 +40,8 @@ foreach(HEADER ${HEADER_LIST_GENERATE})
 	list(APPEND HEADER_LIST_SOURCE "${Sidis_SOURCE_DIR}/include/${HEADER}.in")
 	list(APPEND HEADER_LIST_DIST "${Sidis_BINARY_DIR}/include/${HEADER}")
 endforeach(HEADER)
+
+find_package(GSL REQUIRED)
 
 # Check that Python is installed.
 if(CMAKE_VERSION VERSION_LESS 3.12)
@@ -86,7 +88,7 @@ add_library(
 	vector.cpp
 	sf_set/prokudin.cpp
 	${HEADER_LIST_SOURCE})
-target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature)
+target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature GSL::gsl)
 target_include_directories(
 	sidis PUBLIC
 	"${Sidis_SOURCE_DIR}/include"
