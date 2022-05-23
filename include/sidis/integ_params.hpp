@@ -40,10 +40,8 @@ struct IntegParams {
 	IntegMethod method;
 	/// Number of evaluations of the integrand.
 	unsigned num_evals;
-	/// Relative precision goal for the integral.
-	Real err_rel;
-	/// Absolute precision goal for the integral.
-	Real err_abs;
+	/// Number of samples to burn (if the method uses a burn-in period).
+	unsigned num_burn;
 };
 
 }

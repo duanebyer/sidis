@@ -3,8 +3,10 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <memory>
 #include <new>
+#include <utility>
 
 #include <cubature.hpp>
 
@@ -30,9 +32,7 @@ EstErr integrate(F func,
 		cubature::EstErr<Real> result = cubature::cubature<D>(
 			func,
 			lower, upper,
-			params.num_evals,
-			params.err_abs,
-			params.err_rel);
+			params.num_evals, 0., 0.);
 		return { result.val, result.err };
 	} else if (
 			params.method == IntegMethod::MC_PLAIN
@@ -99,9 +99,18 @@ EstErr integrate(F func,
 			if (state == nullptr) {
 				throw std::bad_alloc();
 			}
-			// TODO: Divide into warm-up and actual runs. Might be worth
-			// gradually increasing the number of runs until the error is below
-			// the threshold.
+			// Burn the first samples.
+			gsl_monte_vegas_integrate(
+				&func_gsl,
+				lower.data(),
+				upper.data(),
+				D,
+				params.num_burn,
+				rnd.get(),
+				state.get(),
+				&result.val,
+				&result.err);
+			// Main evaluation.
 			gsl_monte_vegas_integrate(
 				&func_gsl,
 				lower.data(),
@@ -115,6 +124,7 @@ EstErr integrate(F func,
 		}
 		return result;
 	} else {
+		// Unrecognized integrator. Shouldn't be possible.
 		return { 0., 0. };
 	}
 }
