@@ -126,28 +126,6 @@ EstErr integrate(F func, Real lower, Real upper, IntegParams params) {
 	return integrate<1>(func_arr, { lower }, { upper }, params);
 }
 
-template<typename F>
-Real riemann(F f, Real a, Real b, unsigned n) {
-	Real delta = (b - a) / n;
-	Real result = 0.;
-	for (unsigned i = 0; i < n; ++i) {
-		Real x = (i * b + (n - i) * a + 0.5 * (b - a)) / n;
-		result += f(x);
-	}
-	return result * delta;
-}
-
-template<typename F>
-Real trapezoid(F f, Real a, Real b, unsigned n) {
-	Real delta = (b - a) / n;
-	Real result = 0.5 * (f(a) + f(b));
-	for (unsigned i = 1; i <= n - 1; ++i) {
-		Real x = (i * b + (n - i) * a) / n;
-		result += f(x);
-	}
-	return result * delta;
-}
-
 }
 }
 
