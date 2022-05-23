@@ -38,14 +38,15 @@ EstErr integrate(F func,
 			params.method == IntegMethod::MC_PLAIN
 			|| params.method == IntegMethod::MISER
 			|| params.method == IntegMethod::VEGAS) {
+		// GSL Monte-Carlo integrations.
 		EstErr result;
 		// TODO: How to deal with the case where `Real` is not `double`? This
 		// code will fail to compile as written.
-		auto func_ptr = [](Real* xs, std::size_t, void* params) {
-			F* func = static_cast<F*>(params);
+		auto func_ptr = [](Real* xs, std::size_t, void* data) {
+			F* func_data = static_cast<F*>(data);
 			std::array<Real, D> point;
 			std::move(xs, xs + D, point.begin());
-			return (*func)(point);
+			return (*func_data)(point);
 		};
 		gsl_monte_function func_gsl { func_ptr, D, static_cast<void*>(&func) };
 		// TODO: Which random number generator should be used by default?
