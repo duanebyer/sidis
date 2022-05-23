@@ -51,6 +51,10 @@ EstErr ut_integ_h(
 			params);
 		return born_integ;
 	} else {
+		// TODO: In the future, it might be useful to ensure that these
+		// integrals aren't evaluated to more precision than is needed. E.g., if
+		// the result of `rad_f_integ` is much smaller than `nrad_ir_integ`,
+		// then much less accuracy on `rad_f_integ` is needed.
 		EstErr nrad_ir_integ = integrate(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
@@ -221,33 +225,18 @@ EstErr asym::ut_asym(
 		int phi_s_coeff, int phi_h_coeff, int offset,
 		bool include_rc,
 		IntegParams params) {
-	// Factor used to adjust uncertainty. This should be an over-estimate of the
-	// true asymmetry value. It's guaranteed to be smaller than 1, but in
-	// practice it will be even smaller than that, so leave it at 0.5.
-	Real adjust = 0.5;
-	IntegParams uu_params {
-		params.method,
-		params.num_evals,
-		std::max(params.err_rel, 2. * adjust * params.err_abs),
-		0.,
-	};
 	EstErr uu = uu_integ(
 		sf_set,
 		ps, S, x, y, z, ph_t_sq,
 		include_rc,
-		uu_params);
-	IntegParams ut_params {
-		params.method,
-		params.num_evals,
-		params.err_rel,
-		2. * uu.val * params.err_abs,
-	};
+		params);
 	EstErr ut = ut_integ(
 		sf_set,
 		ps, S, x, y, z, ph_t_sq,
 		phi_s_coeff, phi_h_coeff, offset,
 		include_rc,
-		ut_params);
+		params);
+
 	Real val = 2. * ut.val / uu.val;
 	Real err = std::hypot(ut.err / ut.val, uu.err / uu.val) * std::abs(val);
 	return { val, err };
@@ -265,6 +254,6 @@ EstErr asym::collins(
 		Particles ps, Real S, Real x, Real y, Real z, Real ph_t_sq,
 		bool include_rc,
 		IntegParams params) {
-	return ut_asym(sf_set, ps, S, x, y, z, ph_t_sq, 1, -1, 0, include_rc, params);
+	return ut_asym(sf_set, ps, S, x, y, z, ph_t_sq, 1, 1, 0, include_rc, params);
 }
 
