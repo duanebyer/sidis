@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 	Real k0_cut = 0.01;
 	Real tau = 0., phi_k = 0., R = 0.;
 	bool radiative;
-	math::IntegParams params { math::IntegMethod::CUBATURE, 1000000, 0e-6, 0. };
+	math::IntegParams params { math::IntegMethod::CUBATURE, 100000, 10000 };
 	try {
 		if (argc != 12 && argc != 14) {
 			throw std::invalid_argument(

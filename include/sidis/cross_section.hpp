@@ -78,9 +78,8 @@ namespace xs {
 
 math::IntegParams const DEFAULT_INTEG_PARAMS {
 	math::IntegMethod::CUBATURE,
-	1000000,
-	1e-6,
-	0.,
+	100000,
+	10000,
 };
 
 /**
