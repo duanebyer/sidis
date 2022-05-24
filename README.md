@@ -125,6 +125,8 @@ This software makes use of the following libraries:
   generation using spatial partitioning.
 * [cubature](https://github.com/stevengj/cubature): Multi-dimensional numerical
   integration.
+* [GSL] (https://www.gnu.org/software/gsl/): Multi-dimensional Monte-Carlo
+  integration.
 * [cog](https://nedbatchelder.com/code/cog/): Code generation with Python.
 
 ## References
