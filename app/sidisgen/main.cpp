@@ -48,6 +48,8 @@ static_assert(
 
 namespace {
 
+int const OUTPUT_STATS_PRECISION = 3;
+
 struct DrawProgressBar final :
 		public bubble::ExploreProgressReporter<Real>,
 		public bubble::TuneProgressReporter<Real> {
@@ -77,6 +79,60 @@ void zip_and(bool* begin_1, bool* end_1, bool const* begin_2) {
 		*it_1 &= *it_2;
 		++it_2;
 	}
+}
+
+// Estimates the quantity `sqrt(E[X^2])`, including first-order correction.
+Real est_sqrt_m2(Stats const& stats, Real* err_out=nullptr) {
+	Real ratio_m2_to_max2 = stats.ratio_m2_to_max2();
+	if (ratio_m2_to_max2 < 0.) {
+		ratio_m2_to_max2 = 0.;
+	}
+	Real est_0 = stats.max() * std::sqrt(ratio_m2_to_max2);
+	Real correction = (1. / 8) * stats.ratio_var2_to_m2p2() / stats.count();
+	if (!(-0.5 < correction && correction < 0.5)) {
+		correction = 0.;
+	}
+	if (err_out != nullptr) {
+		Real ratio_var2_to_max2_m2 = stats.ratio_var2_to_max2_m2();
+		if (ratio_var2_to_max2_m2 < 0.) {
+			ratio_var2_to_max2_m2 = 0.;
+		}
+		*err_out = stats.max() * std::sqrt(
+			0.25 * ratio_var2_to_max2_m2 / stats.count());
+	}
+	Real est = est_0 * (1. + correction);
+	return est;
+}
+Real est_mean(Stats const& stats, Real* err_out=nullptr) {
+	Real est = stats.mean();
+	Real ratio_var1_to_max2 = stats.ratio_var1_to_max2();
+	if (ratio_var1_to_max2 < 0.) {
+		ratio_var1_to_max2 = 0.;
+	}
+	if (err_out != nullptr) {
+		*err_out = stats.max() * std::sqrt(ratio_var1_to_max2 / stats.count());
+	}
+	return est;
+}
+Real est_rel_var(Stats const& stats, Real* err_out=nullptr) {
+	Real est_0 = stats.ratio_var1_to_m1p2();
+	Real correction = (2. * stats.ratio_skew1_to_var1_m1() - 3. * est_0)
+		/ stats.count();
+	if (!(-0.5 < correction && correction < 0.5)) {
+		correction = 0.;
+	}
+	Real est = est_0 * (1. + correction);
+	if (err_out != nullptr) {
+		Real kurt_term = stats.ratio_kurt1_to_var1p2();
+		Real skew_term = stats.ratio_skew1_to_var1_m1();
+		Real var_term = stats.ratio_var1_to_m1p2();
+		Real term = kurt_term - 4. * skew_term + 4. * var_term - 1.;
+		if (term < 0.) {
+			term = 0.;
+		}
+		*err_out = est * std::sqrt(term / stats.count());
+	}
+	return est;
 }
 
 // Allocates the memory for the structure functions.
@@ -371,7 +427,7 @@ int command_inspect(char const* file_name) {
 	}
 	std::cout << "Statistics:" << std::endl;
 	flags = std::cout.flags();
-	std::cout << std::scientific << std::setprecision(6);
+	std::cout << std::scientific << std::setprecision(OUTPUT_STATS_PRECISION);
 	for (std::size_t type_idx = 0; type_idx < NUM_EVENT_TYPES + 1; ++type_idx) {
 		auto count = num_events_arr->At(type_idx);
 		if (count == 0) {
@@ -393,17 +449,21 @@ int command_inspect(char const* file_name) {
 			weight_moms_arr->At(4 * type_idx + 3),
 		};
 		Real max = weight_max_arr->At(type_idx);
+
 		Stats stats(moms, max, count);
-		Real mean = stats.mean();
-		Real mean_err = std::sqrt(stats.ratio_var1_to_max2()) * stats.max1()
-			/ std::sqrt(stats.count());
+		Real mean_err;
+		Real mean = est_mean(stats, &mean_err);
 		Real xs = prime * mean;
 		Real xs_err = prime * mean_err;
+		Real rel_var_err;
+		Real rel_var = est_rel_var(stats, &rel_var_err);
 
 		std::cout << "\t\tcount:         " << count << std::endl;
 		std::cout << "\t\tcross-section: " << xs << " ± " << xs_err << std::endl;
+		std::cout << "\t\tprime:         " << prime << std::endl;
 		std::cout << "\t\tnorm:          " << norm << std::endl;
-		std::cout << "\t\tefficiency:    " << mean << " ± " << mean_err << std::endl;
+		std::cout << "\t\trel. variance: " << rel_var << " ± " << rel_var_err << std::endl;
+		std::cout << "\t\tefficiency:    " << 1. / std::sqrt(1. + rel_var) << std::endl;
 	}
 	std::cout.flags(flags);
 
@@ -703,8 +763,9 @@ int command_generate(char const* params_file_name) {
 			Real ratio_max = 0.;
 			for (std::size_t idx = 0; idx < gens.size(); ++idx) {
 				Generator const& gen = gens[idx];
+				Stats stats = gen.weights();
 				// Equivalent to cross-section divided by total weight.
-				Real ratio = gen.prime() / gen.weights().count();
+				Real ratio = gen.prime() * est_sqrt_m2(stats) / stats.count();
 				if (!std::isfinite(ratio)) {
 					ratio = std::numeric_limits<Real>::infinity();
 				}
@@ -817,19 +878,30 @@ int command_generate(char const* params_file_name) {
 	TArrayD norm_arr(NUM_EVENT_TYPES + 1);
 	Stats stats_total;
 	Real prime_total = 0.;
+	std::size_t count_total = 0;
 	std::ios_base::fmtflags flags(std::cout.flags());
-	std::cout << std::scientific << std::setprecision(6);
+	std::cout << std::scientific << std::setprecision(OUTPUT_STATS_PRECISION);
+	for (Generator& gen : gens) {
+		// Need these ahead of time, for computing the weight.
+		prime_total += gen.prime();
+		count_total += gen.weights().count();
+	}
 	for (Generator& gen : gens) {
 		Stats stats = gen.weights();
 		Real prime = gen.prime();
-		stats_total += stats;
-		prime_total += prime;
-		Real norm = prime / stats.count();
-		Real mean = stats.mean();
-		Real mean_err = std::sqrt(stats.ratio_var1_to_max2()) * stats.max1()
-			/ std::sqrt(stats.count());
+		std::size_t count = stats.count();
+		Real mean_err;
+		Real mean = est_mean(stats, &mean_err);
 		Real xs = prime * mean;
 		Real xs_err = prime * mean_err;
+		Real rel_var_err;
+		Real rel_var = est_rel_var(stats, &rel_var_err);
+
+		// The weight is chosen so that the total cross-section averages out
+		// correctly. Normally it is near one for all types of events.
+		Real weight = (prime / count) / (prime_total / count_total);
+		Real norm = prime / count;
+		stats_total += weight * stats;
 
 		Int_t type_idx = static_cast<Int_t>(gen.type());
 		prime_arr.SetAt(prime, type_idx);
@@ -842,18 +914,22 @@ int command_generate(char const* params_file_name) {
 		norm_arr.SetAt(norm, type_idx);
 
 		std::cout << "\t" << event_type_name(gen.type()) << " events:" << std::endl;
+		std::cout << "\t\tweight:        " << weight << std::endl;
 		std::cout << "\t\tcount:         " << stats.count() << std::endl;
 		std::cout << "\t\tcross-section: " << xs << " ± " << xs_err << std::endl;
+		std::cout << "\t\tprime:         " << prime << std::endl;
 		std::cout << "\t\tnorm:          " << norm << std::endl;
-		std::cout << "\t\tefficiency:    " << mean << " ± " << mean_err << std::endl;
+		std::cout << "\t\trel. variance: " << rel_var << " ± " << rel_var_err << std::endl;
+		std::cout << "\t\tefficiency:    " << 1. / std::sqrt(1. + rel_var) << std::endl;
 	}
 
-	Real norm = prime_total / stats_total.count();
-	Real mean = stats_total.mean();
-	Real mean_err = std::sqrt(stats_total.ratio_var1_to_max2()) * stats_total.max1()
-		/ std::sqrt(stats_total.count());
+	Real norm = prime_total / count_total;
+	Real mean_err;
+	Real mean = est_mean(stats_total, &mean_err);
 	Real xs = prime_total * mean;
 	Real xs_err = prime_total * mean_err;
+	Real rel_var_err;
+	Real rel_var = est_rel_var(stats_total, &rel_var_err);
 
 	prime_arr.SetAt(prime_total, NUM_EVENT_TYPES);
 	weight_moms_arr.SetAt(stats_total.ratio_m1_to_max1(), 4 * NUM_EVENT_TYPES + 0);
@@ -867,8 +943,10 @@ int command_generate(char const* params_file_name) {
 	std::cout << "\ttotal:" << std::endl;
 		std::cout << "\t\tcount:         " << stats_total.count() << std::endl;
 		std::cout << "\t\tcross-section: " << xs << " ± " << xs_err << std::endl;
+		std::cout << "\t\tprime:         " << prime_total << std::endl;
 		std::cout << "\t\tnorm:          " << norm << std::endl;
-		std::cout << "\t\tefficiency:    " << mean << " ± " << mean_err << std::endl;
+		std::cout << "\t\trel. variance: " << rel_var << " ± " << rel_var_err << std::endl;
+		std::cout << "\t\tefficiency:    " << 1. / std::sqrt(1. + rel_var) << std::endl;
 
 	std::cout.flags(flags);
 	stats_dir->WriteObject(&prime_arr, "prime");
