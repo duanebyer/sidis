@@ -70,5 +70,16 @@ if(ROOT_FOUND)
 		PRIVATE
 		$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
 		$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+
+	add_executable(process_events process_events.cpp)
+	target_link_libraries(process_events PRIVATE
+		ROOT::Core ROOT::Gpad ROOT::Graf ROOT::Tree)
+	target_compile_features(process_events PRIVATE cxx_std_11)
+	set_target_properties(process_events PROPERTIES CXX_EXTENSIONS OFF)
+	target_compile_options(
+		process_events
+		PRIVATE
+		$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
+		$<$<CXX_COMPILER_ID:MSVC>:/W4>)
 endif()
 
