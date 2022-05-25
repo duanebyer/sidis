@@ -409,6 +409,7 @@ int command_inspect(char const* file_name) {
 	TArrayD* weight_max_arr = file.Get<TArrayD>("stats/weight_max");
 	TArrayL* num_events_arr = file.Get<TArrayL>("stats/num_events");
 	TArrayD* norm_arr = file.Get<TArrayD>("stats/norm");
+	TArrayD* acceptance_arr = file.Get<TArrayD>("stats/acceptance");
 	if (
 			prime_arr == nullptr
 			|| prime_arr->GetSize() != NUM_EVENT_TYPES + 1
@@ -419,7 +420,9 @@ int command_inspect(char const* file_name) {
 			|| num_events_arr == nullptr
 			|| num_events_arr->GetSize() != NUM_EVENT_TYPES + 1
 			|| norm_arr == nullptr
-			|| norm_arr->GetSize() != NUM_EVENT_TYPES + 1) {
+			|| norm_arr->GetSize() != NUM_EVENT_TYPES + 1
+			|| acceptance_arr == nullptr
+			|| acceptance_arr->GetSize() != NUM_EVENT_TYPES + 1) {
 		throw Exception(
 			ERROR_FILE_NOT_FOUND,
 			std::string("Couldn't find statistics in file '") + file_name
@@ -442,6 +445,7 @@ int command_inspect(char const* file_name) {
 
 		Real prime = prime_arr->At(type_idx);
 		Real norm = norm_arr->At(type_idx);
+		Real acceptance = acceptance_arr->At(type_idx);
 		std::array<Real, 4> moms = {
 			weight_moms_arr->At(4 * type_idx + 0),
 			weight_moms_arr->At(4 * type_idx + 1),
@@ -463,6 +467,7 @@ int command_inspect(char const* file_name) {
 		std::cout << "\t\tprime:         " << prime << std::endl;
 		std::cout << "\t\tnorm:          " << norm << std::endl;
 		std::cout << "\t\trel. variance: " << rel_var << " ± " << rel_var_err << std::endl;
+		std::cout << "\t\tacceptance:    " << acceptance << std::endl;
 		std::cout << "\t\tefficiency:    " << 1. / std::sqrt(1. + rel_var) << std::endl;
 	}
 	std::cout.flags(flags);
@@ -876,15 +881,18 @@ int command_generate(char const* params_file_name) {
 	TArrayD weight_max_arr(NUM_EVENT_TYPES + 1);
 	TArrayL num_events_arr(NUM_EVENT_TYPES + 1);
 	TArrayD norm_arr(NUM_EVENT_TYPES + 1);
+	TArrayD acceptance_arr(NUM_EVENT_TYPES + 1);
 	Stats stats_total;
 	Real prime_total = 0.;
 	std::size_t count_total = 0;
+	std::size_t count_acc_total = 0;
 	std::ios_base::fmtflags flags(std::cout.flags());
 	std::cout << std::scientific << std::setprecision(OUTPUT_STATS_PRECISION);
 	for (Generator& gen : gens) {
-		// Need these ahead of time, for computing the weight.
+		// Need these ahead of time, for computing the weights and norms.
 		prime_total += gen.prime();
-		count_total += gen.weights().count();
+		count_total += gen.count();
+		count_acc_total += gen.count_acc();
 	}
 	for (Generator& gen : gens) {
 		Stats stats = gen.weights();
@@ -896,10 +904,12 @@ int command_generate(char const* params_file_name) {
 		Real xs_err = prime * mean_err;
 		Real rel_var_err;
 		Real rel_var = est_rel_var(stats, &rel_var_err);
+		Real acceptance = gen.acceptance();
 
 		// The weight is chosen so that the total cross-section averages out
 		// correctly. Normally it is near one for all types of events.
 		Real weight = (prime / count) / (prime_total / count_total);
+		// This comes from `norm = weight * (prime_total / count_total)`.
 		Real norm = prime / count;
 		stats_total += weight * stats;
 
@@ -912,6 +922,7 @@ int command_generate(char const* params_file_name) {
 		weight_max_arr.SetAt(stats.max1(), type_idx);
 		num_events_arr.SetAt(stats.count(), type_idx);
 		norm_arr.SetAt(norm, type_idx);
+		acceptance_arr.SetAt(acceptance, type_idx);
 
 		std::cout << "\t" << event_type_name(gen.type()) << " events:" << std::endl;
 		std::cout << "\t\tweight:        " << weight << std::endl;
@@ -920,6 +931,7 @@ int command_generate(char const* params_file_name) {
 		std::cout << "\t\tprime:         " << prime << std::endl;
 		std::cout << "\t\tnorm:          " << norm << std::endl;
 		std::cout << "\t\trel. variance: " << rel_var << " ± " << rel_var_err << std::endl;
+		std::cout << "\t\tacceptance:    " << acceptance << std::endl;
 		std::cout << "\t\tefficiency:    " << 1. / std::sqrt(1. + rel_var) << std::endl;
 	}
 
@@ -930,6 +942,7 @@ int command_generate(char const* params_file_name) {
 	Real xs_err = prime_total * mean_err;
 	Real rel_var_err;
 	Real rel_var = est_rel_var(stats_total, &rel_var_err);
+	Real acceptance = static_cast<Real>(count_acc_total) / count_total;
 
 	prime_arr.SetAt(prime_total, NUM_EVENT_TYPES);
 	weight_moms_arr.SetAt(stats_total.ratio_m1_to_max1(), 4 * NUM_EVENT_TYPES + 0);
@@ -939,6 +952,7 @@ int command_generate(char const* params_file_name) {
 	weight_max_arr.SetAt(stats_total.max1(), NUM_EVENT_TYPES);
 	num_events_arr.SetAt(stats_total.count(), NUM_EVENT_TYPES);
 	norm_arr.SetAt(norm, NUM_EVENT_TYPES);
+	acceptance_arr.SetAt(acceptance, NUM_EVENT_TYPES);
 
 	std::cout << "\ttotal:" << std::endl;
 		std::cout << "\t\tcount:         " << stats_total.count() << std::endl;
@@ -946,6 +960,7 @@ int command_generate(char const* params_file_name) {
 		std::cout << "\t\tprime:         " << prime_total << std::endl;
 		std::cout << "\t\tnorm:          " << norm << std::endl;
 		std::cout << "\t\trel. variance: " << rel_var << " ± " << rel_var_err << std::endl;
+		std::cout << "\t\tacceptance:    " << acceptance << std::endl;
 		std::cout << "\t\tefficiency:    " << 1. / std::sqrt(1. + rel_var) << std::endl;
 
 	std::cout.flags(flags);
@@ -954,6 +969,7 @@ int command_generate(char const* params_file_name) {
 	stats_dir->WriteObject(&weight_max_arr, "weight_max");
 	stats_dir->WriteObject(&num_events_arr, "num_events");
 	stats_dir->WriteObject(&norm_arr, "norm");
+	stats_dir->WriteObject(&acceptance_arr, "acceptance");
 
 	return SUCCESS;
 }

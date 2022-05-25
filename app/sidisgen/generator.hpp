@@ -129,6 +129,8 @@ class Generator {
 
 	// Stores statistics about the produced weights.
 	StatsAccum _weights;
+	std::size_t _count;
+	std::size_t _count_acc;
 
 public:
 	Generator(
@@ -147,16 +149,35 @@ public:
 	Int_t seed() const {
 		return _seed;
 	}
-	// Produces an event with a certain weight.
+	// Produces an event with a certain weight. Sometimes, the generator may
+	// produce an event with weight zero. In this case, the event is rejected,
+	// and a new event is sampled to replace it. Rejected events are still
+	// tracked in the resulting statistics, but never returned from this
+	// function.
 	Real generate(Real* ph_out, Real* unit_out);
 	Real generate(Real* ph_out) {
 		Real unit_out[9];
 		return generate(ph_out, unit_out);
 	}
-	// Gets statistics related to the weights produced by the generator.
+	// Gets total number of events generated.
+	std::size_t count() const {
+		return _count;
+	}
+	// Gets total number of events generated that were accepted.
+	std::size_t count_acc() const {
+		return _count_acc;
+	}
+	// Gets acceptance fraction of events.
+	Real acceptance() const {
+		return static_cast<Real>(_count_acc) / _count;
+	}
+	// Gets statistics of the provided weights.
 	Stats weights() const {
 		return _weights.total();
 	}
+	// Gets statistics of the provided weights that were accepted.
+	Stats weights_acc() const;
+
 	// Gets the overall prime of the generator. Combine with the average weight
 	// to get the cross-section.
 	Real prime() const;

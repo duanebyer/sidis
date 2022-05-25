@@ -325,8 +325,11 @@ Generator::Generator(
 		Params const& params,
 		sf::SfSet const& sf,
 		std::istream& is) :
-		_type(type) {
-	_seed = *params.seed->begin();
+		_type(type),
+		_seed(*params.seed->begin()),
+		_weights(),
+		_count(0),
+		_count_acc(0) {
 	if (_seed == 0) {
 		_seed = rnd_dev();
 	}
@@ -356,7 +359,10 @@ Generator::Generator(
 
 Generator::Generator(Generator&& other) :
 		_type(other._type),
-		_weights(other._weights) {
+		_seed(other._seed),
+		_weights(other._weights),
+		_count(other._count),
+		_count_acc(other._count_acc) {
 	switch (_type) {
 	case EventType::NRAD:
 		new (&_generator.nrad) NradGenerator(std::move(other._generator.nrad));
@@ -385,38 +391,57 @@ Generator::~Generator() {
 }
 
 Real Generator::generate(Real* ph_out, Real* unit_out) {
-	Real weight;
-	switch (_type) {
-	case EventType::NRAD:
-		{
-			Point<6> unit_vec, ph_vec;
-			_generator.nrad.generate(&weight, &unit_vec);
-			_generator.nrad.func().transform(unit_vec, &ph_vec);
-			std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
-			std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
+	Real weight = 0.;
+	while (weight == 0.) {
+		switch (_type) {
+		case EventType::NRAD:
+			{
+				Point<6> unit_vec, ph_vec;
+				_generator.nrad.generate(&weight, &unit_vec);
+				_generator.nrad.func().transform(unit_vec, &ph_vec);
+				std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
+				std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
+			}
+			break;
+		case EventType::RAD:
+			{
+				Point<9> unit_vec, ph_vec;
+				_generator.rad.generate(&weight, &unit_vec);
+				_generator.rad.func().transform(unit_vec, &ph_vec);
+				std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
+				std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
+			}
+			break;
+		case EventType::EXCL:
+			{
+				Point<8> unit_vec, ph_vec;
+				_generator.excl.generate(&weight, &unit_vec);
+				_generator.excl.func().transform(unit_vec, &ph_vec);
+				std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
+				std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
+			}
+			break;
 		}
-		break;
-	case EventType::RAD:
-		{
-			Point<9> unit_vec, ph_vec;
-			_generator.rad.generate(&weight, &unit_vec);
-			_generator.rad.func().transform(unit_vec, &ph_vec);
-			std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
-			std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
-		}
-		break;
-	case EventType::EXCL:
-		{
-			Point<8> unit_vec, ph_vec;
-			_generator.excl.generate(&weight, &unit_vec);
-			_generator.excl.func().transform(unit_vec, &ph_vec);
-			std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
-			std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
-		}
-		break;
+		_weights += weight;
+		_count += 1;
 	}
-	_weights += weight;
+	_count_acc += 1;
 	return weight;
+}
+
+Stats Generator::weights_acc() const {
+	Stats stats = weights();
+	// Launder the statistics to reduce the number of counts to exclude any
+	// rejected weights.
+	return Stats(
+		{
+			stats.ratio_m1_to_max1(),
+			stats.ratio_m2_to_max2(),
+			stats.ratio_m3_to_max3(),
+			stats.ratio_m4_to_max4(),
+		},
+		stats.max(),
+		_count_acc);
 }
 
 Real Generator::prime() const {
