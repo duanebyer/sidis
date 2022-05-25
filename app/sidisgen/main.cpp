@@ -81,60 +81,6 @@ void zip_and(bool* begin_1, bool* end_1, bool const* begin_2) {
 	}
 }
 
-// Estimates the quantity `sqrt(E[X^2])`, including first-order correction.
-Real est_sqrt_m2(Stats const& stats, Real* err_out=nullptr) {
-	Real ratio_m2_to_max2 = stats.ratio_m2_to_max2();
-	if (ratio_m2_to_max2 < 0.) {
-		ratio_m2_to_max2 = 0.;
-	}
-	Real est_0 = stats.max() * std::sqrt(ratio_m2_to_max2);
-	Real correction = (1. / 8) * stats.ratio_var2_to_m2p2() / stats.count();
-	if (!(-0.5 < correction && correction < 0.5)) {
-		correction = 0.;
-	}
-	if (err_out != nullptr) {
-		Real ratio_var2_to_max2_m2 = stats.ratio_var2_to_max2_m2();
-		if (ratio_var2_to_max2_m2 < 0.) {
-			ratio_var2_to_max2_m2 = 0.;
-		}
-		*err_out = stats.max() * std::sqrt(
-			0.25 * ratio_var2_to_max2_m2 / stats.count());
-	}
-	Real est = est_0 * (1. + correction);
-	return est;
-}
-Real est_mean(Stats const& stats, Real* err_out=nullptr) {
-	Real est = stats.mean();
-	Real ratio_var1_to_max2 = stats.ratio_var1_to_max2();
-	if (ratio_var1_to_max2 < 0.) {
-		ratio_var1_to_max2 = 0.;
-	}
-	if (err_out != nullptr) {
-		*err_out = stats.max() * std::sqrt(ratio_var1_to_max2 / stats.count());
-	}
-	return est;
-}
-Real est_rel_var(Stats const& stats, Real* err_out=nullptr) {
-	Real est_0 = stats.ratio_var1_to_m1p2();
-	Real correction = (2. * stats.ratio_skew1_to_var1_m1() - 3. * est_0)
-		/ stats.count();
-	if (!(-0.5 < correction && correction < 0.5)) {
-		correction = 0.;
-	}
-	Real est = est_0 * (1. + correction);
-	if (err_out != nullptr) {
-		Real kurt_term = stats.ratio_kurt1_to_var1p2();
-		Real skew_term = stats.ratio_skew1_to_var1_m1();
-		Real var_term = stats.ratio_var1_to_m1p2();
-		Real term = kurt_term - 4. * skew_term + 4. * var_term - 1.;
-		if (term < 0.) {
-			term = 0.;
-		}
-		*err_out = est * std::sqrt(term / stats.count());
-	}
-	return est;
-}
-
 // Allocates the memory for the structure functions.
 void alloc_sf(
 		Params params,
@@ -459,11 +405,11 @@ int command_inspect(char const* file_name) {
 		Stats stats_acc = stats;
 		stats_acc.rescale_count(count_acc);
 		Real mean_err;
-		Real mean = est_mean(stats, &mean_err);
+		Real mean = stats.est_mean(&mean_err);
 		Real xs = prime * mean;
 		Real xs_err = prime * mean_err;
 		Real rel_var_err;
-		Real rel_var = est_rel_var(stats_acc, &rel_var_err);
+		Real rel_var = stats_acc.est_rel_var(&rel_var_err);
 
 		std::cout << "\t\tcount:         " << count_acc << std::endl;
 		std::cout << "\t\tcross-section: " << xs << " ± " << xs_err << std::endl;
@@ -773,7 +719,7 @@ int command_generate(char const* params_file_name) {
 				Generator const& gen = gens[idx];
 				Stats stats = gen.weights();
 				// Equivalent to cross-section divided by total weight.
-				Real ratio = gen.prime() * est_sqrt_m2(stats) / stats.count();
+				Real ratio = gen.prime() * stats.est_sqrt_m2() / stats.count();
 				if (!std::isfinite(ratio)) {
 					ratio = std::numeric_limits<Real>::infinity();
 				}
@@ -903,11 +849,11 @@ int command_generate(char const* params_file_name) {
 		Stats stats_acc = gen.weights_acc();
 		Real prime = gen.prime();
 		Real mean_err;
-		Real mean = est_mean(stats, &mean_err);
+		Real mean = stats.est_mean(&mean_err);
 		Real xs = prime * mean;
 		Real xs_err = prime * mean_err;
 		Real rel_var_err;
-		Real rel_var = est_rel_var(stats_acc, &rel_var_err);
+		Real rel_var = stats_acc.est_rel_var(&rel_var_err);
 		Real acceptance = gen.acceptance();
 
 		// The weight is chosen so that the total cross-section averages out
@@ -942,11 +888,11 @@ int command_generate(char const* params_file_name) {
 
 	Real norm = prime_total / count_total;
 	Real mean_err;
-	Real mean = est_mean(stats_total, &mean_err);
+	Real mean = stats_total.est_mean(&mean_err);
 	Real xs = prime_total * mean;
 	Real xs_err = prime_total * mean_err;
 	Real rel_var_err;
-	Real rel_var = est_rel_var(stats_acc_total, &rel_var_err);
+	Real rel_var = stats_acc_total.est_rel_var(&rel_var_err);
 	Real acceptance = static_cast<Real>(count_acc_total) / count_total;
 
 	prime_arr.SetAt(prime_total, NUM_EVENT_TYPES);
