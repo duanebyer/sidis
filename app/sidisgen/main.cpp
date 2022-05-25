@@ -606,6 +606,11 @@ int command_generate(char const* params_file_name) {
 	std::string foam_file_name = *params.foam_file;
 	std::cout << "Opening FOAM file '" << foam_file_name << "'." << std::endl;
 	TFile foam_file(foam_file_name.c_str(), "OPEN");
+	if (foam_file.IsZombie()) {
+		throw Exception(
+			ERROR_FILE_NOT_FOUND,
+			std::string("Couldn't find file '") + *params.foam_file + "'.");
+	}
 	for (EventType gen_type : gen_types) {
 		char const* gen_name = event_type_name(gen_type);
 		char const* gen_key = event_type_short_name(gen_type);

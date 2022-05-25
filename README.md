@@ -39,6 +39,8 @@ Finally, use the FOAM for Monte-Carlo event generation.
 sidisgen --generate <param-file>
 ```
 
+To process the resulting ROOT file, see `examples/process_events.cpp`.
+
 ### Library
 
 Many demonstrations of the different features of the `sidis` library can be
