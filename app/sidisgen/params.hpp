@@ -161,10 +161,12 @@ struct Params {
 	Param<Int_t> nrad_max_cells;
 	Param<Double_t> nrad_target_eff;
 	Param<Double_t> nrad_scale_exp;
+	Param<Double_t> nrad_rej_scale;
 	Param<Toggle> rad_gen;
 	Param<Int_t> rad_max_cells;
 	Param<Double_t> rad_target_eff;
 	Param<Double_t> rad_scale_exp;
+	Param<Double_t> rad_rej_scale;
 	Param<Toggle> write_momenta;
 	Param<Toggle> write_photon;
 	Param<Toggle> write_sf_set;
@@ -219,10 +221,12 @@ struct Params {
 		nrad_max_cells("mc.nrad.init.max_cells"),
 		nrad_target_eff("mc.nrad.init.target_eff"),
 		nrad_scale_exp("mc.nrad.init.scale_exp"),
+		nrad_rej_scale("mc.nrad.rej_scale"),
 		rad_gen("mc.rad.gen"),
 		rad_max_cells("mc.rad.init.max_cells"),
 		rad_target_eff("mc.rad.init.target_eff"),
 		rad_scale_exp("mc.rad.init.scale_exp"),
+		rad_rej_scale("mc.rad.rej_scale"),
 		write_momenta("file.write_momenta"),
 		write_photon("file.write_photon"),
 		write_sf_set("file.write_sf_set"),

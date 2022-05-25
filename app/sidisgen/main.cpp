@@ -275,11 +275,13 @@ int command_help_params() {
 		<< "mc.nrad.init.max_cells   <integer>"                << std::endl
 		<< "mc.nrad.init.target_eff  <real in [0, 1]>"         << std::endl
 		<< "mc.nrad.init.scale_exp   <real>"                   << std::endl
+		<< "mc.nrad.rej_scale        <real>"                   << std::endl
 		<< "mc.rad.gen               <on, off>"                << std::endl
 		<< "mc.rad.init.seed         <integer>"                << std::endl
 		<< "mc.rad.init.max_cells    <integer>"                << std::endl
 		<< "mc.rad.init.target_eff   <real in [0, 1]>"         << std::endl
 		<< "mc.rad.init.scale_exp    <real>"                   << std::endl
+		<< "mc.rad.rej_scale         <real>"                   << std::endl
 		<< "mc.num_events            <integer>"                << std::endl
 		<< "mc.rej_weight            <real in [1, ∞)>"         << std::endl
 		<< "mc.seed                  <integer>"                << std::endl

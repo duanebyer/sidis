@@ -327,6 +327,7 @@ Generator::Generator(
 		std::istream& is) :
 		_type(type),
 		_seed(*params.seed->begin()),
+		_rej_scale(0.),
 		_weights(),
 		_count(0),
 		_count_acc(0) {
@@ -337,12 +338,14 @@ Generator::Generator(
 	std::uniform_int_distribution<Seed> seed_dist;
 	switch (_type) {
 	case EventType::NRAD:
+		_rej_scale = *params.nrad_rej_scale;
 		new (&_generator.nrad) NradGenerator(
 			NradDensity(params, sf),
 			seed_dist(seed_rnd));
 		_generator.nrad.read(is);
 		break;
 	case EventType::RAD:
+		_rej_scale = *params.rad_rej_scale;
 		new (&_generator.rad) RadGenerator(
 			RadDensity(params, sf),
 			seed_dist(seed_rnd));
@@ -360,6 +363,7 @@ Generator::Generator(
 Generator::Generator(Generator&& other) :
 		_type(other._type),
 		_seed(other._seed),
+		_rej_scale(other._rej_scale),
 		_weights(other._weights),
 		_count(other._count),
 		_count_acc(other._count_acc) {
@@ -397,7 +401,7 @@ Real Generator::generate(Real* ph_out, Real* unit_out) {
 		case EventType::NRAD:
 			{
 				Point<6> unit_vec, ph_vec;
-				_generator.nrad.generate(&weight, &unit_vec);
+				_generator.nrad.generate_rej(_rej_scale, &weight, &unit_vec);
 				_generator.nrad.func().transform(unit_vec, &ph_vec);
 				std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
 				std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
@@ -406,7 +410,7 @@ Real Generator::generate(Real* ph_out, Real* unit_out) {
 		case EventType::RAD:
 			{
 				Point<9> unit_vec, ph_vec;
-				_generator.rad.generate(&weight, &unit_vec);
+				_generator.rad.generate_rej(_rej_scale, &weight, &unit_vec);
 				_generator.rad.func().transform(unit_vec, &ph_vec);
 				std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
 				std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
@@ -415,7 +419,7 @@ Real Generator::generate(Real* ph_out, Real* unit_out) {
 		case EventType::EXCL:
 			{
 				Point<8> unit_vec, ph_vec;
-				_generator.excl.generate(&weight, &unit_vec);
+				_generator.excl.generate_rej(_rej_scale, &weight, &unit_vec);
 				_generator.excl.func().transform(unit_vec, &ph_vec);
 				std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
 				std::copy(unit_vec.begin(), unit_vec.end(), unit_out);

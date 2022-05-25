@@ -126,6 +126,7 @@ class Generator {
 	} _generator;
 	EventType _type;
 	Int_t _seed;
+	Real _rej_scale;
 
 	// Stores statistics about the produced weights.
 	StatsAccum _weights;

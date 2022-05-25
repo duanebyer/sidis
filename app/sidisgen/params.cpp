@@ -645,10 +645,12 @@ void Params::write_root(TFile& file) const {
 	write_param_root_dir(*dir, nrad_max_cells);
 	write_param_root_dir(*dir, nrad_target_eff);
 	write_param_root_dir(*dir, nrad_scale_exp);
+	write_param_root_dir(*dir, nrad_rej_scale);
 	write_param_root_dir(*dir, rad_gen);
 	write_param_root_dir(*dir, rad_max_cells);
 	write_param_root_dir(*dir, rad_target_eff);
 	write_param_root_dir(*dir, rad_scale_exp);
+	write_param_root_dir(*dir, rad_rej_scale);
 	write_param_root_dir(*dir, write_momenta);
 	write_param_root_dir(*dir, write_photon);
 	write_param_root_dir(*dir, write_sf_set);
@@ -717,10 +719,12 @@ void Params::read_root(TFile& file) {
 	read_param_root_dir(*dir, nrad_max_cells);
 	read_param_root_dir(*dir, nrad_target_eff);
 	read_param_root_dir(*dir, nrad_scale_exp);
+	read_param_root_dir(*dir, nrad_rej_scale);
 	read_param_root_dir(*dir, rad_gen);
 	read_param_root_dir(*dir, rad_max_cells);
 	read_param_root_dir(*dir, rad_target_eff);
 	read_param_root_dir(*dir, rad_scale_exp);
+	read_param_root_dir(*dir, rad_rej_scale);
 	read_param_root_dir(*dir, write_momenta);
 	read_param_root_dir(*dir, write_photon);
 	read_param_root_dir(*dir, write_sf_set);
@@ -775,10 +779,12 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, nrad_max_cells);
 	write_param_stream(file, nrad_target_eff);
 	write_param_stream(file, nrad_scale_exp);
+	write_param_stream(file, nrad_rej_scale);
 	write_param_stream(file, rad_gen);
 	write_param_stream(file, rad_max_cells);
 	write_param_stream(file, rad_target_eff);
 	write_param_stream(file, rad_scale_exp);
+	write_param_stream(file, rad_rej_scale);
 	write_param_stream(file, write_momenta);
 	write_param_stream(file, write_photon);
 	write_param_stream(file, write_sf_set);
@@ -858,10 +864,12 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, nrad_max_cells);
 	consume_param_from_map(map, nrad_target_eff);
 	consume_param_from_map(map, nrad_scale_exp);
+	consume_param_from_map(map, nrad_rej_scale);
 	consume_param_from_map(map, rad_gen);
 	consume_param_from_map(map, rad_max_cells);
 	consume_param_from_map(map, rad_target_eff);
 	consume_param_from_map(map, rad_scale_exp);
+	consume_param_from_map(map, rad_rej_scale);
 	consume_param_from_map(map, write_momenta);
 	consume_param_from_map(map, write_photon);
 	consume_param_from_map(map, write_sf_set);
@@ -1067,6 +1075,7 @@ void Params::fill_defaults() {
 		rad_target_eff.get_or_insert(0.50);
 		rad_scale_exp.get_or_insert(0.18);
 		rad_seed_init.get_or_insert(0);
+		rad_rej_scale.get_or_insert(0.);
 	} else {
 		if (write_photon.occupied() && *write_photon) {
 			if (*strict) {
@@ -1097,12 +1106,18 @@ void Params::fill_defaults() {
 				std::string("Cannot specify '") + rad_seed_init.name()
 				+ "' when no radiative events are being generated.");
 		}
+		if (*strict && rad_rej_scale.occupied()) {
+			throw std::runtime_error(
+				std::string("Cannot specify '") + rad_rej_scale.name()
+				+ "' when no radiative events are being generated.");
+		}
 	}
 	if (*nrad_gen) {
 		nrad_max_cells.get_or_insert(262144);
 		nrad_target_eff.get_or_insert(0.95);
 		nrad_scale_exp.get_or_insert(0.50);
 		nrad_seed_init.get_or_insert(0);
+		nrad_rej_scale.get_or_insert(0.);
 	} else {
 		if (*strict && nrad_max_cells.occupied()) {
 			throw std::runtime_error(
@@ -1122,6 +1137,11 @@ void Params::fill_defaults() {
 		if (*strict && nrad_seed_init.occupied()) {
 			throw std::runtime_error(
 				std::string("Cannot specify '") + nrad_seed_init.name()
+				+ "' when no non-radiative events are being generated.");
+		}
+		if (*strict && nrad_rej_scale.occupied()) {
+			throw std::runtime_error(
+				std::string("Cannot specify '") + nrad_rej_scale.name()
 				+ "' when no non-radiative events are being generated.");
 		}
 	}
@@ -1277,10 +1297,12 @@ bool Params::operator==(Params const& rhs) const {
 		&& nrad_max_cells == rhs.nrad_max_cells
 		&& nrad_target_eff == rhs.nrad_target_eff
 		&& nrad_scale_exp == rhs.nrad_scale_exp
+		&& nrad_rej_scale == rhs.nrad_rej_scale
 		&& rad_gen == rhs.rad_gen
 		&& rad_max_cells == rhs.rad_max_cells
 		&& rad_target_eff == rhs.rad_target_eff
 		&& rad_scale_exp == rhs.rad_scale_exp
+		&& rad_rej_scale == rhs.rad_rej_scale
 		&& write_momenta == rhs.write_momenta
 		&& write_photon == rhs.write_photon
 		&& write_sf_set == rhs.write_sf_set
