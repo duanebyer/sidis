@@ -176,7 +176,11 @@ public:
 		return _weights.total();
 	}
 	// Gets statistics of the provided weights that were accepted.
-	Stats weights_acc() const;
+	Stats weights_acc() const {
+		Stats stats = _weights.total();
+		stats.rescale_count(_count_acc);
+		return stats;
+	}
 
 	// Gets the overall prime of the generator. Combine with the average weight
 	// to get the cross-section.

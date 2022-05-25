@@ -429,21 +429,6 @@ Real Generator::generate(Real* ph_out, Real* unit_out) {
 	return weight;
 }
 
-Stats Generator::weights_acc() const {
-	Stats stats = weights();
-	// Launder the statistics to reduce the number of counts to exclude any
-	// rejected weights.
-	return Stats(
-		{
-			stats.ratio_m1_to_max1(),
-			stats.ratio_m2_to_max2(),
-			stats.ratio_m3_to_max3(),
-			stats.ratio_m4_to_max4(),
-		},
-		stats.max(),
-		_count_acc);
-}
-
 Real Generator::prime() const {
 	switch (_type) {
 	case EventType::NRAD:
