@@ -585,7 +585,10 @@ int command_generate(char const* params_file_name) {
 			ERROR_FILE_NOT_FOUND,
 			std::string("Couldn't find file '") + *params.foam_file + "'.");
 	}
+	Params foam_params;
+	foam_params.read_root(foam_file);
 	for (EventType gen_type : gen_types) {
+		params.compatible_with_foam(gen_type, foam_params);
 		char const* gen_name = event_type_name(gen_type);
 		char const* gen_key = event_type_short_name(gen_type);
 		std::cout << "Loading " << gen_name << " FOAM from file." << std::endl;
