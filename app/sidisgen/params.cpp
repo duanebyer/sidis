@@ -617,9 +617,14 @@ void equivalent_xs_rad(Params const& prod, Params const& cons) {
 		throw std::runtime_error("Different cuts on φ_k.");
 	} else if (prod.cut_R != cons.cut_R) {
 		throw std::runtime_error("Different cuts on R.");
-	} else if (prod.cut_k_0_bar != cons.cut_k_0_bar) {
+	} else if (prod.cut_k_0_bar->max() != cons.cut_k_0_bar->max()) {
 		throw std::runtime_error(
-			std::string("Different '") + prod.cut_k_0_bar.name() + "'.");
+			std::string("Different max '") + prod.cut_k_0_bar.name() + "'.");
+	} else if (prod.cut_k_0_bar->min() != cons.cut_k_0_bar->min()
+			&& (prod.cut_k_0_bar->min() > *prod.k_0_bar
+				|| cons.cut_k_0_bar->min() > *cons.k_0_bar)) {
+		throw std::runtime_error(
+			std::string("Different min '") + prod.cut_k_0_bar.name() + "'.");
 	} else if (prod.cut_lab_mom_k != cons.cut_lab_mom_k) {
 		throw std::runtime_error("Different cuts on lab momentum k.");
 	} else if (prod.cut_lab_theta_k != cons.cut_lab_theta_k) {
