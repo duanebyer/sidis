@@ -725,8 +725,9 @@ int command_generate(char const* params_file_name) {
 			for (std::size_t idx = 0; idx < gens.size(); ++idx) {
 				Generator const& gen = gens[idx];
 				Stats stats = gen.weights();
+				Stats stats_acc = gen.weights_acc();
 				// Equivalent to cross-section divided by total weight.
-				Real ratio = gen.prime() * stats.est_sqrt_m2() / stats.count();
+				Real ratio = gen.prime() * stats_acc.est_sqrt_m2() / stats.count();
 				if (!std::isfinite(ratio)) {
 					ratio = std::numeric_limits<Real>::infinity();
 				}
