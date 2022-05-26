@@ -1202,14 +1202,14 @@ void Params::compatible_with_foam(EventType type, Params const& foam_params) con
 		if (!*foam_params.nrad_gen) {
 			throw std::runtime_error("No non-radiative FOAM available.");
 		}
-		compatible_foam_nrad(*this, foam_params);
+		compatible_foam_nrad(foam_params, *this);
 		equivalent_xs_nrad(*this, foam_params);
 	} else if (type == EventType::RAD && *rad_gen) {
 		if (!*foam_params.rad_gen) {
 			throw std::runtime_error("No radiative FOAM available.");
 		}
-		compatible_foam_rad(*this, foam_params);
-		equivalent_xs_rad(*this, foam_params);
+		compatible_foam_rad(foam_params, *this);
+		equivalent_xs_rad(foam_params, *this);
 	}
 }
 
