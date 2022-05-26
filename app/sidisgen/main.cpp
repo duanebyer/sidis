@@ -568,16 +568,6 @@ int command_generate(char const* params_file_name) {
 	std::unique_ptr<sf::TmdSet> tmd;
 	alloc_sf(params, &sf, &tmd);
 
-	std::cout
-		<< "Opening event output file '" << *params.event_file << "'."
-		<< std::endl;
-	TFile event_file(params.event_file->c_str(), "CREATE");
-	if (event_file.IsZombie()) {
-		throw Exception(
-			ERROR_FILE_NOT_CREATED,
-			std::string("Couldn't create file '") + *params.event_file + "'.");
-	}
-
 	// Load the event generators from file.
 	std::vector<EventType> gen_types;
 	if (*params.nrad_gen) {
@@ -619,6 +609,16 @@ int command_generate(char const* params_file_name) {
 		}
 	}
 	foam_file.Close();
+
+	std::cout
+		<< "Opening event output file '" << *params.event_file << "'."
+		<< std::endl;
+	TFile event_file(params.event_file->c_str(), "CREATE");
+	if (event_file.IsZombie()) {
+		throw Exception(
+			ERROR_FILE_NOT_CREATED,
+			std::string("Couldn't create file '") + *params.event_file + "'.");
+	}
 
 	// Setup initial conditions.
 	part::Nucleus target = *params.target;
