@@ -345,9 +345,7 @@ int command_inspect(char const* file_name) {
 	params.read_root(file);
 	std::cout << "Parameters:" << std::endl;
 	std::ios_base::fmtflags flags(std::cout.flags());
-	std::cout
-		<< std::scientific
-		<< std::setprecision(std::numeric_limits<long double>::digits10 + 1);
+	std::cout << std::setprecision(std::numeric_limits<Double_t>::digits10 + 1);
 	params.write_stream(std::cout);
 	std::cout.flags(flags);
 	std::cout << std::endl;
@@ -446,7 +444,10 @@ int command_initialize(char const* params_file_name) {
 			+ params_file_name + "': " + e.what());
 	}
 	std::cout << std::endl;
+	std::ios_base::fmtflags flags(std::cout.flags());
+	std::cout << std::setprecision(std::numeric_limits<Double_t>::digits10 + 1);
 	params.write_stream(std::cout);
+	std::cout.flags(flags);
 	std::cout << std::endl;
 	try {
 		params.fill_defaults();
@@ -565,7 +566,10 @@ int command_generate(char const* params_file_name) {
 			+ params_file_name + "': " + e.what());
 	}
 	std::cout << std::endl;
+	std::ios_base::fmtflags flags(std::cout.flags());
+	std::cout << std::setprecision(std::numeric_limits<Double_t>::digits10 + 1);
 	params.write_stream(std::cout);
+	std::cout.flags(flags);
 	std::cout << std::endl;
 	try {
 		params.fill_defaults();
@@ -584,16 +588,6 @@ int command_generate(char const* params_file_name) {
 	std::unique_ptr<sf::TmdSet> tmd;
 	alloc_sf(params, &sf, &tmd);
 
-	std::cout
-		<< "Opening event output file '" << *params.event_file << "'."
-		<< std::endl;
-	TFile event_file(params.event_file->c_str(), "CREATE");
-	if (event_file.IsZombie()) {
-		throw Exception(
-			ERROR_FILE_NOT_CREATED,
-			std::string("Couldn't create file '") + *params.event_file + "'.");
-	}
-
 	// Load the event generators from file.
 	std::vector<EventType> gen_types;
 	if (*params.nrad_gen) {
@@ -611,10 +605,13 @@ int command_generate(char const* params_file_name) {
 			ERROR_FILE_NOT_FOUND,
 			std::string("Couldn't find file '") + *params.foam_file + "'.");
 	}
+	Params foam_params;
+	foam_params.read_root(foam_file);
 	for (EventType gen_type : gen_types) {
 		char const* gen_name = event_type_name(gen_type);
 		char const* gen_key = event_type_short_name(gen_type);
 		std::cout << "Loading " << gen_name << " FOAM from file." << std::endl;
+		params.compatible_with_foam(gen_type, foam_params);
 		try {
 			std::string* data = foam_file.Get<std::string>(gen_key);
 			if (data == nullptr) {
@@ -635,6 +632,16 @@ int command_generate(char const* params_file_name) {
 		}
 	}
 	foam_file.Close();
+
+	std::cout
+		<< "Opening event output file '" << *params.event_file << "'."
+		<< std::endl;
+	TFile event_file(params.event_file->c_str(), "CREATE");
+	if (event_file.IsZombie()) {
+		throw Exception(
+			ERROR_FILE_NOT_CREATED,
+			std::string("Couldn't create file '") + *params.event_file + "'.");
+	}
 
 	// Setup initial conditions.
 	part::Nucleus target = *params.target;
@@ -844,7 +851,7 @@ int command_generate(char const* params_file_name) {
 	Real prime_total = 0.;
 	std::size_t count_total = 0;
 	std::size_t count_acc_total = 0;
-	std::ios_base::fmtflags flags(std::cout.flags());
+	flags = std::cout.flags();
 	std::cout << std::scientific << std::setprecision(OUTPUT_STATS_PRECISION);
 	for (Generator& gen : gens) {
 		// Need these ahead of time, for computing the weights and norms.
@@ -936,13 +943,6 @@ int command_generate(char const* params_file_name) {
 int command_merge_soft(
 		char const* file_out_name,
 		std::vector<char const*> file_names) {
-	TFile file_out(file_out_name, "CREATE");
-	if (file_out.IsZombie()) {
-		throw Exception(
-			ERROR_FILE_NOT_CREATED,
-			std::string("Couldn't create file '") + file_out_name + "'.");
-	}
-
 	std::cout << "Merging parameters from files." << std::endl;
 	Params params_out;
 	bool first = true;
@@ -967,7 +967,6 @@ int command_merge_soft(
 			params_out.merge(params);
 		}
 	}
-	params_out.write_root(file_out);
 
 	std::cout << "Merging statistics from files." << std::endl;
 	Real primes[NUM_EVENT_TYPES + 1] = {};
@@ -1036,6 +1035,14 @@ int command_merge_soft(
 		}
 		first = false;
 	}
+
+	TFile file_out(file_out_name, "CREATE");
+	if (file_out.IsZombie()) {
+		throw Exception(
+			ERROR_FILE_NOT_CREATED,
+			std::string("Couldn't create file '") + file_out_name + "'.");
+	}
+	params_out.write_root(file_out);
 	TDirectory* stats_dir = file_out.mkdir("stats");
 	if (stats_dir == nullptr) {
 		throw Exception(
