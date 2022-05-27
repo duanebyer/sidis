@@ -283,7 +283,6 @@ int command_help_params() {
 		<< "mc.rad.init.target_eff   <real in [0, 1]>"         << std::endl
 		<< "mc.rad.init.scale_exp    <real>"                   << std::endl
 		<< "mc.num_events            <integer>"                << std::endl
-		<< "mc.rej_weight            <real in [1, ∞)>"         << std::endl
 		<< "mc.seed                  <integer>"                << std::endl
 		<< std::endl
 		<< "setup.beam_energy  <energy (GeV)>"                 << std::endl

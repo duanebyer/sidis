@@ -636,18 +636,18 @@ void equivalent_xs_rad(Params const& prod, Params const& cons) {
 void equivalent_gen_nrad(Params const& prod, Params const& cons) {
 	equivalent_foam_nrad(prod, cons);
 	equivalent_xs_nrad(prod, cons);
-	/*if (prod.nrad_rej_scale != cons.nrad_rej_scale) {
+	if (prod.nrad_rej_scale != cons.nrad_rej_scale) {
 		throw std::runtime_error("Different non-radiative rejection scale.");
-	}*/
+	}
 }
 
 // Check whether radiative generated data is from the same distribution.
 void equivalent_gen_rad(Params const& prod, Params const& cons) {
 	equivalent_foam_rad(prod, cons);
 	equivalent_xs_rad(prod, cons);
-	/*if (prod.rad_rej_scale != cons.rad_rej_scale) {
+	if (prod.rad_rej_scale != cons.rad_rej_scale) {
 		throw std::runtime_error("Different radiative rejection scale.");
-	}*/
+	}
 }
 
 }
@@ -681,7 +681,6 @@ void Params::write_root(TFile& file) const {
 	write_param_root_dir(*dir, foam_file);
 	write_param_root_dir(*dir, sf_set);
 	write_param_root_dir(*dir, num_events);
-	write_param_root_dir(*dir, rej_weight);
 	write_param_root_dir(*dir, seed);
 	write_param_root_dir(*dir, nrad_seed_init);
 	write_param_root_dir(*dir, rad_seed_init);
@@ -755,7 +754,6 @@ void Params::read_root(TFile& file) {
 	read_param_root_dir(*dir, foam_file);
 	read_param_root_dir(*dir, sf_set);
 	read_param_root_dir(*dir, num_events);
-	read_param_root_dir(*dir, rej_weight);
 	read_param_root_dir(*dir, seed);
 	read_param_root_dir(*dir, nrad_seed_init);
 	read_param_root_dir(*dir, rad_seed_init);
@@ -815,7 +813,6 @@ void Params::write_stream(std::ostream& file) const {
 	write_param_stream(file, foam_file);
 	write_param_stream(file, sf_set);
 	write_param_stream(file, num_events);
-	write_param_stream(file, rej_weight);
 	write_param_stream(file, seed);
 	write_param_stream(file, nrad_seed_init);
 	write_param_stream(file, rad_seed_init);
@@ -900,7 +897,6 @@ void Params::read_stream(std::istream& file) {
 	consume_param_from_map(map, foam_file);
 	consume_param_from_map(map, sf_set);
 	consume_param_from_map(map, num_events);
-	consume_param_from_map(map, rej_weight);
 	consume_param_from_map(map, seed);
 	consume_param_from_map(map, nrad_seed_init);
 	consume_param_from_map(map, rad_seed_init);
@@ -993,7 +989,6 @@ void Params::fill_defaults() {
 	event_file.get_or_insert("gen.root");
 	foam_file.get_or_insert("foam.root");
 	rc_method.get_or_insert(RcMethod::APPROX);
-	rej_weight.get_or_insert(1.1);
 	seed.get_or_insert({ 0 });
 	target_pol.get_or_insert(Vec3::ZERO);
 	beam_pol.get_or_insert(0.);
@@ -1264,9 +1259,6 @@ void Params::compatible_with_merge(Params const& params) const {
 			throw std::runtime_error("Identical seed used for generated events.");
 		}
 	}
-	if (*rej_weight != *params.rej_weight) {
-		throw std::runtime_error("Different rejection weights.");
-	}
 	if (version->v_major != params.version->v_major) {
 		throw std::runtime_error("Incompatible versions.");
 	}
@@ -1331,7 +1323,6 @@ bool Params::operator==(Params const& rhs) const {
 		&& foam_file == rhs.foam_file
 		&& sf_set == rhs.sf_set
 		&& num_events == rhs.num_events
-		&& rej_weight == rhs.rej_weight
 		&& seed == rhs.seed
 		&& rad_seed_init == rhs.rad_seed_init
 		&& nrad_seed_init == rhs.nrad_seed_init

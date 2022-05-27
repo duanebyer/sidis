@@ -174,7 +174,6 @@ struct Params {
 	Param<std::string> foam_file;
 	Param<std::string> sf_set;
 	Param<Long_t> num_events;
-	Param<Double_t> rej_weight;
 	Param<std::multiset<Int_t> > seed;
 	Param<Int_t> nrad_seed_init;
 	Param<Int_t> rad_seed_init;
@@ -234,7 +233,6 @@ struct Params {
 		foam_file("file.foam_out"),
 		sf_set("phys.sf_set"),
 		num_events("mc.num_events"),
-		rej_weight("mc.rej_weight"),
 		seed("mc.seed"),
 		nrad_seed_init("mc.nrad.init.seed"),
 		rad_seed_init("mc.rad.init.seed"),
