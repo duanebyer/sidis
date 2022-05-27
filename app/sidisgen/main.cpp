@@ -341,9 +341,7 @@ int command_inspect(char const* file_name) {
 	params.read_root(file);
 	std::cout << "Parameters:" << std::endl;
 	std::ios_base::fmtflags flags(std::cout.flags());
-	std::cout
-		<< std::scientific
-		<< std::setprecision(std::numeric_limits<long double>::digits10 + 1);
+	std::cout << std::setprecision(std::numeric_limits<Double_t>::digits10 + 1);
 	params.write_stream(std::cout);
 	std::cout.flags(flags);
 	std::cout << std::endl;
@@ -430,7 +428,10 @@ int command_initialize(char const* params_file_name) {
 			+ params_file_name + "': " + e.what());
 	}
 	std::cout << std::endl;
+	std::ios_base::fmtflags flags(std::cout.flags());
+	std::cout << std::setprecision(std::numeric_limits<Double_t>::digits10 + 1);
 	params.write_stream(std::cout);
+	std::cout.flags(flags);
 	std::cout << std::endl;
 	try {
 		params.fill_defaults();
@@ -549,7 +550,10 @@ int command_generate(char const* params_file_name) {
 			+ params_file_name + "': " + e.what());
 	}
 	std::cout << std::endl;
+	std::ios_base::fmtflags flags(std::cout.flags());
+	std::cout << std::setprecision(std::numeric_limits<Double_t>::digits10 + 1);
 	params.write_stream(std::cout);
+	std::cout.flags(flags);
 	std::cout << std::endl;
 	try {
 		params.fill_defaults();
@@ -825,7 +829,7 @@ int command_generate(char const* params_file_name) {
 	TArrayD norm_arr(NUM_EVENT_TYPES + 1);
 	Stats stats_total;
 	Real prime_total = 0.;
-	std::ios_base::fmtflags flags(std::cout.flags());
+	flags = std::cout.flags();
 	std::cout << std::scientific << std::setprecision(6);
 	for (Generator& gen : gens) {
 		Stats stats = gen.weights();
