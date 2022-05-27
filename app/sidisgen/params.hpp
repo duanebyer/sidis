@@ -17,7 +17,7 @@
 // forward-compatible with 1.5). Between major versions, there is no
 // compatibility.
 #define SIDIS_PARAMS_VERSION_MAJOR 4
-#define SIDIS_PARAMS_VERSION_MINOR 0
+#define SIDIS_PARAMS_VERSION_MINOR 1
 
 struct Toggle {
 	bool on;
