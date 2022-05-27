@@ -895,13 +895,6 @@ int command_generate(char const* params_file_name) {
 int command_merge_soft(
 		char const* file_out_name,
 		std::vector<char const*> file_names) {
-	TFile file_out(file_out_name, "CREATE");
-	if (file_out.IsZombie()) {
-		throw Exception(
-			ERROR_FILE_NOT_CREATED,
-			std::string("Couldn't create file '") + file_out_name + "'.");
-	}
-
 	std::cout << "Merging parameters from files." << std::endl;
 	Params params_out;
 	bool first = true;
@@ -926,7 +919,6 @@ int command_merge_soft(
 			params_out.merge(params);
 		}
 	}
-	params_out.write_root(file_out);
 
 	std::cout << "Merging statistics from files." << std::endl;
 	Real primes[NUM_EVENT_TYPES + 1] = {};
@@ -987,6 +979,14 @@ int command_merge_soft(
 		}
 		first = false;
 	}
+
+	TFile file_out(file_out_name, "CREATE");
+	if (file_out.IsZombie()) {
+		throw Exception(
+			ERROR_FILE_NOT_CREATED,
+			std::string("Couldn't create file '") + file_out_name + "'.");
+	}
+	params_out.write_root(file_out);
 	TDirectory* stats_dir = file_out.mkdir("stats");
 	if (stats_dir == nullptr) {
 		throw Exception(
