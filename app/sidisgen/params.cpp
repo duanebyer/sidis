@@ -632,6 +632,24 @@ void equivalent_xs_rad(Params const& prod, Params const& cons) {
 	}
 }
 
+// Check whether non-radiative generated data is from the same distribution.
+void equivalent_gen_nrad(Params const& prod, Params const& cons) {
+	equivalent_foam_nrad(prod, cons);
+	equivalent_xs_nrad(prod, cons);
+	/*if (prod.nrad_rej_scale != cons.nrad_rej_scale) {
+		throw std::runtime_error("Different non-radiative rejection scale.");
+	}*/
+}
+
+// Check whether radiative generated data is from the same distribution.
+void equivalent_gen_rad(Params const& prod, Params const& cons) {
+	equivalent_foam_rad(prod, cons);
+	equivalent_xs_rad(prod, cons);
+	/*if (prod.rad_rej_scale != cons.rad_rej_scale) {
+		throw std::runtime_error("Different radiative rejection scale.");
+	}*/
+}
+
 }
 
 void Params::write_root(TFile& file) const {
@@ -1232,13 +1250,20 @@ void Params::compatible_with_merge(Params const& params) const {
 	if (version->v_major != params.version->v_major) {
 		throw std::runtime_error("Incompatible versions.");
 	}
-	if (*params.nrad_gen) {
-		equivalent_foam_nrad(*this, params);
-		equivalent_xs_nrad(*this, params);
+	// TODO: To keep things simple until the parameter system overhaul, require
+	// that both event files generate the same kinds of events. This restriction
+	// can be lifted.
+	if (*nrad_gen != *params.nrad_gen) {
+		throw std::runtime_error("Generated events don't have non-radiative.");
 	}
-	if (*params.rad_gen) {
-		equivalent_foam_rad(*this, params);
-		equivalent_xs_rad(*this, params);
+	if (*rad_gen != *params.rad_gen) {
+		throw std::runtime_error("Generated events don't have radiative.");
+	}
+	if (*nrad_gen && *params.nrad_gen) {
+		equivalent_gen_nrad(*this, params);
+	}
+	if (*rad_gen && *params.rad_gen) {
+		equivalent_gen_rad(*this, params);
 	}
 }
 
@@ -1247,30 +1272,21 @@ void Params::merge(Params const& params) {
 	version->v_minor = std::max(version->v_minor, params.version->v_minor);
 	*strict = *strict && *params.strict;
 	event_file.reset("<undefined>");
-	*nrad_gen = *nrad_gen || *params.nrad_gen;
-	*rad_gen = *rad_gen || *params.rad_gen;
 	*write_momenta = *write_momenta && *params.write_momenta;
 	*write_sf_set = *write_sf_set && *params.write_sf_set;
 	*write_mc_coords = *write_mc_coords && *params.write_mc_coords;
 	if (*write_momenta) {
-		*write_photon = *write_photon && *params.write_photon;
+		if (write_photon.occupied() && params.write_photon.occupied()) {
+			*write_photon = *write_photon && *params.write_photon;
+		} else {
+			write_photon.take_first(params.write_photon);
+		}
 	}
 	if (foam_file != params.foam_file) {
 		foam_file.reset("<undefined>");
 	}
 	*num_events += *params.num_events;
-	if (rej_weight != params.rej_weight) {
-		rej_weight.reset(0.);
-	}
 	seed->insert(params.seed->begin(), params.seed->end());
-	if (*rad_gen ^ *params.rad_gen) {
-		cut_tau.take_first(params.cut_tau);
-		cut_phi_k.take_first(params.cut_phi_k);
-		cut_R.take_first(params.cut_R);
-		cut_k_0_bar.take_first(params.cut_k_0_bar);
-		cut_lab_mom_k.take_first(params.cut_lab_mom_k);
-		cut_lab_theta_k.take_first(params.cut_lab_theta_k);
-	}
 }
 
 bool Params::operator==(Params const& rhs) const {
