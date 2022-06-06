@@ -1,307 +1,210 @@
 #ifndef SIDISGEN_PARAMS_HPP
 #define SIDISGEN_PARAMS_HPP
 
-#include <istream>
-#include <ostream>
-#include <set>
+#include <initializer_list>
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <map>
+#include <set>
 
-#include <TFile.h>
+// Thoughts:
+// * move physics checks out into main, and update how they work a bit.
+//   * e.g. k_0_bar_cut (with min above soft threshold) should be a
+//     pre-requisite for any other radiative cut, to reduce mistakes.
+//   * k_0_bar_cut minimum should be either 0 or above soft threshold, if above
+//     soft threshold, no generating nrad events
+//   * Option to apply radiative cuts exclusively to radiative events above
+//     `k_0_bar` threshold (still let non-radiative events and events below
+//     threshold through), or to all events (remove non-radiative events
+//     entirely).
+// * Hashes for FOAMs. Parameter has an 'any' option, that is used to ignore the
+//   hash by default. After generating, it gets filled in though, just like the
+//   random seeds.
+// * TBH specifying a seed is so useless for initialization phase because of
+//   multithreading, just remove the capability and replace it with a hash.
+// * Cuts can be in gen or in init.
+// * Don't use initializer_list. It's bad
 
-#include <sidis/sidis.hpp>
+class TDirectory;
+class TObject;
+class Value;
 
-#include "event_type.hpp"
+// Abstract base class for types of values that can be stored in parameters.
+class Type {
+protected:
+	Type() { }
+public:
+	// Prevent copying.
+	Type(Type const&) = delete;
+	virtual ~Type() { }
+	Type& operator=(Type const&) = delete;
 
-// Within a major version, there is forward compatibility (e.x. 1.4 is
-// forward-compatible with 1.5). Between major versions, there is no
-// compatibility.
-#define SIDIS_PARAMS_VERSION_MAJOR 4
-#define SIDIS_PARAMS_VERSION_MINOR 1
+	// Whether two values are equivalent with each other. It's only valid to
+	// call this on two values that have this as their type.
+	virtual bool equivalent(Value const& value_1, Value const& value_2) const = 0;
+	// Whether an 'object' from a 'producing' parameter file can be used by an
+	// 'object' from a 'consuming' parameter file. It's only valid to call this
+	// on two values that have this as their type.
+	virtual bool can_provide(Value const& prod, Value const& cons) const = 0;
 
-struct Toggle {
-	bool on;
-	Toggle() : on(false) { }
-	Toggle(bool on) : on(on) { }
-	operator bool() const {
-		return on;
+	// Read/write to ROOT files.
+	virtual std::unique_ptr<Value> read_root(TDirectory& dir, char const* name) const = 0;
+	virtual void write_root(TDirectory& dir, char const* name, Value const& value) const = 0;
+	// Read/write to streams.
+	virtual std::unique_ptr<Value> read_stream(std::istream& is) const = 0;
+	virtual void write_stream(std::ostream& os, Value const& value) const = 0;
+
+	std::string to_string(Value const& value) const;
+
+	// Singleton equality.
+	bool operator==(Type const& other) const {
+		return this == &other;
+	}
+	bool operator!=(Type const& other) const {
+		return !(*this == other);
 	}
 };
 
-enum class RcMethod {
-	NONE,
-	APPROX,
-	EXACT,
-};
+// Abstract base class for values that can be stored in parameters.
+class Value {
+private:
+	Type const& _type;
 
-struct Version {
-	int v_major;
-	int v_minor;
-	Version(
-		int v_major=SIDIS_PARAMS_VERSION_MAJOR,
-		int v_minor=SIDIS_PARAMS_VERSION_MINOR) :
-		v_major(v_major),
-		v_minor(v_minor) { }
-	bool operator==(Version const& rhs) const {
-		return v_major == rhs.v_major && v_minor == rhs.v_minor;
-	}
-	bool operator!=(Version const& rhs) const {
-		return !(*this == rhs);
-	}
-};
-
-// Represents a single parameter for the generator. Stores a name, and an
-// optional value.
-template<typename T>
-class Param {
-	std::string _name;
-	T _value;
-	bool _occupied;
+protected:
+	Value(Type const& type) : _type(type) { }
 
 public:
-	Param(std::string name, T const& value) :
-		_name(name),
-		_value(value),
-		_occupied(true) { }
-	Param(std::string name) :
-		_name(name),
-		_value(),
-		_occupied(false) { }
+	virtual ~Value() { }
 
-	T const& operator*() const {
-		if (!_occupied) {
-			throw std::runtime_error(
-				"No value to get from parameter '" + _name + "'.");
-		} else {
-			return _value;
-		}
-	}
-	T& operator*() {
-		if (!_occupied) {
-			throw std::runtime_error(
-				"No value to get from parameter '" + _name + "'.");
-		} else {
-			return _value;
-		}
-	}
-	T const* operator->() const {
-		return &(operator*());
-	}
-	T* operator->() {
-		return &(operator*());
-	}
-	T const& get() const {
-		return operator*();
-	}
-	T& get() {
-		return operator*();
-	}
-	T const& get_or(T const& default_value) const {
-		if (_occupied) {
-			return _value;
-		} else {
-			return default_value;
-		}
-	}
-	T& get_or_insert(T const& default_value) {
-		if (!_occupied) {
-			_value = default_value;
-			_occupied = true;
-		}
-		return _value;
-	}
-	void take_first(Param<T> const& other) {
-		if (!_occupied) {
-			if (other._occupied) {
-				_value = other._value;
-				_occupied = true;
-			}
-		}
-	}
-	void reset() {
-		_value = T();
-		_occupied = false;
-	}
-	void reset(T const& value) {
-		_value = value;
-		_occupied = true;
+	Type const& type() const {
+		return _type;
 	}
 
-	char const* name() const {
-		return _name.c_str();
+	// Convenience methods for quickly casting to a subtype.
+	template<typename T>
+	T const& as() const {
+		return dynamic_cast<T const&>(*this);
 	}
-	bool occupied() const {
-		return _occupied;
-	}
-	explicit operator bool() const {
-		return _occupied;
-	}
-
-	bool operator==(Param<T> const& rhs) const {
-		if (_occupied && rhs._occupied) {
-			return _value == rhs._value;
-		} else {
-			return _occupied == rhs._occupied;
-		}
-	}
-	bool operator!=(Param<T> const& rhs) const {
-		return !(*this == rhs);
+	template<typename T>
+	T& as() {
+		return dynamic_cast<T&>(*this);
 	}
 };
 
-// Keeps track of the various parameters that can be used for a run of the
-// generator. This structure can be read/written to both a ROOT file or a plain
-// text file.
-struct Params {
-	Param<Version> version;
-	Param<Toggle> strict;
-	Param<std::string> event_file;
-	Param<RcMethod> rc_method;
-	Param<Toggle> nrad_gen;
-	Param<Double_t> nrad_rej_scale;
-	Param<Int_t> nrad_max_cells;
-	Param<Double_t> nrad_target_eff;
-	Param<Double_t> nrad_scale_exp;
-	Param<Toggle> rad_gen;
-	Param<Double_t> rad_rej_scale;
-	Param<Int_t> rad_max_cells;
-	Param<Double_t> rad_target_eff;
-	Param<Double_t> rad_scale_exp;
-	Param<Toggle> write_momenta;
-	Param<Toggle> write_photon;
-	Param<Toggle> write_sf_set;
-	Param<Toggle> write_mc_coords;
-	Param<std::string> foam_file;
-	Param<std::string> sf_set;
-	Param<Long_t> num_events;
-	Param<std::multiset<Int_t> > seed;
-	Param<Int_t> nrad_seed_init;
-	Param<Int_t> rad_seed_init;
-	Param<sidis::Real> beam_energy;
-	Param<sidis::part::Lepton> beam;
-	Param<sidis::part::Nucleus> target;
-	Param<sidis::part::Hadron> hadron;
-	Param<sidis::Real> Mth;
-	Param<sidis::math::Vec3> target_pol;
-	Param<sidis::Real> beam_pol;
-	Param<sidis::Real> k_0_bar;
-	Param<sidis::math::Bound> cut_x;
-	Param<sidis::math::Bound> cut_y;
-	Param<sidis::math::Bound> cut_z;
-	Param<sidis::math::Bound> cut_ph_t_sq;
-	Param<sidis::math::Bound> cut_phi_h;
-	Param<sidis::math::Bound> cut_phi;
-	Param<sidis::math::Bound> cut_Q_sq;
-	Param<sidis::math::Bound> cut_t;
-	Param<sidis::math::Bound> cut_W_sq;
-	Param<sidis::math::Bound> cut_r;
-	Param<sidis::math::Bound> cut_mx_sq;
-	Param<sidis::math::Bound> cut_qt_to_Q;
-	Param<sidis::math::Bound> cut_lab_mom_q;
-	Param<sidis::math::Bound> cut_lab_mom_k2;
-	Param<sidis::math::Bound> cut_lab_mom_h;
-	Param<sidis::math::Bound> cut_lab_theta_q;
-	Param<sidis::math::Bound> cut_lab_theta_k2;
-	Param<sidis::math::Bound> cut_lab_theta_h;
-	Param<sidis::math::Bound> cut_tau;
-	Param<sidis::math::Bound> cut_phi_k;
-	Param<sidis::math::Bound> cut_R;
-	Param<sidis::math::Bound> cut_k_0_bar;
-	Param<sidis::math::Bound> cut_lab_mom_k;
-	Param<sidis::math::Bound> cut_lab_theta_k;
+// Stores a collection of parameters that can be read from.
+class Params final {
+	struct Param final {
+		// Type of the parameter.
+		Type const& type;
+		// Value provided by the parameter.
+		std::shared_ptr<Value const> value;
+		// Default value provided by the parameter when none other is available.
+		std::shared_ptr<Value const> default_value;
 
-	// TODO: Re-order these to be compatible with the help command.
-	Params() :
-		version("version"),
-		strict("strict"),
-		event_file("file.event_out"),
-		rc_method("phys.rc_method"),
-		nrad_gen("mc.nrad.gen"),
-		nrad_rej_scale("mc.nrad.gen.rej_scale"),
-		nrad_max_cells("mc.nrad.init.max_cells"),
-		nrad_target_eff("mc.nrad.init.target_eff"),
-		nrad_scale_exp("mc.nrad.init.scale_exp"),
-		rad_gen("mc.rad.gen"),
-		rad_rej_scale("mc.rad.gen.rej_scale"),
-		rad_max_cells("mc.rad.init.max_cells"),
-		rad_target_eff("mc.rad.init.target_eff"),
-		rad_scale_exp("mc.rad.init.scale_exp"),
-		write_momenta("file.write_momenta"),
-		write_photon("file.write_photon"),
-		write_sf_set("file.write_sf_set"),
-		write_mc_coords("file.write_mc_coords"),
-		foam_file("file.foam_out"),
-		sf_set("phys.sf_set"),
-		num_events("mc.num_events"),
-		seed("mc.seed"),
-		nrad_seed_init("mc.nrad.init.seed"),
-		rad_seed_init("mc.rad.init.seed"),
-		beam_energy("setup.beam_energy"),
-		beam("setup.beam"),
-		target("setup.target"),
-		hadron("setup.hadron"),
-		Mth("phys.mass_threshold"),
-		target_pol("setup.target_pol"),
-		beam_pol("setup.beam_pol"),
-		k_0_bar("phys.soft_threshold"),
-		cut_x("cut.x"),
-		cut_y("cut.y"),
-		cut_z("cut.z"),
-		cut_ph_t_sq("cut.ph_t_sq"),
-		cut_phi_h("cut.phi_h"),
-		cut_phi("cut.phi"),
-		cut_Q_sq("cut.Q_sq"),
-		cut_t("cut.t"),
-		cut_W_sq("cut.W_sq"),
-		cut_r("cut.r"),
-		cut_mx_sq("cut.mx_sq"),
-		cut_qt_to_Q("cut.qt_to_Q"),
-		cut_lab_mom_q("cut.lab_mom_q"),
-		cut_lab_mom_k2("cut.lab_mom_k2"),
-		cut_lab_mom_h("cut.lab_mom_h"),
-		cut_lab_theta_q("cut.lab_theta_q"),
-		cut_lab_theta_k2("cut.lab_theta_k2"),
-		cut_lab_theta_h("cut.lab_theta_h"),
-		cut_tau("cut.tau"),
-		cut_phi_k("cut.phi_k"),
-		cut_R("cut.R"),
-		cut_k_0_bar("cut.k_0_bar"),
-		cut_lab_mom_k("cut.lab_mom_k"),
-		cut_lab_theta_k("cut.lab_theta_k") { }
+		// Tags for filtering and selecting parameters.
+		std::set<std::string> tags;
 
-	void write_root(TFile& file) const;
-	void read_root(TFile& file);
+		// Parameter metadata.
+		std::string usage;
+		std::string brief;
+		std::string doc;
 
-	void write_stream(std::ostream& file) const;
-	void read_stream(std::istream& file);
+		// Whether the parameter has been read from.
+		bool used;
 
-	// Takes the supplied parameters and fills in missing ones to make a valid
-	// run card. If unable to do so, throw an exception. If `strict` is enabled,
-	// then `fill_defaults` will never change a parameter that has been set by
-	// the user (for example, disabling `write_photon` when no radiative
-	// corrections are being applied).
-	void fill_defaults();
-	bool valid() const {
-		Params other = *this;
-		other.fill_defaults();
-		return other == *this;
+		Param(
+			Value const* default_value,
+			std::initializer_list<char const*> tags,
+			char const* usage,
+			char const* brief,
+			char const* doc);
+		Param(
+			Type const& type,
+			std::initializer_list<char const*> tags,
+			char const* usage,
+			char const* brief,
+			char const* doc);
+	};
+	std::map<std::string, Param> _params;
+
+public:
+
+	// Get parameter type.
+	Type const& type(char const* name) const {
+		return _params.at(name).type;
+	}
+	// Get parameter metadata.
+	char const* usage(char const* name) const {
+		return _params.at(name).usage.c_str();
+	}
+	char const* brief(char const* name) const {
+		return _params.at(name).brief.c_str();
+	}
+	char const* doc(char const* name) const {
+		return _params.at(name).doc.c_str();
+	}
+	// Gets the value provided by the parameter. If parameter is empty, errors.
+	Value const& get(char const* name);
+	template<typename T>
+	T const& get(char const* name) {
+		return get(name).as<T>();
+	}
+	// Checks whether the parameter has been used.
+	bool used(char const* name) const {
+		return _params.at(name).used;
 	}
 
-	// Check whether a FOAM produced using a set of parameters can be used to
-	// generate events with this set of parameters. If not compatible, throws an
-	// exception with a message describing the incompatibility.
-	void compatible_with_foam(EventType type, Params const& foam_params) const;
-	// Checks whether two parameter files used for event generation can be
-	// merged together.
-	void compatible_with_merge(Params const& other_params) const;
-	// Combine two parameter files together. If the parameter files cannot be
-	// combined, then throws an exception.
-	void merge(Params const& params);
-
-	bool operator==(Params const& rhs) const;
-	bool operator!=(Params const& rhs) const {
-		return !(*this == rhs);
+	// Add new parameter.
+	void add_param(
+			char const* name,
+			Value const* default_value,
+			std::initializer_list<char const*> tags,
+			char const* usage,
+			char const* brief,
+			char const* doc) {
+		if (!_params.emplace(name, Param(default_value, tags, usage, brief, doc)).second) {
+			throw std::runtime_error(
+				std::string("Tried to add existing parameter '") + name + "'.");
+		}
 	}
+	void add_param(
+			char const* name, 
+			Type const& type,
+			std::initializer_list<char const*> tags,
+			char const* usage,
+			char const* brief,
+			char const* doc) {
+		if (!_params.emplace(name, Param(type, tags, usage, brief, doc)).second) {
+			throw std::runtime_error(
+				std::string("Tried to add existing parameter '") + name + "'.");
+		}
+	}
+
+	// Checks whether two sets of parameters have the same names + types + tags.
+	void check_compatible(Params const& other) const;
+	// Checks whether all provided parameters have been used.
+	void check_completed() const;
+	// Checks whether this set of parameters can provide objects for another set
+	// of parameters to consume.
+	void check_can_provide(Params const& consumer) const;
+	// Checks whether this set of parameters is equal to another set of
+	// parameters.
+	void check_equivalent(Params const& other) const;
+
+	// Clears unused parameters.
+	void clear_unused();
+
+	// Read/write parameters from ROOT file.
+	void read_root(TDirectory& dir);
+	void write_root(TDirectory& dir) const;
+	// Read/write parameters from stream.
+	void read_stream(std::istream& is);
+	void write_stream(std::ostream& os) const;
+
+	// Returns only the parameters matching the provided matcher. The matcher
+	// can be a regex applied to both names and tags of parameters.
+	Params filter(std::initializer_list<char const*> matches);
 };
 
 #endif
