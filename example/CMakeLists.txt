@@ -11,15 +11,15 @@ target_compile_options(
 	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
 	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
 
-add_executable(alpha alpha.cpp)
-target_link_libraries(alpha PRIVATE sidis)
-target_compile_features(alpha PRIVATE cxx_std_11)
+add_executable(alpha_qed alpha_qed.cpp)
+target_link_libraries(alpha_qed PRIVATE sidis)
+target_compile_features(alpha_qed PRIVATE cxx_std_11)
 set_target_properties(
-	alpha PROPERTIES
+	alpha_qed PROPERTIES
 	CXX_EXTENSIONS OFF
 	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 target_compile_options(
-	alpha
+	alpha_qed
 	PRIVATE
 	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
 	$<$<CXX_COMPILER_ID:MSVC>:/W4>)

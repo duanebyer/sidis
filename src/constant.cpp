@@ -14,14 +14,14 @@ Real const Q_SQ_MAX = 100.;
 Real const NF = 1.;
 Real const BETA_0 = 4. / 3. * NF;
 
-Real beta(Real alpha) {
+Real beta_qed(Real alpha) {
 	Real alpha_r = alpha / (4. * PI);
 	return 4. * PI * BETA_0 * (1. + 3. * alpha_r) * alpha_r * alpha_r;
 }
 
-interp::Grid<Real, 1> create_alpha_grid(Real Q_sq_max) {
+interp::Grid<Real, 1> create_alpha_qed_grid(Real Q_sq_max) {
 	std::vector<Real> ln_Q_sq_vals { 2. * std::log(MASS_E) };
-	std::vector<Real> alpha_vals { ALPHA_0 };
+	std::vector<Real> alpha_vals { ALPHA_QED_0 };
 	// Generate points until a couple of points after max Q^2 is reached, to
 	// ensure that cubic interpolation will work well until the end.
 	std::size_t extra = 8;
@@ -32,10 +32,10 @@ interp::Grid<Real, 1> create_alpha_grid(Real Q_sq_max) {
 		Real ln_Q_sq_0 = ln_Q_sq_vals.back();
 		Real ln_Q_sq_1 = ln_Q_sq_0 + step;
 		Real alpha_0 = alpha_vals.back();
-		Real alpha_p1 = beta(alpha_0);
-		Real alpha_p2 = beta(alpha_0 + 0.5 * step * alpha_p1);
-		Real alpha_p3 = beta(alpha_0 + 0.5 * step * alpha_p2);
-		Real alpha_p4 = beta(alpha_0 + step * alpha_p3);
+		Real alpha_p1 = beta_qed(alpha_0);
+		Real alpha_p2 = beta_qed(alpha_0 + 0.5 * step * alpha_p1);
+		Real alpha_p3 = beta_qed(alpha_0 + 0.5 * step * alpha_p2);
+		Real alpha_p4 = beta_qed(alpha_0 + step * alpha_p3);
 		Real alpha_1 = alpha_0
 			+ step * (alpha_p1 + 2. * alpha_p2 + 2. * alpha_p3 + alpha_p4) / 6.;
 		alpha_vals.push_back(alpha_1);
@@ -46,12 +46,12 @@ interp::Grid<Real, 1> create_alpha_grid(Real Q_sq_max) {
 		{ ln_Q_sq_vals.size() }, { ln_Q_sq_vals.front() }, { ln_Q_sq_vals.back() });
 }
 
-interp::Grid<Real, 1> const alpha_grid = create_alpha_grid(Q_SQ_MAX);
+interp::Grid<Real, 1> const alpha_qed_grid = create_alpha_qed_grid(Q_SQ_MAX);
 
 }
 
-Real sidis::alpha(Real Q_sq) {
-	auto cubic_view = interp::CubicView<Real, 1>(alpha_grid);
+Real sidis::alpha_qed(Real Q_sq) {
+	auto cubic_view = interp::CubicView<Real, 1>(alpha_qed_grid);
 	if (Q_sq < Q_SQ_MAX) {
 		// Note that if Q^2 is smaller than the electron mass, this will NaN.
 		// Since this is well out of the DIS regime, this isn't a problem.
