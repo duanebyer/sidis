@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <istream>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <utility>
@@ -129,6 +130,46 @@ std::istream& operator>>(std::istream& in, TestPairRad& pair) {
 	return in;
 }
 
+}
+
+TEST_CASE(
+		"Gaussian-WW structure functions",
+		"[xs]") {
+	// Verify that these two methods for computing structure functions are
+	// equivalent.
+	static sf::set::ProkudinTmdSet tmd_set;
+	static sf::GaussianWwTmdSfSet sf_set_1(tmd_set);
+	static sf::set::ProkudinSfSet sf_set_2;
+
+	Real x = GENERATE(0.12, 0.31, 0.43, 0.23, 0.65, 0.74);
+	Real Q_sq = GENERATE(2.4, 5.3, 7.9, 12.5);
+	Real z = GENERATE(0.32, 0.54, 0.61, 0.68);
+	Real ph_t = GENERATE(0.012, 0.102, 0.046, 0.242);
+	Real ph_t_sq = ph_t * ph_t;
+
+	part::Hadron h = part::Hadron::PI_P;
+
+	sf::Sf sf_1 = sf_set_1.sf(h, x, z, Q_sq, ph_t_sq);
+	sf::Sf sf_2 = sf_set_2.sf(h, x, z, Q_sq, ph_t_sq);
+
+	Real prec = 1e2*std::numeric_limits<Real>::epsilon();
+	// Two of the structure functions are commented out. For technical reasons,
+	// those two are only approximately equal instead of exactly equal.
+	CHECK_THAT(sf_1.F_UUT, RelMatcher<Real>(sf_2.F_UUT, prec));
+	CHECK_THAT(sf_1.F_UU_cos_phih, RelMatcher<Real>(sf_2.F_UU_cos_phih, prec));
+	CHECK_THAT(sf_1.F_UU_cos_2phih, RelMatcher<Real>(sf_2.F_UU_cos_2phih, prec));
+	CHECK_THAT(sf_1.F_UL_sin_phih, RelMatcher<Real>(sf_2.F_UL_sin_phih, prec));
+	CHECK_THAT(sf_1.F_UL_sin_2phih, RelMatcher<Real>(sf_2.F_UL_sin_2phih, prec));
+	CHECK_THAT(sf_1.F_UTT_sin_phih_m_phis, RelMatcher<Real>(sf_2.F_UTT_sin_phih_m_phis, prec));
+	//CHECK_THAT(sf_1.F_UT_sin_2phih_m_phis, RelMatcher<Real>(sf_2.F_UT_sin_2phih_m_phis, prec));
+	CHECK_THAT(sf_1.F_UT_sin_3phih_m_phis, RelMatcher<Real>(sf_2.F_UT_sin_3phih_m_phis, prec));
+	//CHECK_THAT(sf_1.F_UT_sin_phis, RelMatcher<Real>(sf_2.F_UT_sin_phis, prec));
+	CHECK_THAT(sf_1.F_UT_sin_phih_p_phis, RelMatcher<Real>(sf_2.F_UT_sin_phih_p_phis, prec));
+	CHECK_THAT(sf_1.F_LL, RelMatcher<Real>(sf_2.F_LL, prec));
+	CHECK_THAT(sf_1.F_LL_cos_phih, RelMatcher<Real>(sf_2.F_LL_cos_phih, prec));
+	CHECK_THAT(sf_1.F_LT_cos_phih_m_phis, RelMatcher<Real>(sf_2.F_LT_cos_phih_m_phis, prec));
+	CHECK_THAT(sf_1.F_LT_cos_2phih_m_phis, RelMatcher<Real>(sf_2.F_LT_cos_2phih_m_phis, prec));
+	CHECK_THAT(sf_1.F_LT_cos_phis, RelMatcher<Real>(sf_2.F_LT_cos_phis, prec));
 }
 
 TEST_CASE(
