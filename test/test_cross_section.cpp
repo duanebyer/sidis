@@ -207,28 +207,50 @@ TEST_CASE(
 	kin::PhaseSpace ph_space = input.ph_space;
 	kin::Kinematics kin(ps, input.S, ph_space);
 	// Get beam and target polarizations.
-	Real beam_pol = input.beam_pol;
+	Real lambda = input.beam_pol;
 	math::Vec3 eta = frame::hadron_from_target(kin) * input.target_pol;
 	// Compute the cross-sections.
-	Real born = xs::born(kin, *sf, beam_pol, eta);
-	Real amm = xs::amm(kin, *sf, beam_pol, eta);
-	Real nrad = xs::nrad_ir(kin, *sf, beam_pol, eta, input.k0_cut);
+	// Note that we use a specific value for alpha here, which isn't the most
+	// realistic (at Q^2=0, not evolved). It doesn't matter for these tests
+	// though, as we simply want to protect against any changes to the
+	// underlying cross-section math.
+	Real alpha = 7.2973525664e-3L;
+	xs::Born b_born(kin, alpha);
+	xs::Amm b_amm(kin, alpha);
+	xs::Nrad b_nrad(kin, input.k0_cut, alpha);
+	had::HadXX had(kin, *sf);
+	lep::LepBornXX lep_born(kin);
+	lep::LepAmmXX lep_amm(kin);
+	lep::LepNradXX lep_nrad(lep_born, lep_amm);
+
+	Real born = xs::born_uu_base(b_born, lep_born, had)
+		+ dot(eta, xs::born_up_base(b_born, lep_born, had))
+		+ lambda * xs::born_lu_base(b_born, lep_born, had)
+		+ lambda * dot(eta, xs::born_lp_base(b_born, lep_born, had));
+	Real amm = xs::amm_uu_base(b_amm, lep_amm, had)
+		+ dot(eta, xs::amm_up_base(b_amm, lep_amm, had))
+		+ lambda * xs::amm_lu_base(b_amm, lep_amm, had)
+		+ lambda * dot(eta, xs::amm_lp_base(b_amm, lep_amm, had));
+	Real nrad = xs::nrad_ir_uu_base(b_nrad, lep_nrad, had)
+		+ dot(eta, xs::nrad_ir_up_base(b_nrad, lep_nrad, had))
+		+ lambda * xs::nrad_ir_lu_base(b_nrad, lep_nrad, had)
+		+ lambda * dot(eta, xs::nrad_ir_lp_base(b_nrad, lep_nrad, had));
 
 	// Print state information.
 	std::stringstream ss;
 	ss
-		<< "sf_set_idx = " << input.sf_set_idx    << std::endl
-		<< "pid        = " << part::name(lep) << std::endl
-		<< "S          = " << input.S             << std::endl
+		<< "sf_set_idx = " << input.sf_set_idx << std::endl
+		<< "pid        = " << part::name(lep)  << std::endl
+		<< "S          = " << input.S          << std::endl
 		<< "x          = " << ph_space.x       << std::endl
 		<< "y          = " << ph_space.y       << std::endl
 		<< "z          = " << ph_space.z       << std::endl
 		<< "ph_t²      = " << ph_space.ph_t_sq << std::endl
 		<< "φ_h        = " << ph_space.phi_h   << std::endl
 		<< "φ          = " << ph_space.phi     << std::endl
-		<< "λ_e        = " << beam_pol            << std::endl
-		<< "η_1        = " << eta.x               << std::endl
-		<< "η_2        = " << eta.y               << std::endl
+		<< "λ_e        = " << lambda           << std::endl
+		<< "η_1        = " << eta.x            << std::endl
+		<< "η_2        = " << eta.y            << std::endl
 		<< "η_3        = " << eta.z;
 	INFO(ss.str());
 
@@ -279,27 +301,39 @@ TEST_CASE(
 	kin::PhaseSpaceRad ph_space = input.ph_space;
 	kin::KinematicsRad kin(ps, input.S, ph_space);
 	// Get beam and target polarizations.
-	Real beam_pol = input.beam_pol;
+	Real lambda = input.beam_pol;
 	math::Vec3 eta = frame::hadron_from_target(kin.project()) * input.target_pol;
 	// Compute the cross-sections.
-	Real rad_f = xs::rad_f(kin, *sf, beam_pol, eta);
-	Real rad = xs::rad(kin, *sf, beam_pol, eta);
+	Real alpha = 7.2973525664e-3L;
+	xs::Rad b_rad(kin, alpha);
+	had::HadRadXX had_rad(kin, *sf);
+	had::HadRadFXX had_rad_f(kin, *sf);
+	lep::LepRadXX lep_rad(kin);
+
+	Real rad = xs::rad_uu_base(b_rad, lep_rad, had_rad)
+		+ dot(eta, xs::rad_up_base(b_rad, lep_rad, had_rad))
+		+ lambda * xs::rad_lu_base(b_rad, lep_rad, had_rad)
+		+ lambda * dot(eta, xs::rad_lp_base(b_rad, lep_rad, had_rad));
+	Real rad_f = xs::rad_f_uu_base(b_rad, lep_rad, had_rad_f)
+		+ dot(eta, xs::rad_f_up_base(b_rad, lep_rad, had_rad_f))
+		+ lambda * xs::rad_f_lu_base(b_rad, lep_rad, had_rad_f)
+		+ lambda * dot(eta, xs::rad_f_lp_base(b_rad, lep_rad, had_rad_f));
 
 	// Print state information.
 	std::stringstream ss;
 	ss
-		<< "sf_set_idx = " << input.sf_set_idx    << std::endl
-		<< "pid        = " << part::name(lep) << std::endl
-		<< "S          = " << input.S             << std::endl
+		<< "sf_set_idx = " << input.sf_set_idx << std::endl
+		<< "pid        = " << part::name(lep)  << std::endl
+		<< "S          = " << input.S          << std::endl
 		<< "x          = " << ph_space.x       << std::endl
 		<< "y          = " << ph_space.y       << std::endl
 		<< "z          = " << ph_space.z       << std::endl
 		<< "ph_t²      = " << ph_space.ph_t_sq << std::endl
 		<< "φ_h        = " << ph_space.phi_h   << std::endl
 		<< "φ          = " << ph_space.phi     << std::endl
-		<< "λ_e        = " << beam_pol            << std::endl
-		<< "η_1        = " << eta.x               << std::endl
-		<< "η_2        = " << eta.y               << std::endl
+		<< "λ_e        = " << lambda         << std::endl
+		<< "η_1        = " << eta.x            << std::endl
+		<< "η_2        = " << eta.y            << std::endl
 		<< "η_3        = " << eta.z;
 	INFO(ss.str());
 

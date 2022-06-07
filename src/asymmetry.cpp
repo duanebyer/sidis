@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "sidis/constant.hpp"
 #include "sidis/cross_section.hpp"
 #include "sidis/cut.hpp"
 #include "sidis/hadronic_coeff.hpp"
@@ -31,12 +32,13 @@ EstErr ut_integ_h(
 		IntegParams params) {
 	Real Q_sq = S * x * y;
 	sf::SfUP sf = sf_set.sf_up(ps.hadron, x, z, Q_sq, ph_t_sq);
+	Real alpha = alpha_qed(Q_sq);
 	if (!include_rc) {
 		EstErr born_integ = integrate(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
-				xs::Born b(kin);
+				xs::Born b(kin, alpha);
 				lep::LepBornUX lep(kin);
 				had::HadUP had(kin, sf);
 				Vec3 eta(
@@ -59,7 +61,7 @@ EstErr ut_integ_h(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
-				xs::Nrad b(kin, INF);
+				xs::Nrad b(kin, INF, alpha);
 				lep::LepNradUX lep(kin);
 				had::HadUP had(kin, sf);
 				Vec3 eta(
@@ -86,7 +88,7 @@ EstErr ut_integ_h(
 				}
 				jacobian *= phi_h_b.size();
 
-				xs::Rad b(kin_rad);
+				xs::Rad b(kin_rad, alpha);
 				sf::SfUP shift_sf = sf_set.sf_up(
 					ps.hadron,
 					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
@@ -125,13 +127,14 @@ EstErr asym::uu_integ(
 	// Calculate the structure functions ahead of time, because they are
 	// constant over the integrals we'll be doing.
 	sf::SfUU sf = sf_set.sf_uu(ps.hadron, x, z, Q_sq, ph_t_sq);
+	Real alpha = alpha_qed(Q_sq);
 	if (!include_rc) {
 		// Without radiative corrections, there is only the Born cross-section.
 		EstErr born_integ = integrate(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
-				xs::Born born(kin);
+				xs::Born born(kin, alpha);
 				lep::LepBornUU lep(kin);
 				had::HadUU had(kin, sf);
 				return xs::born_uu_base(born, lep, had);
@@ -149,7 +152,7 @@ EstErr asym::uu_integ(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
-				xs::Nrad b(kin, INF);
+				xs::Nrad b(kin, INF, alpha);
 				lep::LepNradUU lep(kin);
 				had::HadUU had(kin, sf);
 				return xs::nrad_ir_uu_base(b, lep, had);
@@ -171,7 +174,7 @@ EstErr asym::uu_integ(
 				}
 				jacobian *= phi_h_b.size();
 
-				xs::Rad b(kin_rad);
+				xs::Rad b(kin_rad, alpha);
 				sf::SfUU shift_sf = sf_set.sf_uu(
 					ps.hadron,
 					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);

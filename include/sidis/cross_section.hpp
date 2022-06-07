@@ -200,7 +200,7 @@ Real delta_vac_had(kin::Kinematics const& kin);
 
 struct Born {
 	Real coeff;
-	explicit Born(kin::Kinematics const& kin);
+	Born(kin::Kinematics const& kin, Real alpha);
 };
 
 Real born_uu_base(Born const& b, lep::LepBornUU const& lep, had::HadUU const& had);
@@ -226,7 +226,7 @@ math::Vec3 born_lp_base(Born const& b, lep::LepBornLX const& lep, had::HadLP con
 
 struct Amm {
 	Real coeff;
-	explicit Amm(kin::Kinematics const& kin);
+	Amm(kin::Kinematics const& kin, Real alpha);
 };
 
 Real amm_uu_base(Amm const& b, lep::LepAmmUU const& lep, had::HadUU const& had);
@@ -255,7 +255,7 @@ math::Vec3 amm_lp_base(Amm const& b, lep::LepAmmLX const& lep, had::HadLP const&
 struct Nrad {
 	Real coeff_born;
 	Real coeff_amm;
-	explicit Nrad(kin::Kinematics const& kin, Real k_0_bar);
+	Nrad(kin::Kinematics const& kin, Real k_0_bar, Real alpha);
 };
 
 Real nrad_ir_uu_base(Nrad const& b, lep::LepNradUU const& lep, had::HadUU const& had);
@@ -285,7 +285,7 @@ math::Vec3 nrad_ir_lp_base(Nrad const& b, lep::LepNradLX const& lep, had::HadLP 
 struct Rad {
 	Real coeff;
 	Real R;
-	explicit Rad(kin::KinematicsRad const& kin);
+	Rad(kin::KinematicsRad const& kin, Real alpha);
 };
 
 Real rad_uu_base(Rad const& b, lep::LepRadUU const& lep, had::HadRadUU const& had);
