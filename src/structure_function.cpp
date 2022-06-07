@@ -1,4 +1,5 @@
 #include "sidis/structure_function.hpp"
+#include <iostream>
 
 #include <cmath>
 #include <stdexcept>
@@ -138,7 +139,7 @@ Real convolve_gaussian(
 	Real M = mass(target);
 	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
-	Real weight = 0.;
+	Real result = 0.;
 	for (unsigned fl = 0; fl < tmd_set.flavor_count; ++fl) {
 		Real mean = mean_ff[fl] + sq(z)*mean_tmd[fl];
 		if (std::isinf(mean)) {
@@ -147,43 +148,43 @@ Real convolve_gaussian(
 		Real gaussian = std::exp(-ph_t_sq/mean)/(PI*mean);
 		// Analytically evaluate the convolution integral for the TMD and FF
 		// Gaussians with the given means.
-		Real integrand;
+		Real weight;
 		switch (weight_type) {
 		case Weight::W0:
-			integrand = gaussian;
+			weight = 1.;
 			break;
 		case Weight::WA1:
-			integrand = (mean_ff[fl]*ph_t*gaussian)/(mh*mean*z);
+			weight = (mean_ff[fl]*ph_t)/(mh*mean*z);
 			break;
 		case Weight::WB1:
-			integrand = (mean_tmd[fl]*ph_t*z*gaussian)/(M*mean);
+			weight = (mean_tmd[fl]*ph_t*z)/(M*mean);
 			break;
 		case Weight::WA2:
-			integrand = (mean_tmd[fl]*mean_ff[fl]*(2.*ph_t_sq - mean)*gaussian)/(M*mh*sq(mean));
+			weight = (mean_tmd[fl]*mean_ff[fl]*(2.*ph_t_sq - mean))/(M*mh*sq(mean));
 			break;
 		case Weight::WB2:
-			integrand = (mean_tmd[fl]*mean_ff[fl]*(mean - ph_t_sq)*gaussian)/(M*mh*sq(mean));
+			weight = (mean_tmd[fl]*mean_ff[fl]*(mean - ph_t_sq))/(M*mh*sq(mean));
 			break;
 		case Weight::WAB2:
-			integrand = (mean_tmd[fl]*mean_ff[fl]*ph_t_sq*gaussian)/(M*mh*sq(mean));
+			weight = (mean_tmd[fl]*mean_ff[fl]*ph_t_sq)/(M*mh*sq(mean));
 			break;
 		case Weight::WC2:
-			integrand = (sq(mean_tmd[fl])*ph_t_sq*sq(z)*gaussian)/(2.*sq(M)*sq(mean));
+			weight = (sq(mean_tmd[fl])*ph_t_sq*sq(z))/(2.*sq(M)*sq(mean));
 			break;
 		case Weight::W3:
-			integrand = (sq(mean_tmd[fl])*mean_ff[fl]*ph_t*ph_t_sq*z*gaussian)
+			weight = (sq(mean_tmd[fl])*mean_ff[fl]*ph_t*ph_t_sq*z)
 				/(2.*sq(M)*mh*mean*sq(mean));
 			break;
 		default:
 			// Unknown integrand.
-			integrand = 0.;
+			weight = 0.;
 		}
-		weight += integrand
-			*sq(tmd_set.charge(fl))
+		result += sq(tmd_set.charge(fl))
+			*weight*gaussian
 			*(tmd_set.*tmd)(fl, x, Q_sq)
 			*(tmd_set.*ff)(h, fl, z, Q_sq);
 	}
-	return weight;
+	return result;
 }
 
 }
