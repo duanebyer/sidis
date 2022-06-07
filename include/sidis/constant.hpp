@@ -19,8 +19,10 @@ static Real const SQRT_2 = 1.414213562373095048801688724209698078569671875376948
 /// Positive infinity.
 extern Real const INF;
 
-/// Fine structure constant.
-static Real const ALPHA = 7.2973525664e-3L;
+/// QED coupling constant at electron mass.
+static Real const ALPHA_0 = 1.L / 137.03599L;
+/// Calculates the fine structure constant at a certain Q^2 value.
+Real alpha(Real Q_sq=0.);
 
 /// \name Particle masses
 /// \sa ParticleGroup

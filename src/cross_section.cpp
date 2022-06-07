@@ -326,18 +326,18 @@ Real xs::delta_vac_lep(Kinematics const& kin) {
 
 Real xs::delta_vac_had(Kinematics const& kin) {
 	if (kin.Q_sq < 1.) {
-		return -(2.*PI)/ALPHA*(-1.345e-9L - 2.302e-3L*std::log(1. + 4.091L*kin.Q_sq));
+		return -(2.*PI)/alpha(kin.Q_sq)*(-1.345e-9L - 2.302e-3L*std::log(1. + 4.091L*kin.Q_sq));
 	} else if (kin.Q_sq < 64.) {
-		return -(2.*PI)/ALPHA*(-1.512e-3L - 2.822e-3L*std::log(1. + 1.218L*kin.Q_sq));
+		return -(2.*PI)/alpha(kin.Q_sq)*(-1.512e-3L - 2.822e-3L*std::log(1. + 1.218L*kin.Q_sq));
 	} else {
-		return -(2.*PI)/ALPHA*(-1.1344e-3L - 3.0680e-3L*std::log(1. + 0.99992L*kin.Q_sq));
+		return -(2.*PI)/alpha(kin.Q_sq)*(-1.1344e-3L - 3.0680e-3L*std::log(1. + 0.99992L*kin.Q_sq));
 	}
 }
 
 // Born base functions.
 Born::Born(Kinematics const& kin) :
 	// Equation [1.15]. The `Q^4` factor has been absorbed into `C_1`.
-	coeff((sq(ALPHA)*kin.S*sq(kin.S_x))/(8.*kin.M*kin.ph_l*kin.lambda_S)) { }
+	coeff((sq(alpha(kin.Q_sq))*kin.S*sq(kin.S_x))/(8.*kin.M*kin.ph_l*kin.lambda_S)) { }
 
 Real xs::born_uu_base(Born const& b, LepBornUU const& lep, HadUU const& had) {
 	return b.coeff*(
@@ -392,7 +392,7 @@ Amm::Amm(Kinematics const& kin) {
 	Real diff_m = sqrt1p_1m((4.*sq(kin.m))/kin.Q_sq);
 	Real sum_m = 2. + diff_m;
 	Real L_m = 1./lambda_m_sqrt*std::log(sum_m/diff_m);
-	coeff = L_m*kin.Q_sq*(std::pow(ALPHA, 3)*sq(kin.m)*kin.S*sq(kin.S_x))
+	coeff = L_m*kin.Q_sq*(std::pow(alpha(kin.Q_sq), 3)*sq(kin.m)*kin.S*sq(kin.S_x))
 		/(16.*PI*kin.M*kin.ph_l*kin.lambda_S);
 }
 
@@ -445,7 +445,7 @@ Vec3 xs::amm_lp_base(Amm const& b, LepAmmLX const& lep, HadLP const& had) {
 Nrad::Nrad(Kinematics const& kin, Real k_0_bar) {
 	Born born(kin);
 	Amm amm(kin);
-	Real born_factor = 1. + ALPHA/PI*(
+	Real born_factor = 1. + alpha(kin.Q_sq)/PI*(
 		delta_vert_rad_ir(kin, k_0_bar)
 		+ delta_vac_lep(kin)
 		+ delta_vac_had(kin));
@@ -509,7 +509,7 @@ Vec3 xs::nrad_ir_lp_base(Nrad const& b, LepNradLX const& lep, HadLP const& had) 
 // Radiative base functions.
 Rad::Rad(KinematicsRad const& kin) {
 	// Equation [1.43].
-	coeff = -(std::pow(ALPHA, 3)*kin.S*sq(kin.S_x))
+	coeff = -(std::pow(alpha(kin.Q_sq), 3)*kin.S*sq(kin.S_x))
 		/(64.*sq(PI)*kin.M*kin.ph_l*kin.lambda_S*kin.lambda_Y_sqrt);
 	R = kin.R;
 }
