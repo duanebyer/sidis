@@ -1,9 +1,9 @@
 find_package(ROOT 6.16 REQUIRED COMPONENTS Core Physics Tree CONFIG)
 add_executable(sidisgen
 	main.cpp
-	generator.hpp generator.cpp
 	event_type.hpp
 	exception.hpp
+	generator.hpp generator.cpp
 	params.hpp params.cpp
 	utility.hpp utility.cpp)
 target_link_libraries(sidisgen PRIVATE
