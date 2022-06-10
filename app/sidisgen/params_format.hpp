@@ -18,11 +18,28 @@
 #include <sidis/particle.hpp>
 #include <sidis/vector.hpp>
 
+#include "event_type.hpp"
+
 // Returns the standard format describing the parameter file used by `sidisgen`.
 // The format makes use of the types declared below. Any changes to the
 // parameters used by `sidisgen` (e.x. adding a new paramter) should be done in
 // this function.
 Params params_format();
+
+// TODO: Have trivial (incorrect) implementations right now, need to replace
+// these with legitimate implementations later.
+inline void check_can_provide_foam(
+		EventType gen_type,
+		Params const& params_foam,
+		Params const& params_gen) {
+	static_cast<void>(gen_type);
+	static_cast<void>(params_foam);
+	static_cast<void>(params_gen);
+}
+inline Params merge_params(Params const& params_1, Params const& params_2) {
+	static_cast<void>(params_2);
+	return params_1;
+}
 
 // These enums are used for defining the `can_provide` relationship between
 // values. For example, a producer with `ProvideOrder::LT` can only provide an
@@ -185,6 +202,12 @@ enum class RcMethod {
 		RValue(Ts... args) : \
 			Value(RType::instance(Provide::PROVIDE_DEFAULT)), \
 			value(args...) { } \
+		operator Wrapped&() { \
+			return value; \
+		} \
+		operator Wrapped const&() const { \
+			return value; \
+		} \
 	}; \
 	inline bool RType::equivalent_base(Wrapped const& value_1, Wrapped const& value_2) const { \
 		return value_1 == value_2; \
