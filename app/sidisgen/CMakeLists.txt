@@ -5,6 +5,7 @@ add_executable(sidisgen
 	exception.hpp
 	generator.hpp generator.cpp
 	params.hpp params.cpp
+	params_format.hpp params_format.cpp
 	utility.hpp utility.cpp)
 target_link_libraries(sidisgen PRIVATE
 	sidis
