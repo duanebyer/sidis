@@ -32,13 +32,13 @@ Params params_format() {
 		"If on, unused parameters are an error; otherwise, they are a warning. "
 		"Default 'on'.");
 	params.add_param(
-		"file.event_out", TypeString::instance(ProvideSimple::ANY),
+		"file.event", TypeString::instance(ProvideSimple::ANY),
 		{ "file" },
 		"<file>", "ROOT file for generated events",
 		"Path to ROOT file to be created to hold generated events. Will give "
 		"error instead of overwriting an existing file.");
 	params.add_param(
-		"file.foam_out", TypeString::instance(ProvideSimple::ANY),
+		"file.foam", TypeString::instance(ProvideSimple::ANY),
 		{ "file" },
 		"<file>", "ROOT file for FOAM",
 		"Path to the ROOT file to hold the FOAM during initialization. Will "
