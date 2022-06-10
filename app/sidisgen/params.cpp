@@ -88,7 +88,7 @@ Value const& Params::get(char const* name) {
 	}
 }
 
-void Params::check_compatible(Params const& other) const {
+void Params::check_format(Params const& other) const {
 	for (auto const& pair : _params) {
 		char const* name = pair.first.c_str();
 		Param const& param = pair.second;
@@ -109,7 +109,7 @@ void Params::check_compatible(Params const& other) const {
 	}
 }
 
-void Params::check_completed() const {
+void Params::check_complete() const {
 	for (auto const& pair : _params) {
 		if (pair.second.value != nullptr && !pair.second.used) {
 			throw std::runtime_error(
@@ -119,7 +119,7 @@ void Params::check_completed() const {
 }
 
 void Params::check_can_provide(Params const& consumer) const {
-	check_compatible(consumer);
+	check_format(consumer);
 	for (auto const& pair : _params) {
 		char const* name = pair.first.c_str();
 		Param const& param_prod = pair.second;
@@ -136,7 +136,7 @@ void Params::check_can_provide(Params const& consumer) const {
 }
 
 void Params::check_equivalent(Params const& other) const {
-	check_compatible(other);
+	check_format(other);
 	for (auto const& pair : _params) {
 		char const* name = pair.first.c_str();
 		Param const& param = pair.second;

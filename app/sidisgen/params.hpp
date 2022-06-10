@@ -182,9 +182,9 @@ public:
 	}
 
 	// Checks whether two sets of parameters have the same names + types + tags.
-	void check_compatible(Params const& other) const;
+	void check_format(Params const& other) const;
 	// Checks whether all provided parameters have been used.
-	void check_completed() const;
+	void check_complete() const;
 	// Checks whether this set of parameters can provide objects for another set
 	// of parameters to consume.
 	void check_can_provide(Params const& consumer) const;
