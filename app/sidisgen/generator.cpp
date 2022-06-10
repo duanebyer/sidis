@@ -11,56 +11,61 @@ using namespace sidis;
 
 namespace {
 
-cut::Cut get_cut_from_params(Params const& params) {
+cut::Cut get_cut_from_params(Params& params) {
 	Real const DEG = PI / 180.;
 	cut::Cut result;
-	result.x = params.cut_x.get_or(math::Bound::INVALID);
-	result.y = params.cut_y.get_or(math::Bound::INVALID);
-	result.z = params.cut_z.get_or(math::Bound::INVALID);
-	result.ph_t_sq = params.cut_ph_t_sq.get_or(math::Bound::INVALID);
-	result.phi_h = DEG * params.cut_phi_h.get_or(math::Bound::INVALID);
-	result.phi = DEG * params.cut_phi.get_or(math::Bound::INVALID);
-	result.Q_sq = params.cut_Q_sq.get_or(math::Bound::INVALID);
-	result.t = params.cut_t.get_or(math::Bound::INVALID);
-	result.W_sq = params.cut_W_sq.get_or(math::Bound::INVALID);
-	result.r = params.cut_r.get_or(math::Bound::INVALID);
-	result.mx_sq = params.cut_mx_sq.get_or(math::Bound::INVALID);
-	result.qt_to_Q = params.cut_qt_to_Q.get_or(math::Bound::INVALID);
-	result.lab_mom_q = params.cut_lab_mom_q.get_or(math::Bound::INVALID);
-	result.lab_mom_k2 = params.cut_lab_mom_k2.get_or(math::Bound::INVALID);
-	result.lab_mom_h = params.cut_lab_mom_h.get_or(math::Bound::INVALID);
-	result.lab_theta_q = DEG * params.cut_lab_theta_q.get_or(math::Bound::INVALID);
-	result.lab_theta_k2 = DEG * params.cut_lab_theta_k2.get_or(math::Bound::INVALID);
-	result.lab_theta_h = DEG * params.cut_lab_theta_h.get_or(math::Bound::INVALID);
+	result.x = params.get<ValueBound>("cut.x");
+	result.y = params.get<ValueBound>("cut.y");
+	result.z = params.get<ValueBound>("cut.z");
+	result.ph_t_sq = params.get<ValueBound>("cut.ph_t_sq");
+	result.phi_h = DEG * params.get<ValueBound>("cut.phi_h").value;
+	result.phi = DEG * params.get<ValueBound>("cut.phi").value;
+	result.Q_sq = params.get<ValueBound>("cut.Q_sq");
+	result.t = params.get<ValueBound>("cut.t");
+	result.W_sq = params.get<ValueBound>("cut.W_sq");
+	result.r = params.get<ValueBound>("cut.r");
+	result.mx_sq = params.get<ValueBound>("cut.mx_sq");
+	result.qt_to_Q = params.get<ValueBound>("cut.qt_to_Q");
+	result.lab_mom_q = params.get<ValueBound>("cut.lab.mom_q");
+	result.lab_mom_k2 = params.get<ValueBound>("cut.lab.mom_k2");
+	result.lab_mom_h = params.get<ValueBound>("cut.lab.mom_h");
+	result.lab_theta_q = DEG * params.get<ValueBound>("cut.lab.theta_q").value;
+	result.lab_theta_k2 = DEG * params.get<ValueBound>("cut.lab.theta_k2").value;
+	result.lab_theta_h = DEG * params.get<ValueBound>("cut.lab.theta_h").value;
 	return result;
 }
 
-cut::CutRad get_cut_rad_from_params(Params const& params) {
+cut::CutRad get_cut_rad_from_params(Params& params) {
 	Real const DEG = PI / 180.;
 	cut::CutRad result;
-	if (*params.rad_gen) {
-		result.tau = params.cut_tau.get_or(math::Bound::INVALID);
-		result.phi_k = DEG * params.cut_phi_k.get_or(math::Bound::INVALID);
-		result.R = params.cut_R.get_or(math::Bound::INVALID);
+	if (params.get<ValueBool>("mc.rad.gen")) {
+		result.tau = params.get<ValueBound>("cut.tau");
+		result.phi_k = DEG * params.get<ValueBound>("cut.phi_k").value;
+		result.R = params.get<ValueBound>("cut.R");
 		// The `k_0_bar` cut is mandatory.
-		result.k_0_bar = *params.cut_k_0_bar
-			& math::Bound(*params.k_0_bar, INF);
-		result.lab_mom_k = params.cut_lab_mom_k.get_or(math::Bound::INVALID);
-		result.lab_theta_k = DEG * params.cut_lab_theta_k.get_or(math::Bound::INVALID);
+		result.k_0_bar = params.get<ValueBound>("cut.k_0_bar")
+			& math::Bound(params.get<ValueDouble>("phys.soft_threshold"), INF);
+		result.lab_mom_k = params.get<ValueBound>("cut.lab.mom_k");
+		result.lab_theta_k = DEG * params.get<ValueBound>("cut.lab.theta_k").value;
 	}
 	return result;
 }
 
-std::random_device rnd_dev;
-
 }
 
-NradDensity::NradDensity(Params const& params, sf::SfSet const& sf) :
-	_params(params),
+NradDensity::NradDensity(Params& params, sf::SfSet const& sf) :
 	_cut(get_cut_from_params(params)),
-	_ps(*params.target, *params.beam, *params.hadron, *params.Mth),
-	_S(2. * mass(*params.target) * *params.beam_energy),
-	_sf(sf) { }
+	_sf(sf),
+	_rc_method(params.get<ValueRcMethod>("phys.rc_method")),
+	_soft_threshold(params.get<ValueDouble>("phys.soft_threshold")),
+	_ps(
+		params.get<ValueNucleus>("setup.target"),
+		params.get<ValueLepton>("setup.beam"),
+		params.get<ValueHadron>("setup.hadron"),
+		params.get<ValueDouble>("phys.mass_threshold")),
+	_S(2. * mass(_ps.target) * params.get<ValueDouble>("setup.beam_energy")),
+	_beam_pol(params.get<ValueDouble>("setup.beam_pol")),
+	_target_pol(params.get<ValueVec3>("setup.target_pol")) { }
 
 Real NradDensity::transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept {
 	Real jacobian;
@@ -83,7 +88,7 @@ Real NradDensity::operator()(Point<6> const& vec) const noexcept {
 	if (!cut::take(_cut, _ps, _S, vec.data(), &kin, &jacobian)) {
 		return 0.;
 	}
-	math::Vec3 eta = frame::hadron_from_target(kin) * *_params.target_pol;
+	math::Vec3 eta = frame::hadron_from_target(kin) * _target_pol;
 	// TODO: Evaluate when it is a good approximation to say that
 	// `nrad ~ nrad_ir`. This happens because for small `k_0_bar`, the
 	// contribution of `rad_f` integrated up to `k_0_bar` becomes vanishingly
@@ -91,15 +96,15 @@ Real NradDensity::operator()(Point<6> const& vec) const noexcept {
 	// choosing `k_0_bar` to be non-zero to avoid the infrared divergence in the
 	// radiative part of the cross-section.
 	Real xs;
-	switch (*_params.rc_method) {
+	switch (_rc_method) {
 	case RcMethod::NONE:
-		xs = xs::born(kin, _sf, *_params.beam_pol, eta);
+		xs = xs::born(kin, _sf, _beam_pol, eta);
 		break;
 	case RcMethod::APPROX:
-		xs = xs::nrad_ir(kin, _sf, *_params.beam_pol, eta, *_params.k_0_bar);
+		xs = xs::nrad_ir(kin, _sf, _beam_pol, eta, _soft_threshold);
 		break;
 	case RcMethod::EXACT:
-		xs = xs::nrad_integ(kin, _sf, *_params.beam_pol, eta, *_params.k_0_bar).val;
+		xs = xs::nrad_integ(kin, _sf, _beam_pol, eta, _soft_threshold).val;
 		break;
 	default:
 		xs = 0.;
@@ -114,13 +119,20 @@ Real NradDensity::operator()(Point<6> const& vec) const noexcept {
 	}
 }
 
-RadDensity::RadDensity(Params const& params, sf::SfSet const& sf) :
-	_params(params),
+RadDensity::RadDensity(Params& params, sf::SfSet const& sf) :
 	_cut(get_cut_from_params(params)),
 	_cut_rad(get_cut_rad_from_params(params)),
-	_ps(*params.target, *params.beam, *params.hadron, *params.Mth),
-	_S(2. * mass(*params.target) * *params.beam_energy),
-	_sf(sf) { }
+	_sf(sf),
+	_rc_method(params.get<ValueRcMethod>("phys.rc_method")),
+	_soft_threshold(params.get<ValueDouble>("phys.soft_threshold")),
+	_ps(
+		params.get<ValueNucleus>("setup.target"),
+		params.get<ValueLepton>("setup.beam"),
+		params.get<ValueHadron>("setup.hadron"),
+		params.get<ValueDouble>("phys.mass_threshold")),
+	_S(2. * mass(_ps.target) * params.get<ValueDouble>("setup.beam_energy")),
+	_beam_pol(params.get<ValueDouble>("setup.beam_pol")),
+	_target_pol(params.get<ValueVec3>("setup.target_pol")) { }
 
 Real RadDensity::transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept {
 	Real jacobian;
@@ -147,8 +159,8 @@ Real RadDensity::operator()(Point<9> const& vec) const noexcept {
 		return 0.;
 	}
 	kin::Kinematics kin = kin_rad.project();
-	math::Vec3 eta = frame::hadron_from_target(kin) * *_params.target_pol;
-	Real xs = xs::rad(kin_rad, _sf, *_params.beam_pol, eta);
+	math::Vec3 eta = frame::hadron_from_target(kin) * _target_pol;
+	Real xs = xs::rad(kin_rad, _sf, _beam_pol, eta);
 	if (!std::isfinite(xs) || !(xs >= 0.)) {
 		return 0.;
 	} else {
@@ -159,23 +171,25 @@ Real RadDensity::operator()(Point<9> const& vec) const noexcept {
 Builder::Builder(
 		EventType type,
 		BuilderReporters const& reporters,
-		Params const& params,
+		Params& params,
 		sf::SfSet const& sf) :
 		_type(type) {
+	SeedInit seed_init;
 	switch (_type) {
 	case EventType::NRAD:
-		_seed = *params.nrad_seed_init;
+		seed_init = params.get<ValueSeedInit>("nrad.init.seed");
 		break;
 	case EventType::RAD:
-		_seed = *params.rad_seed_init;
+		seed_init = params.get<ValueSeedInit>("rad.init.seed");
 		break;
 	case EventType::EXCL:
-		_seed = 0;
+		seed_init = SeedInit();
 		break;
 	}
-	if (_seed == 0) {
-		_seed = rnd_dev();
+	if (seed_init.any) {
+		throw std::runtime_error("Must choose specific seed for Builder.");
 	}
+	_seed = seed_init.seed;
 	std::minstd_rand seed_rnd(_seed);
 	std::uniform_int_distribution<Seed> seed_dist;
 	switch (_type) {
@@ -186,12 +200,12 @@ Builder::Builder(
 		_builder.nrad.explore_progress_reporter = reporters.explore_progress;
 		_builder.nrad.tune_progress_reporter = reporters.tune_progress;
 		_builder.nrad.check_samples = 16384;
-		_builder.nrad.target_rel_var =
-			std::expm1(-2. * std::log(*params.nrad_target_eff));
-		_builder.nrad.scale_exp_est = *params.nrad_scale_exp;
+		_builder.nrad.target_rel_var = std::expm1(
+			-2. * std::log(params.get<ValueDouble>("mc.nrad.init.target_eff")));
+		_builder.nrad.scale_exp_est = params.get<ValueDouble>("mc.nrad.init.scale_exp");
 		_builder.nrad.min_cell_explore_samples = 512;
 		_builder.nrad.hist_num_per_bin = 2;
-		_builder.nrad.max_explore_cells = *params.nrad_max_cells;
+		_builder.nrad.max_explore_cells = params.get<ValueInt>("mc.nrad.init.max_cells");
 		break;
 	case EventType::RAD:
 		new (&_builder.rad) RadBuilder(
@@ -200,12 +214,12 @@ Builder::Builder(
 		_builder.rad.explore_progress_reporter = reporters.explore_progress;
 		_builder.rad.tune_progress_reporter = reporters.tune_progress;
 		_builder.rad.check_samples = 16384;
-		_builder.rad.target_rel_var =
-			std::expm1(-2. * std::log(*params.rad_target_eff));
-		_builder.rad.scale_exp_est = *params.rad_scale_exp;
+		_builder.rad.target_rel_var = std::expm1(
+			-2. * std::log(params.get<ValueDouble>("mc.rad.init.target_eff")));
+		_builder.rad.scale_exp_est = params.get<ValueDouble>("mc.rad.init.scale_exp");
 		_builder.rad.min_cell_explore_samples = 512;
 		_builder.rad.hist_num_per_bin = 2;
-		_builder.rad.max_explore_cells = *params.rad_max_cells;
+		_builder.rad.max_explore_cells = params.get<ValueInt>("mc.rad.init.max_cells");
 		break;
 	case EventType::EXCL:
 		new (&_builder.excl) ExclBuilder(
@@ -322,30 +336,32 @@ std::size_t Builder::size() const {
 
 Generator::Generator(
 		EventType type,
-		Params const& params,
+		Params& params,
 		sf::SfSet const& sf,
 		std::istream& is) :
 		_type(type),
-		_seed(*params.seed->begin()),
+		_seed(),
 		_rej_scale(0.),
 		_weights(),
 		_count(0),
 		_count_acc(0) {
-	if (_seed == 0) {
-		_seed = rnd_dev();
+	SeedGen seed_gen = params.get<ValueSeedGen>("mc.seed");
+	if (seed_gen.any || seed_gen.seeds.size() != 1) {
+		throw std::runtime_error("Must choose specific seed for Generator.");
 	}
+	_seed = *seed_gen.seeds.begin();
 	std::minstd_rand seed_rnd(_seed);
 	std::uniform_int_distribution<Seed> seed_dist;
 	switch (_type) {
 	case EventType::NRAD:
-		_rej_scale = *params.nrad_rej_scale;
+		_rej_scale = params.get<ValueDouble>("mc.nrad.gen.rej_scale");
 		new (&_generator.nrad) NradGenerator(
 			NradDensity(params, sf),
 			seed_dist(seed_rnd));
 		_generator.nrad.read(is);
 		break;
 	case EventType::RAD:
-		_rej_scale = *params.rad_rej_scale;
+		_rej_scale = params.get<ValueDouble>("mc.rad.gen.rej_scale");
 		new (&_generator.rad) RadGenerator(
 			RadDensity(params, sf),
 			seed_dist(seed_rnd));

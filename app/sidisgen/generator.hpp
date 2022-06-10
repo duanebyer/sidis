@@ -9,7 +9,7 @@
 #include <sidis/sidis.hpp>
 
 #include "event_type.hpp"
-#include "params.hpp"
+#include "params_format.hpp"
 
 using Real = sidis::Real;
 using Seed = bubble::Seed;
@@ -25,28 +25,34 @@ using StatsAccum = bubble::StatsAccum<Real>;
 // The `transform` method also returns the Jacobian of the transformation.
 
 class NradDensity {
-	Params _params;
 	sidis::cut::Cut _cut;
+	sidis::sf::SfSet const& _sf;
+	RcMethod _rc_method;
+	Real _soft_threshold;
 	sidis::part::Particles _ps;
 	Real _S;
-	sidis::sf::SfSet const& _sf;
+	Real _beam_pol;
+	sidis::math::Vec3 _target_pol;
 
 public:
-	NradDensity(Params const& params, sidis::sf::SfSet const& sf);
+	NradDensity(Params& params, sidis::sf::SfSet const& sf);
 	Real operator()(Point<6> const& vec) const noexcept;
 	Real transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept;
 };
 
 class RadDensity {
-	Params _params;
 	sidis::cut::Cut _cut;
 	sidis::cut::CutRad _cut_rad;
+	sidis::sf::SfSet const& _sf;
+	RcMethod _rc_method;
+	Real _soft_threshold;
 	sidis::part::Particles _ps;
 	Real _S;
-	sidis::sf::SfSet const& _sf;
+	Real _beam_pol;
+	sidis::math::Vec3 _target_pol;
 
 public:
-	RadDensity(Params const& params, sidis::sf::SfSet const& sf);
+	RadDensity(Params& params, sidis::sf::SfSet const& sf);
 	Real operator()(Point<9> const& vec) const noexcept;
 	Real transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept;
 };
@@ -55,7 +61,7 @@ class ExclDensity {
 public:
 	// For now, the exclusive contribution is not supported.
 	// TODO: Throw an exception to ensure this doesn't get called by accident.
-	ExclDensity(Params const&, sidis::sf::SfSet const&) { }
+	ExclDensity(Params&, sidis::sf::SfSet const&) { }
 	Real operator()(Point<8> const&) const noexcept { return 0.; }
 	Real transform(Point<8> const&, Point<8>*) const noexcept { return 0.; };
 };
@@ -87,7 +93,7 @@ public:
 	Builder(
 		EventType type,
 		BuilderReporters const& reporters,
-		Params const& params,
+		Params& params,
 		sidis::sf::SfSet const& sf);
 	Builder(Builder const& other) = delete;
 	Builder(Builder&& other);
@@ -136,7 +142,7 @@ class Generator {
 public:
 	Generator(
 		EventType type,
-		Params const& params,
+		Params& params,
 		sidis::sf::SfSet const& sf,
 		std::istream& is);
 	Generator(Generator const& other) = delete;

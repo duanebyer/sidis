@@ -6,6 +6,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <queue>
 #include <random>
 #include <regex>
 #include <string>
@@ -83,7 +84,7 @@ void zip_and(bool* begin_1, bool* end_1, bool const* begin_2) {
 
 // Allocates the memory for the structure functions.
 void alloc_sf(
-		Params params,
+		Params& params,
 		std::unique_ptr<sf::SfSet>* sf_out,
 		std::unique_ptr<sf::TmdSet>* tmd_out) {
 	// Structure function description comes as a series of words. For example:
@@ -94,7 +95,8 @@ void alloc_sf(
 	std::unique_ptr<sf::TmdSet> tmd;
 	// Load words into an array.
 	std::vector<std::string> parts;
-	std::stringstream ss(*params.sf_set);
+	std::string sf_set_name = params.get<ValueString>("phys.sf_set");
+	std::stringstream ss(sf_set_name);
 	std::string next_part;
 	while (ss >> next_part) {
 		parts.push_back(next_part);
@@ -115,7 +117,8 @@ void alloc_sf(
 	} else if (base == "test") {
 		std::cout << "Using test structure functions." << std::endl;
 		tmd_out->reset();
-		sf_out->reset(new sf::set::TestSfSet(*params.target));
+		sf_out->reset(
+			new sf::set::TestSfSet(params.get<ValueNucleus>("setup.target")));
 	} else {
 		// TODO: Make this work on Windows as well, and make providing the
 		// extension optional.
@@ -157,7 +160,7 @@ void alloc_sf(
 		} else if (sf_class->InheritsFrom("sidis::sf::GaussianWwTmdSet")) {
 			std::cout
 				<< "Using Gaussian WW-type TMDs and FFs from '"
-				<< *params.sf_set << "'." << std::endl;
+				<< sf_set_name << "'." << std::endl;
 			sf::GaussianWwTmdSet* tmd_ptr = static_cast<sf::GaussianWwTmdSet*>(sf_class->New());
 			tmd_out->reset(tmd_ptr);
 			sf_out->reset(new sf::GaussianWwTmdSfSet(*tmd_ptr));
@@ -165,7 +168,7 @@ void alloc_sf(
 			throw Exception(
 				ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND,
 				std::string("Couldn't find structure functions in file '")
-				+ *params.sf_set + ".so'.");
+				+ sf_set_name + ".so'.");
 		}
 	}
 
@@ -334,7 +337,7 @@ int command_version() {
 }
 
 int command_inspect(char const* file_name) {
-	Params params;
+	Params params = params_format();
 	TFile file(file_name, "OPEN");
 	if (file.IsZombie()) {
 		throw Exception(
@@ -433,7 +436,7 @@ int command_initialize(char const* params_file_name) {
 			+ "found.");
 	}
 	std::cout << "Reading parameter file '" << params_file_name << "'." << std::endl;
-	Params params;
+	Params params = params_format();
 	try {
 		params.read_stream(params_file);
 	} catch (std::exception const& e) {
@@ -448,14 +451,6 @@ int command_initialize(char const* params_file_name) {
 	params.write_stream(std::cout);
 	std::cout.flags(flags);
 	std::cout << std::endl;
-	try {
-		params.fill_defaults();
-	} catch (std::exception const& e) {
-		throw Exception(
-			ERROR_PARAMS_INVALID,
-			std::string("Invalid parameter file '") + params_file_name + "': "
-			+ e.what());
-	}
 
 	// Load the structure functions.
 	std::unique_ptr<sf::SfSet> sf;
@@ -465,7 +460,7 @@ int command_initialize(char const* params_file_name) {
 	BuilderReporters builder_reporters;
 
 	// Create FOAM file.
-	std::string file_name = *params.foam_file;
+	std::string file_name = params.get<ValueString>("file.foam");
 	std::cout << "Creating ROOT file '" << file_name << "'." << std::endl;
 	TFile file(file_name.c_str(), "CREATE");
 	if (file.IsZombie()) {
@@ -476,34 +471,51 @@ int command_initialize(char const* params_file_name) {
 
 	// Build FOAMs and write to file.
 	std::vector<EventType> gen_types;
-	if (*params.nrad_gen) {
+	std::random_device rnd_dev;
+	if (params.get<ValueBool>("mc.nrad.gen")) {
 		gen_types.push_back(EventType::NRAD);
+		// Choose specific seeds, if they haven't already been supplied.
+		if (params.get<ValueSeedInit>("mc.nrad.init.seed").value.any) {
+			params.set("mc.nrad.init.seed", new ValueSeedInit(rnd_dev()));
+		}
 	}
-	if (*params.rad_gen) {
+	if (params.get<ValueBool>("mc.rad.gen")) {
 		gen_types.push_back(EventType::RAD);
+		if (params.get<ValueSeedInit>("mc.rad.init.seed").value.any) {
+			params.set("mc.rad.init.seed", new ValueSeedInit(rnd_dev()));
+		}
 	}
+	// Use a queue here so that the builders can be easily destructed in a FIFO
+	// order after they have been initialized and written to file.
+	std::queue<Builder> builders;
 	for (EventType gen_type : gen_types) {
 		char const* gen_name = event_type_name(gen_type);
-		char const* gen_key = event_type_short_name(gen_type);
 		std::cout << "Building " << gen_name << " FOAM." << std::endl;
 		DrawProgressBar progress_reporter;
 		builder_reporters.explore_progress = &progress_reporter;
 		builder_reporters.tune_progress = &progress_reporter;
-		Builder builder(gen_type, builder_reporters, params, *sf);
-		// Overwrite the seed parameter with the chosen seed.
-		if (gen_type == EventType::NRAD) {
-			params.nrad_seed_init.reset(builder.seed());
-		} else if (gen_type == EventType::RAD) {
-			params.rad_seed_init.reset(builder.seed());
-		} else if (gen_type == EventType::EXCL) {
-			// Not yet implemented.
-		}
+		builders.emplace(gen_type, builder_reporters, params, *sf);
+	}
+
+	try {
+		params.check_complete();
+	} catch (std::exception const& e) {
+		throw Exception(
+			ERROR_PARAMS_INVALID,
+			std::string("Invalid parameter file '") + params_file_name + "': "
+			+ e.what());
+	}
+
+	while (!builders.empty()) {
+		EventType gen_type = builders.front().type();
+		char const* gen_name = event_type_name(gen_type);
+		char const* gen_key = event_type_short_name(gen_type);
 		try {
 			std::cout << "Exploration phase." << std::endl;
 			write_progress_bar(std::cout, 0);
 			std::cout << '\r';
 			std::cout << std::flush;
-			builder.explore();
+			builders.front().explore();
 			write_progress_bar(std::cout, 100);
 			std::cout << std::endl;
 
@@ -511,7 +523,7 @@ int command_initialize(char const* params_file_name) {
 			write_progress_bar(std::cout, 0);
 			std::cout << '\r';
 			std::cout << std::flush;
-			builder.tune();
+			builders.front().tune();
 			write_progress_bar(std::cout, 100);
 			std::cout << std::endl;
 		} catch (std::exception const& e) {
@@ -521,15 +533,15 @@ int command_initialize(char const* params_file_name) {
 				+ e.what());
 		}
 		Real rel_var_err;
-		Real rel_var = builder.rel_var(&rel_var_err);
+		Real rel_var = builders.front().rel_var(&rel_var_err);
 		std::cout << "Constructed " << gen_name << " FOAM with size "
-			<< builder.size() << "." << std::endl;
+			<< builders.front().size() << "." << std::endl;
 		std::cout << "\tRelative variance: " << rel_var
 			<< " ± " << rel_var_err << std::endl;
 		std::cout << "Writing " << gen_name << " FOAM to file." << std::endl;
 		try {
 			std::ostringstream os;
-			builder.write(os);
+			builders.front().write(os);
 			std::string data = os.str();
 			file.WriteObject(&data, gen_key);
 		} catch (std::exception const& e) {
@@ -538,6 +550,7 @@ int command_initialize(char const* params_file_name) {
 				std::string("Failed to write ") + gen_name + " non-radiative "
 				+ "FOAM to file '" + file_name + "': " + e.what());
 		}
+		builders.pop();
 	}
 	params.write_root(file);
 
@@ -555,7 +568,7 @@ int command_generate(char const* params_file_name) {
 			+ "found.");
 	}
 	std::cout << "Reading parameter file '" << params_file_name << "'." << std::endl;
-	Params params;
+	Params params = params_format();
 	try {
 		params.read_stream(params_file);
 	} catch (std::exception const& e) {
@@ -570,16 +583,8 @@ int command_generate(char const* params_file_name) {
 	params.write_stream(std::cout);
 	std::cout.flags(flags);
 	std::cout << std::endl;
-	try {
-		params.fill_defaults();
-		if (params.seed->size() != 1) {
-			throw std::runtime_error("Exactly one seed must be provided.");
-		}
-	} catch (std::exception const& e) {
-		throw Exception(
-			ERROR_PARAMS_INVALID,
-			std::string("Invalid parameter file '") + params_file_name + "': "
-			+ e.what());
+	if (params.get<ValueSeedGen>("mc.seed").value.seeds.size() != 1) {
+		throw std::runtime_error("Exactly one seed must be provided.");
 	}
 
 	// Load the structure functions.
@@ -589,28 +594,32 @@ int command_generate(char const* params_file_name) {
 
 	// Load the event generators from file.
 	std::vector<EventType> gen_types;
-	if (*params.nrad_gen) {
+	if (params.get<ValueBool>("mc.nrad.gen")) {
 		gen_types.push_back(EventType::NRAD);
 	}
-	if (*params.rad_gen) {
+	if (params.get<ValueBool>("mc.rad.gen")) {
 		gen_types.push_back(EventType::RAD);
 	}
 	std::vector<Generator> gens;
-	std::string foam_file_name = *params.foam_file;
+	std::string foam_file_name = params.get<ValueString>("file.foam");
 	std::cout << "Opening FOAM file '" << foam_file_name << "'." << std::endl;
 	TFile foam_file(foam_file_name.c_str(), "OPEN");
 	if (foam_file.IsZombie()) {
 		throw Exception(
 			ERROR_FILE_NOT_FOUND,
-			std::string("Couldn't find file '") + *params.foam_file + "'.");
+			std::string("Couldn't find file '") + foam_file_name + "'.");
 	}
-	Params foam_params;
-	foam_params.read_root(foam_file);
+	Params params_foam = params_format();
+	params_foam.read_root(foam_file);
+	std::random_device rnd_dev;
+	if (params.get<ValueSeedGen>("mc.seed").value.any) {
+		params.set("mc.seed", new ValueSeedGen(rnd_dev()));
+	}
 	for (EventType gen_type : gen_types) {
 		char const* gen_name = event_type_name(gen_type);
 		char const* gen_key = event_type_short_name(gen_type);
 		std::cout << "Loading " << gen_name << " FOAM from file." << std::endl;
-		params.compatible_with_foam(gen_type, foam_params);
+		check_can_provide_foam(gen_type, params_foam, params);
 		try {
 			std::string* data = foam_file.Get<std::string>(gen_key);
 			if (data == nullptr) {
@@ -620,9 +629,6 @@ int command_generate(char const* params_file_name) {
 			}
 			std::istringstream is(*data);
 			gens.emplace_back(gen_type, params, *sf, is);
-			// Overwrite the seed parameter with the actual seed that was chosen
-			// in the case that the seed was asked to be chosen randomly.
-			params.seed.reset({ gens.back().seed() });
 		} catch (std::exception const& e) {
 			throw Exception(
 				ERROR_READING_FOAM,
@@ -632,26 +638,29 @@ int command_generate(char const* params_file_name) {
 	}
 	foam_file.Close();
 
+	std::string event_file_name = params.get<ValueString>("file.event");
 	std::cout
-		<< "Opening event output file '" << *params.event_file << "'."
+		<< "Opening event output file '" << event_file_name << "'."
 		<< std::endl;
-	TFile event_file(params.event_file->c_str(), "CREATE");
+	TFile event_file(event_file_name.c_str(), "CREATE");
 	if (event_file.IsZombie()) {
 		throw Exception(
 			ERROR_FILE_NOT_CREATED,
-			std::string("Couldn't create file '") + *params.event_file + "'.");
+			"Couldn't create file '" + event_file_name + "'.");
 	}
 
 	// Setup initial conditions.
-	part::Nucleus target = *params.target;
-	part::Lepton beam = *params.beam;
-	part::Hadron hadron = *params.hadron;
-	math::Vec3 target_pol = *params.target_pol;
-	part::Particles ps(target, beam, hadron, *params.Mth);
-	Real S = 2.*(*params.beam_energy)*ps.M;
+	part::Nucleus target = params.get<ValueNucleus>("setup.target");
+	part::Lepton beam = params.get<ValueLepton>("setup.beam");
+	part::Hadron hadron = params.get<ValueHadron>("setup.hadron");
+	math::Vec3 target_pol = params.get<ValueVec3>("setup.target_pol");
+	Real beam_energy = params.get<ValueDouble>("setup.beam_energy");
+	Real M_th = params.get<ValueDouble>("phys.mass_threshold");
+	part::Particles ps(target, beam, hadron, M_th);
+	Real S = 2.*beam_energy*ps.M;
 
-	kin::Initial init(ps, *params.beam_energy);
-	ULong_t N_gen = *params.num_events >= 0 ? *params.num_events : 0;
+	kin::Initial init(ps, beam_energy);
+	ULong_t num_events = std::max(0, params.get<ValueInt>("mc.num_events").value);
 
 	// Prepare branches in output ROOT file.
 	event_file.cd();
@@ -673,18 +682,25 @@ int command_generate(char const* params_file_name) {
 	events.Branch("tau", &tau);
 	events.Branch("phi_k", &phi_k);
 	events.Branch("R", &R);
-	if (*params.write_momenta) {
+	bool write_momenta = params.get<ValueBool>("file.write_momenta");
+	bool write_photon = false;
+	bool write_sf_set = params.get<ValueBool>("file.write_sf_set");
+	bool write_mc_coords = params.get<ValueBool>("file.write_mc_coords");
+	if (write_momenta) {
 		events.Branch("p", "TLorentzVector", &p);
 		events.Branch("k1", "TLorentzVector", &k1);
 		events.Branch("q", "TLorentzVector", &q);
 		events.Branch("k2", "TLorentzVector", &k2);
 		events.Branch("ph", "TLorentzVector", &ph);
-		if (*params.rad_gen && *params.write_photon) {
-			events.Branch("k", "TLorentzVector", &k);
+		if (params.get<ValueBool>("mc.rad.gen")) {
+			write_photon = params.get<ValueBool>("file.write_photon");
+			if (write_photon) {
+				events.Branch("k", "TLorentzVector", &k);
+			}
 		}
 	}
 	sf::SfXX sf_out;
-	if (*params.write_sf_set) {
+	if (write_sf_set) {
 		// TODO: Right now, this is depending on the `SfXX` structure having a
 		// very specific format. This isn't guaranteed to be true in the future,
 		// if things get reorganized. Not sure what a better approach is, as
@@ -694,8 +710,17 @@ int command_generate(char const* params_file_name) {
 	}
 	Real mc_coords[9];
 	Real ph_coords[9];
-	if (*params.write_mc_coords) {
+	if (write_mc_coords) {
 		events.Branch("mc_coords", &mc_coords, "mc_coords[9]/D");
+	}
+	// Check that parameter file was completed.
+	try {
+		params.check_complete();
+	} catch (std::exception const& e) {
+		throw Exception(
+			ERROR_PARAMS_INVALID,
+			std::string("Invalid parameter file '") + params_file_name + "': "
+			+ e.what());
 	}
 	// Write parameter file.
 	params.write_root(event_file);
@@ -703,12 +728,12 @@ int command_generate(char const* params_file_name) {
 	std::cout << "Generating events." << std::endl;
 	bool update_progress = true;
 	ULong_t percent = 0;
-	ULong_t next_percent_rem = N_gen % 100;
-	ULong_t next_percent = N_gen / 100;
-	for (ULong_t event_idx = 0; event_idx < N_gen; ++event_idx) {
+	ULong_t next_percent_rem = num_events % 100;
+	ULong_t next_percent = num_events / 100;
+	for (ULong_t event_idx = 0; event_idx < num_events; ++event_idx) {
 		while (event_idx >= next_percent + (next_percent_rem != 0)) {
 			percent += 1;
-			next_percent = math::prod_div(N_gen, percent + 1, 100, next_percent_rem);
+			next_percent = math::prod_div(num_events, percent + 1, 100, next_percent_rem);
 			update_progress = true;
 		}
 		if (update_progress) {
@@ -766,7 +791,7 @@ int command_generate(char const* params_file_name) {
 				tau = 0.;
 				phi_k = 0.;
 				R = 0.;
-				if (*params.write_momenta) {
+				if (write_momenta) {
 					kin::PhaseSpace ph_space {
 						x, y, z,
 						ph_t_sq, phi_h, phi,
@@ -780,7 +805,7 @@ int command_generate(char const* params_file_name) {
 					ph = convert_vec4(fin.ph);
 					k = TLorentzVector();
 				}
-				if (*params.write_sf_set) {
+				if (write_sf_set) {
 					sf_out = sf->sf(hadron, x, z, S * x * y, ph_t_sq);
 				}
 			}
@@ -798,7 +823,7 @@ int command_generate(char const* params_file_name) {
 				tau = ph_coords[6];
 				phi_k = ph_coords[7];
 				R = ph_coords[8];
-				if (*params.write_momenta) {
+				if (write_momenta) {
 					kin::PhaseSpaceRad ph_space {
 						x, y, z,
 						ph_t_sq, phi_h, phi,
@@ -813,7 +838,7 @@ int command_generate(char const* params_file_name) {
 					ph = convert_vec4(fin.ph);
 					k = convert_vec4(fin.k);
 				}
-				if (*params.write_sf_set) {
+				if (write_sf_set) {
 					sf_out = sf->sf(hadron, x, z, S * x * y, ph_t_sq);
 				}
 			}
@@ -952,18 +977,13 @@ int command_merge_soft(
 				ERROR_FILE_NOT_FOUND,
 				std::string("File '") + file_name + "' not found.");
 		}
-		Params params;
+		Params params = params_format();
 		params.read_root(file);
-		if (!params.valid()) {
-			throw Exception(
-				ERROR_PARAMS_INVALID,
-				std::string("Invalid parameters in '") + file_name + "'.");
-		}
 		if (first) {
 			params_out = params;
 			first = false;
 		} else {
-			params_out.merge(params);
+			params_out = merge_params(params_out, params);
 		}
 	}
 
