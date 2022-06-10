@@ -105,13 +105,13 @@ class Params final {
 		// Tags for filtering and selecting parameters.
 		std::set<std::string> tags;
 
+		// Whether the parameter has been read from.
+		bool used;
+
 		// Parameter metadata.
 		std::string usage;
 		std::string brief;
 		std::string doc;
-
-		// Whether the parameter has been read from.
-		bool used;
 
 		Param(
 			Value const* default_value,
