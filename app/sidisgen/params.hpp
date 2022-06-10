@@ -150,6 +150,9 @@ public:
 	T const& get(char const* name) {
 		return get(name).as<T>();
 	}
+	// Sets a value provided by the parameter. Overwrites any existing
+	// parameter, returning whether it did so.
+	bool set(char const* name, Value const* value);
 	// Checks whether the parameter has been used.
 	bool used(char const* name) const {
 		return _params.at(name).used;

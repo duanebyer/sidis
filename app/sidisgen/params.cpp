@@ -88,6 +88,18 @@ Value const& Params::get(char const* name) {
 	}
 }
 
+bool Params::set(char const* name, Value const* value) {
+	Param& param = _params.at(name);
+	bool old = (param.value != nullptr);
+	if (param.type != value->type()) {
+		throw std::runtime_error(
+			std::string("Parameter '") + name + "' has different type.");
+	}
+	param.used = false;
+	param.value.reset(value);
+	return old;
+}
+
 void Params::check_format(Params const& other) const {
 	for (auto const& pair : _params) {
 		char const* name = pair.first.c_str();
