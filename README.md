@@ -1,4 +1,4 @@
-# SIDIS event generator
+# SIDIS-RC EvGen
 
 This is an event generator for polarized semi-inclusive deep inelastic
 scattering (SIDIS) with QED radiative corrections, following closely work done
