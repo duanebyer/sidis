@@ -36,9 +36,8 @@ inline void check_can_provide_foam(
 	static_cast<void>(params_foam);
 	static_cast<void>(params_gen);
 }
-inline Params merge_params(Params const& params_1, Params const& params_2) {
-	static_cast<void>(params_2);
-	return params_1;
+inline void merge_params_into(Params const& params, Params* params_out) {
+	*params_out = params;
 }
 
 // These enums are used for defining the `can_provide` relationship between

@@ -950,7 +950,7 @@ int command_merge_soft(
 			params_out = params;
 			first = false;
 		} else {
-			params_out = merge_params(params_out, params);
+			merge_params_into(params, &params_out);
 		}
 	}
 
