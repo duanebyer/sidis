@@ -100,6 +100,14 @@ bool Params::set(char const* name, Value const* value) {
 	return old;
 }
 
+std::set<std::string> Params::names() const {
+	std::set<std::string> result;
+	for (auto const& pair : _params) {
+		result.insert(pair.first.c_str());
+	}
+	return result;
+}
+
 void Params::check_format(Params const& other) const {
 	for (auto const& pair : _params) {
 		char const* name = pair.first.c_str();

@@ -257,74 +257,41 @@ int command_help() {
 		<< "    sidisgen merge-soft <output file> <input files>" << std::endl
 		<< "    sidisgen merge-hard <output file> <input files>" << std::endl
 		<< "  Show parameter file format information"            << std::endl
-		<< "    sidisgen help-params"                            << std::endl;
+		<< "    sidisgen help params"                            << std::endl;
 	return SUCCESS;
 }
 
 int command_help_params() {
+	Params params = params_format();
 	std::cout
-		<< "Parameter file format summary."                    << std::endl
-		<< "For more detailed information, see docs."          << std::endl
-		<< std::endl
-		<< "file.event_out        <ROOT file>"                 << std::endl
-		<< "file.write_momenta    <on, off>"                   << std::endl
-		<< "file.write_photon     <on, off>"                   << std::endl
-		<< "file.write_sf_set     <on, off>"                   << std::endl
-		<< "file.write_mc_coords  <on, off>"                   << std::endl
-		<< "file.foam_out         <ROOT file>"                 << std::endl
-		<< std::endl
-		<< "mc.nrad.gen              <on, off>"                << std::endl
-		<< "mc.nrad.gen.rej_scale    <real in [0, ∞)>"         << std::endl
-		<< "mc.nrad.init.seed        <integer>"                << std::endl
-		<< "mc.nrad.init.max_cells   <integer>"                << std::endl
-		<< "mc.nrad.init.target_eff  <real in [0, 1]>"         << std::endl
-		<< "mc.nrad.init.scale_exp   <real>"                   << std::endl
-		<< "mc.rad.gen               <on, off>"                << std::endl
-		<< "mc.rad.gen.rej_scale     <real in [0, ∞>"          << std::endl
-		<< "mc.rad.init.seed         <integer>"                << std::endl
-		<< "mc.rad.init.max_cells    <integer>"                << std::endl
-		<< "mc.rad.init.target_eff   <real in [0, 1]>"         << std::endl
-		<< "mc.rad.init.scale_exp    <real>"                   << std::endl
-		<< "mc.num_events            <integer>"                << std::endl
-		<< "mc.seed                  <integer>"                << std::endl
-		<< std::endl
-		<< "setup.beam_energy  <energy (GeV)>"                 << std::endl
-		<< "setup.beam         <pid>"                          << std::endl
-		<< "setup.target       <pid>"                          << std::endl
-		<< "setup.hadron       <pid>"                          << std::endl
-		<< "setup.beam_pol     <real in [-1, 1]>"              << std::endl
-		<< "setup.target_pol   <vector in unit sphere>"        << std::endl
-		<< std::endl
-		<< "phys.sf_set          <prokudin, test, ROOT dict.>" << std::endl
-		<< "phys.rc_method       <none, approx, exact>"        << std::endl
-		<< "phys.mass_threshold  <mass (GeV)>"                 << std::endl
-		<< "phys.soft_threshold  <energy (GeV)>"               << std::endl
-		<< std::endl
-		<< "cut.k_0_bar       <min> <max>"                     << std::endl
-		<< "cut.x             <min> <max>"                     << std::endl
-		<< "cut.y             <min> <max>"                     << std::endl
-		<< "cut.z             <min> <max>"                     << std::endl
-		<< "cut.ph_t_sq       <min> <max>"                     << std::endl
-		<< "cut.phi_h         <min> <max>"                     << std::endl
-		<< "cut.phi           <min> <max>"                     << std::endl
-		<< "cut.tau           <min> <max>"                     << std::endl
-		<< "cut.phi_k         <min> <max>"                     << std::endl
-		<< "cut.R             <min> <max>"                     << std::endl
-		<< "cut.Q_sq          <min> <max>"                     << std::endl
-		<< "cut.t             <min> <max>"                     << std::endl
-		<< "cut.W_sq          <min> <max>"                     << std::endl
-		<< "cut.r             <min> <max>"                     << std::endl
-		<< "cut.mx_sq         <min> <max>"                     << std::endl
-		<< "cut.qt_to_Q       <min> <max>"                     << std::endl
-		<< "cut.lab_mom_q     <min> <max>"                     << std::endl
-		<< "cut.lab_mom_k2    <min> <max>"                     << std::endl
-		<< "cut.lab_mom_h     <min> <max>"                     << std::endl
-		<< "cut.lab_mom_k     <min> <max>"                     << std::endl
-		<< "cut.lab_theta_q   <min> <max>"                     << std::endl
-		<< "cut.lab_theta_k2  <min> <max>"                     << std::endl
-		<< "cut.lab_theta_h   <min> <max>"                     << std::endl
-		<< "cut.lab_theta_k   <min> <max>"                     << std::endl;
+		<< "Parameter file format summary."                      << std::endl
+		<< "For more details, try `sidisgen help <param name>`." << std::endl
+		<< std::endl;
+	std::vector<std::string> table_entries;
+	for (std::string name : params.names()) {
+		table_entries.push_back(name);
+		table_entries.push_back(params.usage(name.c_str()));
+	}
+	std::vector<unsigned> table_widths = { 24, 42 };
+	write_table(std::cout, table_entries, table_widths, 4);
 	return SUCCESS;
+}
+
+int command_help_param(char const* param_name) {
+	Params params = params_format();
+	if (params.names().count(param_name) != 0) {
+		std::vector<std::string> table_entries {
+			"Summary", params.brief(param_name),
+			"Key", param_name,
+			"Value", params.usage(param_name),
+			"Info", params.doc(param_name),
+		};
+		std::vector<unsigned> table_widths = { 7, 59 };
+		write_table(std::cout, table_entries, table_widths, 4);
+		return SUCCESS;
+	} else {
+		return command_help();
+	}
 }
 
 int command_version() {
@@ -1137,9 +1104,16 @@ int main(int argc, char** argv) {
 			command = command.substr(2);
 		}
 		if (command == "help" || command == "-?") {
-			return command_help();
-		} else if (command == "help-params") {
-			return command_help_params();
+			if (argc >= 3) {
+				std::string topic = argv[2];
+				if (topic == "params") {
+					return command_help_params();
+				} else {
+					return command_help_param(topic.c_str());
+				}
+			} else {
+				return command_help();
+			}
 		} else if (command == "version" || command == "-v") {
 			return command_version();
 		} else if (command == "inspect" || command == "-i") {

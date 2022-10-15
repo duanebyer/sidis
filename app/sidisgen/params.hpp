@@ -184,6 +184,9 @@ public:
 		}
 	}
 
+	// Gets a set of all parameter names.
+	std::set<std::string> names() const;
+
 	// Checks whether two sets of parameters have the same names + types + tags.
 	void check_format(Params const& other) const;
 	// Checks whether all provided parameters have been used.

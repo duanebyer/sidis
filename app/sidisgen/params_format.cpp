@@ -238,7 +238,7 @@ Params params_format() {
 		"<min> <max>", "bound on z", "");
 	params.add_param(
 		"cut.ph_t_sq", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
-		"<min (GeV²)> <max (GeV²)>", "bound on p_ht²", "");
+		"<min (GeV^2)> <max (GeV^2)>", "bound on p_ht^2", "");
 	params.add_param(
 		"cut.phi_h", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
 		"<min (deg.)> <max (deg.)>", "bound on φ_h", "");
@@ -247,16 +247,16 @@ Params params_format() {
 		"<min (deg.)> <max (deg.)>", "bound on φ", "");
 	params.add_param(
 		"cut.Q_sq", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
-		"<min (GeV²)> <max (GeV²)>", "bound on Q²", "");
+		"<min (GeV^2)> <max (GeV^2)>", "bound on Q^2", "");
 	params.add_param(
 		"cut.W_sq", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
-		"<min (GeV²)> <max (GeV²)>", "bound on W²", "");
+		"<min (GeV^2)> <max (GeV^2)>", "bound on W^2", "");
 	params.add_param(
 		"cut.mx_sq", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
-		"<min (GeV²)> <max (GeV²)>", "bound on m_x² (also known as W'²)", "");
+		"<min (GeV^2)> <max (GeV^2)>", "bound on m_x^2 (also known as W'^2)", "");
 	params.add_param(
 		"cut.t", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
-		"<min (GeV²)> <max (GeV²)>", "bound on t", "");
+		"<min (GeV^2)> <max (GeV^2)>", "bound on t", "");
 	params.add_param(
 		"cut.r", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
 		"<min> <max>", "bound on r", "");
@@ -271,7 +271,7 @@ Params params_format() {
 		"<min> <max>", "bound on φ_k", "");
 	params.add_param(
 		"cut.R", new ValueBound(math::Bound::INVALID), { "rad", "cut" },
-		"<min (GeV²)> <max (GeV²)>", "bound on R", "");
+		"<min (GeV^2)> <max (GeV^2)>", "bound on R", "");
 	params.add_param(
 		"cut.lab.mom_q", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
 		"<min (GeV)> <max (GeV)>", "bound on q momentum in lab frame", "");
