@@ -151,9 +151,9 @@ public:
 	}
 };
 
-	inline Filter operator""_F(char const* tag, std::size_t len) {
-		return Filter(std::string(tag, len));
-	}
+inline Filter operator""_F(char const* tag, std::size_t len) {
+	return Filter(std::string(tag, len));
+}
 
 // Stores a collection of parameters that can be read from.
 class Params final {
