@@ -182,44 +182,44 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"chosen randomly. Default 'any'.");
 	params.add_param(
 		"setup.beam_energy", TypeDouble::INSTANCE,
-		{ "init", "xs", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "xs", "dist", "nrad", "rad", "excl" },
 		"<real (GeV)>", "lepton beam energy in the target rest frame",
 		"Energy (in GeV) of the lepton beam in the target rest frame.");
 	params.add_param(
 		"setup.beam", TypeLepton::INSTANCE,
-		{ "init", "xs", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "xs", "dist", "nrad", "rad", "excl" },
 		"e, mu, tau", "lepton beam particle id",
 		"Identifier for the type of particle in the lepton beam.");
 	params.add_param(
 		"setup.target", TypeNucleus::INSTANCE,
-		{ "init", "xs", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "xs", "dist", "nrad", "rad", "excl" },
 		"p, n, d", "target nucleus particle id",
 		"Identifier for the type of the target nucleus.");
 	params.add_param(
 		"setup.hadron", TypeHadron::INSTANCE,
-		{ "init", "xs", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "xs", "dist", "nrad", "rad", "excl" },
 		"pi0, pi+, pi-, K0, K+, K-", "detected hadron particle id",
 		"Identifier for the type of the detected hadron.");
 	params.add_param(
 		"setup.beam_pol", TypeDouble::INSTANCE,
-		{ "init", "xs", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "xs", "dist", "nrad", "rad", "excl" },
 		"<real in [-1,1]>", "longitudinal polarization of beam",
 		"Longitudinal polarization of the lepton beam.");
 	params.add_param(
 		"setup.target_pol", TypeVec3::INSTANCE,
-		{ "init", "xs", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "xs", "dist", "nrad", "rad", "excl" },
 		"<vector in unit sphere>", "polarization of target nucleus",
 		"Polarization of the target nucleus in the target rest frame.");
 	params.add_param(
 		"phys.sf_set", TypeString::INSTANCE,
-		{ "init", "xs", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "xs", "dist", "nrad", "rad", "excl" },
 		"prokudin, <ROOT dict.>", "structure function parameterization",
 		"Parameterization to use for structure functions. For energies around "
 		"10 GeV, try 'prokudin'. Provide custom parameterization by specifying "
 		"a ROOT dictionary in shared library (*.so) form.");
 	params.add_param(
 		"phys.rc_method", TypeRcMethod::INSTANCE,
-		{ "init", "xs", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "xs", "dist", "nrad", "rad", "excl" },
 		"none, approx, exact", "radiative corrections method",
 		"Method to use for radiative corrections. Methods are: 'none' for Born "
 		"cross-section only; 'approx' for an efficient approach that is very "
@@ -227,14 +227,14 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"complete NLO radiative corrections. Suggested 'approx'.");
 	params.add_param(
 		"phys.mass_threshold", TypeDouble::INSTANCE,
-		{ "init", "xs", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "xs", "dist", "nrad", "rad", "excl" },
 		"<real (GeV)>", "mass threshold for SIDIS process",
 		"Kinematic threshold mass (in GeV) of undetected particles for the "
 		"SIDIS process. For example, for pion production on proton, the "
 		"threshold is the mass of proton + mass of pion.");
 	params.add_param(
 		"phys.soft_threshold", new ValueDouble(0.01),
-		{ "init", "xs", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "xs", "dist", "nrad", "rad", "excl" },
 		"<real (GeV)>", "radiated photon soft threshold",
 		"Radiated photon energy (in GeV) dividing non-radiative events from "
 		"radiative events. Specified in reference frame `p + q - p_h = 0`. "
@@ -243,102 +243,102 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"'approx' is no longer accurate. Default '0.01'.");
 	params.add_param(
 		"cut.k_0_bar", new ValueBound(math::Bound::POSITIVE),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on photon energy",
 		"Defined in frame `p + q - p_h = 0`, same as 'phys.soft_threshold'. "
 		"This cut is a pre-requisite for all other cuts on the radiated "
 		"photon.");
 	params.add_param(
 		"cut.x", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on x", "");
 	params.add_param(
 		"cut.y", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on y", "");
 	params.add_param(
 		"cut.z", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on z", "");
 	params.add_param(
 		"cut.ph_t_sq", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on p_ht^2", "");
 	params.add_param(
 		"cut.phi_h", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on φ_h", "");
 	params.add_param(
 		"cut.phi", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on φ", "");
 	params.add_param(
 		"cut.Q_sq", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on Q^2", "");
 	params.add_param(
 		"cut.W_sq", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on W^2", "");
 	params.add_param(
 		"cut.mx_sq", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on m_x^2 (also known as W'^2)", "");
 	params.add_param(
 		"cut.t", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on t", "");
 	params.add_param(
 		"cut.r", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on r", "");
 	params.add_param(
 		"cut.qt_to_Q", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on qt/Q", "");
 	params.add_param(
 		"cut.tau", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "rad", "excl" },
 		"<min> <max>", "bound on τ", "");
 	params.add_param(
 		"cut.phi_k", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "rad", "excl" },
 		"<min> <max>", "bound on φ_k", "");
 	params.add_param(
 		"cut.R", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "rad" },
+		{ "init", "gen", "cut", "dist", "rad" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on R", "");
 	params.add_param(
 		"cut.lab.mom_q", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on q momentum in lab frame", "");
 	params.add_param(
 		"cut.lab.mom_k2", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on k_2 momentum in lab frame", "");
 	params.add_param(
 		"cut.lab.mom_h", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on p_h momentum in lab frame", "");
 	params.add_param(
 		"cut.lab.mom_k", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "rad" },
+		{ "init", "gen", "cut", "dist", "rad" },
 		"<min (GeV)> <max (GeV)>", "bound on k momentum in lab frame", "");
 	params.add_param(
 		"cut.lab.theta_q", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on q polar angle in lab frame", "");
 	params.add_param(
 		"cut.lab.theta_k2", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on k_2 polar angle in lab frame", "");
 	params.add_param(
 		"cut.lab.theta_h", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "nrad", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on p_h polar angle in lab frame", "");
 	params.add_param(
 		"cut.lab.theta_k", new ValueBound(math::Bound::INVALID),
-		{ "init", "cut", "dist", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on k polar angle in lab frame", "");
 	return params;
 }();
