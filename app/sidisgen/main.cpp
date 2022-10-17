@@ -462,9 +462,9 @@ int command_initialize(std::string params_file_name) {
 		builder_reporters.tune_progress = &progress_reporter;
 		builders.emplace(ev_type, builder_reporters, params, *sf);
 	}
-
+	// Check that all provided parameters were used.
 	try {
-		params.check_complete();
+		params.filter("init"_F).check_complete();
 	} catch (std::exception const& e) {
 		throw Exception(
 			ERROR_PARAMS_INVALID,
@@ -679,9 +679,9 @@ int command_generate(std::string params_file_name) {
 	if (write_mc_coords) {
 		events.Branch("mc_coords", &mc_coords, "mc_coords[9]/D");
 	}
-	// Check that parameter file was completed.
+	// Check that all provided parameters were used.
 	try {
-		params.check_complete();
+		params.filter("gen"_F).check_complete();
 	} catch (std::exception const& e) {
 		throw Exception(
 			ERROR_PARAMS_INVALID,
