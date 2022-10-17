@@ -1,13 +1,10 @@
 #ifndef SIDISGEN_PARAMS_FORMAT_HPP
 #define SIDISGEN_PARAMS_FORMAT_HPP
 
-#include "params.hpp"
-
 #include <set>
 #include <stdexcept>
 #include <string>
 
-#include <TArrayD.h>
 #include <TArrayI.h>
 #include <TDirectory.h>
 #include <TObject.h>
@@ -18,82 +15,17 @@
 #include <sidis/particle.hpp>
 #include <sidis/vector.hpp>
 
-#include "event_type.hpp"
+#include "params.hpp"
+#include "utility.hpp"
 
-// Returns the standard format describing the parameter file used by `sidisgen`.
-// The format makes use of the types declared below. Any changes to the
-// parameters used by `sidisgen` (e.x. adding a new paramter) should be done in
-// this function.
-Params params_format();
+// The standard format describing the parameter file used by `sidisgen`. The
+// format makes use of the types declared below. Any changes to the parameters
+// used by `sidisgen` (e.x. adding a new paramter) should be done with this
+// variable.
+extern Params const PARAMS_STD_FORMAT;
 
-// TODO: Have trivial (incorrect) implementations right now, need to replace
-// these with legitimate implementations later.
-inline void check_can_provide_foam(
-		EventType gen_type,
-		Params const& params_foam,
-		Params const& params_gen) {
-	static_cast<void>(gen_type);
-	static_cast<void>(params_foam);
-	static_cast<void>(params_gen);
-}
-inline void merge_params_into(Params const& params, Params* params_out) {
-	*params_out = params;
-}
-
-// These enums are used for defining the `can_provide` relationship between
-// values. For example, a producer with `ProvideOrder::LT` can only provide an
-// object to a consumer with a smaller value than itself. An example of this
-// relationship is FOAM efficiency: a FOAM with high efficiency can be used to
-// generate events for a parameter file requesting a lower efficiency.
-//
-// In the context of `sidisgen`, the 'producer' creates a FOAM for the
-// 'consumer' to use to generate events. If `can_provide(producer, consumer)` is
-// true, then the FOAM is compatible with the consumer.
-
-// The basic relationships between producers and consumers. Either the producer
-// can only provide to consumers with the same value, or the producer can
-// provide to any consumer.
-enum class ProvideSimple {
-	EQ,
-	ANY,
-};
-// For types which can't really be described by any of the other relationships
-// here. There is a 'special' relationship that works uniquely for this type.
-// Example: Versions have their own custom compatibility rules.
-enum class ProvideSpecial {
-	EQ,
-	ANY,
-	SPECIAL,
-};
-// Producer can provide to consumer depending on the ordering between them.
-// Example: Produced FOAM can only be consumed if requested efficiency is
-// smaller (or equal) to what it was produced with.
-enum class ProvideOrder {
-	EQ,
-	ANY,
-	LT_EQ,
-	GT_EQ,
-};
-// Producer can provide to consumer depending on a boolean relationship.
-// Example: Strictness level of consumer must be either less strict or as strict
-// as producer (LT_EQ relationship).
-enum class ProvideBool {
-	EQ,
-	ANY,
-	AND,
-	OR,
-	LT_EQ,
-	GT_EQ,
-};
-// Producer can provide to consumer depending on the nesting of their intervals.
-// Example: producer with cuts on kinematics can only provide to consumers with
-// tighter cuts.
-enum class ProvideBound {
-	EQ,
-	ANY,
-	IN,
-	OUT,
-};
+void check_can_provide_foam(Params& params_foam, Params& params_gen);
+Params merge_params(Params& params_1, Params& params_2);
 
 // Represents a major.minor version of a parameter file.
 struct Version {
@@ -114,7 +46,7 @@ struct Version {
 
 // Seed used in the initialization process.
 struct SeedInit {
-	// If `_any` is true, then the initialization process can choose any value
+	// If `_any` is true, then the initialization process can choose any val
 	// it wants for the seed, ignoring the specified seed.
 	bool any;
 	int seed;
@@ -126,8 +58,10 @@ struct SeedInit {
 	bool operator==(SeedInit const& rhs) const {
 		if (any && rhs.any) {
 			return true;
-		} else {
+		} else if (!any && !rhs.any) {
 			return seed == rhs.seed;
+		} else {
+			return false;
 		}
 	}
 	bool operator!=(SeedInit const& rhs) const {
@@ -145,11 +79,27 @@ struct SeedGen {
 	SeedGen(int seed) :
 		any(false),
 		seeds{ seed } { }
+	// Merge two `SeedGen`s together.
+	SeedGen(SeedGen const& seed_1, SeedGen const& seed_2) :
+			any(seed_1.any || seed_2.any),
+			seeds() {
+		// Can't use `set_union` because of unusual behaviour with multisets.
+		if (!any) {
+			for (int seed : seed_1.seeds) {
+				seeds.insert(seed);
+			}
+			for (int seed : seed_2.seeds) {
+				seeds.insert(seed);
+			}
+		}
+	}
 	bool operator==(SeedGen const& rhs) const {
 		if (any && rhs.any) {
 			return true;
-		} else {
+		} else if (!any && !rhs.any) {
 			return seeds == rhs.seeds;
+		} else {
+			return false;
 		}
 	}
 	bool operator!=(SeedGen const& rhs) const {
@@ -157,65 +107,57 @@ struct SeedGen {
 	}
 };
 
-enum class RcMethod {
-	NONE,
-	APPROX,
-	EXACT,
-};
+inline std::string p_name_enable(EventType ev_type) {
+	return std::string("mc.") + event_type_short_name(ev_type) + ".enable";
+}
+inline std::string p_name_seed_init(EventType ev_type) {
+	return std::string("mc.") + event_type_short_name(ev_type) + ".init.seed";
+}
+
+bool p_val_enable(Params& params, EventType ev_type);
+SeedInit p_val_seed_init(Params& params, EventType ev_type);
+
+std::set<EventType> params_active_event_types(Params const& params);
 
 // Convenience macros for declaring new types.
-#define VALUE_TYPE_DECLARE(RType, RValue, Wrapped, WrappedRoot, Provide, PROVIDE_DEFAULT) \
+#define VALUE_TYPE_DECLARE(RType, RValue, Wrapped, WrappedRoot) \
 	class RType final : public Type { \
-		Provide _provide; \
-		RType(Provide provide) : _provide(provide) { } \
 	public: \
-		static RType const& instance(Provide provide=Provide::PROVIDE_DEFAULT); \
-		bool equivalent_base(Wrapped const& value_1, Wrapped const& value_2) const; \
-		bool can_provide_base(Wrapped const& prod, Wrapped const& cons) const; \
+		static RType const INSTANCE; \
+		bool equivalent_base(Wrapped const& val_1, Wrapped const& val_2) const; \
 		Wrapped convert_from_root_base(WrappedRoot& obj) const; \
 		WrappedRoot convert_to_root_base(Wrapped const& obj) const; \
 		Wrapped read_stream_base(std::istream& is) const; \
-		void write_stream_base(std::ostream& os, Wrapped const& value) const; \
+		void write_stream_base(std::ostream& os, Wrapped const& val) const; \
 		\
-		bool equivalent(Value const& value_1, Value const& value_2) const override; \
-		bool can_provide(Value const& prod, Value const& cons) const override; \
+		bool equivalent(Value const& val_1, Value const& val_2) const override; \
 		std::unique_ptr<Value> read_root(TDirectory& dir, char const* name) const override; \
-		void write_root(TDirectory& dir, char const* name, Value const& value) const override; \
+		void write_root(TDirectory& dir, char const* name, Value const& val) const override; \
 		std::unique_ptr<Value> read_stream(std::istream& is) const override; \
-		void write_stream(std::ostream& os, Value const& value) const override; \
+		void write_stream(std::ostream& os, Value const& val) const override; \
 	}; \
 	class RValue final : public Value { \
 	public: \
-		Wrapped value; \
-		RValue(Provide provide, Wrapped value) : \
-			Value(RType::instance(provide)), \
-			value(value) { } \
-		RValue(Wrapped value) : \
-			Value(RType::instance(Provide::PROVIDE_DEFAULT)), \
-			value(value) { } \
-		template<typename... Ts> \
-		RValue(Provide provide, Ts... args) : \
-			Value(RType::instance(provide)), \
-			value(args...) { } \
+		Wrapped val; \
+		RValue(Wrapped val) : \
+			Value(RType::INSTANCE), \
+			val(val) { } \
 		template<typename... Ts> \
 		RValue(Ts... args) : \
-			Value(RType::instance(Provide::PROVIDE_DEFAULT)), \
-			value(args...) { } \
+			Value(RType::INSTANCE), \
+			val(args...) { } \
 		operator Wrapped&() { \
-			return value; \
+			return val; \
 		} \
 		operator Wrapped const&() const { \
-			return value; \
+			return val; \
 		} \
 	}; \
-	inline bool RType::equivalent_base(Wrapped const& value_1, Wrapped const& value_2) const { \
-		return value_1 == value_2; \
+	inline bool RType::equivalent_base(Wrapped const& val_1, Wrapped const& val_2) const { \
+		return val_1 == val_2; \
 	} \
-	inline bool RType::equivalent(Value const& value_1, Value const& value_2) const { \
-		return equivalent_base(value_1.as<RValue>().value, value_2.as<RValue>().value); \
-	} \
-	inline bool RType::can_provide(Value const& prod, Value const& cons) const { \
-		return can_provide_base(prod.as<RValue>().value, cons.as<RValue>().value); \
+	inline bool RType::equivalent(Value const& val_1, Value const& val_2) const { \
+		return equivalent_base(val_1.as<RValue>().val, val_2.as<RValue>().val); \
 	} \
 	inline std::unique_ptr<Value> RType::read_root(TDirectory& dir, char const* name) const { \
 		WrappedRoot* obj = dir.Get<WrappedRoot>(name); \
@@ -225,38 +167,39 @@ enum class RcMethod {
 			return std::make_unique<RValue>(convert_from_root_base(*obj)); \
 		} \
 	} \
-	inline void RType::write_root(TDirectory& dir, char const* name, Value const& value) const { \
-		WrappedRoot obj = convert_to_root_base(value.as<RValue>().value); \
+	inline void RType::write_root(TDirectory& dir, char const* name, Value const& val) const { \
+		WrappedRoot obj = convert_to_root_base(val.as<RValue>().val); \
 		dir.WriteObject(&obj, name); \
 	} \
 	inline std::unique_ptr<Value> RType::read_stream(std::istream& is) const { \
 		return std::make_unique<RValue>(read_stream_base(is)); \
 	} \
-	inline void RType::write_stream(std::ostream& os, Value const& value) const { \
-		RValue const& value_c = dynamic_cast<RValue const&>(value); \
-		return write_stream_base(os, value_c.value); \
+	inline void RType::write_stream(std::ostream& os, Value const& val) const { \
+		RValue const& value_c = dynamic_cast<RValue const&>(val); \
+		return write_stream_base(os, value_c.val); \
 	}
 
-// Built-in value types.
+// Built-in val types.
 // Version.
-VALUE_TYPE_DECLARE(TypeVersion, ValueVersion, Version, TArrayI, ProvideSpecial, SPECIAL);
+VALUE_TYPE_DECLARE(TypeVersion, ValueVersion, Version, TArrayI);
 // Numbers.
-VALUE_TYPE_DECLARE(TypeDouble, ValueDouble, double, TParameter<double>, ProvideOrder, EQ);
-VALUE_TYPE_DECLARE(TypeInt, ValueInt, int, TParameter<int>, ProvideOrder, EQ);
-VALUE_TYPE_DECLARE(TypeBool, ValueBool, bool, TParameter<bool>, ProvideBool, EQ);
+VALUE_TYPE_DECLARE(TypeDouble, ValueDouble, Double, TParameter<Double>);
+VALUE_TYPE_DECLARE(TypeInt, ValueInt, Int, TParameter<Int>);
+VALUE_TYPE_DECLARE(TypeLong, ValueLong, Long, TParameter<Long>);
+VALUE_TYPE_DECLARE(TypeBool, ValueBool, bool, TParameter<bool>);
 // Strings.
-VALUE_TYPE_DECLARE(TypeString, ValueString, std::string, TObjString, ProvideSimple, EQ);
+VALUE_TYPE_DECLARE(TypeString, ValueString, std::string, TObjString);
 // Random number seeds.
-VALUE_TYPE_DECLARE(TypeSeedInit, ValueSeedInit, SeedInit, TParameter<int>, ProvideSpecial, SPECIAL);
-VALUE_TYPE_DECLARE(TypeSeedGen, ValueSeedGen, SeedGen, TArrayI, ProvideSpecial, SPECIAL);
+VALUE_TYPE_DECLARE(TypeSeedInit, ValueSeedInit, SeedInit, TParameter<int>);
+VALUE_TYPE_DECLARE(TypeSeedGen, ValueSeedGen, SeedGen, TArrayI);
 // Enums.
-VALUE_TYPE_DECLARE(TypeRcMethod, ValueRcMethod, RcMethod, TParameter<int>, ProvideSimple, EQ);
-VALUE_TYPE_DECLARE(TypeNucleus, ValueNucleus, sidis::part::Nucleus, TParameter<int>, ProvideSimple, EQ);
-VALUE_TYPE_DECLARE(TypeLepton, ValueLepton, sidis::part::Lepton, TParameter<int>, ProvideSimple, EQ);
-VALUE_TYPE_DECLARE(TypeHadron, ValueHadron, sidis::part::Hadron, TParameter<int>, ProvideSimple, EQ);
+VALUE_TYPE_DECLARE(TypeRcMethod, ValueRcMethod, RcMethod, TParameter<int>);
+VALUE_TYPE_DECLARE(TypeNucleus, ValueNucleus, sidis::part::Nucleus, TParameter<int>);
+VALUE_TYPE_DECLARE(TypeLepton, ValueLepton, sidis::part::Lepton, TParameter<int>);
+VALUE_TYPE_DECLARE(TypeHadron, ValueHadron, sidis::part::Hadron, TParameter<int>);
 // Math types.
-VALUE_TYPE_DECLARE(TypeVec3, ValueVec3, sidis::math::Vec3, TArrayD, ProvideSimple, EQ);
-VALUE_TYPE_DECLARE(TypeBound, ValueBound, sidis::math::Bound, TArrayD, ProvideBound, EQ);
+VALUE_TYPE_DECLARE(TypeVec3, ValueVec3, sidis::math::Vec3, RootArrayD);
+VALUE_TYPE_DECLARE(TypeBound, ValueBound, sidis::math::Bound, RootArrayD);
 
 #endif
 

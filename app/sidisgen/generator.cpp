@@ -7,19 +7,21 @@
 #include <string>
 #include <utility>
 
+#include "params_format.hpp"
+
 using namespace sidis;
 
 namespace {
 
 cut::Cut get_cut_from_params(Params& params) {
-	Real const DEG = PI / 180.;
+	Double const DEG = PI / 180.;
 	cut::Cut result;
 	result.x = params.get<ValueBound>("cut.x");
 	result.y = params.get<ValueBound>("cut.y");
 	result.z = params.get<ValueBound>("cut.z");
 	result.ph_t_sq = params.get<ValueBound>("cut.ph_t_sq");
-	result.phi_h = DEG * params.get<ValueBound>("cut.phi_h").value;
-	result.phi = DEG * params.get<ValueBound>("cut.phi").value;
+	result.phi_h = DEG * params.get<ValueBound>("cut.phi_h").val;
+	result.phi = DEG * params.get<ValueBound>("cut.phi").val;
 	result.Q_sq = params.get<ValueBound>("cut.Q_sq");
 	result.t = params.get<ValueBound>("cut.t");
 	result.W_sq = params.get<ValueBound>("cut.W_sq");
@@ -29,24 +31,24 @@ cut::Cut get_cut_from_params(Params& params) {
 	result.lab_mom_q = params.get<ValueBound>("cut.lab.mom_q");
 	result.lab_mom_k2 = params.get<ValueBound>("cut.lab.mom_k2");
 	result.lab_mom_h = params.get<ValueBound>("cut.lab.mom_h");
-	result.lab_theta_q = DEG * params.get<ValueBound>("cut.lab.theta_q").value;
-	result.lab_theta_k2 = DEG * params.get<ValueBound>("cut.lab.theta_k2").value;
-	result.lab_theta_h = DEG * params.get<ValueBound>("cut.lab.theta_h").value;
+	result.lab_theta_q = DEG * params.get<ValueBound>("cut.lab.theta_q").val;
+	result.lab_theta_k2 = DEG * params.get<ValueBound>("cut.lab.theta_k2").val;
+	result.lab_theta_h = DEG * params.get<ValueBound>("cut.lab.theta_h").val;
 	return result;
 }
 
 cut::CutRad get_cut_rad_from_params(Params& params) {
-	Real const DEG = PI / 180.;
+	Double const DEG = PI / 180.;
 	cut::CutRad result;
-	if (params.get<ValueBool>("mc.rad.gen")) {
+	if (params.get<ValueBool>("mc.rad.enable")) {
 		result.tau = params.get<ValueBound>("cut.tau");
-		result.phi_k = DEG * params.get<ValueBound>("cut.phi_k").value;
+		result.phi_k = DEG * params.get<ValueBound>("cut.phi_k").val;
 		result.R = params.get<ValueBound>("cut.R");
 		// The `k_0_bar` cut is mandatory.
 		result.k_0_bar = params.get<ValueBound>("cut.k_0_bar")
 			& math::Bound(params.get<ValueDouble>("phys.soft_threshold"), INF);
 		result.lab_mom_k = params.get<ValueBound>("cut.lab.mom_k");
-		result.lab_theta_k = DEG * params.get<ValueBound>("cut.lab.theta_k").value;
+		result.lab_theta_k = DEG * params.get<ValueBound>("cut.lab.theta_k").val;
 	}
 	return result;
 }
@@ -67,8 +69,8 @@ NradDensity::NradDensity(Params& params, sf::SfSet const& sf) :
 	_beam_pol(params.get<ValueDouble>("setup.beam_pol")),
 	_target_pol(params.get<ValueVec3>("setup.target_pol")) { }
 
-Real NradDensity::transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept {
-	Real jacobian;
+Double NradDensity::transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept {
+	Double jacobian;
 	kin::Kinematics kin;
 	if (!cut::take(_cut, _ps, _S, unit_vec.data(), &kin, &jacobian)) {
 		jacobian = 0.;
@@ -82,9 +84,9 @@ Real NradDensity::transform(Point<6> const& unit_vec, Point<6>* ph_vec) const no
 	return jacobian;
 }
 
-Real NradDensity::operator()(Point<6> const& vec) const noexcept {
+Double NradDensity::operator()(Point<6> const& vec) const noexcept {
 	kin::Kinematics kin;
-	Real jacobian;
+	Double jacobian;
 	if (!cut::take(_cut, _ps, _S, vec.data(), &kin, &jacobian)) {
 		return 0.;
 	}
@@ -95,7 +97,7 @@ Real NradDensity::operator()(Point<6> const& vec) const noexcept {
 	// small, so it can be neglected. However, this must be balanced with
 	// choosing `k_0_bar` to be non-zero to avoid the infrared divergence in the
 	// radiative part of the cross-section.
-	Real xs;
+	Double xs;
 	switch (_rc_method) {
 	case RcMethod::NONE:
 		xs = xs::born(kin, _sf, _beam_pol, eta);
@@ -134,8 +136,8 @@ RadDensity::RadDensity(Params& params, sf::SfSet const& sf) :
 	_beam_pol(params.get<ValueDouble>("setup.beam_pol")),
 	_target_pol(params.get<ValueVec3>("setup.target_pol")) { }
 
-Real RadDensity::transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept {
-	Real jacobian;
+Double RadDensity::transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept {
+	Double jacobian;
 	kin::KinematicsRad kin;
 	if (!cut::take(_cut, _cut_rad, _ps, _S, unit_vec.data(), &kin, &jacobian)) {
 		jacobian = 0.;
@@ -152,15 +154,15 @@ Real RadDensity::transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noe
 	return jacobian;
 }
 
-Real RadDensity::operator()(Point<9> const& vec) const noexcept {
+Double RadDensity::operator()(Point<9> const& vec) const noexcept {
 	kin::KinematicsRad kin_rad;
-	Real jacobian;
+	Double jacobian;
 	if (!cut::take(_cut, _cut_rad, _ps, _S, vec.data(), &kin_rad, &jacobian)) {
 		return 0.;
 	}
 	kin::Kinematics kin = kin_rad.project();
 	math::Vec3 eta = frame::hadron_from_target(kin) * _target_pol;
-	Real xs = xs::rad(kin_rad, _sf, _beam_pol, eta);
+	Double xs = xs::rad(kin_rad, _sf, _beam_pol, eta);
 	if (!std::isfinite(xs) || !(xs >= 0.)) {
 		return 0.;
 	} else {
@@ -308,7 +310,7 @@ void Builder::write(std::ostream& os) {
 	}
 }
 
-Real Builder::rel_var(Real* err_out) const {
+Double Builder::rel_var(Double* err_out) const {
 	switch (_type) {
 	case EventType::NRAD:
 		return _builder.nrad.rel_var(err_out);
@@ -317,7 +319,7 @@ Real Builder::rel_var(Real* err_out) const {
 	case EventType::EXCL:
 		return _builder.excl.rel_var(err_out);
 	default:
-		return std::numeric_limits<Real>::quiet_NaN();
+		return std::numeric_limits<Double>::quiet_NaN();
 	}
 }
 
@@ -410,8 +412,8 @@ Generator::~Generator() {
 	}
 }
 
-Real Generator::generate(Real* ph_out, Real* unit_out) {
-	Real weight = 0.;
+Double Generator::generate(Double* ph_out, Double* unit_out) {
+	Double weight = 0.;
 	while (weight == 0.) {
 		switch (_type) {
 		case EventType::NRAD:
@@ -449,7 +451,7 @@ Real Generator::generate(Real* ph_out, Real* unit_out) {
 	return weight;
 }
 
-Real Generator::prime() const {
+Double Generator::prime() const {
 	switch (_type) {
 	case EventType::NRAD:
 		return _generator.nrad.prime();
@@ -458,7 +460,7 @@ Real Generator::prime() const {
 	case EventType::EXCL:
 		return _generator.excl.prime();
 	default:
-		return std::numeric_limits<Real>::quiet_NaN();
+		return std::numeric_limits<Double>::quiet_NaN();
 	}
 }
 

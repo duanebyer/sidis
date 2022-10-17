@@ -15,8 +15,6 @@
 #include <type_traits>
 #include <utility>
 
-#include <TArrayD.h>
-#include <TArrayL.h>
 #include <TBranch.h>
 #include <TChain.h>
 #include <TClass.h>
@@ -36,32 +34,33 @@
 #include <sidis/sf_set/test.hpp>
 
 #include "generator.hpp"
-#include "event_type.hpp"
 #include "exception.hpp"
 #include "params.hpp"
+#include "params_format.hpp"
+#include "terminal.hpp"
 #include "utility.hpp"
 
 using namespace sidis;
 
 static_assert(
-	std::is_same<Real, Double_t>::value,
-	"ROOT `Double_t` type must be same as C++ `double` type.");
+	std::is_same<Real, Double>::value,
+	"ROOT `Double_t` type must be same as libsidis `Real` type.");
 
 namespace {
 
 int const OUTPUT_STATS_PRECISION = 3;
 
 struct DrawProgressBar final :
-		public bubble::ExploreProgressReporter<Real>,
-		public bubble::TuneProgressReporter<Real> {
-	void operator()(bubble::ExploreProgress<Real> progress) override {
-		Real percent = 100. * progress.progress;
+		public bubble::ExploreProgressReporter<Double>,
+		public bubble::TuneProgressReporter<Double> {
+	void operator()(bubble::ExploreProgress<Double> progress) override {
+		Double percent = 100. * progress.progress;
 		write_progress_bar(std::cout, static_cast<unsigned>(percent));
 		std::cout << '\r';
 		std::cout << std::flush;
 	}
-	void operator()(bubble::TuneProgress<Real> progress) override {
-		Real percent = 100. * progress.progress;
+	void operator()(bubble::TuneProgress<Double> progress) override {
+		Double percent = 100. * progress.progress;
 		write_progress_bar(std::cout, static_cast<unsigned>(percent));
 		std::cout << '\r';
 		std::cout << std::flush;
@@ -262,7 +261,7 @@ int command_help() {
 }
 
 int command_help_params() {
-	Params params = params_format();
+	Params params = PARAMS_STD_FORMAT;
 	std::cout
 		<< "Parameter file format summary."                      << std::endl
 		<< "For more details, try `sidisgen help <param name>`." << std::endl
@@ -278,7 +277,7 @@ int command_help_params() {
 }
 
 int command_help_param(char const* param_name) {
-	Params params = params_format();
+	Params params = PARAMS_STD_FORMAT;
 	if (params.names().count(param_name) != 0) {
 		std::vector<std::string> table_entries {
 			"Summary", params.brief(param_name),
@@ -304,7 +303,7 @@ int command_version() {
 }
 
 int command_inspect(char const* file_name) {
-	Params params = params_format();
+	Params params = PARAMS_STD_FORMAT;
 	TFile file(file_name, "OPEN");
 	if (file.IsZombie()) {
 		throw Exception(
@@ -314,17 +313,17 @@ int command_inspect(char const* file_name) {
 	params.read_root(file);
 	std::cout << "Parameters:" << std::endl;
 	std::ios_base::fmtflags flags(std::cout.flags());
-	std::cout << std::setprecision(std::numeric_limits<Double_t>::digits10 + 1);
+	std::cout << std::setprecision(std::numeric_limits<Double>::digits10 + 1);
 	params.write_stream(std::cout);
 	std::cout.flags(flags);
 	std::cout << std::endl;
 
-	TArrayD* prime_arr = file.Get<TArrayD>("stats/prime");
-	TArrayD* weight_moms_arr = file.Get<TArrayD>("stats/weight_mom");
-	TArrayD* weight_max_arr = file.Get<TArrayD>("stats/weight_max");
-	TArrayL* num_events_arr = file.Get<TArrayL>("stats/num_events");
-	TArrayL* num_events_acc_arr = file.Get<TArrayL>("stats/num_events_acc");
-	TArrayD* norm_arr = file.Get<TArrayD>("stats/norm");
+	RootArrayD* prime_arr = file.Get<RootArrayD>("stats/prime");
+	RootArrayD* weight_moms_arr = file.Get<RootArrayD>("stats/weight_mom");
+	RootArrayD* weight_max_arr = file.Get<RootArrayD>("stats/weight_max");
+	RootArrayD* num_events_arr = file.Get<RootArrayD>("stats/num_events");
+	RootArrayD* num_events_acc_arr = file.Get<RootArrayD>("stats/num_events_acc");
+	RootArrayD* norm_arr = file.Get<RootArrayD>("stats/norm");
 	if (
 			prime_arr == nullptr
 			|| prime_arr->GetSize() != NUM_EVENT_TYPES + 1
@@ -359,26 +358,26 @@ int command_inspect(char const* file_name) {
 			std::cout << "\t" << event_type_name(type) << ":" << std::endl;
 		}
 
-		Real prime = prime_arr->At(type_idx);
-		Real norm = norm_arr->At(type_idx);
-		Real acceptance = static_cast<Real>(count_acc) / count;
-		std::array<Real, 4> moms = {
+		Double prime = prime_arr->At(type_idx);
+		Double norm = norm_arr->At(type_idx);
+		Double acceptance = static_cast<Double>(count_acc) / count;
+		std::array<Double, 4> moms = {
 			weight_moms_arr->At(4 * type_idx + 0),
 			weight_moms_arr->At(4 * type_idx + 1),
 			weight_moms_arr->At(4 * type_idx + 2),
 			weight_moms_arr->At(4 * type_idx + 3),
 		};
-		Real max = weight_max_arr->At(type_idx);
+		Double max = weight_max_arr->At(type_idx);
 
 		Stats stats(moms, max, count);
 		Stats stats_acc = stats;
 		stats_acc.rescale_count(count_acc);
-		Real mean_err;
-		Real mean = stats.est_mean(&mean_err);
-		Real xs = prime * mean;
-		Real xs_err = prime * mean_err;
-		Real rel_var_err;
-		Real rel_var = stats_acc.est_rel_var(&rel_var_err);
+		Double mean_err;
+		Double mean = stats.est_mean(&mean_err);
+		Double xs = prime * mean;
+		Double xs_err = prime * mean_err;
+		Double rel_var_err;
+		Double rel_var = stats_acc.est_rel_var(&rel_var_err);
 
 		std::cout << "\t\tcount:         " << count_acc << std::endl;
 		std::cout << "\t\tcross-section: " << xs << " ± " << xs_err << std::endl;
@@ -403,7 +402,7 @@ int command_initialize(char const* params_file_name) {
 			+ "found.");
 	}
 	std::cout << "Reading parameter file '" << params_file_name << "'." << std::endl;
-	Params params = params_format();
+	Params params = PARAMS_STD_FORMAT;
 	try {
 		params.read_stream(params_file);
 	} catch (std::exception const& e) {
@@ -414,7 +413,7 @@ int command_initialize(char const* params_file_name) {
 	}
 	std::cout << std::endl;
 	std::ios_base::fmtflags flags(std::cout.flags());
-	std::cout << std::setprecision(std::numeric_limits<Double_t>::digits10 + 1);
+	std::cout << std::setprecision(std::numeric_limits<Double>::digits10 + 1);
 	params.write_stream(std::cout);
 	std::cout.flags(flags);
 	std::cout << std::endl;
@@ -437,31 +436,31 @@ int command_initialize(char const* params_file_name) {
 	}
 
 	// Build FOAMs and write to file.
-	std::vector<EventType> gen_types;
+	std::vector<EventType> ev_types;
 	std::random_device rnd_dev;
-	if (params.get<ValueBool>("mc.nrad.gen")) {
-		gen_types.push_back(EventType::NRAD);
+	if (params.get<ValueBool>("mc.nrad.enable")) {
+		ev_types.push_back(EventType::NRAD);
 		// Choose specific seeds, if they haven't already been supplied.
-		if (params.get<ValueSeedInit>("mc.nrad.init.seed").value.any) {
+		if (params.get<ValueSeedInit>("mc.nrad.init.seed").val.any) {
 			params.set("mc.nrad.init.seed", new ValueSeedInit(rnd_dev()));
 		}
 	}
-	if (params.get<ValueBool>("mc.rad.gen")) {
-		gen_types.push_back(EventType::RAD);
-		if (params.get<ValueSeedInit>("mc.rad.init.seed").value.any) {
+	if (params.get<ValueBool>("mc.rad.enable")) {
+		ev_types.push_back(EventType::RAD);
+		if (params.get<ValueSeedInit>("mc.rad.init.seed").val.any) {
 			params.set("mc.rad.init.seed", new ValueSeedInit(rnd_dev()));
 		}
 	}
 	// Use a queue here so that the builders can be easily destructed in a FIFO
 	// order after they have been initialized and written to file.
 	std::queue<Builder> builders;
-	for (EventType gen_type : gen_types) {
-		char const* gen_name = event_type_name(gen_type);
-		std::cout << "Building " << gen_name << " FOAM." << std::endl;
+	for (EventType ev_type : ev_types) {
+		char const* ev_name = event_type_name(ev_type);
+		std::cout << "Building " << ev_name << " FOAM." << std::endl;
 		DrawProgressBar progress_reporter;
 		builder_reporters.explore_progress = &progress_reporter;
 		builder_reporters.tune_progress = &progress_reporter;
-		builders.emplace(gen_type, builder_reporters, params, *sf);
+		builders.emplace(ev_type, builder_reporters, params, *sf);
 	}
 
 	try {
@@ -474,9 +473,9 @@ int command_initialize(char const* params_file_name) {
 	}
 
 	while (!builders.empty()) {
-		EventType gen_type = builders.front().type();
-		char const* gen_name = event_type_name(gen_type);
-		char const* gen_key = event_type_short_name(gen_type);
+		EventType ev_type = builders.front().type();
+		char const* ev_name = event_type_name(ev_type);
+		char const* ev_key = event_type_short_name(ev_type);
 		try {
 			std::cout << "Exploration phase." << std::endl;
 			write_progress_bar(std::cout, 0);
@@ -496,25 +495,25 @@ int command_initialize(char const* params_file_name) {
 		} catch (std::exception const& e) {
 			throw Exception(
 				ERROR_BUILDING_FOAM,
-				std::string("Error while building ") + gen_name + " FOAM: "
+				std::string("Error while building ") + ev_name + " FOAM: "
 				+ e.what());
 		}
-		Real rel_var_err;
-		Real rel_var = builders.front().rel_var(&rel_var_err);
-		std::cout << "Constructed " << gen_name << " FOAM with size "
+		Double rel_var_err;
+		Double rel_var = builders.front().rel_var(&rel_var_err);
+		std::cout << "Constructed " << ev_name << " FOAM with size "
 			<< builders.front().size() << "." << std::endl;
 		std::cout << "\tRelative variance: " << rel_var
 			<< " ± " << rel_var_err << std::endl;
-		std::cout << "Writing " << gen_name << " FOAM to file." << std::endl;
+		std::cout << "Writing " << ev_name << " FOAM to file." << std::endl;
 		try {
 			std::ostringstream os;
 			builders.front().write(os);
 			std::string data = os.str();
-			file.WriteObject(&data, gen_key);
+			file.WriteObject(&data, ev_key);
 		} catch (std::exception const& e) {
 			throw Exception(
 				ERROR_WRITING_FOAM,
-				std::string("Failed to write ") + gen_name + " non-radiative "
+				std::string("Failed to write ") + ev_name + " non-radiative "
 				+ "FOAM to file '" + file_name + "': " + e.what());
 		}
 		builders.pop();
@@ -535,7 +534,7 @@ int command_generate(char const* params_file_name) {
 			+ "found.");
 	}
 	std::cout << "Reading parameter file '" << params_file_name << "'." << std::endl;
-	Params params = params_format();
+	Params params = PARAMS_STD_FORMAT;
 	try {
 		params.read_stream(params_file);
 	} catch (std::exception const& e) {
@@ -546,11 +545,11 @@ int command_generate(char const* params_file_name) {
 	}
 	std::cout << std::endl;
 	std::ios_base::fmtflags flags(std::cout.flags());
-	std::cout << std::setprecision(std::numeric_limits<Double_t>::digits10 + 1);
+	std::cout << std::setprecision(std::numeric_limits<Double>::digits10 + 1);
 	params.write_stream(std::cout);
 	std::cout.flags(flags);
 	std::cout << std::endl;
-	if (params.get<ValueSeedGen>("mc.seed").value.seeds.size() != 1) {
+	if (params.get<ValueSeedGen>("mc.seed").val.seeds.size() != 1) {
 		throw std::runtime_error("Exactly one seed must be provided.");
 	}
 
@@ -560,12 +559,12 @@ int command_generate(char const* params_file_name) {
 	alloc_sf(params, &sf, &tmd);
 
 	// Load the event generators from file.
-	std::vector<EventType> gen_types;
-	if (params.get<ValueBool>("mc.nrad.gen")) {
-		gen_types.push_back(EventType::NRAD);
+	std::vector<EventType> ev_types;
+	if (params.get<ValueBool>("mc.nrad.enable")) {
+		ev_types.push_back(EventType::NRAD);
 	}
-	if (params.get<ValueBool>("mc.rad.gen")) {
-		gen_types.push_back(EventType::RAD);
+	if (params.get<ValueBool>("mc.rad.enable")) {
+		ev_types.push_back(EventType::RAD);
 	}
 	std::vector<Generator> gens;
 	std::string foam_file_name = params.get<ValueString>("file.foam");
@@ -576,30 +575,30 @@ int command_generate(char const* params_file_name) {
 			ERROR_FILE_NOT_FOUND,
 			std::string("Couldn't find file '") + foam_file_name + "'.");
 	}
-	Params params_foam = params_format();
+	Params params_foam = PARAMS_STD_FORMAT;
 	params_foam.read_root(foam_file);
 	std::random_device rnd_dev;
-	if (params.get<ValueSeedGen>("mc.seed").value.any) {
+	if (params.get<ValueSeedGen>("mc.seed").val.any) {
 		params.set("mc.seed", new ValueSeedGen(rnd_dev()));
 	}
-	for (EventType gen_type : gen_types) {
-		char const* gen_name = event_type_name(gen_type);
-		char const* gen_key = event_type_short_name(gen_type);
-		std::cout << "Loading " << gen_name << " FOAM from file." << std::endl;
-		check_can_provide_foam(gen_type, params_foam, params);
+	check_can_provide_foam(params_foam, params);
+	for (EventType ev_type : ev_types) {
+		char const* ev_name = event_type_name(ev_type);
+		char const* ev_key = event_type_short_name(ev_type);
+		std::cout << "Loading " << ev_name << " FOAM from file." << std::endl;
 		try {
-			std::string* data = foam_file.Get<std::string>(gen_key);
+			std::string* data = foam_file.Get<std::string>(ev_key);
 			if (data == nullptr) {
 				throw std::runtime_error(
-					std::string("Couldn't find key '") + gen_key + "' in "
+					std::string("Couldn't find key '") + ev_key + "' in "
 					+ "file '" + foam_file_name + "'.");
 			}
 			std::istringstream is(*data);
-			gens.emplace_back(gen_type, params, *sf, is);
+			gens.emplace_back(ev_type, params, *sf, is);
 		} catch (std::exception const& e) {
 			throw Exception(
 				ERROR_READING_FOAM,
-				std::string("Failed to read ") + gen_name + " FOAM from file '"
+				std::string("Failed to read ") + ev_name + " FOAM from file '"
 				+ foam_file_name + "': " + e.what());
 		}
 	}
@@ -621,21 +620,21 @@ int command_generate(char const* params_file_name) {
 	part::Lepton beam = params.get<ValueLepton>("setup.beam");
 	part::Hadron hadron = params.get<ValueHadron>("setup.hadron");
 	math::Vec3 target_pol = params.get<ValueVec3>("setup.target_pol");
-	Real beam_energy = params.get<ValueDouble>("setup.beam_energy");
-	Real M_th = params.get<ValueDouble>("phys.mass_threshold");
+	Double beam_energy = params.get<ValueDouble>("setup.beam_energy");
+	Double M_th = params.get<ValueDouble>("phys.mass_threshold");
 	part::Particles ps(target, beam, hadron, M_th);
-	Real S = 2.*beam_energy*ps.M;
+	Double S = 2.*beam_energy*ps.M;
 
 	kin::Initial init(ps, beam_energy);
-	ULong_t num_events = std::max(0, params.get<ValueInt>("mc.num_events").value);
+	ULong num_events = std::max<ULong>(0, params.get<ValueLong>("mc.num_events").val);
 
 	// Prepare branches in output ROOT file.
 	event_file.cd();
 	TTree events("events", "events");
 	Int_t type;
-	Real weight;
-	Real jacobian;
-	Real x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R;
+	Double weight;
+	Double jacobian;
+	Double x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R;
 	TLorentzVector p, k1, q, k2, ph, k;
 	events.Branch("type", &type);
 	events.Branch("weight", &weight);
@@ -659,7 +658,7 @@ int command_generate(char const* params_file_name) {
 		events.Branch("q", "TLorentzVector", &q);
 		events.Branch("k2", "TLorentzVector", &k2);
 		events.Branch("ph", "TLorentzVector", &ph);
-		if (params.get<ValueBool>("mc.rad.gen")) {
+		if (params.get<ValueBool>("mc.rad.enable")) {
 			write_photon = params.get<ValueBool>("file.write_photon");
 			if (write_photon) {
 				events.Branch("k", "TLorentzVector", &k);
@@ -675,8 +674,8 @@ int command_generate(char const* params_file_name) {
 		events.Branch("sf", &sf_out,
 			"F_UUL/D:F_UUT/D:F_UU_cos_phih/D:F_UU_cos_2phih/D:F_UL_sin_phih/D:F_UL_sin_2phih/D:F_UTL_sin_phih_m_phis/D:F_UTT_sin_phih_m_phis/D:F_UT_sin_2phih_m_phis/D:F_UT_sin_3phih_m_phis/D:F_UT_sin_phis/D:F_UT_sin_phih_p_phis/D:F_LU_sin_phih/D:F_LL/D:F_LL_cos_phih/D:F_LT_cos_phih_m_phis/D:F_LT_cos_2phih_m_phis/D:F_LT_cos_phis/D");
 	}
-	Real mc_coords[9];
-	Real ph_coords[9];
+	Double mc_coords[9];
+	Double ph_coords[9];
 	if (write_mc_coords) {
 		events.Branch("mc_coords", &mc_coords, "mc_coords[9]/D");
 	}
@@ -694,10 +693,10 @@ int command_generate(char const* params_file_name) {
 
 	std::cout << "Generating events." << std::endl;
 	bool update_progress = true;
-	ULong_t percent = 0;
-	ULong_t next_percent_rem = num_events % 100;
-	ULong_t next_percent = num_events / 100;
-	for (ULong_t event_idx = 0; event_idx < num_events; ++event_idx) {
+	ULong percent = 0;
+	ULong next_percent_rem = num_events % 100;
+	ULong next_percent = num_events / 100;
+	for (ULong event_idx = 0; event_idx < num_events; ++event_idx) {
 		while (event_idx >= next_percent + (next_percent_rem != 0)) {
 			percent += 1;
 			next_percent = math::prod_div(num_events, percent + 1, 100, next_percent_rem);
@@ -719,15 +718,15 @@ int command_generate(char const* params_file_name) {
 			// We want to generate events so that the total weights contributed
 			// by events of each "type" have the same ratio as the cross-
 			// sections of each "type".
-			Real ratio_max = 0.;
+			Double ratio_max = 0.;
 			for (std::size_t idx = 0; idx < gens.size(); ++idx) {
 				Generator const& gen = gens[idx];
 				Stats stats = gen.weights();
 				Stats stats_acc = gen.weights_acc();
 				// Equivalent to cross-section divided by total weight.
-				Real ratio = gen.prime() * stats_acc.est_sqrt_m2() / stats.count();
+				Double ratio = gen.prime() * stats_acc.est_sqrt_m2() / stats.count();
 				if (!std::isfinite(ratio)) {
-					ratio = std::numeric_limits<Real>::infinity();
+					ratio = std::numeric_limits<Double>::infinity();
 				}
 				if (ratio > ratio_max) {
 					ratio_max = ratio;
@@ -831,15 +830,15 @@ int command_generate(char const* params_file_name) {
 			std::string("Couldn't create directory 'stats' in ROOT file."));
 	}
 	stats_dir->cd();
-	TArrayD prime_arr(NUM_EVENT_TYPES + 1);
-	TArrayD weight_moms_arr(4 * (NUM_EVENT_TYPES + 1));
-	TArrayD weight_max_arr(NUM_EVENT_TYPES + 1);
-	TArrayL num_events_arr(NUM_EVENT_TYPES + 1);
-	TArrayL num_events_acc_arr(NUM_EVENT_TYPES + 1);
-	TArrayD norm_arr(NUM_EVENT_TYPES + 1);
+	RootArrayD prime_arr(NUM_EVENT_TYPES + 1);
+	RootArrayD weight_moms_arr(4 * (NUM_EVENT_TYPES + 1));
+	RootArrayD weight_max_arr(NUM_EVENT_TYPES + 1);
+	RootArrayD num_events_arr(NUM_EVENT_TYPES + 1);
+	RootArrayD num_events_acc_arr(NUM_EVENT_TYPES + 1);
+	RootArrayD norm_arr(NUM_EVENT_TYPES + 1);
 	Stats stats_total;
 	Stats stats_acc_total;
-	Real prime_total = 0.;
+	Double prime_total = 0.;
 	std::size_t count_total = 0;
 	std::size_t count_acc_total = 0;
 	flags = std::cout.flags();
@@ -853,20 +852,20 @@ int command_generate(char const* params_file_name) {
 	for (Generator& gen : gens) {
 		Stats stats = gen.weights();
 		Stats stats_acc = gen.weights_acc();
-		Real prime = gen.prime();
-		Real mean_err;
-		Real mean = stats.est_mean(&mean_err);
-		Real xs = prime * mean;
-		Real xs_err = prime * mean_err;
-		Real rel_var_err;
-		Real rel_var = stats_acc.est_rel_var(&rel_var_err);
-		Real acceptance = gen.acceptance();
+		Double prime = gen.prime();
+		Double mean_err;
+		Double mean = stats.est_mean(&mean_err);
+		Double xs = prime * mean;
+		Double xs_err = prime * mean_err;
+		Double rel_var_err;
+		Double rel_var = stats_acc.est_rel_var(&rel_var_err);
+		Double acceptance = gen.acceptance();
 
 		// The weight is chosen so that the total cross-section averages out
 		// correctly. Normally it is near one for all types of events.
-		Real weight = (prime / gen.count()) / (prime_total / count_total);
+		Double weight = (prime / gen.count()) / (prime_total / count_total);
 		// This comes from `norm = weight * (prime_total / count_total)`.
-		Real norm = prime / gen.count();
+		Double norm = prime / gen.count();
 		stats_total += weight * stats;
 		stats_acc_total += weight * stats_acc;
 
@@ -892,14 +891,14 @@ int command_generate(char const* params_file_name) {
 		std::cout << "\t\tefficiency:    " << 1. / std::sqrt(1. + rel_var) << std::endl;
 	}
 
-	Real norm = prime_total / count_total;
-	Real mean_err;
-	Real mean = stats_total.est_mean(&mean_err);
-	Real xs = prime_total * mean;
-	Real xs_err = prime_total * mean_err;
-	Real rel_var_err;
-	Real rel_var = stats_acc_total.est_rel_var(&rel_var_err);
-	Real acceptance = static_cast<Real>(count_acc_total) / count_total;
+	Double norm = prime_total / count_total;
+	Double mean_err;
+	Double mean = stats_total.est_mean(&mean_err);
+	Double xs = prime_total * mean;
+	Double xs_err = prime_total * mean_err;
+	Double rel_var_err;
+	Double rel_var = stats_acc_total.est_rel_var(&rel_var_err);
+	Double acceptance = static_cast<Double>(count_acc_total) / count_total;
 
 	prime_arr.SetAt(prime_total, NUM_EVENT_TYPES);
 	weight_moms_arr.SetAt(stats_total.ratio_m1_to_max1(), 4 * NUM_EVENT_TYPES + 0);
@@ -944,18 +943,18 @@ int command_merge_soft(
 				ERROR_FILE_NOT_FOUND,
 				std::string("File '") + file_name + "' not found.");
 		}
-		Params params = params_format();
+		Params params = PARAMS_STD_FORMAT;
 		params.read_root(file);
 		if (first) {
 			params_out = params;
 			first = false;
 		} else {
-			merge_params_into(params, &params_out);
+			params_out = merge_params(params, params_out);
 		}
 	}
 
 	std::cout << "Merging statistics from files." << std::endl;
-	Real primes[NUM_EVENT_TYPES + 1] = {};
+	Double primes[NUM_EVENT_TYPES + 1] = {};
 	Stats stats_total[NUM_EVENT_TYPES + 1] = {};
 	std::size_t count_total[NUM_EVENT_TYPES + 1] = {};
 	std::size_t count_acc_total[NUM_EVENT_TYPES + 1] = {};
@@ -969,12 +968,12 @@ int command_merge_soft(
 				ERROR_FILE_NOT_FOUND,
 				std::string("File '") + file_name + "' not found.");
 		}
-		TArrayD* prime_arr = file.Get<TArrayD>("stats/prime");
-		TArrayD* weight_moms_arr = file.Get<TArrayD>("stats/weight_mom");
-		TArrayD* weight_max_arr = file.Get<TArrayD>("stats/weight_max");
-		TArrayL* num_events_arr = file.Get<TArrayL>("stats/num_events");
-		TArrayL* num_events_acc_arr = file.Get<TArrayL>("stats/num_events_acc");
-		TArrayD* norm_arr = file.Get<TArrayD>("stats/norm");
+		RootArrayD* prime_arr = file.Get<RootArrayD>("stats/prime");
+		RootArrayD* weight_moms_arr = file.Get<RootArrayD>("stats/weight_mom");
+		RootArrayD* weight_max_arr = file.Get<RootArrayD>("stats/weight_max");
+		RootArrayD* num_events_arr = file.Get<RootArrayD>("stats/num_events");
+		RootArrayD* num_events_acc_arr = file.Get<RootArrayD>("stats/num_events_acc");
+		RootArrayD* norm_arr = file.Get<RootArrayD>("stats/norm");
 		if (
 				prime_arr == nullptr
 				|| prime_arr->GetSize() != NUM_EVENT_TYPES + 1
@@ -994,16 +993,16 @@ int command_merge_soft(
 				+ "'.");
 		}
 		for (std::size_t type_idx = 0; type_idx < NUM_EVENT_TYPES + 1; ++type_idx) {
-			Real prime = prime_arr->At(type_idx);
+			Double prime = prime_arr->At(type_idx);
 			auto count = num_events_arr->At(type_idx);
 			auto count_acc = num_events_acc_arr->At(type_idx);
-			std::array<Real, 4> moms = {
+			std::array<Double, 4> moms = {
 				weight_moms_arr->At(4 * type_idx + 0),
 				weight_moms_arr->At(4 * type_idx + 1),
 				weight_moms_arr->At(4 * type_idx + 2),
 				weight_moms_arr->At(4 * type_idx + 3),
 			};
-			Real max = weight_max_arr->At(type_idx);
+			Double max = weight_max_arr->At(type_idx);
 			Stats stats(moms, max, count);
 			stats_total[type_idx] += stats;
 			count_total[type_idx] += count;
@@ -1036,14 +1035,14 @@ int command_merge_soft(
 			std::string("Couldn't create directory 'stats' in ROOT file."));
 	}
 	stats_dir->cd();
-	TArrayD prime_arr_out(NUM_EVENT_TYPES + 1);
-	TArrayD weight_moms_arr_out(4 * (NUM_EVENT_TYPES + 1));
-	TArrayD weight_max_arr_out(NUM_EVENT_TYPES + 1);
-	TArrayL num_events_arr_out(NUM_EVENT_TYPES + 1);
-	TArrayL num_events_acc_arr_out(NUM_EVENT_TYPES + 1);
-	TArrayD norm_arr_out(NUM_EVENT_TYPES + 1);
+	RootArrayD prime_arr_out(NUM_EVENT_TYPES + 1);
+	RootArrayD weight_moms_arr_out(4 * (NUM_EVENT_TYPES + 1));
+	RootArrayD weight_max_arr_out(NUM_EVENT_TYPES + 1);
+	RootArrayD num_events_arr_out(NUM_EVENT_TYPES + 1);
+	RootArrayD num_events_acc_arr_out(NUM_EVENT_TYPES + 1);
+	RootArrayD norm_arr_out(NUM_EVENT_TYPES + 1);
 	for (std::size_t type_idx = 0; type_idx < NUM_EVENT_TYPES + 1; ++type_idx) {
-		Real norm = primes[type_idx] / stats_total[type_idx].count();
+		Double norm = primes[type_idx] / stats_total[type_idx].count();
 		prime_arr_out.SetAt(primes[type_idx], type_idx);
 		weight_moms_arr_out.SetAt(stats_total[type_idx].ratio_m1_to_max1(), 4 * type_idx + 0);
 		weight_moms_arr_out.SetAt(stats_total[type_idx].ratio_m2_to_max2(), 4 * type_idx + 1);

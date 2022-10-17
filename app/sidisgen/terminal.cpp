@@ -1,4 +1,4 @@
-#include "utility.hpp"
+#include "terminal.hpp"
 
 #include <algorithm>
 #include <cmath>

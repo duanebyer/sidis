@@ -8,15 +8,14 @@
 
 #include <sidis/sidis.hpp>
 
-#include "event_type.hpp"
-#include "params_format.hpp"
+#include "params.hpp"
+#include "utility.hpp"
 
-using Real = sidis::Real;
 using Seed = bubble::Seed;
 template<bubble::Dim DIM>
-using Point = bubble::Point<DIM, Real>;
-using Stats = bubble::Stats<Real>;
-using StatsAccum = bubble::StatsAccum<Real>;
+using Point = bubble::Point<DIM, Double>;
+using Stats = bubble::Stats<Double>;
+using StatsAccum = bubble::StatsAccum<Double>;
 
 // Each of the following functions computes a different cross-section on the
 // unit hypercube. The full phase space is rescaled to fit on a hypercube for
@@ -28,16 +27,16 @@ class NradDensity {
 	sidis::cut::Cut _cut;
 	sidis::sf::SfSet const& _sf;
 	RcMethod _rc_method;
-	Real _soft_threshold;
+	Double _soft_threshold;
 	sidis::part::Particles _ps;
-	Real _S;
-	Real _beam_pol;
+	Double _S;
+	Double _beam_pol;
 	sidis::math::Vec3 _target_pol;
 
 public:
 	NradDensity(Params& params, sidis::sf::SfSet const& sf);
-	Real operator()(Point<6> const& vec) const noexcept;
-	Real transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept;
+	Double operator()(Point<6> const& vec) const noexcept;
+	Double transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept;
 };
 
 class RadDensity {
@@ -45,16 +44,16 @@ class RadDensity {
 	sidis::cut::CutRad _cut_rad;
 	sidis::sf::SfSet const& _sf;
 	RcMethod _rc_method;
-	Real _soft_threshold;
+	Double _soft_threshold;
 	sidis::part::Particles _ps;
-	Real _S;
-	Real _beam_pol;
+	Double _S;
+	Double _beam_pol;
 	sidis::math::Vec3 _target_pol;
 
 public:
 	RadDensity(Params& params, sidis::sf::SfSet const& sf);
-	Real operator()(Point<9> const& vec) const noexcept;
-	Real transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept;
+	Double operator()(Point<9> const& vec) const noexcept;
+	Double transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept;
 };
 
 class ExclDensity {
@@ -62,22 +61,22 @@ public:
 	// For now, the exclusive contribution is not supported.
 	// TODO: Throw an exception to ensure this doesn't get called by accident.
 	ExclDensity(Params&, sidis::sf::SfSet const&) { }
-	Real operator()(Point<8> const&) const noexcept { return 0.; }
-	Real transform(Point<8> const&, Point<8>*) const noexcept { return 0.; };
+	Double operator()(Point<8> const&) const noexcept { return 0.; }
+	Double transform(Point<8> const&, Point<8>*) const noexcept { return 0.; };
 };
 
 struct BuilderReporters {
-	bubble::ExploreProgressReporter<Real>* explore_progress = nullptr;
-	bubble::TuneProgressReporter<Real>* tune_progress = nullptr;
+	bubble::ExploreProgressReporter<Double>* explore_progress = nullptr;
+	bubble::TuneProgressReporter<Double>* tune_progress = nullptr;
 };
 
 // Builds a generator and writes it to a stream.
 class Builder {
 	// Internally, use a tagged union to distinguish the different possible
 	// phase space dimensions from each other.
-	using NradBuilder = bubble::CellBuilder<6, Real, NradDensity>;
-	using RadBuilder = bubble::CellBuilder<9, Real, RadDensity>;
-	using ExclBuilder = bubble::CellBuilder<8, Real, ExclDensity>;
+	using NradBuilder = bubble::CellBuilder<6, Double, NradDensity>;
+	using RadBuilder = bubble::CellBuilder<9, Double, RadDensity>;
+	using ExclBuilder = bubble::CellBuilder<8, Double, ExclDensity>;
 	EventType const _type;
 	union BuilderImpl {
 		NradBuilder nrad;
@@ -86,7 +85,7 @@ class Builder {
 		BuilderImpl() { }
 		~BuilderImpl() { }
 	} _builder;
-	Int_t _seed;
+	int _seed;
 
 public:
 
@@ -103,7 +102,7 @@ public:
 	EventType type() const {
 		return _type;
 	}
-	Int_t seed() const {
+	int seed() const {
 		return _seed;
 	}
 	// Constructs the generator.
@@ -112,7 +111,7 @@ public:
 	// Writes the generator to a binary stream.
 	void write(std::ostream& os);
 	// Calculates the relative variance (with uncertainty).
-	Real rel_var(Real* err_out=nullptr) const;
+	Double rel_var(Double* err_out=nullptr) const;
 	// Number of cells.
 	std::size_t size() const;
 };
@@ -120,9 +119,9 @@ public:
 // Loads a generator from a stream and produces events from it.
 class Generator {
 	// Uses a tagged union, similar to `Builder`.
-	using NradGenerator = bubble::CellGenerator<6, Real, NradDensity>;
-	using RadGenerator = bubble::CellGenerator<9, Real, RadDensity>;
-	using ExclGenerator = bubble::CellGenerator<8, Real, ExclDensity>;
+	using NradGenerator = bubble::CellGenerator<6, Double, NradDensity>;
+	using RadGenerator = bubble::CellGenerator<9, Double, RadDensity>;
+	using ExclGenerator = bubble::CellGenerator<8, Double, ExclDensity>;
 	union GeneratorImpl {
 		NradGenerator nrad;
 		RadGenerator rad;
@@ -131,8 +130,8 @@ class Generator {
 		~GeneratorImpl() { }
 	} _generator;
 	EventType _type;
-	Int_t _seed;
-	Real _rej_scale;
+	int _seed;
+	Double _rej_scale;
 
 	// Stores statistics about the produced weights.
 	StatsAccum _weights;
@@ -153,7 +152,7 @@ public:
 	EventType type() const {
 		return _type;
 	}
-	Int_t seed() const {
+	int seed() const {
 		return _seed;
 	}
 	// Produces an event with a certain weight. Sometimes, the generator may
@@ -161,9 +160,9 @@ public:
 	// and a new event is sampled to replace it. Rejected events are still
 	// tracked in the resulting statistics, but never returned from this
 	// function.
-	Real generate(Real* ph_out, Real* unit_out);
-	Real generate(Real* ph_out) {
-		Real unit_out[9];
+	Double generate(Double* ph_out, Double* unit_out);
+	Double generate(Double* ph_out) {
+		Double unit_out[9];
 		return generate(ph_out, unit_out);
 	}
 	// Gets total number of events generated.
@@ -175,8 +174,8 @@ public:
 		return _count_acc;
 	}
 	// Gets acceptance fraction of events.
-	Real acceptance() const {
-		return static_cast<Real>(_count_acc) / _count;
+	Double acceptance() const {
+		return static_cast<Double>(_count_acc) / _count;
 	}
 	// Gets statistics of the provided weights.
 	Stats weights() const {
@@ -191,7 +190,7 @@ public:
 
 	// Gets the overall prime of the generator. Combine with the average weight
 	// to get the cross-section.
-	Real prime() const;
+	Double prime() const;
 };
 
 #endif

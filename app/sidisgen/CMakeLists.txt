@@ -1,12 +1,12 @@
 find_package(ROOT 6.16 REQUIRED COMPONENTS Core Physics Tree CONFIG)
 add_executable(sidisgen
 	main.cpp
-	event_type.hpp
 	exception.hpp
 	generator.hpp generator.cpp
 	params.hpp params.cpp
 	params_format.hpp params_format.cpp
-	utility.hpp utility.cpp)
+	terminal.hpp terminal.cpp
+	utility.hpp)
 target_link_libraries(sidisgen PRIVATE
 	sidis
 	Bubble::bubble

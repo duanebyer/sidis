@@ -1,9 +1,9 @@
 #include "params.hpp"
 
+#include <algorithm>
 #include <initializer_list>
 #include <istream>
 #include <ostream>
-#include <regex>
 #include <sstream>
 #include <stdexcept>
 
@@ -36,6 +36,48 @@ std::string Type::to_string(Value const& value) const {
 		throw std::runtime_error("Could not convert value to string.");
 	}
 	return os.str();
+}
+
+Filter const Filter::REJECT = Filter();
+Filter const Filter::ACCEPT = Filter(Term{});
+
+bool Filter::operator()(std::string const& tag) const {
+	bool accept_condition = false;
+	for (Term const& term : _condition) {
+		bool accept_term = true;
+		for (Factor const& factor : term) {
+			if (factor.tag != tag) {
+				accept_term = false;
+				break;
+			}
+		}
+		if (accept_term) {
+			accept_condition = true;
+			break;
+		}
+	}
+	return accept_condition;
+}
+
+Filter& Filter::operator|=(Filter const& rhs) {
+	_condition.insert(rhs._condition.begin(), rhs._condition.end());
+	return *this;
+}
+
+Filter& Filter::operator&=(Filter const& rhs) {
+	Condition condition_next;
+	for (Term term_1 : _condition) {
+		for (Term term_2 : rhs._condition) {
+			Term term_union;
+			std::set_union(
+				term_1.begin(), term_1.end(),
+				term_2.begin(), term_2.end(),
+				std::inserter(term_union, term_union.begin()));
+			condition_next.insert(term_union);
+		}
+	}
+	_condition = condition_next;
+	return *this;
 }
 
 Params::Param::Param(
@@ -100,6 +142,37 @@ bool Params::set(char const* name, Value const* value) {
 	return old;
 }
 
+bool Params::set_from(Params const& other, char const* name) {
+	Param& param = _params.at(name);
+	Param const& other_param = other._params.at(name);
+	bool old = (param.value != nullptr);
+	if (param.type != other_param.type) {
+		throw std::runtime_error(
+			std::string("Parameter '") + name + "' has different type.");
+	}
+	if (param.tags != other_param.tags) {
+		throw std::runtime_error(
+			std::string("Parameter '") + name + "' has different tags.");
+	}
+	if (param.default_value != other_param.default_value) {
+		throw std::runtime_error(
+			std::string("Parameter '") + name + "' has different default.");
+	}
+	param.used = false;
+	param.value = other_param.value;
+	return old;
+}
+
+bool Params::set_from(Params const& other) {
+	// TODO: This implementation could be made much more efficient by iterating
+	// over the parameter map directly.
+	bool old = false;
+	for (std::string name : other.names()) {
+		old |= this->set_from(other, name.c_str());
+	}
+	return old;
+}
+
 std::set<std::string> Params::names() const {
 	std::set<std::string> result;
 	for (auto const& pair : _params) {
@@ -126,6 +199,10 @@ void Params::check_format(Params const& other) const {
 			throw std::runtime_error(
 				std::string("Parameter '") + name + "' has different tags.");
 		}
+		if (param.default_value != other_param.default_value) {
+			throw std::runtime_error(
+				std::string("Parameter '") + name + "' has different default.");
+		}
 	}
 }
 
@@ -138,23 +215,6 @@ void Params::check_complete() const {
 	}
 }
 
-void Params::check_can_provide(Params const& consumer) const {
-	check_format(consumer);
-	for (auto const& pair : _params) {
-		char const* name = pair.first.c_str();
-		Param const& param_prod = pair.second;
-		Param const& param_cons = consumer._params.find(name)->second;
-		if (!param_prod.type.can_provide(*param_prod.value, *param_cons.value)) {
-			throw std::runtime_error(
-				std::string("Parameter '") + name + "' is incompatible between "
-				"producer "
-				+ "(value " + param_prod.type.to_string(*param_prod.value) + ") and "
-				+ "consumer "
-				+ "(value " + param_prod.type.to_string(*param_cons.value) + ").");
-		}
-	}
-}
-
 void Params::check_equivalent(Params const& other) const {
 	check_format(other);
 	for (auto const& pair : _params) {
@@ -163,9 +223,9 @@ void Params::check_equivalent(Params const& other) const {
 		Param const& other_param = other._params.find(name)->second;
 		if (!param.type.equivalent(*param.value, *other_param.value)) {
 			throw std::runtime_error(
-				std::string("Parameter '") + name + "' is not equivalent between source "
-				+ "(value " + param.type.to_string(*param.value) + ") and dest "
-				+ "(value " + param.type.to_string(*other_param.value) + ").");
+				std::string("Parameter '") + name + "' is not equivalent "
+				+ "between source (value " + param.value->to_string() + ") and "
+				+ "dest (value " + other_param.value->to_string() + ").");
 		}
 	}
 }
@@ -296,29 +356,18 @@ void Params::write_stream(std::ostream& os) const {
 	}
 }
 
-Params Params::filter(std::initializer_list<char const*> matches) {
+Params Params::filter(Filter const& filter) {
 	Params params;
-	std::vector<std::regex> regex_list;
-	for (char const* match : matches) {
-		regex_list.emplace_back(match, std::regex_constants::ECMAScript);
-	}
 	for (auto& pair : _params) {
 		char const* name = pair.first.c_str();
 		Param const& param = pair.second;
 		bool match = false;
-		for (std::regex const& regex : regex_list) {
-			if (std::regex_match(name, regex)) {
+		for (std::string const& tag : param.tags) {
+			if (filter(tag.c_str())) {
 				match = true;
-				goto found_match;
-			}
-			for (std::string const& tag : param.tags) {
-				if (std::regex_match(tag.c_str(), regex)) {
-					match = true;
-					goto found_match;
-				}
+				break;
 			}
 		}
-found_match:
 		if (match) {
 			params._params.emplace(name, param);
 		}

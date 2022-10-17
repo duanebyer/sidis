@@ -1,5 +1,7 @@
 #include "params_format.hpp"
 
+#include <algorithm>
+#include <functional>
 #include <ios>
 #include <istream>
 #include <memory>
@@ -16,7 +18,26 @@ using namespace sidis;
 #define PARAMS_VERSION_MAJOR 4
 #define PARAMS_VERSION_MINOR 1
 
-Params params_format() {
+/*
+Tag overview.
+* "meta": Meta-level information (like version) that is needed to ensure
+  compatibility, but doesn't affect results.
+* "file": File names.
+* "write": Describes the event file format.
+* "init": Used during the initialization phase, when constructing the FOAM.
+* "gen": Used in the generation phase.
+* "xs": Modifies the differential cross-section, excluding cuts.
+* "cut": Cuts on kinematic variables.
+* "dist": Modifies the distribution of weights in generated events. Note that if
+  a parameter has the "xs" or "cut" tags, it should probably also have this tag.
+* "nrad": Applies to non-radiative events.
+* "rad": Applies to radiative events.
+* "excl": Applies to exclusive events.
+* "seed": For random-number-generation seeds.
+* "num": Special tag exclusively for "mc.num_events" parameter, as this
+  parameter must be treated specially.
+*/
+extern Params const PARAMS_STD_FORMAT = []() {
 	Params params;
 	// Parameters are added one-by-one to the `params` object.
 	params.add_param(
@@ -26,194 +47,194 @@ Params params_format() {
 		"Forward compatibility within a major version (e.x. 1.4 -> 1.5), but "
 		"not between major versions.");
 	params.add_param(
-		"strict", new ValueBool(ProvideBool::LT_EQ, true),
+		"strict", new ValueBool(true),
 		{ "meta" },
 		"<on/off>", "strictness level of parameter file",
 		"If on, unused parameters are an error; otherwise, they are a warning. "
 		"Default 'on'.");
 	params.add_param(
-		"file.event", TypeString::instance(ProvideSimple::ANY),
-		{ "file" },
+		"file.event", TypeString::INSTANCE,
+		{ "gen", "file", "nrad", "rad", "excl" },
 		"<file>", "ROOT file for generated events",
 		"Path to ROOT file to be created to hold generated events. Will give "
 		"error instead of overwriting an existing file.");
 	params.add_param(
-		"file.foam", TypeString::instance(ProvideSimple::ANY),
-		{ "file" },
+		"file.foam", TypeString::INSTANCE,
+		{ "init", "gen", "file", "nrad", "rad", "excl" },
 		"<file>", "ROOT file for FOAM",
 		"Path to the ROOT file to hold the FOAM during initialization. Will "
 		"give error instead of overwriting an existing file.");
 	params.add_param(
 		"file.write_momenta", new ValueBool(false),
-		{ "write" },
+		{ "gen", "write", "nrad", "rad", "excl" },
 		"<on/off>", "write particle momenta to file",
 		"Should particle momenta be written to output ROOT file? Default "
 		"'off'.");
 	params.add_param(
 		"file.write_photon", new ValueBool(true),
-		{ "write" },
+		{ "gen", "write", "rad", "excl" },
 		"<on/off>", "write radiated photon momentum to file",
 		"Should radiative momentum be written to output ROOT file? Default "
 		"'on'.");
 	params.add_param(
 		"file.write_sf_set", new ValueBool(false),
-		{ "write" },
+		{ "gen", "write", "nrad", "rad", "excl" },
 		"<on/off>", "write model structure functions to file",
 		"Should the model structure functions evaluated for each event be "
 		"written to output ROOT file? Default 'off'.");
 	params.add_param(
 		"file.write_mc_coords", new ValueBool(false),
-		{ "write" },
+		{ "gen", "write", "nrad", "rad", "excl" },
 		"<on/off>", "write internal MC coordinates to file",
 		"Should the internal Monte-Carlo coordinates be written to output ROOT "
 		"file? Default 'off'.");
 	params.add_param(
-		"mc.nrad.gen", new ValueBool(ProvideBool::LT_EQ, true),
-		{ "nrad", "gen" },
+		"mc.nrad.enable", new ValueBool(true),
+		{ "init", "gen", "nrad" },
 		"<on/off>", "generate non-radiative events",
 		"Should non-radiative events be generated? Non-radiative events are "
 		"those for which no real photon is radiated (including events with "
 		"photon energies below the soft threshold). Default 'on'.");
 	params.add_param(
 		"mc.nrad.gen.rej_scale", new ValueDouble(0.),
-		{ "nrad", "gen" },
+		{ "gen", "dist", "nrad" },
 		"<real>", "rejection sampling for non-radiative events",
 		"The rescaling factor used for non-radiative event weights during "
 		"rejection sampling. Larger values make generation slower, but improve "
 		"efficiency. Suggested between 0 and 2. Default '0'.");
 	params.add_param(
 		"mc.nrad.init.seed", new ValueSeedInit(),
-		{ "nrad", "init" },
+		{ "init", "seed", "nrad" },
 		"<int>, any", "seed for non-radiative FOAM initialization",
 		"The seed that will be used for constructing the non-radiative FOAM. "
 		"If 'any', seed is chosen randomly. Default 'any'.");
 	params.add_param(
-		"mc.nrad.init.max_cells", new ValueInt(ProvideOrder::LT_EQ, 262144),
-		{ "nrad", "init" },
+		"mc.nrad.init.max_cells", new ValueInt(262144),
+		{ "init", "dist", "nrad" },
 		"<int>", "max number of cells in non-radiative FOAM",
 		"Maximum number of cells that will be created during construction of "
 		"the non-radiative FOAM. Default '262144'.");
 	params.add_param(
-		"mc.nrad.init.target_eff", new ValueDouble(ProvideOrder::LT_EQ, 0.95),
-		{ "nrad", "init" },
+		"mc.nrad.init.target_eff", new ValueDouble(0.95),
+		{ "init", "dist", "nrad" },
 		"<real in [0,1]>", "efficiency for non-radiative FOAM initialization",
 		"Efficiency which the non-radiative FOAM will be constructed to "
 		"achieve. Larger values may cause the initialization process to take "
 		"much longer. Default value '0.95'.");
 	params.add_param(
 		"mc.nrad.init.scale_exp", new ValueDouble(0.50),
-		{ "nrad", "init" },
+		{ "init", "dist", "nrad" },
 		"<real>", "scaling exponent for non-radiative FOAM initialization",
 		"Estimate of the scaling exponent relating non-radiative FOAM "
 		"efficiency to number of cells. Accurate value allows for faster "
 		"construction of FOAM. Suggested between 0 and 2. Default '0.50'.");
 	params.add_param(
-		"mc.rad.gen", new ValueBool(ProvideBool::LT_EQ, true),
-		{ "rad", "gen" },
+		"mc.rad.enable", new ValueBool(true),
+		{ "init", "gen", "rad" },
 		"<on/off>", "generate radiative events",
 		"Should radiative events be generated? Radiative events are those for "
 		"which a real photon is radiated with energy above the soft threshold. "
 		"Default 'on'.");
 	params.add_param(
 		"mc.rad.gen.rej_scale", new ValueDouble(0.),
-		{ "rad", "gen" },
+		{ "gen", "dist", "rad" },
 		"<real>", "rejection sampling for radiative events",
 		"The rescaling factor used for radiative event weights during "
 		"rejection sampling. Larger values make generation slower, but improve "
 		"efficiency. Suggested between 0 and 2. Default '0'.");
 	params.add_param(
 		"mc.rad.init.seed", new ValueSeedInit(),
-		{ "rad", "init" },
+		{ "init", "seed", "rad" },
 		"<int>, any", "seed for radiative FOAM initialization",
 		"The seed that will be used for constructing the radiative FOAM. If "
 		"'any', seed is chosen randomly. Default 'any'.");
 	params.add_param(
-		"mc.rad.init.max_cells", new ValueInt(ProvideOrder::LT_EQ, 262144),
-		{ "rad", "init" },
+		"mc.rad.init.max_cells", new ValueInt(262144),
+		{ "init", "dist", "rad" },
 		"<int>", "max number of cells in radiative FOAM",
 		"Maximum number of cells that will be created during construction of "
 		"the radiative FOAM. Default '262144'.");
 	params.add_param(
-		"mc.rad.init.target_eff", new ValueDouble(ProvideOrder::LT_EQ, 0.50),
-		{ "rad", "init" },
+		"mc.rad.init.target_eff", new ValueDouble(0.50),
+		{ "init", "dist", "rad" },
 		"<real in [0,1]>", "efficiency for radiative FOAM initialization",
 		"Efficiency which the radiative FOAM will be constructed to achieve. "
 		"Larger values may cause the initialization process to take much "
 		"longer. Default value '0.50'.");
 	params.add_param(
 		"mc.rad.init.scale_exp", new ValueDouble(0.18),
-		{ "rad", "init" },
+		{ "init", "dist", "rad" },
 		"<real>", "scaling exponent for radiative FOAM initialization",
 		"Estimate of the scaling exponent relating radiative FOAM efficiency "
 		"to number of cells. Accurate value allows for faster construction of "
 		"FOAM. Suggested between 0 and 2. Default '0.18'.");
 	params.add_param(
-		"mc.num_events", TypeInt::instance(ProvideOrder::ANY),
-		{ "num" },
+		"mc.num_events", TypeLong::INSTANCE,
+		{ "gen", "num" },
 		"<int>", "number of events to generate",
 		"Total number of events that should be generated. Events are randomly "
 		"chosen to be a mixture of 'non-radiative' and 'radiative' events.");
 	params.add_param(
 		"mc.seed", new ValueSeedGen(),
-		{ "nrad", "rad", "gen" },
+		{ "gen", "seed", "nrad", "rad", "excl" },
 		"<int>, any", "seed for generated events",
 		"The seed that will be used for generating events. If 'any', seed is "
 		"chosen randomly. Default 'any'.");
 	params.add_param(
-		"setup.beam_energy", TypeDouble::instance(),
-		{ "nrad", "rad", "dist" },
+		"setup.beam_energy", TypeDouble::INSTANCE,
+		{ "init", "xs", "dist", "nrad", "rad", "excl" },
 		"<real (GeV)>", "lepton beam energy in the target rest frame",
 		"Energy (in GeV) of the lepton beam in the target rest frame.");
 	params.add_param(
-		"setup.beam", TypeLepton::instance(),
-		{ "nrad", "rad", "dist" },
+		"setup.beam", TypeLepton::INSTANCE,
+		{ "init", "xs", "dist", "nrad", "rad", "excl" },
 		"e, mu, tau", "lepton beam particle id",
 		"Identifier for the type of particle in the lepton beam.");
 	params.add_param(
-		"setup.target", TypeNucleus::instance(),
-		{ "nrad", "rad", "dist" },
+		"setup.target", TypeNucleus::INSTANCE,
+		{ "init", "xs", "dist", "nrad", "rad", "excl" },
 		"p, n, d", "target nucleus particle id",
 		"Identifier for the type of the target nucleus.");
 	params.add_param(
-		"setup.hadron", TypeHadron::instance(),
-		{ "nrad", "rad", "dist" },
+		"setup.hadron", TypeHadron::INSTANCE,
+		{ "init", "xs", "dist", "nrad", "rad", "excl" },
 		"pi0, pi+, pi-, K0, K+, K-", "detected hadron particle id",
 		"Identifier for the type of the detected hadron.");
 	params.add_param(
-		"setup.beam_pol", TypeDouble::instance(),
-		{ "nrad", "rad", "dist" },
+		"setup.beam_pol", TypeDouble::INSTANCE,
+		{ "init", "xs", "dist", "nrad", "rad", "excl" },
 		"<real in [-1,1]>", "longitudinal polarization of beam",
 		"Longitudinal polarization of the lepton beam.");
 	params.add_param(
-		"setup.target_pol", TypeVec3::instance(),
-		{ "nrad", "rad", "dist" },
+		"setup.target_pol", TypeVec3::INSTANCE,
+		{ "init", "xs", "dist", "nrad", "rad", "excl" },
 		"<vector in unit sphere>", "polarization of target nucleus",
 		"Polarization of the target nucleus in the target rest frame.");
 	params.add_param(
-		"phys.sf_set", TypeString::instance(),
-		{ "nrad", "rad", "dist" },
+		"phys.sf_set", TypeString::INSTANCE,
+		{ "init", "xs", "dist", "nrad", "rad", "excl" },
 		"prokudin, <ROOT dict.>", "structure function parameterization",
 		"Parameterization to use for structure functions. For energies around "
 		"10 GeV, try 'prokudin'. Provide custom parameterization by specifying "
 		"a ROOT dictionary in shared library (*.so) form.");
 	params.add_param(
-		"phys.rc_method", TypeRcMethod::instance(),
-		{ "nrad", "rad", "dist" },
+		"phys.rc_method", TypeRcMethod::INSTANCE,
+		{ "init", "xs", "dist", "nrad", "rad", "excl" },
 		"none, approx, exact", "radiative corrections method",
 		"Method to use for radiative corrections. Methods are: 'none' for Born "
 		"cross-section only; 'approx' for an efficient approach that is very "
 		"accurate provided the soft threshold is small enough; 'exact' for the "
 		"complete NLO radiative corrections. Suggested 'approx'.");
 	params.add_param(
-		"phys.mass_threshold", TypeDouble::instance(),
-		{ "nrad", "rad", "dist" },
+		"phys.mass_threshold", TypeDouble::INSTANCE,
+		{ "init", "xs", "dist", "nrad", "rad", "excl" },
 		"<real (GeV)>", "mass threshold for SIDIS process",
 		"Kinematic threshold mass (in GeV) of undetected particles for the "
 		"SIDIS process. For example, for pion production on proton, the "
 		"threshold is the mass of proton + mass of pion.");
 	params.add_param(
 		"phys.soft_threshold", new ValueDouble(0.01),
-		{ "nrad", "rad", "dist" },
+		{ "init", "xs", "dist", "nrad", "rad", "excl" },
 		"<real (GeV)>", "radiated photon soft threshold",
 		"Radiated photon energy (in GeV) dividing non-radiative events from "
 		"radiative events. Specified in reference frame `p + q - p_h = 0`. "
@@ -222,170 +243,382 @@ Params params_format() {
 		"'approx' is no longer accurate. Default '0.01'.");
 	params.add_param(
 		"cut.k_0_bar", new ValueBound(math::Bound::POSITIVE),
-		{ "nrad", "rad", "cut" },
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on photon energy",
 		"Defined in frame `p + q - p_h = 0`, same as 'phys.soft_threshold'. "
 		"This cut is a pre-requisite for all other cuts on the radiated "
 		"photon.");
 	params.add_param(
-		"cut.x", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.x", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on x", "");
 	params.add_param(
-		"cut.y", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.y", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on y", "");
 	params.add_param(
-		"cut.z", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.z", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on z", "");
 	params.add_param(
-		"cut.ph_t_sq", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.ph_t_sq", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on p_ht^2", "");
 	params.add_param(
-		"cut.phi_h", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.phi_h", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on φ_h", "");
 	params.add_param(
-		"cut.phi", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.phi", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on φ", "");
 	params.add_param(
-		"cut.Q_sq", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.Q_sq", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on Q^2", "");
 	params.add_param(
-		"cut.W_sq", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.W_sq", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on W^2", "");
 	params.add_param(
-		"cut.mx_sq", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.mx_sq", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on m_x^2 (also known as W'^2)", "");
 	params.add_param(
-		"cut.t", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.t", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on t", "");
 	params.add_param(
-		"cut.r", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.r", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on r", "");
 	params.add_param(
-		"cut.qt_to_Q", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.qt_to_Q", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on qt/Q", "");
 	params.add_param(
-		"cut.tau", new ValueBound(math::Bound::INVALID), { "rad", "cut" },
+		"cut.tau", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "rad", "excl" },
 		"<min> <max>", "bound on τ", "");
 	params.add_param(
-		"cut.phi_k", new ValueBound(math::Bound::INVALID), { "rad", "cut" },
+		"cut.phi_k", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "rad", "excl" },
 		"<min> <max>", "bound on φ_k", "");
 	params.add_param(
-		"cut.R", new ValueBound(math::Bound::INVALID), { "rad", "cut" },
+		"cut.R", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "rad" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on R", "");
 	params.add_param(
-		"cut.lab.mom_q", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.lab.mom_q", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on q momentum in lab frame", "");
 	params.add_param(
-		"cut.lab.mom_k2", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.lab.mom_k2", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on k_2 momentum in lab frame", "");
 	params.add_param(
-		"cut.lab.mom_h", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.lab.mom_h", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on p_h momentum in lab frame", "");
 	params.add_param(
-		"cut.lab.mom_k", new ValueBound(math::Bound::INVALID), { "rad", "cut" },
+		"cut.lab.mom_k", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "rad" },
 		"<min (GeV)> <max (GeV)>", "bound on k momentum in lab frame", "");
 	params.add_param(
-		"cut.lab.theta_q", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.lab.theta_q", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on q polar angle in lab frame", "");
 	params.add_param(
-		"cut.lab.theta_k2", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.lab.theta_k2", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on k_2 polar angle in lab frame", "");
 	params.add_param(
-		"cut.lab.theta_h", new ValueBound(math::Bound::INVALID), { "nrad", "rad", "cut" },
+		"cut.lab.theta_h", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on p_h polar angle in lab frame", "");
 	params.add_param(
-		"cut.lab.theta_k", new ValueBound(math::Bound::INVALID), { "rad", "cut" },
+		"cut.lab.theta_k", new ValueBound(math::Bound::INVALID),
+		{ "init", "cut", "dist", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on k polar angle in lab frame", "");
 	return params;
+}();
+
+bool p_val_enable(Params& params, EventType ev_type) {
+	return params.get<ValueBool>(p_name_enable(ev_type).c_str());
+}
+SeedInit p_val_seed_init(Params& params, EventType ev_type) {
+	return params.get<ValueSeedInit>(p_name_seed_init(ev_type).c_str());
+}
+
+namespace {
+
+template<typename T, typename F>
+void params_merge_value(
+		Params params_1,
+		Params params_2,
+		char const* name,
+		F merge_op,
+		Params* params_out) {
+	if (!params_1.is_set(name) && !params_2.is_set(name)) {
+		// If both are default, let the result also be default.
+		params_out->set(name, nullptr);
+	} else {
+		// Otherwise merge.
+		auto val_1 = params_1.get<T>(name).val;
+		auto val_2 = params_2.get<T>(name).val;
+		params_out->set(name, new T(merge_op(val_1, val_2)));
+	}
+}
+
+void params_merge_bool_and(
+		Params const& params_1,
+		Params const& params_2,
+		char const* name,
+		Params* params_out) {
+	return params_merge_value<ValueBool>(
+		params_1, params_2, name, std::logical_and<bool>(), params_out); 
+}
+
+void params_merge_version(
+		Params const& params_1,
+		Params const& params_2,
+		char const* name,
+		Params* params_out) {
+	return params_merge_value<ValueVersion>(
+		params_1, params_2, name,
+		[](Version a, Version b) {
+			if (a.v_major == b.v_major) {
+				return a.v_minor > b.v_minor ? a : b;
+			} else {
+				return a.v_major > b.v_major ? a : b;
+			}
+		},
+		params_out);
+}
+
+void params_merge_file(
+		Params const& params_1,
+		Params const& params_2,
+		char const* name,
+		Params* params_out) {
+	return params_merge_value<ValueString>(
+		params_1, params_2, name,
+		[](std::string a, std::string b) { return a == b ? a : "<unknown>"; },
+		params_out);
+}
+
+void params_merge_seed_gen(
+		Params const& params_1,
+		Params const& params_2,
+		char const* name,
+		Params* params_out) {
+	return params_merge_value<ValueSeedGen>(
+		params_1, params_2, name,
+		[](SeedGen a, SeedGen b) { return SeedGen(a, b); },
+		params_out);
+}
+
+void params_merge_count(
+		Params const& params_1,
+		Params const& params_2,
+		char const* name,
+		Params* params_out) {
+	return params_merge_value<ValueLong>(
+		params_1, params_2, name, std::plus<long long>(), params_out);
+}
+
+std::runtime_error make_incompatible_param_error(
+		char const* name,
+		Value const& val_src, Value const& val_dst) {
+	return std::runtime_error(
+		std::string("Parameter '") + name + "' is incompatible between source "
+		+ "(value " + val_src.to_string() + ") and dest "
+		+ "(value " + val_dst.to_string() + ").");
+}
+
+}
+
+// TODO: Refactor main to use this.
+std::set<EventType> params_active_event_types(Params& params) {
+	std::set<EventType> result;
+	for (int idx = 0; idx < NUM_EVENT_TYPES; ++idx) {
+		EventType ev_type = static_cast<EventType>(idx);
+		if (p_val_enable(params, ev_type)) {
+			result.insert(ev_type);
+		}
+	}
+	return result;
+}
+
+void check_can_provide_foam(
+		Params& params_foam,
+		Params& params_gen) {
+	params_foam.check_format(PARAMS_STD_FORMAT);
+	params_gen.check_format(PARAMS_STD_FORMAT);
+	// Check that versions are compatible.
+	Version version_foam = params_foam.get<ValueVersion>("version");
+	Version version_gen = params_gen.get<ValueVersion>("version");
+	// TODO: Check versions can be handled by sidisgen.
+	if (!(version_foam.v_major == version_gen.v_major
+			&& version_foam.v_minor <= version_gen.v_minor)) {
+		throw make_incompatible_param_error(
+			"version",
+			ValueVersion(version_foam),
+			ValueVersion(version_gen));
+	}
+	// Check that all event types needed for generation are included.
+	std::set<EventType> ev_types = params_active_event_types(params_gen);
+	Filter filter_gen_type = Filter::REJECT;
+	for (EventType ev_type : ev_types) {
+		filter_gen_type |= Filter(event_type_short_name(ev_type));
+		if (!p_val_enable(params_foam, ev_type)) {
+			throw make_incompatible_param_error(
+				p_name_enable(ev_type).c_str(),
+				ValueBool(p_val_enable(params_foam, ev_type)),
+				ValueBool(p_val_enable(params_gen, ev_type)));
+		}
+	}
+	// Check that the foam parameters used in initialization are equal.
+	Filter filter = "init"_F & ("xs"_F | "cut"_F | "dist"_F) & filter_gen_type;
+	Params params_dist_foam = params_foam.filter(filter);
+	Params params_dist_gen = params_gen.filter(filter);
+	params_dist_foam.check_equivalent(params_dist_gen);
+	// Check that the initialization seeds and hashes are compatible.
+	for (EventType ev_type : ev_types) {
+		SeedInit seed_init_foam = p_val_seed_init(params_foam, ev_type);
+		SeedInit seed_init_gen = p_val_seed_init(params_gen, ev_type);
+		if (!seed_init_gen.any && seed_init_foam != seed_init_gen) {
+			throw make_incompatible_param_error(
+				p_name_seed_init(ev_type).c_str(),
+				ValueSeedInit(seed_init_foam),
+				ValueSeedInit(seed_init_gen));
+		}
+	}
+}
+
+Params merge_params(Params& params_1, Params& params_2) {
+	params_1.check_format(PARAMS_STD_FORMAT);
+	params_2.check_format(PARAMS_STD_FORMAT);
+	Params result = PARAMS_STD_FORMAT;
+	// Check that versions are compatible, meaning same major version.
+	Version version_1 = params_1.get<ValueVersion>("version");
+	Version version_2 = params_2.get<ValueVersion>("version");
+	// TODO: Check version can be handled by sidisgen.
+	if (version_1.v_major != version_2.v_major) {
+		throw make_incompatible_param_error(
+			"version",
+			ValueVersion(version_1),
+			ValueVersion(version_2));
+	}
+	// Find subset of event types shared by both sets of parameters.
+	std::set<EventType> ev_types_1 = params_active_event_types(params_1);
+	std::set<EventType> ev_types_2 = params_active_event_types(params_2);
+	std::set<EventType> ev_types;
+	std::set_intersection(
+		ev_types_1.begin(), ev_types_1.end(),
+		ev_types_2.begin(), ev_types_2.end(),
+		std::inserter(ev_types, ev_types.begin()));
+	if (ev_types.empty()) {
+		throw std::runtime_error(
+			"No common event types enabled between source and dest.");
+	}
+	Filter filter_gen_type = Filter::REJECT;
+	for (EventType ev_type : ev_types) {
+		filter_gen_type |= Filter(event_type_short_name(ev_type));
+	}
+	// Check that all parameters affecting the event distribution are equal.
+	Filter filter_dist = ("xs"_F | "cut"_F | "dist"_F) & filter_gen_type;
+	Params params_dist_1 = params_1.filter(filter_dist);
+	Params params_dist_2 = params_2.filter(filter_dist);
+	params_dist_1.check_equivalent(params_dist_2);
+	// Check that the initialization seeds and hashes are compatible.
+	// * Seed must be equal.
+	// * Hash must be equal.
+	for (EventType ev_type : ev_types) {
+		SeedInit seed_init_1 = p_val_seed_init(params_1, ev_type);
+		SeedInit seed_init_2 = p_val_seed_init(params_2, ev_type);
+		if (seed_init_1.any || seed_init_1 != seed_init_2) {
+			throw make_incompatible_param_error(
+				p_name_seed_init(ev_type).c_str(),
+				ValueSeedInit(seed_init_1),
+				ValueSeedInit(seed_init_2));
+		}
+	}
+	// Check that the generation seeds are compatible.
+	// * Seed must be non-overlapping.
+	SeedGen seed_gen_1 = params_1.get<ValueSeedGen>("mc.seed");
+	SeedGen seed_gen_2 = params_2.get<ValueSeedGen>("mc.seed");
+	if (!seed_gen_1.any && !seed_gen_2.any) {
+		for (int seed : seed_gen_1.seeds) {
+			if (seed_gen_2.seeds.find(seed) != seed_gen_2.seeds.end()) {
+				throw make_incompatible_param_error(
+					"mc.seed",
+					ValueSeedGen(seed_gen_1),
+					ValueSeedGen(seed_gen_2));
+			}
+		}
+	}
+	// Merge meta information.
+	params_merge_version(params_1, params_2, "version", &result);
+	params_merge_bool_and(params_1, params_2, "strict", &result);
+	// Merge file parameters.
+	Filter filter_file = "file"_F;
+	for (std::string name : params_1.filter(filter_file).names()) {
+		params_merge_file(params_1, params_2, name.c_str(), &result);
+	}
+	// Merge write parameters.
+	params_merge_bool_and(params_1, params_2, "file.write_momenta", &result);
+	params_merge_bool_and(params_1, params_2, "file.write_photon", &result);
+	params_merge_bool_and(params_1, params_2, "file.write_sf_set", &result);
+	params_merge_bool_and(params_1, params_2, "file.write_mc_coords", &result);
+	// Merge seeds.
+	params_merge_seed_gen(params_1, params_2, "mc.seed", &result);
+	// Merge counts.
+	params_merge_count(params_1, params_2, "mc.num_events", &result);
+	// All other information must be equal between `params_dist_1` and
+	// `params_dist_2` from the earlier call to `equivalent()`, so no need to
+	// merge, just copy value direct from `params_dist_1`.
+	result.set_from(params_dist_1);
+	// TODO: This check verifies that every parameter set in `params_1` or
+	// `params_2` is also set in `result`, and vice versa. It shouldn't ever get
+	// tripped if there aren't any bugs in the merge, so enable it for debug
+	// only.
+	for (std::string name_1 : params_1.names()) {
+		if (params_1.is_set(name_1.c_str()) && !result.is_set(name_1.c_str())) {
+			throw std::runtime_error(
+				std::string("Parameter '") + name_1 + "' failed to merge.");
+		}
+	}
+	for (std::string name_2 : params_2.names()) {
+		if (params_2.is_set(name_2.c_str()) && !result.is_set(name_2.c_str())) {
+			throw std::runtime_error(
+				std::string("Parameter '") + name_2 + "' failed to merge.");
+		}
+	}
+	for (std::string name : result.names()) {
+		if (result.is_set(name.c_str())
+				&& !params_1.is_set(name.c_str())
+				&& !params_2.is_set(name.c_str())) {
+			throw std::runtime_error(
+				std::string("Parameter '") + name + "' contaminated merge.");
+		}
+	}
+	return result;
 }
 
 #define ESC(...) __VA_ARGS__
 
-#define VALUE_TYPE_DEFINE_SINGLETON(RType, Provide, provide_count) \
-	RType const& RType::instance(Provide provide) { \
-		static std::unique_ptr<RType> singleton[provide_count]; \
-		int index = static_cast<int>(provide); \
-		if (!(index >= 0 && index < provide_count)) { \
-			throw std::runtime_error("Invalid " #Provide "."); \
-		} \
-		if (singleton[index] == nullptr) { \
-			singleton[index] = std::unique_ptr<RType>(new RType(provide)); \
-		} \
-		return *singleton[index]; \
-	}
-
-#define VALUE_TYPE_DEFINE_PROVIDE_SIMPLE(RType, Wrapped) \
-	bool RType::can_provide_base(Wrapped const& prod, Wrapped const& cons) const { \
-		switch (_provide) { \
-		case ProvideSimple::EQ: \
-			return prod == cons; \
-		case ProvideSimple::ANY: \
-			return true; \
-		default: \
-			throw std::runtime_error("Invalid ProvideOrder."); \
-		} \
-	}
-
-#define VALUE_TYPE_DEFINE_PROVIDE_ORDER(RType, Wrapped) \
-	bool RType::can_provide_base(Wrapped const& prod, Wrapped const& cons) const { \
-		switch (_provide) { \
-		case ProvideOrder::EQ: \
-			return prod == cons; \
-		case ProvideOrder::ANY: \
-			return true; \
-		case ProvideOrder::LT_EQ: \
-			return prod >= cons; \
-		case ProvideOrder::GT_EQ: \
-			return prod <= cons; \
-		default: \
-			throw std::runtime_error("Invalid ProvideOrder."); \
-		} \
-	}
-
-#define VALUE_TYPE_DEFINE_PROVIDE_BOOL(RType, Wrapped) \
-	bool RType::can_provide_base(Wrapped const& prod, Wrapped const& cons) const { \
-		switch (_provide) { \
-		case ProvideBool::EQ: \
-			return prod == cons; \
-		case ProvideBool::ANY: \
-			return true; \
-		case ProvideBool::AND: \
-			return prod && cons; \
-		case ProvideBool::OR: \
-			return prod || cons; \
-		case ProvideBool::GT_EQ: \
-			return !(!prod && cons); \
-		case ProvideBool::LT_EQ: \
-			return !(prod && !cons); \
-		default: \
-			throw std::runtime_error("Invalid ProvideBool."); \
-		} \
-	}
-
-#define VALUE_TYPE_DEFINE_PROVIDE_BOUND(RType, Wrapped) \
-	bool RType::can_provide_base(Wrapped const& prod, Wrapped const& cons) const { \
-		switch (_provide) { \
-		case ProvideBound::EQ: \
-			return prod == cons; \
-		case ProvideBound::ANY: \
-			return true; \
-		case ProvideBound::IN: \
-			return prod.contains(cons); \
-		case ProvideBound::OUT: \
-			return cons.contains(prod); \
-		default: \
-			throw std::runtime_error("Invalid ProvideBound."); \
-		} \
-	}
+#define VALUE_TYPE_DEFINE_SINGLETON(RType) \
+	RType const RType::INSTANCE = RType();
 
 #define VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(RType, Wrapped) \
 	Wrapped RType::read_stream_base(std::istream& is) const { \
-		Wrapped value; \
-		is >> value; \
-		return value; \
+		Wrapped val; \
+		is >> val; \
+		return val; \
 	} \
-	void RType::write_stream_base(std::ostream& os, Wrapped const& value) const { \
-		os << value; \
+	void RType::write_stream_base(std::ostream& os, Wrapped const& val) const { \
+		os << val; \
 	}
 
 #define VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(RType, Wrapped, enum_count, enum_vals_list, names_list) \
@@ -404,11 +637,11 @@ Params params_format() {
 		is.setstate(std::ios_base::failbit); \
 		return enum_vals[0]; \
 	} \
-	void RType::write_stream_base(std::ostream& os, Wrapped const& value) const { \
+	void RType::write_stream_base(std::ostream& os, Wrapped const& val) const { \
 		Wrapped enum_vals[enum_count] = enum_vals_list; \
 		std::vector<char const*> names[enum_count] = names_list; \
 		for (std::size_t idx = 0; idx < enum_count; ++idx) { \
-			if (enum_vals[idx] == value) { \
+			if (enum_vals[idx] == val) { \
 				os << names[idx][0]; \
 				return; \
 			} \
@@ -417,54 +650,40 @@ Params params_format() {
 	}
 
 #define VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(RType, Wrapped, Number) \
-	TParameter<Number> RType::convert_to_root_base(Wrapped const& value) const { \
-		return TParameter<Number>("", static_cast<Number>(value)); \
+	TParameter<Number> RType::convert_to_root_base(Wrapped const& val) const { \
+		return TParameter<Number>("", static_cast<Number>(val)); \
 	} \
-	Wrapped RType::convert_from_root_base(TParameter<Number>& value) const { \
-		return static_cast<Wrapped>(value.GetVal()); \
+	Wrapped RType::convert_from_root_base(TParameter<Number>& val) const { \
+		return static_cast<Wrapped>(val.GetVal()); \
 	}
 
 // Singleton definitions.
 // Version.
-VALUE_TYPE_DEFINE_SINGLETON(TypeVersion, ProvideSpecial, 3);
+VALUE_TYPE_DEFINE_SINGLETON(TypeVersion);
 // Numbers.
-VALUE_TYPE_DEFINE_SINGLETON(TypeDouble, ProvideOrder, 4);
-VALUE_TYPE_DEFINE_SINGLETON(TypeInt, ProvideOrder, 4);
-VALUE_TYPE_DEFINE_SINGLETON(TypeBool, ProvideBool, 6);
+VALUE_TYPE_DEFINE_SINGLETON(TypeDouble);
+VALUE_TYPE_DEFINE_SINGLETON(TypeInt);
+VALUE_TYPE_DEFINE_SINGLETON(TypeLong);
+VALUE_TYPE_DEFINE_SINGLETON(TypeBool);
 // Strings.
-VALUE_TYPE_DEFINE_SINGLETON(TypeString, ProvideSimple, 2);
+VALUE_TYPE_DEFINE_SINGLETON(TypeString);
 // Random number seeds.
-VALUE_TYPE_DEFINE_SINGLETON(TypeSeedInit, ProvideSpecial, 3);
-VALUE_TYPE_DEFINE_SINGLETON(TypeSeedGen, ProvideSpecial, 3);
+VALUE_TYPE_DEFINE_SINGLETON(TypeSeedInit);
+VALUE_TYPE_DEFINE_SINGLETON(TypeSeedGen);
 // Enums.
-VALUE_TYPE_DEFINE_SINGLETON(TypeRcMethod, ProvideSimple, 2);
-VALUE_TYPE_DEFINE_SINGLETON(TypeNucleus, ProvideSimple, 2);
-VALUE_TYPE_DEFINE_SINGLETON(TypeLepton, ProvideSimple, 2);
-VALUE_TYPE_DEFINE_SINGLETON(TypeHadron, ProvideSimple, 2);
+VALUE_TYPE_DEFINE_SINGLETON(TypeRcMethod);
+VALUE_TYPE_DEFINE_SINGLETON(TypeNucleus);
+VALUE_TYPE_DEFINE_SINGLETON(TypeLepton);
+VALUE_TYPE_DEFINE_SINGLETON(TypeHadron);
 // Math types.
-VALUE_TYPE_DEFINE_SINGLETON(TypeVec3, ProvideSimple, 2);
-VALUE_TYPE_DEFINE_SINGLETON(TypeBound, ProvideBound, 4);
-
-// Can provide definitions.
-// Numbers.
-VALUE_TYPE_DEFINE_PROVIDE_ORDER(TypeDouble, double);
-VALUE_TYPE_DEFINE_PROVIDE_ORDER(TypeInt, int);
-VALUE_TYPE_DEFINE_PROVIDE_BOOL(TypeBool, bool);
-// Strings.
-VALUE_TYPE_DEFINE_PROVIDE_SIMPLE(TypeString, std::string);
-// Enums.
-VALUE_TYPE_DEFINE_PROVIDE_SIMPLE(TypeRcMethod, RcMethod);
-VALUE_TYPE_DEFINE_PROVIDE_SIMPLE(TypeNucleus, part::Nucleus);
-VALUE_TYPE_DEFINE_PROVIDE_SIMPLE(TypeLepton, part::Lepton);
-VALUE_TYPE_DEFINE_PROVIDE_SIMPLE(TypeHadron, part::Hadron);
-// Math types.
-VALUE_TYPE_DEFINE_PROVIDE_SIMPLE(TypeVec3, math::Vec3);
-VALUE_TYPE_DEFINE_PROVIDE_BOUND(TypeBound, math::Bound);
+VALUE_TYPE_DEFINE_SINGLETON(TypeVec3);
+VALUE_TYPE_DEFINE_SINGLETON(TypeBound);
 
 // Stream IO definitions.
 // Numbers.
-VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeDouble, double);
-VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeInt, int);
+VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeDouble, Double);
+VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeInt, Int);
+VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeLong, Long);
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 	TypeRcMethod, RcMethod, 3,
 	ESC({ RcMethod::NONE, RcMethod::APPROX, RcMethod::EXACT }),
@@ -484,73 +703,14 @@ VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 
 // ROOT conversion definitions.
 // Numbers.
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeDouble, double, double);
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeInt, int, int);
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeDouble, Double, Double);
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeInt, Int, Int);
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeLong, Long, Long);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeBool, bool, bool);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeRcMethod, RcMethod, int);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeNucleus, part::Nucleus, int);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeLepton, part::Lepton, int);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeHadron, part::Hadron, int);
-
-// Can provide.
-
-// Version.
-bool TypeVersion::can_provide_base(Version const& prod, Version const& cons) const {
-	switch (_provide) {
-	case ProvideSpecial::EQ:
-		return prod == cons;
-	case ProvideSpecial::ANY:
-		return true;
-	case ProvideSpecial::SPECIAL:
-		if (prod.v_major != cons.v_major) {
-			return false;
-		} else if (prod.v_minor < cons.v_minor) {
-			return false;
-		} else {
-			return true;
-		}
-	default:
-		throw std::runtime_error("Invalid ProvideSpecial.");
-	}
-}
-
-// Random number seeds.
-bool TypeSeedInit::can_provide_base(SeedInit const& prod, SeedInit const& cons) const {
-	switch (_provide) {
-	case ProvideSpecial::EQ:
-		return prod == cons;
-	case ProvideSpecial::ANY:
-		return true;
-	case ProvideSpecial::SPECIAL:
-		if (cons.any) {
-			return true;
-		} else if (prod.any) {
-			return false;
-		} else {
-			return prod.seed == cons.seed;
-		}
-	default:
-		throw std::runtime_error("Invalid ProvideSpecial.");
-	}
-}
-bool TypeSeedGen::can_provide_base(SeedGen const& prod, SeedGen const& cons) const {
-	switch (_provide) {
-	case ProvideSpecial::EQ:
-		return prod == cons;
-	case ProvideSpecial::ANY:
-		return true;
-	case ProvideSpecial::SPECIAL:
-		if (cons.any) {
-			return true;
-		} else if (prod.any) {
-			return false;
-		} else {
-			return prod.seeds == cons.seeds;
-		}
-	default:
-		throw std::runtime_error("Invalid ProvideSpecial.");
-	}
-}
 
 // Read/write to stream.
 
@@ -583,8 +743,8 @@ bool TypeBool::read_stream_base(std::istream& is) const {
 		return false;
 	}
 }
-void TypeBool::write_stream_base(std::ostream& os, bool const& value) const {
-	os << (value ? "on" : "off");
+void TypeBool::write_stream_base(std::ostream& os, bool const& val) const {
+	os << (val ? "on" : "off");
 }
 
 // Strings.
@@ -630,9 +790,9 @@ SeedGen TypeSeedGen::read_stream_base(std::istream& is) const {
 		SeedGen seed;
 		seed.any = false;
 		while (is_str && !is_str.eof()) {
-			int value;
-			is >> value;
-			seed.seeds.insert(value);
+			int val;
+			is >> val;
+			seed.seeds.insert(val);
 		}
 		if (!is_str) {
 			is.setstate(std::ios_base::failbit);
@@ -645,12 +805,12 @@ void TypeSeedGen::write_stream_base(std::ostream& os, SeedGen const& seed) const
 		os << "any";
 	} else {
 		bool first = true;
-		for (int value : seed.seeds) {
+		for (int val : seed.seeds) {
 			if (!first) {
 				os << ' ';
 				first = false;
 			}
-			os << value;
+			os << val;
 		}
 	}
 }
@@ -724,21 +884,21 @@ SeedGen TypeSeedGen::convert_from_root_base(TArrayI& seed) const {
 	return result;
 }
 // Math types.
-TArrayD TypeVec3::convert_to_root_base(math::Vec3 const& vec) const {
+RootArrayD TypeVec3::convert_to_root_base(math::Vec3 const& vec) const {
 	Double_t vals[3] = { vec.x, vec.y, vec.z };
-	return TArrayD(3, vals);
+	return RootArrayD(3, vals);
 }
-math::Vec3 TypeVec3::convert_from_root_base(TArrayD& vec) const {
+math::Vec3 TypeVec3::convert_from_root_base(RootArrayD& vec) const {
 	if (vec.GetSize() != 3) {
 		throw std::runtime_error("Wrong number of array elements.");
 	}
 	return math::Vec3(vec.At(0), vec.At(1), vec.At(2));
 }
-TArrayD TypeBound::convert_to_root_base(math::Bound const& bound) const {
+RootArrayD TypeBound::convert_to_root_base(math::Bound const& bound) const {
 	Double_t vals[3] = { bound.min(), bound.max() };
-	return TArrayD(2, vals);
+	return RootArrayD(2, vals);
 }
-math::Bound TypeBound::convert_from_root_base(TArrayD& bound) const {
+math::Bound TypeBound::convert_from_root_base(RootArrayD& bound) const {
 	if (bound.GetSize() != 2 || !(bound.At(0) <= bound.At(1))) {
 		throw std::runtime_error("Wrong number of array elements.");
 	}

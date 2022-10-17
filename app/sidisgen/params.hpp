@@ -26,6 +26,13 @@
 // * Cuts can be in gen or in init.
 // * Don't use initializer_list. It's bad
 
+// TODO:
+// Factor this out into its own lib. Remove the ROOT and stream stuff from Type.
+// Instead, allow things like `write_stream` to be implemented in user code.
+// * Make `Params` provide an iterator over (Name, Type, Value) tuples. This can
+//   be transformed to get names(), values().
+// * Tags for filters ONLY
+
 class TDirectory;
 class TObject;
 class Value;
@@ -43,10 +50,6 @@ public:
 	// Whether two values are equivalent with each other. It's only valid to
 	// call this on two values that have this as their type.
 	virtual bool equivalent(Value const& value_1, Value const& value_2) const = 0;
-	// Whether an 'object' from a 'producing' parameter file can be used by an
-	// 'object' from a 'consuming' parameter file. It's only valid to call this
-	// on two values that have this as their type.
-	virtual bool can_provide(Value const& prod, Value const& cons) const = 0;
 
 	// Read/write to ROOT files.
 	virtual std::unique_ptr<Value> read_root(TDirectory& dir, char const* name) const = 0;
@@ -90,7 +93,68 @@ public:
 	T& as() {
 		return dynamic_cast<T&>(*this);
 	}
+
+	// Convenience methods for easily calling methods from `Type`.
+	std::string to_string() const {
+		return _type.to_string(*this);
+	}
+	bool operator==(Value const& other) const {
+		if (_type != other._type) {
+			return false;
+		} else {
+			return _type.equivalent(*this, other);
+		}
+	}
+	bool operator!=(Value const& other) const {
+		return !(*this == other);
+	}
 };
+
+class Filter final {
+	// The tag is wrapped in this struct to make it easier to add negation in
+	// the future, if desired.
+	struct Factor {
+		std::string tag;
+		// For now, inverse conditions are not allowed.
+		// bool invert;
+		bool operator<(Factor const& rhs) const {
+			return tag < rhs.tag;
+		}
+	};
+	using Term = std::set<Factor>;
+	using Condition = std::set<Term>;
+
+	// Condition on tags, in the form:
+	//     `(A1 && A2 && ...) || (B1 && B2 && ...) || ...`
+	Condition _condition;
+
+	Filter() : _condition{} { };
+	explicit Filter(Factor const& factor) : _condition{ { factor } } { };
+	explicit Filter(Term const& term) : _condition{ term } { };
+
+public:
+	static const Filter REJECT;
+	static const Filter ACCEPT;
+
+	explicit Filter(std::string const& tag) : Filter(Factor{ tag }) { };
+
+	bool operator()(std::string const&) const;
+
+	Filter& operator|=(Filter const& rhs);
+	Filter& operator&=(Filter const& rhs);
+	friend Filter operator|(Filter lhs, Filter const& rhs) {
+		lhs |= rhs;
+		return lhs;
+	}
+	friend Filter operator&(Filter lhs, Filter const& rhs) {
+		lhs &= rhs;
+		return lhs;
+	}
+};
+
+	inline Filter operator""_F(char const* tag, std::size_t len) {
+		return Filter(std::string(tag, len));
+	}
 
 // Stores a collection of parameters that can be read from.
 class Params final {
@@ -153,6 +217,18 @@ public:
 	// Sets a value provided by the parameter. Overwrites any existing
 	// parameter, returning whether it did so.
 	bool set(char const* name, Value const* value);
+	// Sets with a value from another set of parameters. Checks tags, types, and
+	// default values before assigning. Overwrites any existing parameter,
+	// returning whether it did so.
+	bool set_from(Params const& other, char const* name);
+	// Sets with all values from another set of parameters. Checks tags, types,
+	// and default values before assigning. Overwrites any existing parameters,
+	// returning whether it did so.
+	bool set_from(Params const& other);
+	// Check if parameter has been set.
+	bool is_set(char const* name) const {
+		return _params.at(name).value != nullptr;
+	}
 	// Checks whether the parameter has been used.
 	bool used(char const* name) const {
 		return _params.at(name).used;
@@ -185,15 +261,15 @@ public:
 	}
 
 	// Gets a set of all parameter names.
+	// TODO: Replace this with a proper iterator over `ParamView`, when the
+	// parameter system is moved into its own package.
 	std::set<std::string> names() const;
 
-	// Checks whether two sets of parameters have the same names + types + tags.
+	// Checks whether two sets of parameters have the same names, types, tags,
+	// and default values. Meta-data is not considered.
 	void check_format(Params const& other) const;
 	// Checks whether all provided parameters have been used.
 	void check_complete() const;
-	// Checks whether this set of parameters can provide objects for another set
-	// of parameters to consume.
-	void check_can_provide(Params const& consumer) const;
 	// Checks whether this set of parameters is equal to another set of
 	// parameters.
 	void check_equivalent(Params const& other) const;
@@ -210,7 +286,7 @@ public:
 
 	// Returns only the parameters matching the provided matcher. The matcher
 	// can be a regex applied to both names and tags of parameters.
-	Params filter(std::initializer_list<char const*> matches);
+	Params filter(Filter const& filter);
 };
 
 #endif
