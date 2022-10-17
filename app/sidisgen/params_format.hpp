@@ -131,8 +131,8 @@ std::set<EventType> params_active_event_types(Params const& params);
 		void write_stream_base(std::ostream& os, Wrapped const& val) const; \
 		\
 		bool equivalent(Value const& val_1, Value const& val_2) const override; \
-		std::unique_ptr<Value> read_root(TDirectory& dir, char const* name) const override; \
-		void write_root(TDirectory& dir, char const* name, Value const& val) const override; \
+		std::unique_ptr<Value> read_root(TDirectory& dir, std::string const& name) const override; \
+		void write_root(TDirectory& dir, std::string const& name, Value const& val) const override; \
 		std::unique_ptr<Value> read_stream(std::istream& is) const override; \
 		void write_stream(std::ostream& os, Value const& val) const override; \
 	}; \
@@ -159,17 +159,17 @@ std::set<EventType> params_active_event_types(Params const& params);
 	inline bool RType::equivalent(Value const& val_1, Value const& val_2) const { \
 		return equivalent_base(val_1.as<RValue>().val, val_2.as<RValue>().val); \
 	} \
-	inline std::unique_ptr<Value> RType::read_root(TDirectory& dir, char const* name) const { \
-		WrappedRoot* obj = dir.Get<WrappedRoot>(name); \
+	inline std::unique_ptr<Value> RType::read_root(TDirectory& dir, std::string const& name) const { \
+		WrappedRoot* obj = dir.Get<WrappedRoot>(name.c_str()); \
 		if (obj == nullptr) { \
 			throw std::runtime_error("Couldn't find ROOT object."); \
 		} else { \
 			return std::make_unique<RValue>(convert_from_root_base(*obj)); \
 		} \
 	} \
-	inline void RType::write_root(TDirectory& dir, char const* name, Value const& val) const { \
+	inline void RType::write_root(TDirectory& dir, std::string const& name, Value const& val) const { \
 		WrappedRoot obj = convert_to_root_base(val.as<RValue>().val); \
-		dir.WriteObject(&obj, name); \
+		dir.WriteObject(&obj, name.c_str()); \
 	} \
 	inline std::unique_ptr<Value> RType::read_stream(std::istream& is) const { \
 		return std::make_unique<RValue>(read_stream_base(is)); \

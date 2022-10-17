@@ -276,7 +276,7 @@ int command_help_params() {
 	return SUCCESS;
 }
 
-int command_help_param(char const* param_name) {
+int command_help_param(std::string param_name) {
 	Params params = PARAMS_STD_FORMAT;
 	if (params.names().count(param_name) != 0) {
 		std::vector<std::string> table_entries {
@@ -302,9 +302,9 @@ int command_version() {
 	return SUCCESS;
 }
 
-int command_inspect(char const* file_name) {
+int command_inspect(std::string file_name) {
 	Params params = PARAMS_STD_FORMAT;
-	TFile file(file_name, "OPEN");
+	TFile file(file_name.c_str(), "OPEN");
 	if (file.IsZombie()) {
 		throw Exception(
 			ERROR_FILE_NOT_FOUND,
@@ -392,7 +392,7 @@ int command_inspect(char const* file_name) {
 	return SUCCESS;
 }
 
-int command_initialize(char const* params_file_name) {
+int command_initialize(std::string params_file_name) {
 	// Load parameters.
 	std::ifstream params_file(params_file_name);
 	if (!params_file) {
@@ -524,7 +524,7 @@ int command_initialize(char const* params_file_name) {
 	return SUCCESS;
 }
 
-int command_generate(char const* params_file_name) {
+int command_generate(std::string params_file_name) {
 	// Load parameters.
 	std::ifstream params_file(params_file_name);
 	if (!params_file) {
@@ -931,13 +931,13 @@ int command_generate(char const* params_file_name) {
 }
 
 int command_merge_soft(
-		char const* file_out_name,
-		std::vector<char const*> file_names) {
+		std::string file_out_name,
+		std::vector<std::string> file_names) {
 	std::cout << "Merging parameters from files." << std::endl;
 	Params params_out;
 	bool first = true;
-	for (char const* file_name : file_names) {
-		TFile file(file_name, "OPEN");
+	for (std::string const& file_name : file_names) {
+		TFile file(file_name.c_str(), "OPEN");
 		if (file.IsZombie()) {
 			throw Exception(
 				ERROR_FILE_NOT_FOUND,
@@ -959,10 +959,10 @@ int command_merge_soft(
 	std::size_t count_total[NUM_EVENT_TYPES + 1] = {};
 	std::size_t count_acc_total[NUM_EVENT_TYPES + 1] = {};
 	first = true;
-	for (char const* file_name : file_names) {
+	for (std::string const& file_name : file_names) {
 		// TODO: Ensure that the merged statistics come from the same underlying
 		// FOAM.
-		TFile file(file_name, "OPEN");
+		TFile file(file_name.c_str(), "OPEN");
 		if (file.IsZombie()) {
 			throw Exception(
 				ERROR_FILE_NOT_FOUND,
@@ -1021,7 +1021,7 @@ int command_merge_soft(
 		first = false;
 	}
 
-	TFile file_out(file_out_name, "CREATE");
+	TFile file_out(file_out_name.c_str(), "CREATE");
 	if (file_out.IsZombie()) {
 		throw Exception(
 			ERROR_FILE_NOT_CREATED,
@@ -1063,9 +1063,9 @@ int command_merge_soft(
 	std::cout << "Merging events from files." << std::endl;
 	file_out.cd();
 	TChain chain("events", "events");
-	for (char const* file_name : file_names) {
+	for (std::string const& file_name : file_names) {
 		std::cout << "\t" << file_name << std::endl;
-		chain.Add(file_name);
+		chain.Add(file_name.c_str());
 	}
 	file_out.WriteObject(&chain, chain.GetName());
 
@@ -1073,8 +1073,8 @@ int command_merge_soft(
 }
 
 int command_merge_hard(
-		char const* file_out_name,
-		std::vector<char const*> file_names) {
+		std::string file_out_name,
+		std::vector<std::string> file_names) {
 	static_cast<void>(file_out_name);
 	static_cast<void>(file_names);
 	throw Exception(
@@ -1108,7 +1108,7 @@ int main(int argc, char** argv) {
 				if (topic == "params") {
 					return command_help_params();
 				} else {
-					return command_help_param(topic.c_str());
+					return command_help_param(topic);
 				}
 			} else {
 				return command_help();
@@ -1154,7 +1154,7 @@ int main(int argc, char** argv) {
 					ERROR_ARG_PARSE,
 					"Expected target file and source file arguments.");
 			}
-			std::vector<char const*> files;
+			std::vector<std::string> files;
 			for (int idx = 3; idx < argc; ++idx) {
 				files.push_back(argv[idx]);
 			}
@@ -1165,7 +1165,7 @@ int main(int argc, char** argv) {
 					ERROR_ARG_PARSE,
 					"Expected target file and source file arguments.");
 			}
-			std::vector<char const*> files;
+			std::vector<std::string> files;
 			for (int idx = 3; idx < argc; ++idx) {
 				files.push_back(argv[idx]);
 			}

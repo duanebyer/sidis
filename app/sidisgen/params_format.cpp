@@ -344,10 +344,10 @@ extern Params const PARAMS_STD_FORMAT = []() {
 }();
 
 bool p_val_enable(Params& params, EventType ev_type) {
-	return params.get<ValueBool>(p_name_enable(ev_type).c_str());
+	return params.get<ValueBool>(p_name_enable(ev_type));
 }
 SeedInit p_val_seed_init(Params& params, EventType ev_type) {
-	return params.get<ValueSeedInit>(p_name_seed_init(ev_type).c_str());
+	return params.get<ValueSeedInit>(p_name_seed_init(ev_type));
 }
 
 namespace {
@@ -356,7 +356,7 @@ template<typename T, typename F>
 void params_merge_value(
 		Params params_1,
 		Params params_2,
-		char const* name,
+		std::string const& name,
 		F merge_op,
 		Params* params_out) {
 	if (!params_1.is_set(name) && !params_2.is_set(name)) {
@@ -373,7 +373,7 @@ void params_merge_value(
 void params_merge_bool_and(
 		Params const& params_1,
 		Params const& params_2,
-		char const* name,
+		std::string const& name,
 		Params* params_out) {
 	return params_merge_value<ValueBool>(
 		params_1, params_2, name, std::logical_and<bool>(), params_out); 
@@ -382,7 +382,7 @@ void params_merge_bool_and(
 void params_merge_version(
 		Params const& params_1,
 		Params const& params_2,
-		char const* name,
+		std::string const& name,
 		Params* params_out) {
 	return params_merge_value<ValueVersion>(
 		params_1, params_2, name,
@@ -399,7 +399,7 @@ void params_merge_version(
 void params_merge_file(
 		Params const& params_1,
 		Params const& params_2,
-		char const* name,
+		std::string const& name,
 		Params* params_out) {
 	return params_merge_value<ValueString>(
 		params_1, params_2, name,
@@ -410,7 +410,7 @@ void params_merge_file(
 void params_merge_seed_gen(
 		Params const& params_1,
 		Params const& params_2,
-		char const* name,
+		std::string const& name,
 		Params* params_out) {
 	return params_merge_value<ValueSeedGen>(
 		params_1, params_2, name,
@@ -421,14 +421,14 @@ void params_merge_seed_gen(
 void params_merge_count(
 		Params const& params_1,
 		Params const& params_2,
-		char const* name,
+		std::string const& name,
 		Params* params_out) {
 	return params_merge_value<ValueLong>(
 		params_1, params_2, name, std::plus<long long>(), params_out);
 }
 
 std::runtime_error make_incompatible_param_error(
-		char const* name,
+		std::string const& name,
 		Value const& val_src, Value const& val_dst) {
 	return std::runtime_error(
 		std::string("Parameter '") + name + "' is incompatible between source "
@@ -473,7 +473,7 @@ void check_can_provide_foam(
 		filter_gen_type |= Filter(event_type_short_name(ev_type));
 		if (!p_val_enable(params_foam, ev_type)) {
 			throw make_incompatible_param_error(
-				p_name_enable(ev_type).c_str(),
+				p_name_enable(ev_type),
 				ValueBool(p_val_enable(params_foam, ev_type)),
 				ValueBool(p_val_enable(params_gen, ev_type)));
 		}
@@ -489,7 +489,7 @@ void check_can_provide_foam(
 		SeedInit seed_init_gen = p_val_seed_init(params_gen, ev_type);
 		if (!seed_init_gen.any && seed_init_foam != seed_init_gen) {
 			throw make_incompatible_param_error(
-				p_name_seed_init(ev_type).c_str(),
+				p_name_seed_init(ev_type),
 				ValueSeedInit(seed_init_foam),
 				ValueSeedInit(seed_init_gen));
 		}
@@ -539,7 +539,7 @@ Params merge_params(Params& params_1, Params& params_2) {
 		SeedInit seed_init_2 = p_val_seed_init(params_2, ev_type);
 		if (seed_init_1.any || seed_init_1 != seed_init_2) {
 			throw make_incompatible_param_error(
-				p_name_seed_init(ev_type).c_str(),
+				p_name_seed_init(ev_type),
 				ValueSeedInit(seed_init_1),
 				ValueSeedInit(seed_init_2));
 		}
@@ -564,7 +564,7 @@ Params merge_params(Params& params_1, Params& params_2) {
 	// Merge file parameters.
 	Filter filter_file = "file"_F;
 	for (std::string name : params_1.filter(filter_file).names()) {
-		params_merge_file(params_1, params_2, name.c_str(), &result);
+		params_merge_file(params_1, params_2, name, &result);
 	}
 	// Merge write parameters.
 	params_merge_bool_and(params_1, params_2, "file.write_momenta", &result);
@@ -584,21 +584,21 @@ Params merge_params(Params& params_1, Params& params_2) {
 	// tripped if there aren't any bugs in the merge, so enable it for debug
 	// only.
 	for (std::string name_1 : params_1.names()) {
-		if (params_1.is_set(name_1.c_str()) && !result.is_set(name_1.c_str())) {
+		if (params_1.is_set(name_1) && !result.is_set(name_1)) {
 			throw std::runtime_error(
 				std::string("Parameter '") + name_1 + "' failed to merge.");
 		}
 	}
 	for (std::string name_2 : params_2.names()) {
-		if (params_2.is_set(name_2.c_str()) && !result.is_set(name_2.c_str())) {
+		if (params_2.is_set(name_2) && !result.is_set(name_2)) {
 			throw std::runtime_error(
 				std::string("Parameter '") + name_2 + "' failed to merge.");
 		}
 	}
 	for (std::string name : result.names()) {
-		if (result.is_set(name.c_str())
-				&& !params_1.is_set(name.c_str())
-				&& !params_2.is_set(name.c_str())) {
+		if (result.is_set(name)
+				&& !params_1.is_set(name)
+				&& !params_2.is_set(name)) {
 			throw std::runtime_error(
 				std::string("Parameter '") + name + "' contaminated merge.");
 		}

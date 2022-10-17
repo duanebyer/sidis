@@ -1,11 +1,11 @@
 #include "params.hpp"
 
 #include <algorithm>
-#include <initializer_list>
 #include <istream>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+#include <vector>
 
 #include <TDirectory.h>
 
@@ -82,10 +82,10 @@ Filter& Filter::operator&=(Filter const& rhs) {
 
 Params::Param::Param(
 		Value const* default_value,
-		std::initializer_list<char const*> tags,
-		char const* usage,
-		char const* brief,
-		char const* doc) :
+		std::vector<std::string> tags,
+		std::string usage,
+		std::string brief,
+		std::string doc) :
 		type(default_value->type()),
 		value(nullptr),
 		default_value(default_value),
@@ -94,16 +94,16 @@ Params::Param::Param(
 		usage(usage),
 		brief(brief),
 		doc(doc) {
-	for (char const* tag : tags) {
+	for (std::string const& tag : tags) {
 		this->tags.insert(tag);
 	}
 }
 Params::Param::Param(
 		Type const& type,
-		std::initializer_list<char const*> tags,
-		char const* usage,
-		char const* brief,
-		char const* doc) :
+		std::vector<std::string> tags,
+		std::string usage,
+		std::string brief,
+		std::string doc) :
 		type(type),
 		value(nullptr),
 		default_value(nullptr),
@@ -112,12 +112,12 @@ Params::Param::Param(
 		usage(usage),
 		brief(brief),
 		doc(doc) {
-	for (char const* tag : tags) {
+	for (std::string const& tag : tags) {
 		this->tags.insert(tag);
 	}
 }
 
-Value const& Params::get(char const* name) {
+Value const& Params::get(std::string const& name) {
 	Param& param = _params.at(name);
 	if (param.value == nullptr && param.default_value == nullptr) {
 		throw std::runtime_error(
@@ -130,7 +130,7 @@ Value const& Params::get(char const* name) {
 	}
 }
 
-bool Params::set(char const* name, Value const* value) {
+bool Params::set(std::string const& name, Value const* value) {
 	Param& param = _params.at(name);
 	bool old = (param.value != nullptr);
 	if (param.type != value->type()) {
@@ -142,7 +142,7 @@ bool Params::set(char const* name, Value const* value) {
 	return old;
 }
 
-bool Params::set_from(Params const& other, char const* name) {
+bool Params::set_from(Params const& other, std::string const& name) {
 	Param& param = _params.at(name);
 	Param const& other_param = other._params.at(name);
 	bool old = (param.value != nullptr);
@@ -168,7 +168,7 @@ bool Params::set_from(Params const& other) {
 	// over the parameter map directly.
 	bool old = false;
 	for (std::string name : other.names()) {
-		old |= this->set_from(other, name.c_str());
+		old |= this->set_from(other, name);
 	}
 	return old;
 }
@@ -176,14 +176,14 @@ bool Params::set_from(Params const& other) {
 std::set<std::string> Params::names() const {
 	std::set<std::string> result;
 	for (auto const& pair : _params) {
-		result.insert(pair.first.c_str());
+		result.insert(pair.first);
 	}
 	return result;
 }
 
 void Params::check_format(Params const& other) const {
 	for (auto const& pair : _params) {
-		char const* name = pair.first.c_str();
+		std::string const& name = pair.first;
 		Param const& param = pair.second;
 		auto it = other._params.find(name);
 		if (it == other._params.end()) {
@@ -218,7 +218,7 @@ void Params::check_complete() const {
 void Params::check_equivalent(Params const& other) const {
 	check_format(other);
 	for (auto const& pair : _params) {
-		char const* name = pair.first.c_str();
+		std::string const& name = pair.first;
 		Param const& param = pair.second;
 		Param const& other_param = other._params.find(name)->second;
 		if (!param.type.equivalent(*param.value, *other_param.value)) {
@@ -240,7 +240,7 @@ void Params::clear_unused() {
 
 void Params::read_root(TDirectory& dir) {
 	for (auto& pair : _params) {
-		char const* name = pair.first.c_str();
+		std::string const& name = pair.first;
 		Param& param = pair.second;
 		param.used = false;
 		try {
@@ -256,7 +256,7 @@ void Params::read_root(TDirectory& dir) {
 
 void Params::write_root(TDirectory& dir) const {
 	for (auto& pair : _params) {
-		char const* name = pair.first.c_str();
+		std::string const& name = pair.first;
 		Param const& param = pair.second;
 		// TODO: Force writing the version parameter.
 		if (param.value != nullptr) {
@@ -294,7 +294,7 @@ void Params::read_stream(std::istream& is) {
 
 	// Try to read each parameter in turn from the map.
 	for (auto& pair : _params) {
-		char const* name = pair.first.c_str();
+		std::string const& name = pair.first;
 		Param& param = pair.second;
 		Type const& type = param.type;
 		// Remove the parameter from the map once it's been read.
@@ -340,7 +340,7 @@ void Params::read_stream(std::istream& is) {
 
 void Params::write_stream(std::ostream& os) const {
 	for (auto& pair : _params) {
-		char const* name = pair.first.c_str();
+		std::string const& name = pair.first;
 		Param const& param = pair.second;
 		// TODO: Force writing the version parameter.
 		if (param.value != nullptr) {
@@ -359,11 +359,11 @@ void Params::write_stream(std::ostream& os) const {
 Params Params::filter(Filter const& filter) {
 	Params params;
 	for (auto& pair : _params) {
-		char const* name = pair.first.c_str();
+		std::string const& name = pair.first;
 		Param const& param = pair.second;
 		bool match = false;
 		for (std::string const& tag : param.tags) {
-			if (filter(tag.c_str())) {
+			if (filter(tag)) {
 				match = true;
 				break;
 			}

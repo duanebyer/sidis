@@ -1,12 +1,12 @@
 #ifndef SIDISGEN_PARAMS_HPP
 #define SIDISGEN_PARAMS_HPP
 
-#include <initializer_list>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <map>
 #include <set>
+#include <vector>
 
 // Thoughts:
 // * move physics checks out into main, and update how they work a bit.
@@ -24,7 +24,6 @@
 // * TBH specifying a seed is so useless for initialization phase because of
 //   multithreading, just remove the capability and replace it with a hash.
 // * Cuts can be in gen or in init.
-// * Don't use initializer_list. It's bad
 
 // TODO:
 // Factor this out into its own lib. Remove the ROOT and stream stuff from Type.
@@ -52,8 +51,8 @@ public:
 	virtual bool equivalent(Value const& value_1, Value const& value_2) const = 0;
 
 	// Read/write to ROOT files.
-	virtual std::unique_ptr<Value> read_root(TDirectory& dir, char const* name) const = 0;
-	virtual void write_root(TDirectory& dir, char const* name, Value const& value) const = 0;
+	virtual std::unique_ptr<Value> read_root(TDirectory& dir, std::string const& name) const = 0;
+	virtual void write_root(TDirectory& dir, std::string const& name, Value const& value) const = 0;
 	// Read/write to streams.
 	virtual std::unique_ptr<Value> read_stream(std::istream& is) const = 0;
 	virtual void write_stream(std::ostream& os, Value const& value) const = 0;
@@ -179,81 +178,81 @@ class Params final {
 
 		Param(
 			Value const* default_value,
-			std::initializer_list<char const*> tags,
-			char const* usage,
-			char const* brief,
-			char const* doc);
+			std::vector<std::string> tags,
+			std::string usage,
+			std::string brief,
+			std::string doc);
 		Param(
 			Type const& type,
-			std::initializer_list<char const*> tags,
-			char const* usage,
-			char const* brief,
-			char const* doc);
+			std::vector<std::string> tags,
+			std::string usage,
+			std::string brief,
+			std::string doc);
 	};
 	std::map<std::string, Param> _params;
 
 public:
 
 	// Get parameter type.
-	Type const& type(char const* name) const {
+	Type const& type(std::string const& name) const {
 		return _params.at(name).type;
 	}
 	// Get parameter metadata.
-	char const* usage(char const* name) const {
-		return _params.at(name).usage.c_str();
+	std::string const& usage(std::string const& name) const {
+		return _params.at(name).usage;
 	}
-	char const* brief(char const* name) const {
-		return _params.at(name).brief.c_str();
+	std::string const& brief(std::string const& name) const {
+		return _params.at(name).brief;
 	}
-	char const* doc(char const* name) const {
-		return _params.at(name).doc.c_str();
+	std::string const& doc(std::string const& name) const {
+		return _params.at(name).doc;
 	}
 	// Gets the value provided by the parameter. If parameter is empty, errors.
-	Value const& get(char const* name);
+	Value const& get(std::string const& name);
 	template<typename T>
-	T const& get(char const* name) {
+	T const& get(std::string const& name) {
 		return get(name).as<T>();
 	}
 	// Sets a value provided by the parameter. Overwrites any existing
 	// parameter, returning whether it did so.
-	bool set(char const* name, Value const* value);
+	bool set(std::string const& name, Value const* value);
 	// Sets with a value from another set of parameters. Checks tags, types, and
 	// default values before assigning. Overwrites any existing parameter,
 	// returning whether it did so.
-	bool set_from(Params const& other, char const* name);
+	bool set_from(Params const& other, std::string const& name);
 	// Sets with all values from another set of parameters. Checks tags, types,
 	// and default values before assigning. Overwrites any existing parameters,
 	// returning whether it did so.
 	bool set_from(Params const& other);
 	// Check if parameter has been set.
-	bool is_set(char const* name) const {
+	bool is_set(std::string const& name) const {
 		return _params.at(name).value != nullptr;
 	}
 	// Checks whether the parameter has been used.
-	bool used(char const* name) const {
+	bool used(std::string const& name) const {
 		return _params.at(name).used;
 	}
 
 	// Add new parameter.
 	void add_param(
-			char const* name,
+			std::string name,
 			Value const* default_value,
-			std::initializer_list<char const*> tags,
-			char const* usage,
-			char const* brief,
-			char const* doc) {
+			std::vector<std::string> tags,
+			std::string usage,
+			std::string brief,
+			std::string doc) {
 		if (!_params.emplace(name, Param(default_value, tags, usage, brief, doc)).second) {
 			throw std::runtime_error(
 				std::string("Tried to add existing parameter '") + name + "'.");
 		}
 	}
 	void add_param(
-			char const* name, 
+			std::string name, 
 			Type const& type,
-			std::initializer_list<char const*> tags,
-			char const* usage,
-			char const* brief,
-			char const* doc) {
+			std::vector<std::string> tags,
+			std::string usage,
+			std::string brief,
+			std::string doc) {
 		if (!_params.emplace(name, Param(type, tags, usage, brief, doc)).second) {
 			throw std::runtime_error(
 				std::string("Tried to add existing parameter '") + name + "'.");
