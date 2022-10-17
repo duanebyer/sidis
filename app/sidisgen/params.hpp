@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <typeinfo>
 #include <vector>
 
 // Thoughts:
@@ -35,6 +36,37 @@
 class TDirectory;
 class TObject;
 class Value;
+
+// Type that can be constructed from any value and implicitly converted to any
+// value.
+class Any final {
+	std::shared_ptr<void> _val;
+	std::type_info const& _type;
+
+public:
+	Any() : _val(), _type(typeid(void)) { }
+	template<typename T>
+	Any(T const& val) : _val(new T(val)), _type(typeid(T)) { }
+
+	template<typename T>
+	T as() const {
+		std::type_info const& other_type = typeid(
+			typename std::remove_const<
+				typename std::remove_reference<
+					typename std::remove_const<T>::type >::type >::type);
+		if (_type != other_type) {
+			throw std::runtime_error(
+				std::string("Invalid type cast from ") + _type.name() + " to "
+				+ other_type.name() + ".");
+		} else {
+			return *static_cast<T const*>(_val.get());
+		}
+	}
+	template<typename T>
+	operator T() const {
+		return this->as<T>();
+	}
+};
 
 // Abstract base class for types of values that can be stored in parameters.
 class Type {
@@ -91,6 +123,13 @@ public:
 	template<typename T>
 	T& as() {
 		return dynamic_cast<T&>(*this);
+	}
+
+	// Optional virtual function that can be overridden. The returned `Any` type
+	// can be implicitly cast to anything with a dynamic type check, so this can
+	// reduce boiler plate.
+	virtual Any any() const {
+		return Any();
 	}
 
 	// Convenience methods for easily calling methods from `Type`.
@@ -209,6 +248,9 @@ public:
 	}
 	// Gets the value provided by the parameter. If parameter is empty, errors.
 	Value const& get(std::string const& name);
+	Value const& operator[](std::string const& name) {
+		return get(name);
+	}
 	template<typename T>
 	T const& get(std::string const& name) {
 		return get(name).as<T>();

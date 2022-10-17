@@ -16,39 +16,39 @@ namespace {
 cut::Cut get_cut_from_params(Params& params) {
 	Double const DEG = PI / 180.;
 	cut::Cut result;
-	result.x = params.get<ValueBound>("cut.x");
-	result.y = params.get<ValueBound>("cut.y");
-	result.z = params.get<ValueBound>("cut.z");
-	result.ph_t_sq = params.get<ValueBound>("cut.ph_t_sq");
-	result.phi_h = DEG * params.get<ValueBound>("cut.phi_h").val;
-	result.phi = DEG * params.get<ValueBound>("cut.phi").val;
-	result.Q_sq = params.get<ValueBound>("cut.Q_sq");
-	result.t = params.get<ValueBound>("cut.t");
-	result.W_sq = params.get<ValueBound>("cut.W_sq");
-	result.r = params.get<ValueBound>("cut.r");
-	result.mx_sq = params.get<ValueBound>("cut.mx_sq");
-	result.qt_to_Q = params.get<ValueBound>("cut.qt_to_Q");
-	result.lab_mom_q = params.get<ValueBound>("cut.lab.mom_q");
-	result.lab_mom_k2 = params.get<ValueBound>("cut.lab.mom_k2");
-	result.lab_mom_h = params.get<ValueBound>("cut.lab.mom_h");
-	result.lab_theta_q = DEG * params.get<ValueBound>("cut.lab.theta_q").val;
-	result.lab_theta_k2 = DEG * params.get<ValueBound>("cut.lab.theta_k2").val;
-	result.lab_theta_h = DEG * params.get<ValueBound>("cut.lab.theta_h").val;
+	result.x = params["cut.x"].any();
+	result.y = params["cut.y"].any();
+	result.z = params["cut.z"].any();
+	result.ph_t_sq = params["cut.ph_t_sq"].any();
+	result.phi_h = DEG * params["cut.phi_h"].any().as<math::Bound>();
+	result.phi = DEG * params["cut.phi"].any().as<math::Bound>();
+	result.Q_sq = params["cut.Q_sq"].any();
+	result.t = params["cut.t"].any();
+	result.W_sq = params["cut.W_sq"].any();
+	result.r = params["cut.r"].any();
+	result.mx_sq = params["cut.mx_sq"].any();
+	result.qt_to_Q = params["cut.qt_to_Q"].any();
+	result.lab_mom_q = params["cut.lab.mom_q"].any();
+	result.lab_mom_k2 = params["cut.lab.mom_k2"].any();
+	result.lab_mom_h = params["cut.lab.mom_h"].any();
+	result.lab_theta_q = DEG * params["cut.lab.theta_q"].any().as<math::Bound>();
+	result.lab_theta_k2 = DEG * params["cut.lab.theta_k2"].any().as<math::Bound>();
+	result.lab_theta_h = DEG * params["cut.lab.theta_h"].any().as<math::Bound>();
 	return result;
 }
 
 cut::CutRad get_cut_rad_from_params(Params& params) {
 	Double const DEG = PI / 180.;
 	cut::CutRad result;
-	if (params.get<ValueBool>("mc.rad.enable")) {
-		result.tau = params.get<ValueBound>("cut.tau");
-		result.phi_k = DEG * params.get<ValueBound>("cut.phi_k").val;
-		result.R = params.get<ValueBound>("cut.R");
+	if (params["mc.rad.enable"].any()) {
+		result.tau = params["cut.tau"].any();
+		result.phi_k = DEG * params["cut.phi_k"].any().as<math::Bound>();
+		result.R = params["cut.R"].any();
 		// The `k_0_bar` cut is mandatory.
-		result.k_0_bar = params.get<ValueBound>("cut.k_0_bar")
-			& math::Bound(params.get<ValueDouble>("phys.soft_threshold"), INF);
-		result.lab_mom_k = params.get<ValueBound>("cut.lab.mom_k");
-		result.lab_theta_k = DEG * params.get<ValueBound>("cut.lab.theta_k").val;
+		result.k_0_bar = params["cut.k_0_bar"].any().as<math::Bound>()
+			& math::Bound(params["phys.soft_threshold"].any(), INF);
+		result.lab_mom_k = params["cut.lab.mom_k"].any();
+		result.lab_theta_k = DEG * params["cut.lab.theta_k"].any().as<math::Bound>();
 	}
 	return result;
 }
@@ -58,16 +58,16 @@ cut::CutRad get_cut_rad_from_params(Params& params) {
 NradDensity::NradDensity(Params& params, sf::SfSet const& sf) :
 	_cut(get_cut_from_params(params)),
 	_sf(sf),
-	_rc_method(params.get<ValueRcMethod>("phys.rc_method")),
-	_soft_threshold(params.get<ValueDouble>("phys.soft_threshold")),
+	_rc_method(params["phys.rc_method"].any()),
+	_soft_threshold(params["phys.soft_threshold"].any()),
 	_ps(
-		params.get<ValueNucleus>("setup.target"),
-		params.get<ValueLepton>("setup.beam"),
-		params.get<ValueHadron>("setup.hadron"),
-		params.get<ValueDouble>("phys.mass_threshold")),
-	_S(2. * mass(_ps.target) * params.get<ValueDouble>("setup.beam_energy")),
-	_beam_pol(params.get<ValueDouble>("setup.beam_pol")),
-	_target_pol(params.get<ValueVec3>("setup.target_pol")) { }
+		params["setup.target"].any(),
+		params["setup.beam"].any(),
+		params["setup.hadron"].any(),
+		params["phys.mass_threshold"].any()),
+	_S(2. * mass(_ps.target) * params["setup.beam_energy"].any().as<Double>()),
+	_beam_pol(params["setup.beam_pol"].any()),
+	_target_pol(params["setup.target_pol"].any()) { }
 
 Double NradDensity::transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept {
 	Double jacobian;
@@ -125,16 +125,16 @@ RadDensity::RadDensity(Params& params, sf::SfSet const& sf) :
 	_cut(get_cut_from_params(params)),
 	_cut_rad(get_cut_rad_from_params(params)),
 	_sf(sf),
-	_rc_method(params.get<ValueRcMethod>("phys.rc_method")),
-	_soft_threshold(params.get<ValueDouble>("phys.soft_threshold")),
+	_rc_method(params["phys.rc_method"].any()),
+	_soft_threshold(params["phys.soft_threshold"].any()),
 	_ps(
-		params.get<ValueNucleus>("setup.target"),
-		params.get<ValueLepton>("setup.beam"),
-		params.get<ValueHadron>("setup.hadron"),
-		params.get<ValueDouble>("phys.mass_threshold")),
-	_S(2. * mass(_ps.target) * params.get<ValueDouble>("setup.beam_energy")),
-	_beam_pol(params.get<ValueDouble>("setup.beam_pol")),
-	_target_pol(params.get<ValueVec3>("setup.target_pol")) { }
+		params["setup.target"].any(),
+		params["setup.beam"].any(),
+		params["setup.hadron"].any(),
+		params["phys.mass_threshold"].any()),
+	_S(2. * mass(_ps.target) * params["setup.beam_energy"].any().as<Double>()),
+	_beam_pol(params["setup.beam_pol"].any()),
+	_target_pol(params["setup.target_pol"].any()) { }
 
 Double RadDensity::transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept {
 	Double jacobian;
@@ -179,10 +179,10 @@ Builder::Builder(
 	SeedInit seed_init;
 	switch (_type) {
 	case EventType::NRAD:
-		seed_init = params.get<ValueSeedInit>("nrad.init.seed");
+		seed_init = params["nrad.init.seed"].any();
 		break;
 	case EventType::RAD:
-		seed_init = params.get<ValueSeedInit>("rad.init.seed");
+		seed_init = params["rad.init.seed"].any();
 		break;
 	case EventType::EXCL:
 		seed_init = SeedInit();
@@ -194,6 +194,9 @@ Builder::Builder(
 	_seed = seed_init.seed;
 	std::minstd_rand seed_rnd(_seed);
 	std::uniform_int_distribution<Seed> seed_dist;
+	// TODO: Double check a lot of these dynamic casts, they could break on
+	// other platforms with differently sized integers/doubles. This might get
+	// fixed when we refactor the generator build parameter extraction process.
 	switch (_type) {
 	case EventType::NRAD:
 		new (&_builder.nrad) NradBuilder(
@@ -203,11 +206,11 @@ Builder::Builder(
 		_builder.nrad.tune_progress_reporter = reporters.tune_progress;
 		_builder.nrad.check_samples = 16384;
 		_builder.nrad.target_rel_var = std::expm1(
-			-2. * std::log(params.get<ValueDouble>("mc.nrad.init.target_eff")));
-		_builder.nrad.scale_exp_est = params.get<ValueDouble>("mc.nrad.init.scale_exp");
+			-2. * std::log(params["mc.nrad.init.target_eff"].any().as<Double>()));
+		_builder.nrad.scale_exp_est = params["mc.nrad.init.scale_exp"].any();
 		_builder.nrad.min_cell_explore_samples = 512;
 		_builder.nrad.hist_num_per_bin = 2;
-		_builder.nrad.max_explore_cells = params.get<ValueInt>("mc.nrad.init.max_cells");
+		_builder.nrad.max_explore_cells = params["mc.nrad.init.max_cells"].any();
 		break;
 	case EventType::RAD:
 		new (&_builder.rad) RadBuilder(
@@ -217,11 +220,11 @@ Builder::Builder(
 		_builder.rad.tune_progress_reporter = reporters.tune_progress;
 		_builder.rad.check_samples = 16384;
 		_builder.rad.target_rel_var = std::expm1(
-			-2. * std::log(params.get<ValueDouble>("mc.rad.init.target_eff")));
-		_builder.rad.scale_exp_est = params.get<ValueDouble>("mc.rad.init.scale_exp");
+			-2. * std::log(params["mc.rad.init.target_eff"].any().as<Double>()));
+		_builder.rad.scale_exp_est = params["mc.rad.init.scale_exp"].any();
 		_builder.rad.min_cell_explore_samples = 512;
 		_builder.rad.hist_num_per_bin = 2;
-		_builder.rad.max_explore_cells = params.get<ValueInt>("mc.rad.init.max_cells");
+		_builder.rad.max_explore_cells = params["mc.rad.init.max_cells"].any();
 		break;
 	case EventType::EXCL:
 		new (&_builder.excl) ExclBuilder(
@@ -347,23 +350,24 @@ Generator::Generator(
 		_weights(),
 		_count(0),
 		_count_acc(0) {
-	SeedGen seed_gen = params.get<ValueSeedGen>("mc.seed");
+	SeedGen seed_gen = params["mc.seed"].any();
 	if (seed_gen.any || seed_gen.seeds.size() != 1) {
 		throw std::runtime_error("Must choose specific seed for Generator.");
 	}
 	_seed = *seed_gen.seeds.begin();
 	std::minstd_rand seed_rnd(_seed);
 	std::uniform_int_distribution<Seed> seed_dist;
+	// TODO: Double check these dynamic casts as well.
 	switch (_type) {
 	case EventType::NRAD:
-		_rej_scale = params.get<ValueDouble>("mc.nrad.gen.rej_scale");
+		_rej_scale = params["mc.nrad.gen.rej_scale"].any();
 		new (&_generator.nrad) NradGenerator(
 			NradDensity(params, sf),
 			seed_dist(seed_rnd));
 		_generator.nrad.read(is);
 		break;
 	case EventType::RAD:
-		_rej_scale = params.get<ValueDouble>("mc.rad.gen.rej_scale");
+		_rej_scale = params["mc.rad.gen.rej_scale"].any();
 		new (&_generator.rad) RadGenerator(
 			RadDensity(params, sf),
 			seed_dist(seed_rnd));

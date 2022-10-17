@@ -146,6 +146,9 @@ std::set<EventType> params_active_event_types(Params const& params);
 		RValue(Ts... args) : \
 			Value(RType::INSTANCE), \
 			val(args...) { } \
+		Any any() const override { \
+			return Any(val); \
+		} \
 		operator Wrapped&() { \
 			return val; \
 		} \

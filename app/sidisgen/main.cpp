@@ -94,7 +94,7 @@ void alloc_sf(
 	std::unique_ptr<sf::TmdSet> tmd;
 	// Load words into an array.
 	std::vector<std::string> parts;
-	std::string sf_set_name = params.get<ValueString>("phys.sf_set");
+	std::string sf_set_name = params["phys.sf_set"].any();
 	std::stringstream ss(sf_set_name);
 	std::string next_part;
 	while (ss >> next_part) {
@@ -117,7 +117,7 @@ void alloc_sf(
 		std::cout << "Using test structure functions." << std::endl;
 		tmd_out->reset();
 		sf_out->reset(
-			new sf::set::TestSfSet(params.get<ValueNucleus>("setup.target")));
+			new sf::set::TestSfSet(params["setup.target"].any()));
 	} else {
 		// TODO: Make this work on Windows as well, and make providing the
 		// extension optional.
@@ -426,7 +426,7 @@ int command_initialize(std::string params_file_name) {
 	BuilderReporters builder_reporters;
 
 	// Create FOAM file.
-	std::string file_name = params.get<ValueString>("file.foam");
+	std::string file_name = params["file.foam"].any();
 	std::cout << "Creating ROOT file '" << file_name << "'." << std::endl;
 	TFile file(file_name.c_str(), "CREATE");
 	if (file.IsZombie()) {
@@ -438,16 +438,18 @@ int command_initialize(std::string params_file_name) {
 	// Build FOAMs and write to file.
 	std::vector<EventType> ev_types;
 	std::random_device rnd_dev;
-	if (params.get<ValueBool>("mc.nrad.enable")) {
+	if (params["mc.nrad.enable"].any()) {
 		ev_types.push_back(EventType::NRAD);
 		// Choose specific seeds, if they haven't already been supplied.
-		if (params.get<ValueSeedInit>("mc.nrad.init.seed").val.any) {
+		SeedInit nrad_seed_init = params["mc.nrad.init.seed"].any();
+		if (nrad_seed_init.any) {
 			params.set("mc.nrad.init.seed", new ValueSeedInit(rnd_dev()));
 		}
 	}
-	if (params.get<ValueBool>("mc.rad.enable")) {
+	if (params["mc.rad.enable"].any()) {
 		ev_types.push_back(EventType::RAD);
-		if (params.get<ValueSeedInit>("mc.rad.init.seed").val.any) {
+		SeedInit rad_seed_init = params["mc.rad.init.seed"].any();
+		if (rad_seed_init.any) {
 			params.set("mc.rad.init.seed", new ValueSeedInit(rnd_dev()));
 		}
 	}
@@ -549,9 +551,6 @@ int command_generate(std::string params_file_name) {
 	params.write_stream(std::cout);
 	std::cout.flags(flags);
 	std::cout << std::endl;
-	if (params.get<ValueSeedGen>("mc.seed").val.seeds.size() != 1) {
-		throw std::runtime_error("Exactly one seed must be provided.");
-	}
 
 	// Load the structure functions.
 	std::unique_ptr<sf::SfSet> sf;
@@ -560,14 +559,14 @@ int command_generate(std::string params_file_name) {
 
 	// Load the event generators from file.
 	std::vector<EventType> ev_types;
-	if (params.get<ValueBool>("mc.nrad.enable")) {
+	if (params["mc.nrad.enable"].any()) {
 		ev_types.push_back(EventType::NRAD);
 	}
-	if (params.get<ValueBool>("mc.rad.enable")) {
+	if (params["mc.rad.enable"].any()) {
 		ev_types.push_back(EventType::RAD);
 	}
 	std::vector<Generator> gens;
-	std::string foam_file_name = params.get<ValueString>("file.foam");
+	std::string foam_file_name = params["file.foam"].any();
 	std::cout << "Opening FOAM file '" << foam_file_name << "'." << std::endl;
 	TFile foam_file(foam_file_name.c_str(), "OPEN");
 	if (foam_file.IsZombie()) {
@@ -578,8 +577,11 @@ int command_generate(std::string params_file_name) {
 	Params params_foam = PARAMS_STD_FORMAT;
 	params_foam.read_root(foam_file);
 	std::random_device rnd_dev;
-	if (params.get<ValueSeedGen>("mc.seed").val.any) {
+	SeedGen seed_gen = params["mc.seed"].any();
+	if (seed_gen.any) {
 		params.set("mc.seed", new ValueSeedGen(rnd_dev()));
+	} else if (seed_gen.seeds.size() != 1) {
+		throw std::runtime_error("Exactly one seed must be provided.");
 	}
 	check_can_provide_foam(params_foam, params);
 	for (EventType ev_type : ev_types) {
@@ -604,7 +606,7 @@ int command_generate(std::string params_file_name) {
 	}
 	foam_file.Close();
 
-	std::string event_file_name = params.get<ValueString>("file.event");
+	std::string event_file_name = params["file.event"].any();
 	std::cout
 		<< "Opening event output file '" << event_file_name << "'."
 		<< std::endl;
@@ -616,17 +618,17 @@ int command_generate(std::string params_file_name) {
 	}
 
 	// Setup initial conditions.
-	part::Nucleus target = params.get<ValueNucleus>("setup.target");
-	part::Lepton beam = params.get<ValueLepton>("setup.beam");
-	part::Hadron hadron = params.get<ValueHadron>("setup.hadron");
-	math::Vec3 target_pol = params.get<ValueVec3>("setup.target_pol");
-	Double beam_energy = params.get<ValueDouble>("setup.beam_energy");
-	Double M_th = params.get<ValueDouble>("phys.mass_threshold");
+	part::Nucleus target = params["setup.target"].any();
+	part::Lepton beam = params["setup.beam"].any();
+	part::Hadron hadron = params["setup.hadron"].any();
+	math::Vec3 target_pol = params["setup.target_pol"].any();
+	Double beam_energy = params["setup.beam_energy"].any();
+	Double M_th = params["phys.mass_threshold"].any();
 	part::Particles ps(target, beam, hadron, M_th);
 	Double S = 2.*beam_energy*ps.M;
 
 	kin::Initial init(ps, beam_energy);
-	ULong num_events = std::max<ULong>(0, params.get<ValueLong>("mc.num_events").val);
+	ULong num_events = std::max<Long>(0, params["mc.num_events"].any());
 
 	// Prepare branches in output ROOT file.
 	event_file.cd();
@@ -648,18 +650,18 @@ int command_generate(std::string params_file_name) {
 	events.Branch("tau", &tau);
 	events.Branch("phi_k", &phi_k);
 	events.Branch("R", &R);
-	bool write_momenta = params.get<ValueBool>("file.write_momenta");
+	bool write_momenta = params["file.write_momenta"].any();
 	bool write_photon = false;
-	bool write_sf_set = params.get<ValueBool>("file.write_sf_set");
-	bool write_mc_coords = params.get<ValueBool>("file.write_mc_coords");
+	bool write_sf_set = params["file.write_sf_set"].any();
+	bool write_mc_coords = params["file.write_mc_coords"].any();
 	if (write_momenta) {
 		events.Branch("p", "TLorentzVector", &p);
 		events.Branch("k1", "TLorentzVector", &k1);
 		events.Branch("q", "TLorentzVector", &q);
 		events.Branch("k2", "TLorentzVector", &k2);
 		events.Branch("ph", "TLorentzVector", &ph);
-		if (params.get<ValueBool>("mc.rad.enable")) {
-			write_photon = params.get<ValueBool>("file.write_photon");
+		if (params["mc.rad.enable"].any()) {
+			write_photon = params["file.write_photon"].any();
 			if (write_photon) {
 				events.Branch("k", "TLorentzVector", &k);
 			}
