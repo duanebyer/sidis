@@ -343,13 +343,6 @@ extern Params const PARAMS_STD_FORMAT = []() {
 	return params;
 }();
 
-bool p_val_enable(Params& params, EventType ev_type) {
-	return params.get<ValueBool>(p_name_enable(ev_type));
-}
-SeedInit p_val_seed_init(Params& params, EventType ev_type) {
-	return params.get<ValueSeedInit>(p_name_seed_init(ev_type));
-}
-
 namespace {
 
 template<typename T, typename F>
@@ -439,11 +432,11 @@ std::runtime_error make_incompatible_param_error(
 }
 
 // TODO: Refactor main to use this.
-std::set<EventType> params_active_event_types(Params& params) {
+std::set<EventType> p_active_event_types(Params& params) {
 	std::set<EventType> result;
 	for (int idx = 0; idx < NUM_EVENT_TYPES; ++idx) {
 		EventType ev_type = static_cast<EventType>(idx);
-		if (p_val_enable(params, ev_type)) {
+		if (params[p_name_enable(ev_type)].any()) {
 			result.insert(ev_type);
 		}
 	}
@@ -467,15 +460,15 @@ void check_can_provide_foam(
 			ValueVersion(version_gen));
 	}
 	// Check that all event types needed for generation are included.
-	std::set<EventType> ev_types = params_active_event_types(params_gen);
+	std::set<EventType> ev_types = p_active_event_types(params_gen);
 	Filter filter_gen_type = Filter::REJECT;
 	for (EventType ev_type : ev_types) {
 		filter_gen_type |= Filter(event_type_short_name(ev_type));
-		if (!p_val_enable(params_foam, ev_type)) {
+		if (!params_foam[p_name_enable(ev_type)].any()) {
 			throw make_incompatible_param_error(
 				p_name_enable(ev_type),
-				ValueBool(p_val_enable(params_foam, ev_type)),
-				ValueBool(p_val_enable(params_gen, ev_type)));
+				ValueBool(params_foam[p_name_enable(ev_type)].any()),
+				ValueBool(params_gen[p_name_enable(ev_type)].any()));
 		}
 	}
 	// Check that the foam parameters used in initialization are equal.
@@ -485,11 +478,11 @@ void check_can_provide_foam(
 	params_dist_foam.check_equivalent(params_dist_gen);
 	// Check that the initialization seeds and hashes are compatible.
 	for (EventType ev_type : ev_types) {
-		SeedInit seed_init_foam = p_val_seed_init(params_foam, ev_type);
-		SeedInit seed_init_gen = p_val_seed_init(params_gen, ev_type);
+		SeedInit seed_init_foam = params_foam[p_name_init_seed(ev_type)].any();
+		SeedInit seed_init_gen = params_gen[p_name_init_seed(ev_type)].any();
 		if (!seed_init_gen.any && seed_init_foam != seed_init_gen) {
 			throw make_incompatible_param_error(
-				p_name_seed_init(ev_type),
+				p_name_init_seed(ev_type),
 				ValueSeedInit(seed_init_foam),
 				ValueSeedInit(seed_init_gen));
 		}
@@ -511,8 +504,8 @@ Params merge_params(Params& params_1, Params& params_2) {
 			ValueVersion(version_2));
 	}
 	// Find subset of event types shared by both sets of parameters.
-	std::set<EventType> ev_types_1 = params_active_event_types(params_1);
-	std::set<EventType> ev_types_2 = params_active_event_types(params_2);
+	std::set<EventType> ev_types_1 = p_active_event_types(params_1);
+	std::set<EventType> ev_types_2 = p_active_event_types(params_2);
 	std::set<EventType> ev_types;
 	std::set_intersection(
 		ev_types_1.begin(), ev_types_1.end(),
@@ -535,11 +528,11 @@ Params merge_params(Params& params_1, Params& params_2) {
 	// * Seed must be equal.
 	// * Hash must be equal.
 	for (EventType ev_type : ev_types) {
-		SeedInit seed_init_1 = p_val_seed_init(params_1, ev_type);
-		SeedInit seed_init_2 = p_val_seed_init(params_2, ev_type);
+		SeedInit seed_init_1 = params_1[p_name_init_seed(ev_type)].any();
+		SeedInit seed_init_2 = params_2[p_name_init_seed(ev_type)].any();
 		if (seed_init_1.any || seed_init_1 != seed_init_2) {
 			throw make_incompatible_param_error(
-				p_name_seed_init(ev_type),
+				p_name_init_seed(ev_type),
 				ValueSeedInit(seed_init_1),
 				ValueSeedInit(seed_init_2));
 		}

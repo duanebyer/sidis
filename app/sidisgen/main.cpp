@@ -345,29 +345,29 @@ int command_inspect(std::string file_name) {
 	std::cout << "Statistics:" << std::endl;
 	flags = std::cout.flags();
 	std::cout << std::scientific << std::setprecision(OUTPUT_STATS_PRECISION);
-	for (std::size_t type_idx = 0; type_idx < NUM_EVENT_TYPES + 1; ++type_idx) {
-		auto count = num_events_arr->At(type_idx);
-		auto count_acc = num_events_acc_arr->At(type_idx);
+	for (std::size_t ev_idx = 0; ev_idx < NUM_EVENT_TYPES + 1; ++ev_idx) {
+		auto count = num_events_arr->At(ev_idx);
+		auto count_acc = num_events_acc_arr->At(ev_idx);
 		if (count == 0) {
 			continue;
 		}
-		if (type_idx == NUM_EVENT_TYPES) {
+		if (ev_idx == NUM_EVENT_TYPES) {
 			std::cout << "\ttotal:" << std::endl;
 		} else {
-			EventType type = static_cast<EventType>(type_idx);
-			std::cout << "\t" << event_type_name(type) << ":" << std::endl;
+			EventType ev_type = static_cast<EventType>(ev_idx);
+			std::cout << "\t" << event_type_name(ev_type) << ":" << std::endl;
 		}
 
-		Double prime = prime_arr->At(type_idx);
-		Double norm = norm_arr->At(type_idx);
+		Double prime = prime_arr->At(ev_idx);
+		Double norm = norm_arr->At(ev_idx);
 		Double acceptance = static_cast<Double>(count_acc) / count;
 		std::array<Double, 4> moms = {
-			weight_moms_arr->At(4 * type_idx + 0),
-			weight_moms_arr->At(4 * type_idx + 1),
-			weight_moms_arr->At(4 * type_idx + 2),
-			weight_moms_arr->At(4 * type_idx + 3),
+			weight_moms_arr->At(4 * ev_idx + 0),
+			weight_moms_arr->At(4 * ev_idx + 1),
+			weight_moms_arr->At(4 * ev_idx + 2),
+			weight_moms_arr->At(4 * ev_idx + 3),
 		};
-		Double max = weight_max_arr->At(type_idx);
+		Double max = weight_max_arr->At(ev_idx);
 
 		Stats stats(moms, max, count);
 		Stats stats_acc = stats;
@@ -475,7 +475,7 @@ int command_initialize(std::string params_file_name) {
 	}
 
 	while (!builders.empty()) {
-		EventType ev_type = builders.front().type();
+		EventType ev_type = builders.front().ev_type();
 		char const* ev_name = event_type_name(ev_type);
 		char const* ev_key = event_type_short_name(ev_type);
 		try {
@@ -633,12 +633,12 @@ int command_generate(std::string params_file_name) {
 	// Prepare branches in output ROOT file.
 	event_file.cd();
 	TTree events("events", "events");
-	Int_t type;
+	Int_t ev_idx;
 	Double weight;
 	Double jacobian;
 	Double x, y, z, ph_t_sq, phi_h, phi, tau, phi_k, R;
 	TLorentzVector p, k1, q, k2, ph, k;
-	events.Branch("type", &type);
+	events.Branch("type", &ev_idx);
 	events.Branch("weight", &weight);
 	events.Branch("jacobian", &jacobian);
 	events.Branch("x", &x);
@@ -740,12 +740,13 @@ int command_generate(std::string params_file_name) {
 		// The event vector can store up to the number of dimensions of any of
 		// the FOAMs.
 		weight = gens[choose_event_type].generate(ph_coords, mc_coords);
-		type = static_cast<Int_t>(gens[choose_event_type].type());
+		EventType ev_type = gens[choose_event_type].ev_type();
+		ev_idx = static_cast<Int_t>(ev_type);
 
 		// Fill in the branches.
 		kin::Kinematics kin;
 		kin::KinematicsRad kin_rad;
-		switch (gens[choose_event_type].type()) {
+		switch (gens[choose_event_type].ev_type()) {
 		case EventType::NRAD:
 			// Non-radiative event.
 			{
@@ -871,18 +872,18 @@ int command_generate(std::string params_file_name) {
 		stats_total += weight * stats;
 		stats_acc_total += weight * stats_acc;
 
-		Int_t type_idx = static_cast<Int_t>(gen.type());
-		prime_arr.SetAt(prime, type_idx);
-		weight_moms_arr.SetAt(stats.ratio_m1_to_max1(), 4 * type_idx + 0);
-		weight_moms_arr.SetAt(stats.ratio_m2_to_max2(), 4 * type_idx + 1);
-		weight_moms_arr.SetAt(stats.ratio_m3_to_max3(), 4 * type_idx + 2);
-		weight_moms_arr.SetAt(stats.ratio_m4_to_max4(), 4 * type_idx + 3);
-		weight_max_arr.SetAt(stats.max1(), type_idx);
-		num_events_arr.SetAt(gen.count(), type_idx);
-		num_events_acc_arr.SetAt(gen.count_acc(), type_idx);
-		norm_arr.SetAt(norm, type_idx);
+		Int_t ev_idx = static_cast<Int_t>(gen.ev_type());
+		prime_arr.SetAt(prime, ev_idx);
+		weight_moms_arr.SetAt(stats.ratio_m1_to_max1(), 4 * ev_idx + 0);
+		weight_moms_arr.SetAt(stats.ratio_m2_to_max2(), 4 * ev_idx + 1);
+		weight_moms_arr.SetAt(stats.ratio_m3_to_max3(), 4 * ev_idx + 2);
+		weight_moms_arr.SetAt(stats.ratio_m4_to_max4(), 4 * ev_idx + 3);
+		weight_max_arr.SetAt(stats.max1(), ev_idx);
+		num_events_arr.SetAt(gen.count(), ev_idx);
+		num_events_acc_arr.SetAt(gen.count_acc(), ev_idx);
+		norm_arr.SetAt(norm, ev_idx);
 
-		std::cout << "\t" << event_type_name(gen.type()) << " events:" << std::endl;
+		std::cout << "\t" << event_type_name(gen.ev_type()) << " events:" << std::endl;
 		std::cout << "\t\tweight:        " << weight << std::endl;
 		std::cout << "\t\tcount:         " << gen.count_acc() << std::endl;
 		std::cout << "\t\tcross-section: " << xs << " ± " << xs_err << std::endl;
@@ -994,25 +995,25 @@ int command_merge_soft(
 				std::string("Couldn't find statistics in file '") + file_name
 				+ "'.");
 		}
-		for (std::size_t type_idx = 0; type_idx < NUM_EVENT_TYPES + 1; ++type_idx) {
-			Double prime = prime_arr->At(type_idx);
-			auto count = num_events_arr->At(type_idx);
-			auto count_acc = num_events_acc_arr->At(type_idx);
+		for (std::size_t ev_idx = 0; ev_idx < NUM_EVENT_TYPES + 1; ++ev_idx) {
+			Double prime = prime_arr->At(ev_idx);
+			auto count = num_events_arr->At(ev_idx);
+			auto count_acc = num_events_acc_arr->At(ev_idx);
 			std::array<Double, 4> moms = {
-				weight_moms_arr->At(4 * type_idx + 0),
-				weight_moms_arr->At(4 * type_idx + 1),
-				weight_moms_arr->At(4 * type_idx + 2),
-				weight_moms_arr->At(4 * type_idx + 3),
+				weight_moms_arr->At(4 * ev_idx + 0),
+				weight_moms_arr->At(4 * ev_idx + 1),
+				weight_moms_arr->At(4 * ev_idx + 2),
+				weight_moms_arr->At(4 * ev_idx + 3),
 			};
-			Double max = weight_max_arr->At(type_idx);
+			Double max = weight_max_arr->At(ev_idx);
 			Stats stats(moms, max, count);
-			stats_total[type_idx] += stats;
-			count_total[type_idx] += count;
-			count_acc_total[type_idx] += count_acc;
+			stats_total[ev_idx] += stats;
+			count_total[ev_idx] += count;
+			count_acc_total[ev_idx] += count_acc;
 			if (first) {
-				primes[type_idx] = prime;
+				primes[ev_idx] = prime;
 			} else {
-				if (primes[type_idx] != prime) {
+				if (primes[ev_idx] != prime) {
 					throw Exception(
 						ERROR_FOAM_INCOMPATIBLE,
 						std::string("FOAM from file '") + file_name
@@ -1043,17 +1044,17 @@ int command_merge_soft(
 	RootArrayD num_events_arr_out(NUM_EVENT_TYPES + 1);
 	RootArrayD num_events_acc_arr_out(NUM_EVENT_TYPES + 1);
 	RootArrayD norm_arr_out(NUM_EVENT_TYPES + 1);
-	for (std::size_t type_idx = 0; type_idx < NUM_EVENT_TYPES + 1; ++type_idx) {
-		Double norm = primes[type_idx] / stats_total[type_idx].count();
-		prime_arr_out.SetAt(primes[type_idx], type_idx);
-		weight_moms_arr_out.SetAt(stats_total[type_idx].ratio_m1_to_max1(), 4 * type_idx + 0);
-		weight_moms_arr_out.SetAt(stats_total[type_idx].ratio_m2_to_max2(), 4 * type_idx + 1);
-		weight_moms_arr_out.SetAt(stats_total[type_idx].ratio_m3_to_max3(), 4 * type_idx + 2);
-		weight_moms_arr_out.SetAt(stats_total[type_idx].ratio_m4_to_max4(), 4 * type_idx + 3);
-		weight_max_arr_out.SetAt(stats_total[type_idx].max1(), type_idx);
-		num_events_arr_out.SetAt(count_total[type_idx], type_idx);
-		num_events_acc_arr_out.SetAt(count_acc_total[type_idx], type_idx);
-		norm_arr_out.SetAt(norm, type_idx);
+	for (std::size_t ev_idx = 0; ev_idx < NUM_EVENT_TYPES + 1; ++ev_idx) {
+		Double norm = primes[ev_idx] / stats_total[ev_idx].count();
+		prime_arr_out.SetAt(primes[ev_idx], ev_idx);
+		weight_moms_arr_out.SetAt(stats_total[ev_idx].ratio_m1_to_max1(), 4 * ev_idx + 0);
+		weight_moms_arr_out.SetAt(stats_total[ev_idx].ratio_m2_to_max2(), 4 * ev_idx + 1);
+		weight_moms_arr_out.SetAt(stats_total[ev_idx].ratio_m3_to_max3(), 4 * ev_idx + 2);
+		weight_moms_arr_out.SetAt(stats_total[ev_idx].ratio_m4_to_max4(), 4 * ev_idx + 3);
+		weight_max_arr_out.SetAt(stats_total[ev_idx].max1(), ev_idx);
+		num_events_arr_out.SetAt(count_total[ev_idx], ev_idx);
+		num_events_acc_arr_out.SetAt(count_acc_total[ev_idx], ev_idx);
+		norm_arr_out.SetAt(norm, ev_idx);
 	}
 	stats_dir->WriteObject(&prime_arr_out, "prime");
 	stats_dir->WriteObject(&weight_moms_arr_out, "weight_mom");

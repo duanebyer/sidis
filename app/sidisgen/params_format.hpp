@@ -107,17 +107,28 @@ struct SeedGen {
 	}
 };
 
+// These functions are helpful for getting names of parameters that depend on
+// the type of event, e.x. "mc.nrad.enable", "mc.rad.enable", "mc.excl.enable".
 inline std::string p_name_enable(EventType ev_type) {
 	return std::string("mc.") + event_type_short_name(ev_type) + ".enable";
 }
-inline std::string p_name_seed_init(EventType ev_type) {
+inline std::string p_name_gen_rej_scale(EventType ev_type) {
+	return std::string("mc.") + event_type_short_name(ev_type) + ".gen.rej_scale";
+}
+inline std::string p_name_init_seed(EventType ev_type) {
 	return std::string("mc.") + event_type_short_name(ev_type) + ".init.seed";
 }
+inline std::string p_name_init_target_eff(EventType ev_type) {
+	return std::string("mc.") + event_type_short_name(ev_type) + ".init.target_eff";
+}
+inline std::string p_name_init_scale_exp(EventType ev_type) {
+	return std::string("mc.") + event_type_short_name(ev_type) + ".init.scale_exp";
+}
+inline std::string p_name_init_max_cells(EventType ev_type) {
+	return std::string("mc.") + event_type_short_name(ev_type) + ".init.max_cells";
+}
 
-bool p_val_enable(Params& params, EventType ev_type);
-SeedInit p_val_seed_init(Params& params, EventType ev_type);
-
-std::set<EventType> params_active_event_types(Params const& params);
+std::set<EventType> p_active_event_types(Params const& params);
 
 // Convenience macros for declaring new types.
 #define VALUE_TYPE_DECLARE(RType, RValue, Wrapped, WrappedRoot) \

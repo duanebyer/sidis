@@ -77,7 +77,7 @@ class Builder {
 	using NradBuilder = bubble::CellBuilder<6, Double, NradDensity>;
 	using RadBuilder = bubble::CellBuilder<9, Double, RadDensity>;
 	using ExclBuilder = bubble::CellBuilder<8, Double, ExclDensity>;
-	EventType const _type;
+	EventType const _ev_type;
 	union BuilderImpl {
 		NradBuilder nrad;
 		RadBuilder rad;
@@ -99,8 +99,8 @@ public:
 	Builder& operator=(Builder const& other) = delete;
 	~Builder();
 
-	EventType type() const {
-		return _type;
+	EventType ev_type() const {
+		return _ev_type;
 	}
 	int seed() const {
 		return _seed;
@@ -129,7 +129,7 @@ class Generator {
 		GeneratorImpl() { }
 		~GeneratorImpl() { }
 	} _generator;
-	EventType _type;
+	EventType _ev_type;
 	int _seed;
 	Double _rej_scale;
 
@@ -149,8 +149,8 @@ public:
 	Generator& operator=(Generator const& other) = delete;
 	~Generator();
 
-	EventType type() const {
-		return _type;
+	EventType ev_type() const {
+		return _ev_type;
 	}
 	int seed() const {
 		return _seed;

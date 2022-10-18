@@ -53,6 +53,13 @@ cut::CutRad get_cut_rad_from_params(Params& params) {
 	return result;
 }
 
+unsigned rand_simple(unsigned prev, std::size_t steps) {
+	for (std::size_t idx = 0; idx < steps; ++idx) {
+		prev = (1664525 * prev + 1013904223) & 0xFFFF;
+	}
+	return prev;
+}
+
 }
 
 NradDensity::NradDensity(Params& params, sf::SfSet const& sf) :
@@ -171,80 +178,64 @@ Double RadDensity::operator()(Point<9> const& vec) const noexcept {
 }
 
 Builder::Builder(
-		EventType type,
+		EventType ev_type,
 		BuilderReporters const& reporters,
 		Params& params,
 		sf::SfSet const& sf) :
-		_type(type) {
-	SeedInit seed_init;
-	switch (_type) {
-	case EventType::NRAD:
-		seed_init = params["nrad.init.seed"].any();
-		break;
-	case EventType::RAD:
-		seed_init = params["rad.init.seed"].any();
-		break;
-	case EventType::EXCL:
-		seed_init = SeedInit();
-		break;
-	}
+		_ev_type(ev_type) {
+	SeedInit seed_init = params[p_name_init_seed(_ev_type)].any();
 	if (seed_init.any) {
 		throw std::runtime_error("Must choose specific seed for Builder.");
 	}
 	_seed = seed_init.seed;
-	std::minstd_rand seed_rnd(_seed);
+	// Mix up the seed based on event type, to avoid duplicate seeds for
+	// different event types.
+	std::minstd_rand seed_rnd(rand_simple(_seed, static_cast<int>(_ev_type)));
 	std::uniform_int_distribution<Seed> seed_dist;
+
 	// TODO: Double check a lot of these dynamic casts, they could break on
 	// other platforms with differently sized integers/doubles. This might get
 	// fixed when we refactor the generator build parameter extraction process.
-	switch (_type) {
+	bubble::CellBuilderParams<Double> builder_params = {};
+	builder_params.check_samples = 16384;
+	builder_params.target_rel_var = std::expm1(
+		-2. * std::log(params[p_name_init_target_eff(_ev_type)].any().as<Double>()));
+	builder_params.scale_exp_est = params[p_name_init_scale_exp(_ev_type)].any();
+	builder_params.min_cell_explore_samples = 512;
+	builder_params.hist_num_per_bin = 2;
+	builder_params.max_explore_cells = params[p_name_init_max_cells(_ev_type)].any();
+
+	switch (_ev_type) {
 	case EventType::NRAD:
 		new (&_builder.nrad) NradBuilder(
 			NradDensity(params, sf),
 			seed_dist(seed_rnd));
+		_builder.nrad.par = builder_params;
 		_builder.nrad.explore_progress_reporter = reporters.explore_progress;
 		_builder.nrad.tune_progress_reporter = reporters.tune_progress;
-		_builder.nrad.check_samples = 16384;
-		_builder.nrad.target_rel_var = std::expm1(
-			-2. * std::log(params["mc.nrad.init.target_eff"].any().as<Double>()));
-		_builder.nrad.scale_exp_est = params["mc.nrad.init.scale_exp"].any();
-		_builder.nrad.min_cell_explore_samples = 512;
-		_builder.nrad.hist_num_per_bin = 2;
-		_builder.nrad.max_explore_cells = params["mc.nrad.init.max_cells"].any();
 		break;
 	case EventType::RAD:
 		new (&_builder.rad) RadBuilder(
 			RadDensity(params, sf),
 			seed_dist(seed_rnd));
+		_builder.rad.par = builder_params;
 		_builder.rad.explore_progress_reporter = reporters.explore_progress;
 		_builder.rad.tune_progress_reporter = reporters.tune_progress;
-		_builder.rad.check_samples = 16384;
-		_builder.rad.target_rel_var = std::expm1(
-			-2. * std::log(params["mc.rad.init.target_eff"].any().as<Double>()));
-		_builder.rad.scale_exp_est = params["mc.rad.init.scale_exp"].any();
-		_builder.rad.min_cell_explore_samples = 512;
-		_builder.rad.hist_num_per_bin = 2;
-		_builder.rad.max_explore_cells = params["mc.rad.init.max_cells"].any();
 		break;
 	case EventType::EXCL:
 		new (&_builder.excl) ExclBuilder(
 			ExclDensity(params, sf),
 			seed_dist(seed_rnd));
+		_builder.excl.par = builder_params;
 		_builder.excl.explore_progress_reporter = reporters.explore_progress;
 		_builder.excl.tune_progress_reporter = reporters.tune_progress;
-		_builder.excl.check_samples = 16384;
-		_builder.excl.target_rel_var = 0.25;
-		_builder.excl.scale_exp_est = 0.25;
-		_builder.excl.min_cell_explore_samples = 2;
-		_builder.excl.hist_num_per_bin = 2;
-		_builder.excl.max_explore_cells = 16777216;
 		break;
 	}
 }
 
 Builder::Builder(Builder&& other) :
-		_type(other._type) {
-	switch (_type) {
+		_ev_type(other._ev_type) {
+	switch (_ev_type) {
 	case EventType::NRAD:
 		new (&_builder.nrad) NradBuilder(std::move(other._builder.nrad));
 		break;
@@ -258,7 +249,7 @@ Builder::Builder(Builder&& other) :
 }
 
 Builder::~Builder() {
-	switch (_type) {
+	switch (_ev_type) {
 	case EventType::NRAD:
 		_builder.nrad.~NradBuilder();
 		break;
@@ -272,7 +263,7 @@ Builder::~Builder() {
 }
 
 void Builder::explore() {
-	switch (_type) {
+	switch (_ev_type) {
 	case EventType::NRAD:
 		_builder.nrad.explore();
 		break;
@@ -286,7 +277,7 @@ void Builder::explore() {
 }
 
 void Builder::tune() {
-	switch (_type) {
+	switch (_ev_type) {
 	case EventType::NRAD:
 		_builder.nrad.tune();
 		break;
@@ -300,7 +291,7 @@ void Builder::tune() {
 }
 
 void Builder::write(std::ostream& os) {
-	switch (_type) {
+	switch (_ev_type) {
 	case EventType::NRAD:
 		_builder.nrad.write(os);
 		break;
@@ -314,7 +305,7 @@ void Builder::write(std::ostream& os) {
 }
 
 Double Builder::rel_var(Double* err_out) const {
-	switch (_type) {
+	switch (_ev_type) {
 	case EventType::NRAD:
 		return _builder.nrad.rel_var(err_out);
 	case EventType::RAD:
@@ -327,7 +318,7 @@ Double Builder::rel_var(Double* err_out) const {
 }
 
 std::size_t Builder::size() const {
-	switch (_type) {
+	switch (_ev_type) {
 	case EventType::NRAD:
 		return _builder.nrad.tree().size();
 	case EventType::RAD:
@@ -340,11 +331,11 @@ std::size_t Builder::size() const {
 }
 
 Generator::Generator(
-		EventType type,
+		EventType ev_type,
 		Params& params,
 		sf::SfSet const& sf,
 		std::istream& is) :
-		_type(type),
+		_ev_type(ev_type),
 		_seed(),
 		_rej_scale(0.),
 		_weights(),
@@ -355,19 +346,20 @@ Generator::Generator(
 		throw std::runtime_error("Must choose specific seed for Generator.");
 	}
 	_seed = *seed_gen.seeds.begin();
-	std::minstd_rand seed_rnd(_seed);
+	std::minstd_rand seed_rnd(rand_simple(_seed, static_cast<int>(_ev_type)));
 	std::uniform_int_distribution<Seed> seed_dist;
-	// TODO: Double check these dynamic casts as well.
-	switch (_type) {
+
+	// TODO: Double check this dynamic cast as well.
+	_rej_scale = params[p_name_gen_rej_scale(_ev_type)].any();
+
+	switch (_ev_type) {
 	case EventType::NRAD:
-		_rej_scale = params["mc.nrad.gen.rej_scale"].any();
 		new (&_generator.nrad) NradGenerator(
 			NradDensity(params, sf),
 			seed_dist(seed_rnd));
 		_generator.nrad.read(is);
 		break;
 	case EventType::RAD:
-		_rej_scale = params["mc.rad.gen.rej_scale"].any();
 		new (&_generator.rad) RadGenerator(
 			RadDensity(params, sf),
 			seed_dist(seed_rnd));
@@ -383,13 +375,13 @@ Generator::Generator(
 }
 
 Generator::Generator(Generator&& other) :
-		_type(other._type),
+		_ev_type(other._ev_type),
 		_seed(other._seed),
 		_rej_scale(other._rej_scale),
 		_weights(other._weights),
 		_count(other._count),
 		_count_acc(other._count_acc) {
-	switch (_type) {
+	switch (_ev_type) {
 	case EventType::NRAD:
 		new (&_generator.nrad) NradGenerator(std::move(other._generator.nrad));
 		break;
@@ -403,7 +395,7 @@ Generator::Generator(Generator&& other) :
 }
 
 Generator::~Generator() {
-	switch (_type) {
+	switch (_ev_type) {
 	case EventType::NRAD:
 		_generator.nrad.~NradGenerator();
 		break;
@@ -419,7 +411,7 @@ Generator::~Generator() {
 Double Generator::generate(Double* ph_out, Double* unit_out) {
 	Double weight = 0.;
 	while (weight == 0.) {
-		switch (_type) {
+		switch (_ev_type) {
 		case EventType::NRAD:
 			{
 				Point<6> unit_vec, ph_vec;
@@ -456,7 +448,7 @@ Double Generator::generate(Double* ph_out, Double* unit_out) {
 }
 
 Double Generator::prime() const {
-	switch (_type) {
+	switch (_ev_type) {
 	case EventType::NRAD:
 		return _generator.nrad.prime();
 	case EventType::RAD:
