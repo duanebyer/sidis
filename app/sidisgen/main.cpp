@@ -436,21 +436,13 @@ int command_initialize(std::string params_file_name) {
 	}
 
 	// Build FOAMs and write to file.
-	std::vector<EventType> ev_types;
+	std::vector<EventType> ev_types = p_enabled_event_types(params);
 	std::random_device rnd_dev;
-	if (params["mc.nrad.enable"].any()) {
-		ev_types.push_back(EventType::NRAD);
+	for (EventType ev_type : ev_types) {
+		SeedInit seed_init = params[p_name_init_seed(ev_type)].any();
 		// Choose specific seeds, if they haven't already been supplied.
-		SeedInit nrad_seed_init = params["mc.nrad.init.seed"].any();
-		if (nrad_seed_init.any) {
-			params.set("mc.nrad.init.seed", new ValueSeedInit(rnd_dev()));
-		}
-	}
-	if (params["mc.rad.enable"].any()) {
-		ev_types.push_back(EventType::RAD);
-		SeedInit rad_seed_init = params["mc.rad.init.seed"].any();
-		if (rad_seed_init.any) {
-			params.set("mc.rad.init.seed", new ValueSeedInit(rnd_dev()));
+		if (seed_init.any) {
+			params.set(p_name_init_seed(ev_type), new ValueSeedInit(rnd_dev()));
 		}
 	}
 	// Use a queue here so that the builders can be easily destructed in a FIFO
@@ -558,13 +550,7 @@ int command_generate(std::string params_file_name) {
 	alloc_sf(params, &sf, &tmd);
 
 	// Load the event generators from file.
-	std::vector<EventType> ev_types;
-	if (params["mc.nrad.enable"].any()) {
-		ev_types.push_back(EventType::NRAD);
-	}
-	if (params["mc.rad.enable"].any()) {
-		ev_types.push_back(EventType::RAD);
-	}
+	std::vector<EventType> ev_types = p_enabled_event_types(params);
 	std::vector<Generator> gens;
 	std::string foam_file_name = params["file.foam"].any();
 	std::cout << "Opening FOAM file '" << foam_file_name << "'." << std::endl;

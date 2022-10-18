@@ -4,6 +4,7 @@
 #include <functional>
 #include <ios>
 #include <istream>
+#include <iterator>
 #include <memory>
 #include <ostream>
 #include <sstream>
@@ -432,12 +433,12 @@ std::runtime_error make_incompatible_param_error(
 }
 
 // TODO: Refactor main to use this.
-std::set<EventType> p_active_event_types(Params& params) {
-	std::set<EventType> result;
+std::vector<EventType> p_enabled_event_types(Params& params) {
+	std::vector<EventType> result;
 	for (int idx = 0; idx < NUM_EVENT_TYPES; ++idx) {
 		EventType ev_type = static_cast<EventType>(idx);
 		if (params[p_name_enable(ev_type)].any()) {
-			result.insert(ev_type);
+			result.push_back(ev_type);
 		}
 	}
 	return result;
@@ -460,7 +461,7 @@ void check_can_provide_foam(
 			ValueVersion(version_gen));
 	}
 	// Check that all event types needed for generation are included.
-	std::set<EventType> ev_types = p_active_event_types(params_gen);
+	std::vector<EventType> ev_types = p_enabled_event_types(params_gen);
 	Filter filter_gen_type = Filter::REJECT;
 	for (EventType ev_type : ev_types) {
 		filter_gen_type |= Filter(event_type_short_name(ev_type));
@@ -504,13 +505,13 @@ Params merge_params(Params& params_1, Params& params_2) {
 			ValueVersion(version_2));
 	}
 	// Find subset of event types shared by both sets of parameters.
-	std::set<EventType> ev_types_1 = p_active_event_types(params_1);
-	std::set<EventType> ev_types_2 = p_active_event_types(params_2);
-	std::set<EventType> ev_types;
+	std::vector<EventType> ev_types_1 = p_enabled_event_types(params_1);
+	std::vector<EventType> ev_types_2 = p_enabled_event_types(params_2);
+	std::vector<EventType> ev_types;
 	std::set_intersection(
 		ev_types_1.begin(), ev_types_1.end(),
 		ev_types_2.begin(), ev_types_2.end(),
-		std::inserter(ev_types, ev_types.begin()));
+		std::back_inserter(ev_types));
 	if (ev_types.empty()) {
 		throw std::runtime_error(
 			"No common event types enabled between source and dest.");

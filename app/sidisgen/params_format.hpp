@@ -1,9 +1,9 @@
 #ifndef SIDISGEN_PARAMS_FORMAT_HPP
 #define SIDISGEN_PARAMS_FORMAT_HPP
 
-#include <set>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <TArrayI.h>
 #include <TDirectory.h>
@@ -107,6 +107,9 @@ struct SeedGen {
 	}
 };
 
+// Gets all enabled event types from the parameters.
+std::vector<EventType> p_enabled_event_types(Params& params);
+
 // These functions are helpful for getting names of parameters that depend on
 // the type of event, e.x. "mc.nrad.enable", "mc.rad.enable", "mc.excl.enable".
 inline std::string p_name_enable(EventType ev_type) {
@@ -127,8 +130,6 @@ inline std::string p_name_init_scale_exp(EventType ev_type) {
 inline std::string p_name_init_max_cells(EventType ev_type) {
 	return std::string("mc.") + event_type_short_name(ev_type) + ".init.max_cells";
 }
-
-std::set<EventType> p_active_event_types(Params const& params);
 
 // Convenience macros for declaring new types.
 #define VALUE_TYPE_DECLARE(RType, RValue, Wrapped, WrappedRoot) \
