@@ -435,7 +435,6 @@ std::runtime_error make_incompatible_param_error(
 
 }
 
-// TODO: Refactor main to use this.
 std::vector<EventType> p_enabled_event_types(Params& params) {
 	std::vector<EventType> result;
 	for (int idx = 0; idx < NUM_EVENT_TYPES; ++idx) {

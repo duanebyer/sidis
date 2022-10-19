@@ -22,7 +22,6 @@
 // Instead, allow things like `write_stream` to be implemented in user code.
 // * Make `Params` provide an iterator over (Name, Type, Value) tuples. This can
 //   be transformed to get names(), values().
-// * Tags for filters ONLY
 
 class TDirectory;
 class TObject;
