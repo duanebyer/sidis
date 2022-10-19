@@ -560,7 +560,7 @@ Params merge_params(Params& params_1, Params& params_2) {
 	params_merge_bool_and(params_1, params_2, "strict", &result);
 	// Merge file parameters.
 	Filter filter_file = "file"_F;
-	for (std::string name : params_1.filter(filter_file).names()) {
+	for (std::string const& name : params_1.filter(filter_file).names()) {
 		params_merge_file(params_1, params_2, name, &result);
 	}
 	// Merge write parameters.
@@ -580,19 +580,19 @@ Params merge_params(Params& params_1, Params& params_2) {
 	// `params_2` is also set in `result`, and vice versa. It shouldn't ever get
 	// tripped if there aren't any bugs in the merge, so enable it for debug
 	// only.
-	for (std::string name_1 : params_1.names()) {
+	for (std::string const& name_1 : params_1.names()) {
 		if (params_1.is_set(name_1) && !result.is_set(name_1)) {
 			throw std::runtime_error(
 				std::string("Parameter '") + name_1 + "' failed to merge.");
 		}
 	}
-	for (std::string name_2 : params_2.names()) {
+	for (std::string const& name_2 : params_2.names()) {
 		if (params_2.is_set(name_2) && !result.is_set(name_2)) {
 			throw std::runtime_error(
 				std::string("Parameter '") + name_2 + "' failed to merge.");
 		}
 	}
-	for (std::string name : result.names()) {
+	for (std::string const& name : result.names()) {
 		if (result.is_set(name)
 				&& !params_1.is_set(name)
 				&& !params_2.is_set(name)) {

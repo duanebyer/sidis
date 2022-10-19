@@ -267,7 +267,7 @@ int command_help_params() {
 		<< "For more details, try `sidisgen help <param name>`." << std::endl
 		<< std::endl;
 	std::vector<std::string> table_entries;
-	for (std::string name : params.names()) {
+	for (std::string const& name : params.names()) {
 		table_entries.push_back(name);
 		table_entries.push_back(params.usage(name.c_str()));
 	}
