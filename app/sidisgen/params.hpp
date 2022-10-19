@@ -10,15 +10,6 @@
 #include <vector>
 
 // Thoughts:
-// * move physics checks out into main, and update how they work a bit.
-//   * e.g. k_0_bar_cut (with min above soft threshold) should be a
-//     pre-requisite for any other radiative cut, to reduce mistakes.
-//   * k_0_bar_cut minimum should be either 0 or above soft threshold, if above
-//     soft threshold, no generating nrad events
-//   * Option to apply radiative cuts exclusively to radiative events above
-//     `k_0_bar` threshold (still let non-radiative events and events below
-//     threshold through), or to all events (remove non-radiative events
-//     entirely).
 // * Hashes for FOAMs. Parameter has an 'any' option, that is used to ignore the
 //   hash by default. After generating, it gets filled in though, just like the
 //   random seeds.

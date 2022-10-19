@@ -37,6 +37,9 @@ Tag overview.
 * "seed": For random-number-generation seeds.
 * "num": Special tag exclusively for "mc.num_events" parameter, as this
   parameter must be treated specially.
+* "cut-no-nrad": Special tag for cuts which are incompatible with non-radiative
+* events. Most cuts on kinematics that depend on the radiated photon should have
+* this tag.
 */
 extern Params const PARAMS_STD_FORMAT = []() {
 	Params params;
@@ -299,15 +302,15 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"<min> <max>", "bound on qt/Q", "");
 	params.add_param(
 		"cut.tau", new ValueBound(math::Bound::INVALID),
-		{ "init", "gen", "cut", "dist", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "rad", "excl", "cut-no-nrad" },
 		"<min> <max>", "bound on τ", "");
 	params.add_param(
 		"cut.phi_k", new ValueBound(math::Bound::INVALID),
-		{ "init", "gen", "cut", "dist", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "rad", "excl", "cut-no-nrad" },
 		"<min> <max>", "bound on φ_k", "");
 	params.add_param(
 		"cut.R", new ValueBound(math::Bound::INVALID),
-		{ "init", "gen", "cut", "dist", "rad" },
+		{ "init", "gen", "cut", "dist", "rad", "cut-no-nrad" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on R", "");
 	params.add_param(
 		"cut.lab.mom_q", new ValueBound(math::Bound::INVALID),
@@ -323,7 +326,7 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"<min (GeV)> <max (GeV)>", "bound on p_h momentum in lab frame", "");
 	params.add_param(
 		"cut.lab.mom_k", new ValueBound(math::Bound::INVALID),
-		{ "init", "gen", "cut", "dist", "rad" },
+		{ "init", "gen", "cut", "dist", "rad", "cut-no-nrad" },
 		"<min (GeV)> <max (GeV)>", "bound on k momentum in lab frame", "");
 	params.add_param(
 		"cut.lab.theta_q", new ValueBound(math::Bound::INVALID),
@@ -339,7 +342,7 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"<min (deg.)> <max (deg.)>", "bound on p_h polar angle in lab frame", "");
 	params.add_param(
 		"cut.lab.theta_k", new ValueBound(math::Bound::INVALID),
-		{ "init", "gen", "cut", "dist", "rad", "excl" },
+		{ "init", "gen", "cut", "dist", "rad", "excl", "cut-no-nrad" },
 		"<min (deg.)> <max (deg.)>", "bound on k polar angle in lab frame", "");
 	return params;
 }();

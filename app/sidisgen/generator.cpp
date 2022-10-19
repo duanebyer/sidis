@@ -13,7 +13,7 @@ using namespace sidis;
 
 namespace {
 
-cut::Cut get_cut_from_params(Params& params) {
+cut::Cut cut_from_params(Params& params) {
 	Double const DEG = PI / 180.;
 	cut::Cut result;
 	result.x = params["cut.x"].any();
@@ -37,7 +37,7 @@ cut::Cut get_cut_from_params(Params& params) {
 	return result;
 }
 
-cut::CutRad get_cut_rad_from_params(Params& params) {
+cut::CutRad cut_rad_from_params(Params& params) {
 	Double const DEG = PI / 180.;
 	cut::CutRad result;
 	if (params["mc.rad.enable"].any()) {
@@ -63,18 +63,42 @@ unsigned rand_simple(unsigned prev, std::size_t steps) {
 }
 
 NradDensity::NradDensity(Params& params, sf::SfSet const& sf) :
-	_cut(get_cut_from_params(params)),
-	_sf(sf),
-	_rc_method(params["phys.rc_method"].any()),
-	_soft_threshold(params["phys.soft_threshold"].any()),
-	_ps(
-		params["setup.target"].any(),
-		params["setup.beam"].any(),
-		params["setup.hadron"].any(),
-		params["phys.mass_threshold"].any()),
-	_S(2. * mass(_ps.target) * params["setup.beam_energy"].any().as<Double>()),
-	_beam_pol(params["setup.beam_pol"].any()),
-	_target_pol(params["setup.target_pol"].any()) { }
+		_cut(cut_from_params(params)),
+		_sf(sf),
+		_rc_method(params["phys.rc_method"].any()),
+		_soft_threshold(params["phys.soft_threshold"].any()),
+		_ps(
+			params["setup.target"].any(),
+			params["setup.beam"].any(),
+			params["setup.hadron"].any(),
+			params["phys.mass_threshold"].any()),
+		_S(2. * mass(_ps.target) * params["setup.beam_energy"].any().as<Double>()),
+		_beam_pol(params["setup.beam_pol"].any()),
+		_target_pol(params["setup.target_pol"].any()) {
+	if (_rc_method == RcMethod::APPROX || _rc_method == RcMethod::EXACT) {
+		// Validate that if there is a `k_0_bar` cut, that its range completely
+		// encompasses the non-radiative part from 0 to the soft threshold.
+		if (params.is_set("cut.k_0_bar")) {
+			math::Bound k_0_bar = params.get_soft<ValueBound>("cut.k_0_bar");
+			if (!(k_0_bar.min() <= 0.) || !(k_0_bar.max() >= _soft_threshold)) {
+				throw std::runtime_error(
+					"Parameter 'cut.k_0_bar' does not encompass the full "
+					"non-radiative range from 0 to 'phys.soft_threshold'.");
+			}
+		}
+		// Check that no cuts incompatible with non-radiative events are
+		// included. These include mostly cuts on the final state radiated
+		// photon, which is unknown in the non-radiative case.
+		Params params_cut_rad = params.filter("cut-no-nrad"_F);
+		for (std::string const& name : params_cut_rad.names()) {
+			if (params_cut_rad.is_set(name)) {
+				throw std::runtime_error(
+					std::string("Parameter '") + name + "' is incompatible with "
+					"non-radiative events.");
+			}
+		}
+	}
+}
 
 Double NradDensity::transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept {
 	Double jacobian;
@@ -129,19 +153,27 @@ Double NradDensity::operator()(Point<6> const& vec) const noexcept {
 }
 
 RadDensity::RadDensity(Params& params, sf::SfSet const& sf) :
-	_cut(get_cut_from_params(params)),
-	_cut_rad(get_cut_rad_from_params(params)),
-	_sf(sf),
-	_rc_method(params["phys.rc_method"].any()),
-	_soft_threshold(params["phys.soft_threshold"].any()),
-	_ps(
-		params["setup.target"].any(),
-		params["setup.beam"].any(),
-		params["setup.hadron"].any(),
-		params["phys.mass_threshold"].any()),
-	_S(2. * mass(_ps.target) * params["setup.beam_energy"].any().as<Double>()),
-	_beam_pol(params["setup.beam_pol"].any()),
-	_target_pol(params["setup.target_pol"].any()) { }
+		_cut(cut_from_params(params)),
+		_cut_rad(cut_rad_from_params(params)),
+		_sf(sf),
+		_rc_method(params["phys.rc_method"].any()),
+		_soft_threshold(params["phys.soft_threshold"].any()),
+		_ps(
+			params["setup.target"].any(),
+			params["setup.beam"].any(),
+			params["setup.hadron"].any(),
+			params["phys.mass_threshold"].any()),
+		_S(2. * mass(_ps.target) * params["setup.beam_energy"].any().as<Double>()),
+		_beam_pol(params["setup.beam_pol"].any()),
+		_target_pol(params["setup.target_pol"].any()) {
+	// Validate that the `k_0_bar` maximum is above the soft threshold.
+	math::Bound k_0_bar = params["cut.k_0_bar"].any();
+	if (!(k_0_bar.max() > _soft_threshold)) {
+		throw std::runtime_error(
+			"Parameter 'cut.k_0_bar' does not encompass any of the radiative "
+			"range above 'phys.soft_threshold'.");
+	}
+}
 
 Double RadDensity::transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept {
 	Double jacobian;
