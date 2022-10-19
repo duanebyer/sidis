@@ -93,7 +93,7 @@ NradDensity::NradDensity(Params& params, sf::SfSet const& sf) :
 		for (std::string const& name : params_cut_rad.names()) {
 			if (params_cut_rad.is_set(name)) {
 				throw std::runtime_error(
-					std::string("Parameter '") + name + "' is incompatible with "
+					"Parameter '" + name + "' is incompatible with "
 					"non-radiative events.");
 			}
 		}

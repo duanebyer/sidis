@@ -46,8 +46,8 @@ public:
 					typename std::remove_const<T>::type >::type >::type);
 		if (_type != other_type) {
 			throw std::runtime_error(
-				std::string("Invalid type cast from ") + _type.name() + " to "
-				+ other_type.name() + ".");
+				"Invalid type cast from " + std::string(_type.name()) + " to "
+				+ std::string(other_type.name()) + ".");
 		} else {
 			return *static_cast<T const*>(_val.get());
 		}
@@ -282,7 +282,7 @@ public:
 			std::string doc) {
 		if (!_params.emplace(name, Param(default_value, tags, usage, brief, doc)).second) {
 			throw std::runtime_error(
-				std::string("Tried to add existing parameter '") + name + "'.");
+				"Tried to add existing parameter '" + name + "'.");
 		}
 	}
 	void add_param(
@@ -294,7 +294,7 @@ public:
 			std::string doc) {
 		if (!_params.emplace(name, Param(type, tags, usage, brief, doc)).second) {
 			throw std::runtime_error(
-				std::string("Tried to add existing parameter '") + name + "'.");
+				"Tried to add existing parameter '" + name + "'.");
 		}
 	}
 

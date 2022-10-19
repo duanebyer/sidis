@@ -428,9 +428,9 @@ std::runtime_error make_incompatible_param_error(
 		std::string const& name,
 		Value const& val_src, Value const& val_dst) {
 	return std::runtime_error(
-		std::string("Parameter '") + name + "' is incompatible between source "
-		+ "(value " + val_src.to_string() + ") and dest "
-		+ "(value " + val_dst.to_string() + ").");
+		"Parameter '" + name + "' is incompatible between source (value "
+		+ val_src.to_string() + ") and dest (value " + val_dst.to_string()
+		+ ").");
 }
 
 }
@@ -582,13 +582,13 @@ Params merge_params(Params& params_1, Params& params_2) {
 	for (std::string const& name_1 : params_1.names()) {
 		if (params_1.is_set(name_1) && !result.is_set(name_1)) {
 			throw std::runtime_error(
-				std::string("Parameter '") + name_1 + "' failed to merge.");
+				"Parameter '" + name_1 + "' failed to merge.");
 		}
 	}
 	for (std::string const& name_2 : params_2.names()) {
 		if (params_2.is_set(name_2) && !result.is_set(name_2)) {
 			throw std::runtime_error(
-				std::string("Parameter '") + name_2 + "' failed to merge.");
+				"Parameter '" + name_2 + "' failed to merge.");
 		}
 	}
 	for (std::string const& name : result.names()) {
@@ -596,7 +596,7 @@ Params merge_params(Params& params_1, Params& params_2) {
 				&& !params_1.is_set(name)
 				&& !params_2.is_set(name)) {
 			throw std::runtime_error(
-				std::string("Parameter '") + name + "' contaminated merge.");
+				"Parameter '" + name + "' contaminated merge.");
 		}
 	}
 	return result;

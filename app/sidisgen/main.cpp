@@ -125,8 +125,8 @@ void alloc_sf(
 		if (gSystem->Load(file_name.c_str()) != 0) {
 			throw Exception(
 				ERROR_FILE_NOT_FOUND,
-				std::string("Failed to load structure function from shared ")
-				+ "library file '" + file_name + "'.");
+				"Failed to load structure function from shared library file '"
+				+ file_name + "'.");
 		}
 		TClass* sf_class = TClass::GetClass(base.c_str());
 		if (sf_class->InheritsFrom("sidis::sf::SfSet")) {
@@ -166,8 +166,8 @@ void alloc_sf(
 		} else {
 			throw Exception(
 				ERROR_STRUCTURE_FUNCTIONS_NOT_FOUND,
-				std::string("Couldn't find structure functions in file '")
-				+ sf_set_name + ".so'.");
+				"Couldn't find structure functions in file '" + sf_set_name
+				+ ".so'.");
 		}
 	}
 
@@ -218,7 +218,7 @@ void alloc_sf(
 			if (idx > sf::set::NUM_SF) {
 				throw Exception(
 					ERROR_STRUCTURE_FUNCTIONS_PARSE,
-					std::string("Cannot filter on structure function index ")
+					"Cannot filter on structure function index "
 					+ std::to_string(idx) + " because out of bounds.");
 			}
 			bool select_mask[sf::set::NUM_SF] = { false };
@@ -227,8 +227,7 @@ void alloc_sf(
 		} else {
 			throw Exception(
 				ERROR_STRUCTURE_FUNCTIONS_PARSE,
-				std::string("Unrecognized structure function filter '") + part
-				+ "'.");
+				"Unrecognized structure function filter '" + part + "'.");
 		}
 	}
 	bool mask_full = true;
@@ -308,7 +307,7 @@ int command_inspect(std::string file_name) {
 	if (file.IsZombie()) {
 		throw Exception(
 			ERROR_FILE_NOT_FOUND,
-			std::string("File '") + file_name + "' not found.");
+			"File '" + file_name + "' not found.");
 	}
 	params.read_root(file);
 	std::cout << "Parameters:" << std::endl;
@@ -339,8 +338,7 @@ int command_inspect(std::string file_name) {
 			|| norm_arr->GetSize() != NUM_EVENT_TYPES + 1) {
 		throw Exception(
 			ERROR_FILE_NOT_FOUND,
-			std::string("Couldn't find statistics in file '") + file_name
-			+ "'.");
+			"Couldn't find statistics in file '" + file_name + "'.");
 	}
 	std::cout << "Statistics:" << std::endl;
 	flags = std::cout.flags();
@@ -398,8 +396,7 @@ int command_initialize(std::string params_file_name) {
 	if (!params_file) {
 		throw Exception(
 			ERROR_FILE_NOT_FOUND,
-			std::string("Parameter file '") + params_file_name + "' not "
-			+ "found.");
+			"Parameter file '" + params_file_name + "' not found.");
 	}
 	std::cout << "Reading parameter file '" << params_file_name << "'." << std::endl;
 	Params params = PARAMS_STD_FORMAT;
@@ -408,8 +405,8 @@ int command_initialize(std::string params_file_name) {
 	} catch (std::exception const& e) {
 		throw Exception(
 			ERROR_PARAMS_PARSE,
-			std::string("Failed to parse parameter file '")
-			+ params_file_name + "': " + e.what());
+			"Failed to parse parameter file '" + params_file_name + "': "
+			+ e.what());
 	}
 	std::cout << std::endl;
 	std::ios_base::fmtflags flags(std::cout.flags());
@@ -432,7 +429,7 @@ int command_initialize(std::string params_file_name) {
 	if (file.IsZombie()) {
 		throw Exception(
 			ERROR_FILE_NOT_CREATED,
-			std::string("Couldn't create file '") + file_name + "'.");
+			"Couldn't create file '" + file_name + "'.");
 	}
 
 	// Build FOAMs and write to file.
@@ -462,14 +459,13 @@ int command_initialize(std::string params_file_name) {
 	} catch (std::exception const& e) {
 		throw Exception(
 			ERROR_PARAMS_INVALID,
-			std::string("Invalid parameter file '") + params_file_name + "': "
-			+ e.what());
+			"Invalid parameter file '" + params_file_name + "': " + e.what());
 	}
 
 	while (!builders.empty()) {
 		EventType ev_type = builders.front().ev_type();
-		char const* ev_name = event_type_name(ev_type);
-		char const* ev_key = event_type_short_name(ev_type);
+		std::string ev_name = event_type_name(ev_type);
+		std::string ev_key = event_type_short_name(ev_type);
 		try {
 			std::cout << "Exploration phase." << std::endl;
 			write_progress_bar(std::cout, 0);
@@ -489,8 +485,7 @@ int command_initialize(std::string params_file_name) {
 		} catch (std::exception const& e) {
 			throw Exception(
 				ERROR_BUILDING_FOAM,
-				std::string("Error while building ") + ev_name + " FOAM: "
-				+ e.what());
+				"Error while building " + ev_name + " FOAM: " + e.what());
 		}
 		Double rel_var_err;
 		Double rel_var = builders.front().rel_var(&rel_var_err);
@@ -503,12 +498,12 @@ int command_initialize(std::string params_file_name) {
 			std::ostringstream os;
 			builders.front().write(os);
 			std::string data = os.str();
-			file.WriteObject(&data, ev_key);
+			file.WriteObject(&data, ev_key.c_str());
 		} catch (std::exception const& e) {
 			throw Exception(
 				ERROR_WRITING_FOAM,
-				std::string("Failed to write ") + ev_name + " non-radiative "
-				+ "FOAM to file '" + file_name + "': " + e.what());
+				"Failed to write " + ev_name + " non-radiative FOAM to file '"
+				+ file_name + "': " + e.what());
 		}
 		builders.pop();
 	}
@@ -524,8 +519,7 @@ int command_generate(std::string params_file_name) {
 	if (!params_file) {
 		throw Exception(
 			ERROR_FILE_NOT_FOUND,
-			std::string("Parameter file '") + params_file_name + "' not "
-			+ "found.");
+			"Parameter file '" + params_file_name + "' not found.");
 	}
 	std::cout << "Reading parameter file '" << params_file_name << "'." << std::endl;
 	Params params = PARAMS_STD_FORMAT;
@@ -534,8 +528,8 @@ int command_generate(std::string params_file_name) {
 	} catch (std::exception const& e) {
 		throw Exception(
 			ERROR_PARAMS_PARSE,
-			std::string("Failed to parse parameter file '")
-			+ params_file_name + "': " + e.what());
+			"Failed to parse parameter file '" + params_file_name + "': "
+			+ e.what());
 	}
 	std::cout << std::endl;
 	std::ios_base::fmtflags flags(std::cout.flags());
@@ -558,7 +552,7 @@ int command_generate(std::string params_file_name) {
 	if (foam_file.IsZombie()) {
 		throw Exception(
 			ERROR_FILE_NOT_FOUND,
-			std::string("Couldn't find file '") + foam_file_name + "'.");
+			"Couldn't find file '" + foam_file_name + "'.");
 	}
 	Params params_foam = PARAMS_STD_FORMAT;
 	params_foam.read_root(foam_file);
@@ -571,22 +565,22 @@ int command_generate(std::string params_file_name) {
 	}
 	check_can_provide_foam(params_foam, params);
 	for (EventType ev_type : ev_types) {
-		char const* ev_name = event_type_name(ev_type);
-		char const* ev_key = event_type_short_name(ev_type);
+		std::string ev_name = event_type_name(ev_type);
+		std::string ev_key = event_type_short_name(ev_type);
 		std::cout << "Loading " << ev_name << " FOAM from file." << std::endl;
 		try {
-			std::string* data = foam_file.Get<std::string>(ev_key);
+			std::string* data = foam_file.Get<std::string>(ev_key.c_str());
 			if (data == nullptr) {
 				throw std::runtime_error(
-					std::string("Couldn't find key '") + ev_key + "' in "
-					+ "file '" + foam_file_name + "'.");
+					"Couldn't find key '" + ev_key + "' in file '"
+					+ foam_file_name + "'.");
 			}
 			std::istringstream is(*data);
 			gens.emplace_back(ev_type, params, *sf, is);
 		} catch (std::exception const& e) {
 			throw Exception(
 				ERROR_READING_FOAM,
-				std::string("Failed to read ") + ev_name + " FOAM from file '"
+				"Failed to read " + ev_name + " FOAM from file '"
 				+ foam_file_name + "': " + e.what());
 		}
 	}
@@ -673,8 +667,7 @@ int command_generate(std::string params_file_name) {
 	} catch (std::exception const& e) {
 		throw Exception(
 			ERROR_PARAMS_INVALID,
-			std::string("Invalid parameter file '") + params_file_name + "': "
-			+ e.what());
+			"Invalid parameter file '" + params_file_name + "': " + e.what());
 	}
 	// Write parameter file.
 	params.write_root(event_file);
@@ -816,7 +809,7 @@ int command_generate(std::string params_file_name) {
 	if (stats_dir == nullptr) {
 		throw Exception(
 			ERROR_FILE_NOT_CREATED,
-			std::string("Couldn't create directory 'stats' in ROOT file."));
+			"Couldn't create directory 'stats' in ROOT file.");
 	}
 	stats_dir->cd();
 	RootArrayD prime_arr(NUM_EVENT_TYPES + 1);
@@ -930,7 +923,7 @@ int command_merge_soft(
 		if (file.IsZombie()) {
 			throw Exception(
 				ERROR_FILE_NOT_FOUND,
-				std::string("File '") + file_name + "' not found.");
+				"File '" + file_name + "' not found.");
 		}
 		Params params = PARAMS_STD_FORMAT;
 		params.read_root(file);
@@ -955,7 +948,7 @@ int command_merge_soft(
 		if (file.IsZombie()) {
 			throw Exception(
 				ERROR_FILE_NOT_FOUND,
-				std::string("File '") + file_name + "' not found.");
+				"File '" + file_name + "' not found.");
 		}
 		RootArrayD* prime_arr = file.Get<RootArrayD>("stats/prime");
 		RootArrayD* weight_moms_arr = file.Get<RootArrayD>("stats/weight_mom");
@@ -978,8 +971,7 @@ int command_merge_soft(
 				|| norm_arr->GetSize() != NUM_EVENT_TYPES + 1) {
 			throw Exception(
 				ERROR_FILE_NOT_FOUND,
-				std::string("Couldn't find statistics in file '") + file_name
-				+ "'.");
+				"Couldn't find statistics in file '" + file_name + "'.");
 		}
 		for (std::size_t ev_idx = 0; ev_idx < NUM_EVENT_TYPES + 1; ++ev_idx) {
 			Double prime = prime_arr->At(ev_idx);
@@ -1002,8 +994,8 @@ int command_merge_soft(
 				if (primes[ev_idx] != prime) {
 					throw Exception(
 						ERROR_FOAM_INCOMPATIBLE,
-						std::string("FOAM from file '") + file_name
-						+ "' has incompatible prime.");
+						"FOAM from file '" + file_name + "' has incompatible "
+						"prime.");
 				}
 			}
 		}
@@ -1014,14 +1006,14 @@ int command_merge_soft(
 	if (file_out.IsZombie()) {
 		throw Exception(
 			ERROR_FILE_NOT_CREATED,
-			std::string("Couldn't create file '") + file_out_name + "'.");
+			"Couldn't create file '" + file_out_name + "'.");
 	}
 	params_out.write_root(file_out);
 	TDirectory* stats_dir = file_out.mkdir("stats");
 	if (stats_dir == nullptr) {
 		throw Exception(
 			ERROR_FILE_NOT_CREATED,
-			std::string("Couldn't create directory 'stats' in ROOT file."));
+			"Couldn't create directory 'stats' in ROOT file.");
 	}
 	stats_dir->cd();
 	RootArrayD prime_arr_out(NUM_EVENT_TYPES + 1);
@@ -1108,7 +1100,7 @@ int main(int argc, char** argv) {
 			if (argc > 3) {
 				throw Exception(
 					ERROR_ARG_PARSE,
-					std::string("Unexpected argument '") + argv[3] + "'.");
+					"Unexpected argument '" + std::string(argv[3]) + "'.");
 			} else if (argc < 3) {
 				throw Exception(
 					ERROR_ARG_PARSE,
@@ -1119,7 +1111,7 @@ int main(int argc, char** argv) {
 			if (argc > 3) {
 				throw Exception(
 					ERROR_ARG_PARSE,
-					std::string("Unexpected argument '") + argv[3] + "'.");
+					"Unexpected argument '" + std::string(argv[3]) + "'.");
 			} else if (argc < 3) {
 				throw Exception(
 					ERROR_ARG_PARSE,
@@ -1130,7 +1122,7 @@ int main(int argc, char** argv) {
 			if (argc > 3) {
 				throw Exception(
 					ERROR_ARG_PARSE,
-					std::string("Unexpected argument '") + argv[3] + "'.");
+					"Unexpected argument '" + std::string(argv[3]) + "'.");
 			} else if (argc < 3) {
 				throw Exception(
 					ERROR_ARG_PARSE,
@@ -1162,7 +1154,7 @@ int main(int argc, char** argv) {
 		} else {
 			throw Exception(
 				ERROR_ARG_PARSE,
-				std::string("Unrecognized command '") + command + "'.");
+				"Unrecognized command '" + command + "'.");
 		}
 	} catch (Exception const& e) {
 		std::cerr << "Fatal error: " << e.what() << std::endl;

@@ -121,7 +121,7 @@ Value const& Params::get(std::string const& name) {
 	Param& param = _params.at(name);
 	if (param.value == nullptr && param.default_value == nullptr) {
 		throw std::runtime_error(
-			std::string("Required parameter '") + name + "' not provided.");
+			"Required parameter '" + name + "' not provided.");
 	} else if (param.value == nullptr) {
 		return *param.default_value.get();
 	} else {
@@ -134,7 +134,7 @@ Value const& Params::get_soft(std::string const& name) const {
 	Param const& param = _params.at(name);
 	if (param.value == nullptr && param.default_value == nullptr) {
 		throw std::runtime_error(
-			std::string("Required parameter '") + name + "' not provided.");
+			"Required parameter '" + name + "' not provided.");
 	} else if (param.value == nullptr) {
 		return *param.default_value.get();
 	} else {
@@ -147,7 +147,7 @@ bool Params::set(std::string const& name, Value const* value) {
 	bool old = (param.value != nullptr);
 	if (param.type != value->type()) {
 		throw std::runtime_error(
-			std::string("Parameter '") + name + "' has different type.");
+			"Parameter '" + name + "' has different type.");
 	}
 	param.used = false;
 	param.value.reset(value);
@@ -160,15 +160,15 @@ bool Params::set_from(Params const& other, std::string const& name) {
 	bool old = (param.value != nullptr);
 	if (param.type != other_param.type) {
 		throw std::runtime_error(
-			std::string("Parameter '") + name + "' has different type.");
+			"Parameter '" + name + "' has different type.");
 	}
 	if (param.tags != other_param.tags) {
 		throw std::runtime_error(
-			std::string("Parameter '") + name + "' has different tags.");
+			"Parameter '" + name + "' has different tags.");
 	}
 	if (param.default_value != other_param.default_value) {
 		throw std::runtime_error(
-			std::string("Parameter '") + name + "' has different default.");
+			"Parameter '" + name + "' has different default.");
 	}
 	param.used = false;
 	param.value = other_param.value;
@@ -200,20 +200,20 @@ void Params::check_format(Params const& other) const {
 		auto it = other._params.find(name);
 		if (it == other._params.end()) {
 			throw std::runtime_error(
-				std::string("Couldn't find parameter '") + name + "'.");
+				"Couldn't find parameter '" + name + "'.");
 		}
 		Param const& other_param = it->second;
 		if (param.type != other_param.type) {
 			throw std::runtime_error(
-				std::string("Parameter '") + name + "' has different type.");
+				"Parameter '" + name + "' has different type.");
 		}
 		if (param.tags != other_param.tags) {
 			throw std::runtime_error(
-				std::string("Parameter '") + name + "' has different tags.");
+				"Parameter '" + name + "' has different tags.");
 		}
 		if (param.default_value != other_param.default_value) {
 			throw std::runtime_error(
-				std::string("Parameter '") + name + "' has different default.");
+				"Parameter '" + name + "' has different default.");
 		}
 	}
 }
@@ -235,9 +235,9 @@ void Params::check_equivalent(Params const& other) const {
 		Param const& other_param = other._params.find(name)->second;
 		if (!param.type.equivalent(*param.value, *other_param.value)) {
 			throw std::runtime_error(
-				std::string("Parameter '") + name + "' is not equivalent "
-				+ "between source (value " + param.value->to_string() + ") and "
-				+ "dest (value " + other_param.value->to_string() + ").");
+				"Parameter '" + name + "' is not equivalent between source "
+				"(value " + param.value->to_string() + ") and dest (value "
+				+ other_param.value->to_string() + ").");
 		}
 	}
 }
@@ -260,8 +260,7 @@ void Params::read_root(TDirectory& dir) {
 		} catch (...) {
 			// TODO: Don't catch every exception here.
 			throw std::runtime_error(
-				std::string("Couldn't read parameter '")
-				+ name + "' from ROOT directory.");
+				"Couldn't read parameter '" + name + "' from ROOT directory.");
 		}
 	}
 }
@@ -277,8 +276,8 @@ void Params::write_root(TDirectory& dir) const {
 			} catch (...) {
 				// TODO: Don't catch every exception here.
 				throw std::runtime_error(
-					std::string("Couldn't write parameter '")
-					+ name + "' to ROOT directory.");
+					"Couldn't write parameter '" + name + "' to ROOT "
+					"directory.");
 			}
 		}
 	}
@@ -319,8 +318,7 @@ void Params::read_stream(std::istream& is) {
 				param.value = type.read_stream(ss);
 				if (!ss) {
 					throw std::runtime_error(
-						std::string("Could not read parameter '") + name
-						+ "' from stream.");
+						"Could not read parameter '" + name + "' from stream.");
 				}
 				param.used = false;
 				std::string rem;
@@ -330,8 +328,8 @@ void Params::read_stream(std::istream& is) {
 				}
 			} catch (std::exception const& e) {
 				throw std::runtime_error(
-					std::string("Failed to parse parameter '")
-					+ name + "' from '" + ss.str() + "'.");
+					"Failed to parse parameter '" + name + "' from '" + ss.str()
+					+ "'.");
 			}
 		}
 	}
@@ -361,8 +359,7 @@ void Params::write_stream(std::ostream& os) const {
 			os << std::endl;
 			if (!os) {
 				throw std::runtime_error(
-					std::string("Could not write parameter '")
-					+ name + "' to stream.");
+					"Could not write parameter '" + name + "' to stream.");
 			}
 		}
 	}
