@@ -248,12 +248,19 @@ public:
 	}
 	// Gets the value provided by the parameter. If parameter is empty, errors.
 	Value const& get(std::string const& name);
-	Value const& operator[](std::string const& name) {
-		return get(name);
-	}
 	template<typename T>
 	T const& get(std::string const& name) {
 		return get(name).as<T>();
+	}
+	Value const& operator[](std::string const& name) {
+		return get(name);
+	}
+	// Gets a value without actually using it. Useful for checks on a parameter
+	// value that don't use the parameter to do anything useful.
+	Value const& get_soft(std::string const& name) const;
+	template<typename T>
+	T const& get_soft(std::string const& name) const {
+		return get_soft(name).as<T>();
 	}
 	// Sets a value provided by the parameter. Overwrites any existing
 	// parameter, returning whether it did so.

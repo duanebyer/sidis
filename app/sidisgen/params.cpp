@@ -130,6 +130,18 @@ Value const& Params::get(std::string const& name) {
 	}
 }
 
+Value const& Params::get_soft(std::string const& name) const {
+	Param const& param = _params.at(name);
+	if (param.value == nullptr && param.default_value == nullptr) {
+		throw std::runtime_error(
+			std::string("Required parameter '") + name + "' not provided.");
+	} else if (param.value == nullptr) {
+		return *param.default_value.get();
+	} else {
+		return *param.value.get();
+	}
+}
+
 bool Params::set(std::string const& name, Value const* value) {
 	Param& param = _params.at(name);
 	bool old = (param.value != nullptr);
