@@ -36,6 +36,14 @@ target_compile_options(
 	PRIVATE
 	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
 	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+# These next two lines are necessary to produce the dictionary for additional
+# `TParameter` specializations, which are not included in ROOT by default.
+target_include_directories(sidisgen PRIVATE ${ROOT_INCLUDE_DIRS})
+ROOT_GENERATE_DICTIONARY(
+	TParameterExt_dict
+	"TParameter.h"
+	LINKDEF TParameterExtLinkDef.h
+	MODULE sidisgen)
 
 include(GNUInstallDirs)
 set_target_properties(
