@@ -215,11 +215,7 @@ Builder::Builder(
 		Params& params,
 		sf::SfSet const& sf) :
 		_ev_type(ev_type) {
-	SeedInit seed_init = params[p_name_init_seed(_ev_type)].any();
-	if (seed_init.any) {
-		throw std::runtime_error("Must choose specific seed for Builder.");
-	}
-	_seed = seed_init.seed;
+	_seed = params[p_name_init_seed(_ev_type)].any();
 	// Mix up the seed based on event type, to avoid duplicate seeds for
 	// different event types.
 	std::minstd_rand seed_rnd(rand_simple(_seed, static_cast<int>(_ev_type)));
@@ -322,18 +318,20 @@ void Builder::tune() {
 	}
 }
 
-void Builder::write(std::ostream& os) {
+std::size_t Builder::write(std::ostream& os) {
+	std::size_t hash;
 	switch (_ev_type) {
 	case EventType::NRAD:
-		_builder.nrad.write(os);
+		hash = _builder.nrad.write(os);
 		break;
 	case EventType::RAD:
-		_builder.rad.write(os);
+		hash = _builder.rad.write(os);
 		break;
 	case EventType::EXCL:
-		_builder.excl.write(os);
+		hash = _builder.excl.write(os);
 		break;
 	}
+	return hash;
 }
 
 Double Builder::rel_var(Double* err_out) const {
@@ -374,8 +372,8 @@ Generator::Generator(
 		_count(0),
 		_count_acc(0) {
 	SeedGen seed_gen = params["mc.seed"].any();
-	if (seed_gen.any || seed_gen.seeds.size() != 1) {
-		throw std::runtime_error("Must choose specific seed for Generator.");
+	if (seed_gen.seeds.size() != 1) {
+		throw std::runtime_error("Must choose single seed for Generator.");
 	}
 	_seed = *seed_gen.seeds.begin();
 	std::minstd_rand seed_rnd(rand_simple(_seed, static_cast<int>(_ev_type)));
@@ -389,19 +387,19 @@ Generator::Generator(
 		new (&_generator.nrad) NradGenerator(
 			NradDensity(params, sf),
 			seed_dist(seed_rnd));
-		_generator.nrad.read(is);
+		_hash = _generator.nrad.read(is);
 		break;
 	case EventType::RAD:
 		new (&_generator.rad) RadGenerator(
 			RadDensity(params, sf),
 			seed_dist(seed_rnd));
-		_generator.rad.read(is);
+		_hash = _generator.rad.read(is);
 		break;
 	case EventType::EXCL:
 		new (&_generator.excl) ExclGenerator(
 			ExclDensity(params, sf),
 			seed_dist(seed_rnd));
-		_generator.excl.read(is);
+		_hash = _generator.excl.read(is);
 		break;
 	}
 }

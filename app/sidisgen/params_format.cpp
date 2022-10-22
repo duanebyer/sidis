@@ -35,6 +35,7 @@ Tag overview.
 * "rad": Applies to radiative events.
 * "excl": Applies to exclusive events.
 * "seed": For random-number-generation seeds.
+* "hash": For hashes.
 * "num": Special tag exclusively for "mc.num_events" parameter, as this
   parameter must be treated specially.
 * "cut-no-nrad": Special tag for cuts which are incompatible with non-radiative
@@ -107,13 +108,19 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"rejection sampling. Larger values make generation slower, but improve "
 		"efficiency. Suggested between 0 and 2. Default '0'.");
 	params.add_param(
-		"mc.nrad.init.seed", new ValueSeedInit(),
+		"mc.nrad.init.seed", TypeInt::INSTANCE,
 		{ "init", "seed", "nrad" },
-		"<int>, any", "seed for non-radiative FOAM initialization",
+		"<int>", "seed for non-radiative FOAM initialization",
 		"The seed that will be used for constructing the non-radiative FOAM. "
-		"If 'any', seed is chosen randomly. Default 'any'.");
+		"Default randomly chosen seed.");
 	params.add_param(
-		"mc.nrad.init.max_cells", new ValueInt(262144),
+		"mc.nrad.init.hash", TypeSize::INSTANCE,
+		{ "init", "hash", "nrad" },
+		"<hash>", "hash of the non-radiative FOAM",
+		"Internally used hash of the FOAM produced during non-radiative "
+		"initialization. Should not be set manually.");
+	params.add_param(
+		"mc.nrad.init.max_cells", new ValueSize(262144),
 		{ "init", "dist", "nrad" },
 		"<int>", "max number of cells in non-radiative FOAM",
 		"Maximum number of cells that will be created during construction of "
@@ -147,13 +154,19 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"rejection sampling. Larger values make generation slower, but improve "
 		"efficiency. Suggested between 0 and 2. Default '0'.");
 	params.add_param(
-		"mc.rad.init.seed", new ValueSeedInit(),
+		"mc.rad.init.seed", TypeInt::INSTANCE,
 		{ "init", "seed", "rad" },
-		"<int>, any", "seed for radiative FOAM initialization",
-		"The seed that will be used for constructing the radiative FOAM. If "
-		"'any', seed is chosen randomly. Default 'any'.");
+		"<int>", "seed for radiative FOAM initialization",
+		"The seed that will be used for constructing the radiative FOAM. "
+		"Default randomly chosen seed.");
 	params.add_param(
-		"mc.rad.init.max_cells", new ValueInt(262144),
+		"mc.rad.init.hash", TypeSize::INSTANCE,
+		{ "init", "hash", "rad" },
+		"<hash>", "hash of the radiative FOAM",
+		"Internally used hash of the FOAM produced during radiative "
+		"initialization. Should not be set manually.");
+	params.add_param(
+		"mc.rad.init.max_cells", new ValueSize(262144),
 		{ "init", "dist", "rad" },
 		"<int>", "max number of cells in radiative FOAM",
 		"Maximum number of cells that will be created during construction of "
@@ -173,7 +186,7 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"to number of cells. Accurate value allows for faster construction of "
 		"FOAM. Suggested between 0 and 2. Default '0.18'.");
 	params.add_param(
-		"mc.num_events", TypeLong::INSTANCE,
+		"mc.num_events", TypeSize::INSTANCE,
 		{ "gen", "num" },
 		"<int>", "number of events to generate",
 		"Total number of events that should be generated. Events are randomly "
@@ -420,8 +433,8 @@ void params_merge_count(
 		Params const& params_2,
 		std::string const& name,
 		Params* params_out) {
-	return params_merge_value<ValueLong>(
-		params_1, params_2, name, std::plus<long long>(), params_out);
+	return params_merge_value<ValueSize>(
+		params_1, params_2, name, std::plus<std::size_t>(), params_out);
 }
 
 std::runtime_error make_incompatible_param_error(
@@ -481,13 +494,27 @@ void check_can_provide_foam(
 	params_dist_foam.check_equivalent(params_dist_gen);
 	// Check that the initialization seeds and hashes are compatible.
 	for (EventType ev_type : ev_types) {
-		SeedInit seed_init_foam = params_foam[p_name_init_seed(ev_type)].any();
-		SeedInit seed_init_gen = params_gen[p_name_init_seed(ev_type)].any();
-		if (!seed_init_gen.any && seed_init_foam != seed_init_gen) {
-			throw make_incompatible_param_error(
-				p_name_init_seed(ev_type),
-				ValueSeedInit(seed_init_foam),
-				ValueSeedInit(seed_init_gen));
+		std::string name_init_seed = p_name_init_seed(ev_type);
+		if (params_gen.is_set(name_init_seed)) {
+			Int seed_init_foam = params_foam[name_init_seed].any();
+			Int seed_init_gen = params_gen[name_init_seed].any();
+			if (seed_init_foam != seed_init_gen) {
+				throw make_incompatible_param_error(
+					p_name_init_seed(ev_type),
+					ValueSize(seed_init_foam),
+					ValueSize(seed_init_gen));
+			}
+		}
+
+		if (params_gen.is_set(p_name_init_hash(ev_type))) {
+			std::size_t hash_foam = params_foam[p_name_init_hash(ev_type)].any();
+			std::size_t hash_gen = params_gen[p_name_init_hash(ev_type)].any();
+			if (hash_foam != hash_gen) {
+				throw make_incompatible_param_error(
+					p_name_init_hash(ev_type),
+					ValueSize(hash_foam),
+					ValueSize(hash_gen));
+			}
 		}
 	}
 }
@@ -531,20 +558,32 @@ Params merge_params(Params& params_1, Params& params_2) {
 	// * Seed must be equal.
 	// * Hash must be equal.
 	for (EventType ev_type : ev_types) {
-		SeedInit seed_init_1 = params_1[p_name_init_seed(ev_type)].any();
-		SeedInit seed_init_2 = params_2[p_name_init_seed(ev_type)].any();
-		if (seed_init_1.any || seed_init_1 != seed_init_2) {
+		std::string name_init_seed = p_name_init_seed(ev_type);
+		if (!params_1.is_set(name_init_seed) && !params_2.is_set(name_init_seed)) {
+			Int seed_init_1 = params_1[name_init_seed].any();
+			Int seed_init_2 = params_2[name_init_seed].any();
+			if (seed_init_1 != seed_init_2) {
+				throw make_incompatible_param_error(
+					p_name_init_seed(ev_type),
+					ValueSize(seed_init_1),
+					ValueSize(seed_init_2));
+			}
+		}
+
+		std::size_t hash_1 = params_1[p_name_init_hash(ev_type)].any();
+		std::size_t hash_2 = params_2[p_name_init_hash(ev_type)].any();
+		if (hash_1 != hash_2) {
 			throw make_incompatible_param_error(
-				p_name_init_seed(ev_type),
-				ValueSeedInit(seed_init_1),
-				ValueSeedInit(seed_init_2));
+				p_name_init_hash(ev_type),
+				ValueSize(hash_1),
+				ValueSize(hash_2));
 		}
 	}
 	// Check that the generation seeds are compatible.
 	// * Seed must be non-overlapping.
-	SeedGen seed_gen_1 = params_1.get<ValueSeedGen>("mc.seed");
-	SeedGen seed_gen_2 = params_2.get<ValueSeedGen>("mc.seed");
-	if (!seed_gen_1.any && !seed_gen_2.any) {
+	if (params_1.is_set("mc.seed") && params_2.is_set("mc.seed")) {
+		SeedGen seed_gen_1 = params_1["mc.seed"].any();
+		SeedGen seed_gen_2 = params_2["mc.seed"].any();
 		for (int seed : seed_gen_1.seeds) {
 			if (seed_gen_2.seeds.find(seed) != seed_gen_2.seeds.end()) {
 				throw make_incompatible_param_error(
@@ -659,12 +698,11 @@ VALUE_TYPE_DEFINE_SINGLETON(TypeVersion);
 // Numbers.
 VALUE_TYPE_DEFINE_SINGLETON(TypeDouble);
 VALUE_TYPE_DEFINE_SINGLETON(TypeInt);
-VALUE_TYPE_DEFINE_SINGLETON(TypeLong);
+VALUE_TYPE_DEFINE_SINGLETON(TypeSize);
 VALUE_TYPE_DEFINE_SINGLETON(TypeBool);
 // Strings.
 VALUE_TYPE_DEFINE_SINGLETON(TypeString);
 // Random number seeds.
-VALUE_TYPE_DEFINE_SINGLETON(TypeSeedInit);
 VALUE_TYPE_DEFINE_SINGLETON(TypeSeedGen);
 // Enums.
 VALUE_TYPE_DEFINE_SINGLETON(TypeRcMethod);
@@ -679,7 +717,7 @@ VALUE_TYPE_DEFINE_SINGLETON(TypeBound);
 // Numbers.
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeDouble, Double);
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeInt, Int);
-VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeLong, Long);
+VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeSize, std::size_t);
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 	TypeRcMethod, RcMethod, 3,
 	ESC({ RcMethod::NONE, RcMethod::APPROX, RcMethod::EXACT }),
@@ -701,7 +739,7 @@ VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 // Numbers.
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeDouble, Double, Double);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeInt, Int, Int);
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeLong, Long, Long);
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeSize, std::size_t, std::size_t);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeBool, bool, bool);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeRcMethod, RcMethod, int);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeNucleus, part::Nucleus, int);
@@ -754,60 +792,23 @@ void TypeString::write_stream_base(std::ostream& os, std::string const& str) con
 }
 
 // Random number seeds.
-SeedInit TypeSeedInit::read_stream_base(std::istream& is) const {
-	std::string str;
-	is >> str;
-	if (str == "any") {
-		return SeedInit();
-	} else {
-		std::stringstream is_str(str);
-		int seed;
-		is_str >> seed;
-		if (!is_str) {
-			is.setstate(std::ios_base::failbit);
-		}
-		return SeedInit(seed);
-	}
-}
-void TypeSeedInit::write_stream_base(std::ostream& os, SeedInit const& seed) const {
-	if (seed.any) {
-		os << "any";
-	} else {
-		os << seed.seed;
-	}
-}
 SeedGen TypeSeedGen::read_stream_base(std::istream& is) const {
-	std::string str;
-	std::getline(is, str);
-	if (str == "any") {
-		return SeedGen();
-	} else {
-		std::stringstream is_str(str);
-		SeedGen seed;
-		seed.any = false;
-		while (is_str && !is_str.eof()) {
-			int val;
-			is >> val;
-			seed.seeds.insert(val);
-		}
-		if (!is_str) {
-			is.setstate(std::ios_base::failbit);
-		}
-		return seed;
+	SeedGen seed;
+	while (is && !is.eof()) {
+		int val;
+		is >> val;
+		seed.seeds.insert(val);
 	}
+	return seed;
 }
 void TypeSeedGen::write_stream_base(std::ostream& os, SeedGen const& seed) const {
-	if (seed.any) {
-		os << "any";
-	} else {
-		bool first = true;
-		for (int val : seed.seeds) {
-			if (!first) {
-				os << ' ';
-				first = false;
-			}
-			os << val;
+	bool first = true;
+	for (int val : seed.seeds) {
+		if (!first) {
+			os << ' ';
+			first = false;
 		}
+		os << val;
 	}
 }
 
@@ -835,11 +836,11 @@ void TypeBound::write_stream_base(std::ostream& os, math::Bound const& bound) co
 // Read/write to ROOT.
 
 // Version.
-TArrayI TypeVersion::convert_to_root_base(Version const& version) const {
-	Int_t vals[2] = { version.v_major, version.v_minor };
-	return TArrayI(2, vals);
+RootArrayI TypeVersion::convert_to_root_base(Version const& version) const {
+	Int vals[2] = { version.v_major, version.v_minor };
+	return RootArrayI(2, vals);
 }
-Version TypeVersion::convert_from_root_base(TArrayI& version) const {
+Version TypeVersion::convert_from_root_base(RootArrayI& version) const {
 	if (version.GetSize() != 2) {
 		throw std::runtime_error("Wrong number of array elements.");
 	}
@@ -853,27 +854,12 @@ std::string TypeString::convert_from_root_base(TObjString& str) const {
 	return str.GetString().Data();
 }
 // Random number seeds.
-TParameter<Int_t> TypeSeedInit::convert_to_root_base(SeedInit const& seed) const {
-	if (seed.any) {
-		throw std::runtime_error("Can't write seed 'any' to ROOT.");
-	} else {
-		return TParameter<Int_t>("", seed.seed);
-	}
+RootArrayI TypeSeedGen::convert_to_root_base(SeedGen const& seed) const {
+	std::vector<Int> vals(seed.seeds.begin(), seed.seeds.end());
+	return RootArrayI(vals.size(), vals.data());
 }
-SeedInit TypeSeedInit::convert_from_root_base(TParameter<Int_t>& seed) const {
-	return SeedInit(seed.GetVal());
-}
-TArrayI TypeSeedGen::convert_to_root_base(SeedGen const& seed) const {
-	if (seed.any) {
-		throw std::runtime_error("Can't write seed 'any' to ROOT.");
-	} else {
-		std::vector<int> vals(seed.seeds.begin(), seed.seeds.end());
-		return TArrayI(vals.size(), vals.data());
-	}
-}
-SeedGen TypeSeedGen::convert_from_root_base(TArrayI& seed) const {
+SeedGen TypeSeedGen::convert_from_root_base(RootArrayI& seed) const {
 	SeedGen result;
-	result.any = false;
 	for (Int_t i = 0; i < seed.GetSize(); ++i) {
 		result.seeds.insert(seed.At(i));
 	}

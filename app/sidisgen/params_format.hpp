@@ -5,9 +5,7 @@
 #include <string>
 #include <vector>
 
-#include <TArrayI.h>
 #include <TDirectory.h>
-#include <TObject.h>
 #include <TObjString.h>
 #include <TParameter.h>
 
@@ -29,11 +27,11 @@ Params merge_params(Params& params_1, Params& params_2);
 
 // Represents a major.minor version of a parameter file.
 struct Version {
-	int v_major;
-	int v_minor;
+	Int v_major;
+	Int v_minor;
 	Version(
-		int v_major=0,
-		int v_minor=0) :
+		Int v_major=0,
+		Int v_minor=0) :
 		v_major(v_major),
 		v_minor(v_minor) { }
 	bool operator==(Version const& rhs) const {
@@ -44,63 +42,28 @@ struct Version {
 	}
 };
 
-// Seed used in the initialization process.
-struct SeedInit {
-	// If `_any` is true, then the initialization process can choose any val
-	// it wants for the seed, ignoring the specified seed.
-	bool any;
-	int seed;
-
-	SeedInit() : any(true) { }
-	SeedInit(int seed) :
-		any(false),
-		seed(seed) { }
-	bool operator==(SeedInit const& rhs) const {
-		if (any && rhs.any) {
-			return true;
-		} else if (!any && !rhs.any) {
-			return seed == rhs.seed;
-		} else {
-			return false;
-		}
-	}
-	bool operator!=(SeedInit const& rhs) const {
-		return !(*this == rhs);
-	}
-};
-
-// Seeds used in the generation process.
+// Seeds used in the generation process. If multiple processes or threads are
+// used to generate events, the seeds for each sequence of events individually
+// is stored. Then, when merging events together, it can be verified that there
+// are no duplicated seeds.
 struct SeedGen {
-	bool any;
 	// Set of all seeds used for the generation process.
-	std::multiset<int> seeds;
+	std::multiset<Int> seeds;
 
-	SeedGen() : any(true) { }
-	SeedGen(int seed) :
-		any(false),
-		seeds{ seed } { }
+	SeedGen() : seeds() { }
+	SeedGen(Int seed) : seeds{ seed } { }
 	// Merge two `SeedGen`s together.
-	SeedGen(SeedGen const& seed_1, SeedGen const& seed_2) :
-			any(seed_1.any || seed_2.any),
-			seeds() {
+	SeedGen(SeedGen const& seed_1, SeedGen const& seed_2) {
 		// Can't use `set_union` because of unusual behaviour with multisets.
-		if (!any) {
-			for (int seed : seed_1.seeds) {
-				seeds.insert(seed);
-			}
-			for (int seed : seed_2.seeds) {
-				seeds.insert(seed);
-			}
+		for (Int seed : seed_1.seeds) {
+			seeds.insert(seed);
+		}
+		for (Int seed : seed_2.seeds) {
+			seeds.insert(seed);
 		}
 	}
 	bool operator==(SeedGen const& rhs) const {
-		if (any && rhs.any) {
-			return true;
-		} else if (!any && !rhs.any) {
-			return seeds == rhs.seeds;
-		} else {
-			return false;
-		}
+		return seeds == rhs.seeds;
 	}
 	bool operator!=(SeedGen const& rhs) const {
 		return !(*this == rhs);
@@ -129,6 +92,9 @@ inline std::string p_name_init_scale_exp(EventType ev_type) {
 }
 inline std::string p_name_init_max_cells(EventType ev_type) {
 	return std::string("mc.") + event_type_short_name(ev_type) + ".init.max_cells";
+}
+inline std::string p_name_init_hash(EventType ev_type) {
+	return std::string("mc.") + event_type_short_name(ev_type) + ".init.hash";
 }
 
 // Convenience macros for declaring new types.
@@ -196,17 +162,17 @@ inline std::string p_name_init_max_cells(EventType ev_type) {
 
 // Built-in val types.
 // Version.
-VALUE_TYPE_DECLARE(TypeVersion, ValueVersion, Version, TArrayI);
+VALUE_TYPE_DECLARE(TypeVersion, ValueVersion, Version, RootArrayI);
 // Numbers.
 VALUE_TYPE_DECLARE(TypeDouble, ValueDouble, Double, TParameter<Double>);
 VALUE_TYPE_DECLARE(TypeInt, ValueInt, Int, TParameter<Int>);
 VALUE_TYPE_DECLARE(TypeLong, ValueLong, Long, TParameter<Long>);
+VALUE_TYPE_DECLARE(TypeSize, ValueSize, std::size_t, TParameter<std::size_t>);
 VALUE_TYPE_DECLARE(TypeBool, ValueBool, bool, TParameter<bool>);
 // Strings.
 VALUE_TYPE_DECLARE(TypeString, ValueString, std::string, TObjString);
 // Random number seeds.
-VALUE_TYPE_DECLARE(TypeSeedInit, ValueSeedInit, SeedInit, TParameter<int>);
-VALUE_TYPE_DECLARE(TypeSeedGen, ValueSeedGen, SeedGen, TArrayI);
+VALUE_TYPE_DECLARE(TypeSeedGen, ValueSeedGen, SeedGen, RootArrayI);
 // Enums.
 VALUE_TYPE_DECLARE(TypeRcMethod, ValueRcMethod, RcMethod, TParameter<int>);
 VALUE_TYPE_DECLARE(TypeNucleus, ValueNucleus, sidis::part::Nucleus, TParameter<int>);

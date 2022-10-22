@@ -436,10 +436,9 @@ int command_initialize(std::string params_file_name) {
 	std::vector<EventType> ev_types = p_enabled_event_types(params);
 	std::random_device rnd_dev;
 	for (EventType ev_type : ev_types) {
-		SeedInit seed_init = params[p_name_init_seed(ev_type)].any();
 		// Choose specific seeds, if they haven't already been supplied.
-		if (seed_init.any) {
-			params.set(p_name_init_seed(ev_type), new ValueSeedInit(rnd_dev()));
+		if (!params.is_set(p_name_init_seed(ev_type))) {
+			params.set(p_name_init_seed(ev_type), new ValueInt(rnd_dev()));
 		}
 	}
 	// Use a queue here so that the builders can be easily destructed in a FIFO
@@ -496,8 +495,9 @@ int command_initialize(std::string params_file_name) {
 		std::cout << "Writing " << ev_name << " FOAM to file." << std::endl;
 		try {
 			std::ostringstream os;
-			builders.front().write(os);
+			std::size_t hash = builders.front().write(os);
 			std::string data = os.str();
+			params.set(p_name_init_hash(ev_type), new ValueSize(hash));
 			file.WriteObject(&data, ev_key.c_str());
 		} catch (std::exception const& e) {
 			throw Exception(
@@ -557,10 +557,9 @@ int command_generate(std::string params_file_name) {
 	Params params_foam = PARAMS_STD_FORMAT;
 	params_foam.read_root(foam_file);
 	std::random_device rnd_dev;
-	SeedGen seed_gen = params["mc.seed"].any();
-	if (seed_gen.any) {
+	if (!params.is_set("mc.seed")) {
 		params.set("mc.seed", new ValueSeedGen(rnd_dev()));
-	} else if (seed_gen.seeds.size() != 1) {
+	} else if (params.get<ValueSeedGen>("mc.seed").val.seeds.size() != 1) {
 		throw std::runtime_error("Exactly one seed must be provided.");
 	}
 	check_can_provide_foam(params_foam, params);
@@ -608,7 +607,7 @@ int command_generate(std::string params_file_name) {
 	Double S = 2.*beam_energy*ps.M;
 
 	kin::Initial init(ps, beam_energy);
-	ULong num_events = std::max<Long>(0, params["mc.num_events"].any());
+	std::size_t num_events = std::max<std::size_t>(0, params["mc.num_events"].any());
 
 	// Prepare branches in output ROOT file.
 	event_file.cd();
@@ -674,10 +673,10 @@ int command_generate(std::string params_file_name) {
 
 	std::cout << "Generating events." << std::endl;
 	bool update_progress = true;
-	ULong percent = 0;
-	ULong next_percent_rem = num_events % 100;
-	ULong next_percent = num_events / 100;
-	for (ULong event_idx = 0; event_idx < num_events; ++event_idx) {
+	std::size_t percent = 0;
+	std::size_t next_percent_rem = num_events % 100;
+	std::size_t next_percent = num_events / 100;
+	for (std::size_t event_idx = 0; event_idx < num_events; ++event_idx) {
 		while (event_idx >= next_percent + (next_percent_rem != 0)) {
 			percent += 1;
 			next_percent = math::prod_div(num_events, percent + 1, 100, next_percent_rem);
@@ -821,8 +820,10 @@ int command_generate(std::string params_file_name) {
 	Stats stats_total;
 	Stats stats_acc_total;
 	Double prime_total = 0.;
-	std::size_t count_total = 0;
-	std::size_t count_acc_total = 0;
+	// TODO: We treat counts as floating point numbers for the statistics, check
+	// if this is valid later.
+	Double count_total = 0;
+	Double count_acc_total = 0;
 	flags = std::cout.flags();
 	std::cout << std::scientific << std::setprecision(OUTPUT_STATS_PRECISION);
 	for (Generator& gen : gens) {
@@ -938,8 +939,8 @@ int command_merge_soft(
 	std::cout << "Merging statistics from files." << std::endl;
 	Double primes[NUM_EVENT_TYPES + 1] = {};
 	Stats stats_total[NUM_EVENT_TYPES + 1] = {};
-	std::size_t count_total[NUM_EVENT_TYPES + 1] = {};
-	std::size_t count_acc_total[NUM_EVENT_TYPES + 1] = {};
+	Double count_total[NUM_EVENT_TYPES + 1] = {};
+	Double count_acc_total[NUM_EVENT_TYPES + 1] = {};
 	first = true;
 	for (std::string const& file_name : file_names) {
 		// TODO: Ensure that the merged statistics come from the same underlying

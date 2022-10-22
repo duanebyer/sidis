@@ -10,11 +10,6 @@
 #include <vector>
 
 // Thoughts:
-// * Hashes for FOAMs. Parameter has an 'any' option, that is used to ignore the
-//   hash by default. After generating, it gets filled in though, just like the
-//   random seeds.
-// * TBH specifying a seed is so useless for initialization phase because of
-//   multithreading, just remove the capability and replace it with a hash.
 // * Cuts can be in gen or in init.
 
 // TODO:

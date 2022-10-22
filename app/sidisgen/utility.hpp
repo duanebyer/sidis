@@ -19,9 +19,6 @@ using Long = typename std::conditional<
 	std::numeric_limits<Long_t>::digits >= 64,
 	Long_t, Long64_t>::type;
 
-using UInt = typename std::make_unsigned<Int>::type;
-using ULong = typename std::make_unsigned<Long>::type;
-
 using RootArrayD = TArrayD;
 using RootArrayI = typename std::conditional<
 	std::numeric_limits<Int_t>::digits >= 32,

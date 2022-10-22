@@ -108,8 +108,9 @@ public:
 	// Constructs the generator.
 	void explore();
 	void tune();
-	// Writes the generator to a binary stream.
-	void write(std::ostream& os);
+	// Writes the generator to a binary stream. Returns the hash of the
+	// generator, for validation when reading it in later.
+	std::size_t write(std::ostream& os);
 	// Calculates the relative variance (with uncertainty).
 	Double rel_var(Double* err_out=nullptr) const;
 	// Number of cells.
@@ -132,6 +133,7 @@ class Generator {
 	EventType _ev_type;
 	int _seed;
 	Double _rej_scale;
+	std::size_t _hash;
 
 	// Stores statistics about the produced weights.
 	StatsAccum _weights;
@@ -154,6 +156,10 @@ public:
 	}
 	int seed() const {
 		return _seed;
+	}
+	// Returns a hash of the tree underlying the generator.
+	std::size_t hash() const {
+		return _hash;
 	}
 	// Produces an event with a certain weight. Sometimes, the generator may
 	// produce an event with weight zero. In this case, the event is rejected,
