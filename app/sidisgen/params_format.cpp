@@ -477,9 +477,9 @@ void check_can_provide_foam(
 	}
 	// Check that all event types needed for generation are included.
 	std::vector<EventType> ev_types = p_enabled_event_types(params_gen);
-	Filter filter_gen_type = Filter::REJECT;
+	Filter filter_ev_type = Filter::REJECT;
 	for (EventType ev_type : ev_types) {
-		filter_gen_type |= Filter(event_type_short_name(ev_type));
+		filter_ev_type |= Filter(event_type_short_name(ev_type));
 		if (!params_foam[p_name_enable(ev_type)].any()) {
 			throw make_incompatible_param_error(
 				p_name_enable(ev_type),
@@ -488,9 +488,9 @@ void check_can_provide_foam(
 		}
 	}
 	// Check that the foam parameters used in initialization are equal.
-	Filter filter = "init"_F & ("xs"_F | "cut"_F | "dist"_F) & filter_gen_type;
-	Params params_dist_foam = params_foam.filter(filter);
-	Params params_dist_gen = params_gen.filter(filter);
+	Filter filter_dist = "init"_F & ("xs"_F | "cut"_F | "dist"_F);
+	Params params_dist_foam = params_foam.filter(filter_dist & filter_ev_type);
+	Params params_dist_gen = params_gen.filter(filter_dist & filter_ev_type);
 	params_dist_foam.check_equivalent(params_dist_gen);
 	// Check that the initialization seeds and hashes are compatible.
 	for (EventType ev_type : ev_types) {
@@ -536,28 +536,34 @@ Params merge_params(Params& params_1, Params& params_2) {
 	// Find subset of event types shared by both sets of parameters.
 	std::vector<EventType> ev_types_1 = p_enabled_event_types(params_1);
 	std::vector<EventType> ev_types_2 = p_enabled_event_types(params_2);
-	std::vector<EventType> ev_types;
+	std::vector<EventType> ev_types_shared;
 	std::set_intersection(
 		ev_types_1.begin(), ev_types_1.end(),
 		ev_types_2.begin(), ev_types_2.end(),
-		std::back_inserter(ev_types));
-	if (ev_types.empty()) {
-		throw std::runtime_error(
-			"No common event types enabled between source and dest.");
+		std::back_inserter(ev_types_shared));
+
+	Filter filter_ev_type_1 = Filter::REJECT;
+	Filter filter_ev_type_2 = Filter::REJECT;
+	Filter filter_ev_type_shared = Filter::REJECT;
+	for (EventType ev_type : ev_types_1) {
+		filter_ev_type_1 |= Filter(event_type_short_name(ev_type));
 	}
-	Filter filter_gen_type = Filter::REJECT;
-	for (EventType ev_type : ev_types) {
-		filter_gen_type |= Filter(event_type_short_name(ev_type));
+	for (EventType ev_type : ev_types_2) {
+		filter_ev_type_2 |= Filter(event_type_short_name(ev_type));
 	}
+	for (EventType ev_type : ev_types_shared) {
+		filter_ev_type_shared |= Filter(event_type_short_name(ev_type));
+	}
+
 	// Check that all parameters affecting the event distribution are equal.
-	Filter filter_dist = ("xs"_F | "cut"_F | "dist"_F) & filter_gen_type;
-	Params params_dist_1 = params_1.filter(filter_dist);
-	Params params_dist_2 = params_2.filter(filter_dist);
+	Filter filter_dist = ("xs"_F | "cut"_F | "dist"_F);
+	Params params_dist_1 = params_1.filter(filter_dist & filter_ev_type_shared);
+	Params params_dist_2 = params_2.filter(filter_dist & filter_ev_type_shared);
 	params_dist_1.check_equivalent(params_dist_2);
 	// Check that the initialization seeds and hashes are compatible.
 	// * Seed must be equal.
 	// * Hash must be equal.
-	for (EventType ev_type : ev_types) {
+	for (EventType ev_type : ev_types_shared) {
 		std::string name_init_seed = p_name_init_seed(ev_type);
 		if (!params_1.is_set(name_init_seed) && !params_2.is_set(name_init_seed)) {
 			Int seed_init_1 = params_1[name_init_seed].any();
@@ -613,7 +619,9 @@ Params merge_params(Params& params_1, Params& params_2) {
 	// All other information must be equal between `params_dist_1` and
 	// `params_dist_2` from the earlier call to `equivalent()`, so no need to
 	// merge, just copy value direct from `params_dist_1`.
-	result.set_from(params_dist_1);
+	result.set_from(params_1.filter(filter_dist & filter_ev_type_1));
+	result.set_from(params_2.filter(filter_dist & filter_ev_type_2));
+	result.set_from(params_1.filter(filter_dist & filter_ev_type_shared));
 	// TODO: This check verifies that every parameter set in `params_1` or
 	// `params_2` is also set in `result`, and vice versa. It shouldn't ever get
 	// tripped if there aren't any bugs in the merge, so enable it for debug
