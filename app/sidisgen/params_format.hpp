@@ -143,7 +143,7 @@ inline std::string p_name_init_hash(EventType ev_type) {
 	inline std::unique_ptr<Value> RType::read_root(TDirectory& dir, std::string const& name) const { \
 		WrappedRoot* obj = dir.Get<WrappedRoot>(name.c_str()); \
 		if (obj == nullptr) { \
-			throw std::runtime_error("Couldn't find ROOT object."); \
+			return nullptr; \
 		} else { \
 			return std::make_unique<RValue>(convert_from_root_base(*obj)); \
 		} \
