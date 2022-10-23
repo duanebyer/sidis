@@ -250,14 +250,6 @@ Builder::Builder(
 		_builder.rad.explore_progress_reporter = reporters.explore_progress;
 		_builder.rad.tune_progress_reporter = reporters.tune_progress;
 		break;
-	case EventType::EXCL:
-		new (&_builder.excl) ExclBuilder(
-			ExclDensity(params, sf),
-			seed_dist(seed_rnd));
-		_builder.excl.par = builder_params;
-		_builder.excl.explore_progress_reporter = reporters.explore_progress;
-		_builder.excl.tune_progress_reporter = reporters.tune_progress;
-		break;
 	}
 }
 
@@ -270,9 +262,6 @@ Builder::Builder(Builder&& other) :
 	case EventType::RAD:
 		new (&_builder.rad) RadBuilder(std::move(other._builder.rad));
 		break;
-	case EventType::EXCL:
-		new (&_builder.excl) ExclBuilder(std::move(other._builder.excl));
-		break;
 	}
 }
 
@@ -283,9 +272,6 @@ Builder::~Builder() {
 		break;
 	case EventType::RAD:
 		_builder.rad.~RadBuilder();
-		break;
-	case EventType::EXCL:
-		_builder.excl.~ExclBuilder();
 		break;
 	}
 }
@@ -298,9 +284,6 @@ void Builder::explore() {
 	case EventType::RAD:
 		_builder.rad.explore();
 		break;
-	case EventType::EXCL:
-		_builder.excl.explore();
-		break;
 	}
 }
 
@@ -311,9 +294,6 @@ void Builder::tune() {
 		break;
 	case EventType::RAD:
 		_builder.rad.tune();
-		break;
-	case EventType::EXCL:
-		_builder.excl.tune();
 		break;
 	}
 }
@@ -327,9 +307,6 @@ std::size_t Builder::write(std::ostream& os) {
 	case EventType::RAD:
 		hash = _builder.rad.write(os);
 		break;
-	case EventType::EXCL:
-		hash = _builder.excl.write(os);
-		break;
 	}
 	return hash;
 }
@@ -340,8 +317,6 @@ Double Builder::rel_var(Double* err_out) const {
 		return _builder.nrad.rel_var(err_out);
 	case EventType::RAD:
 		return _builder.rad.rel_var(err_out);
-	case EventType::EXCL:
-		return _builder.excl.rel_var(err_out);
 	default:
 		return std::numeric_limits<Double>::quiet_NaN();
 	}
@@ -353,8 +328,6 @@ std::size_t Builder::size() const {
 		return _builder.nrad.tree().size();
 	case EventType::RAD:
 		return _builder.rad.tree().size();
-	case EventType::EXCL:
-		return _builder.excl.tree().size();
 	default:
 		return 0;
 	}
@@ -395,12 +368,6 @@ Generator::Generator(
 			seed_dist(seed_rnd));
 		_hash = _generator.rad.read(is);
 		break;
-	case EventType::EXCL:
-		new (&_generator.excl) ExclGenerator(
-			ExclDensity(params, sf),
-			seed_dist(seed_rnd));
-		_hash = _generator.excl.read(is);
-		break;
 	}
 }
 
@@ -418,9 +385,6 @@ Generator::Generator(Generator&& other) :
 	case EventType::RAD:
 		new (&_generator.rad) RadGenerator(std::move(other._generator.rad));
 		break;
-	case EventType::EXCL:
-		new (&_generator.excl) ExclGenerator(std::move(other._generator.excl));
-		break;
 	}
 }
 
@@ -431,9 +395,6 @@ Generator::~Generator() {
 		break;
 	case EventType::RAD:
 		_generator.rad.~RadGenerator();
-		break;
-	case EventType::EXCL:
-		_generator.excl.~ExclGenerator();
 		break;
 	}
 }
@@ -460,15 +421,6 @@ Double Generator::generate(Double* ph_out, Double* unit_out) {
 				std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
 			}
 			break;
-		case EventType::EXCL:
-			{
-				Point<8> unit_vec, ph_vec;
-				_generator.excl.generate_rej(_rej_scale, &weight, &unit_vec);
-				_generator.excl.func().transform(unit_vec, &ph_vec);
-				std::copy(ph_vec.begin(), ph_vec.end(), ph_out);
-				std::copy(unit_vec.begin(), unit_vec.end(), unit_out);
-			}
-			break;
 		}
 		_weights += weight;
 		_count += 1;
@@ -483,8 +435,6 @@ Double Generator::prime() const {
 		return _generator.nrad.prime();
 	case EventType::RAD:
 		return _generator.rad.prime();
-	case EventType::EXCL:
-		return _generator.excl.prime();
 	default:
 		return std::numeric_limits<Double>::quiet_NaN();
 	}

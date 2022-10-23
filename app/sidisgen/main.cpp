@@ -790,8 +790,6 @@ int command_generate(std::string params_file_name) {
 				}
 			}
 			break;
-		case EventType::EXCL:
-			throw std::runtime_error("Exclusive events not supported.");
 		default:
 			throw std::runtime_error("Unrecognized event type.");
 		}

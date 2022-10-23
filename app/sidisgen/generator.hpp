@@ -56,15 +56,6 @@ public:
 	Double transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept;
 };
 
-class ExclDensity {
-public:
-	// For now, the exclusive contribution is not supported.
-	// TODO: Throw an exception to ensure this doesn't get called by accident.
-	ExclDensity(Params&, sidis::sf::SfSet const&) { }
-	Double operator()(Point<8> const&) const noexcept { return 0.; }
-	Double transform(Point<8> const&, Point<8>*) const noexcept { return 0.; };
-};
-
 struct BuilderReporters {
 	bubble::ExploreProgressReporter<Double>* explore_progress = nullptr;
 	bubble::TuneProgressReporter<Double>* tune_progress = nullptr;
@@ -76,12 +67,10 @@ class Builder {
 	// phase space dimensions from each other.
 	using NradBuilder = bubble::CellBuilder<6, Double, NradDensity>;
 	using RadBuilder = bubble::CellBuilder<9, Double, RadDensity>;
-	using ExclBuilder = bubble::CellBuilder<8, Double, ExclDensity>;
 	EventType const _ev_type;
 	union BuilderImpl {
 		NradBuilder nrad;
 		RadBuilder rad;
-		ExclBuilder excl;
 		BuilderImpl() { }
 		~BuilderImpl() { }
 	} _builder;
@@ -122,11 +111,9 @@ class Generator {
 	// Uses a tagged union, similar to `Builder`.
 	using NradGenerator = bubble::CellGenerator<6, Double, NradDensity>;
 	using RadGenerator = bubble::CellGenerator<9, Double, RadDensity>;
-	using ExclGenerator = bubble::CellGenerator<8, Double, ExclDensity>;
 	union GeneratorImpl {
 		NradGenerator nrad;
 		RadGenerator rad;
-		ExclGenerator excl;
 		GeneratorImpl() { }
 		~GeneratorImpl() { }
 	} _generator;
