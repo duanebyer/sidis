@@ -215,7 +215,9 @@ void Params::check_equivalent(Params const& other) const {
 		std::string const& name = pair.first;
 		Param const& param = pair.second;
 		Param const& other_param = other._params.find(name)->second;
-		if (!param.type.equivalent(*param.value, *other_param.value)) {
+		if ((param.value == nullptr ^ other_param.value == nullptr)
+				|| (param.value != nullptr && other_param.value != nullptr
+					&& !param.type.equivalent(*param.value, *other_param.value))) {
 			throw std::runtime_error(
 				"Parameter '" + name + "' is not equivalent between source "
 				"(value " + param.value->to_string() + ") and dest (value "
