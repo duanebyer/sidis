@@ -1,6 +1,7 @@
 #ifndef SIDISGEN_PARAMS_HPP
 #define SIDISGEN_PARAMS_HPP
 
+#include <algorithm>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -161,7 +162,24 @@ public:
 
 	explicit Filter(std::string const& tag) : Filter(Factor{ tag }) { };
 
-	bool operator()(std::string const&) const;
+	template<typename It>
+	bool check(It begin, It end) const {
+		bool accept_condition = false;
+		for (Term const& term : _condition) {
+			bool accept_term = true;
+			for (Factor const& factor : term) {
+				if (std::find(begin, end, factor.tag) == end) {
+					accept_term = false;
+					break;
+				}
+			}
+			if (accept_term) {
+				accept_condition = true;
+				break;
+			}
+		}
+		return accept_condition;
+	}
 
 	Filter& operator|=(Filter const& rhs);
 	Filter& operator&=(Filter const& rhs);

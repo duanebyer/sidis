@@ -41,24 +41,6 @@ std::string Type::to_string(Value const& value) const {
 Filter const Filter::REJECT = Filter();
 Filter const Filter::ACCEPT = Filter(Term{});
 
-bool Filter::operator()(std::string const& tag) const {
-	bool accept_condition = false;
-	for (Term const& term : _condition) {
-		bool accept_term = true;
-		for (Factor const& factor : term) {
-			if (factor.tag != tag) {
-				accept_term = false;
-				break;
-			}
-		}
-		if (accept_term) {
-			accept_condition = true;
-			break;
-		}
-	}
-	return accept_condition;
-}
-
 Filter& Filter::operator|=(Filter const& rhs) {
 	_condition.insert(rhs._condition.begin(), rhs._condition.end());
 	return *this;
@@ -370,14 +352,7 @@ Params Params::filter(Filter const& filter) {
 	for (auto& pair : _params) {
 		std::string const& name = pair.first;
 		Param const& param = pair.second;
-		bool match = false;
-		for (std::string const& tag : param.tags) {
-			if (filter(tag)) {
-				match = true;
-				break;
-			}
-		}
-		if (match) {
+		if (filter.check(param.tags.begin(), param.tags.end())) {
 			params._params.emplace(name, param);
 		}
 	}
