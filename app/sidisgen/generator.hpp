@@ -74,7 +74,7 @@ class Builder {
 		BuilderImpl() { }
 		~BuilderImpl() { }
 	} _builder;
-	int _seed;
+	Int _seed;
 
 public:
 
@@ -91,7 +91,7 @@ public:
 	EventType ev_type() const {
 		return _ev_type;
 	}
-	int seed() const {
+	Int seed() const {
 		return _seed;
 	}
 	// Constructs the generator.
@@ -118,7 +118,7 @@ class Generator {
 		~GeneratorImpl() { }
 	} _generator;
 	EventType _ev_type;
-	int _seed;
+	Int _seed;
 	Double _rej_scale;
 	std::size_t _hash;
 
@@ -141,7 +141,7 @@ public:
 	EventType ev_type() const {
 		return _ev_type;
 	}
-	int seed() const {
+	Int seed() const {
 		return _seed;
 	}
 	// Returns a hash of the tree underlying the generator.
