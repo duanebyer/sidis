@@ -127,7 +127,7 @@ Value const& Params::get_soft(std::string const& name) const {
 bool Params::set(std::string const& name, Value const* value) {
 	Param& param = _params.at(name);
 	bool old = (param.value != nullptr);
-	if (param.type != value->type()) {
+	if (value != nullptr && param.type != value->type()) {
 		throw std::runtime_error(
 			"Parameter '" + name + "' has different type.");
 	}
