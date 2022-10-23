@@ -619,9 +619,9 @@ Params merge_params(Params& params_1, Params& params_2) {
 	// All other information must be equal between `params_dist_1` and
 	// `params_dist_2` from the earlier call to `equivalent()`, so no need to
 	// merge, just copy value direct from `params_dist_1`.
-	result.set_from(params_1.filter(filter_dist & filter_ev_type_1));
-	result.set_from(params_2.filter(filter_dist & filter_ev_type_2));
-	result.set_from(params_1.filter(filter_dist & filter_ev_type_shared));
+	Filter filter_set = (filter_dist | "hash"_F | "seed"_F);
+	result.set_from(params_1.filter(filter_set & filter_ev_type_1));
+	result.set_from(params_2.filter(filter_set & filter_ev_type_2));
 	// TODO: This check verifies that every parameter set in `params_1` or
 	// `params_2` is also set in `result`, and vice versa. It shouldn't ever get
 	// tripped if there aren't any bugs in the merge, so enable it for debug
