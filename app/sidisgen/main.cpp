@@ -566,6 +566,8 @@ int command_generate(std::string params_file_name) {
 	for (EventType ev_type : ev_types) {
 		std::string ev_name = event_type_name(ev_type);
 		std::string ev_key = event_type_short_name(ev_type);
+		params.set_from(params_foam.filter(
+			Filter(ev_key) & "init"_F & ("hash"_F | "seed"_F)));
 		std::cout << "Loading " << ev_name << " FOAM from file." << std::endl;
 		try {
 			std::string* data = foam_file.Get<std::string>(ev_key.c_str());
@@ -576,6 +578,13 @@ int command_generate(std::string params_file_name) {
 			}
 			std::istringstream is(*data);
 			gens.emplace_back(ev_type, params, *sf, is);
+			std::size_t hash = params[p_name_init_hash(ev_type)].any();
+			if (gens.back().hash() != hash) {
+				throw std::runtime_error(
+					"FOAM hash '" + std::to_string(gens.back().hash()) + "' is "
+					"different from parameter hash '" + std::to_string(hash)
+					+ "'.");
+			}
 		} catch (std::exception const& e) {
 			throw Exception(
 				ERROR_READING_FOAM,
