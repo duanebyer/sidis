@@ -492,26 +492,28 @@ void check_can_provide_foam(
 	Params params_dist_foam = params_foam.filter(filter_dist & filter_ev_type);
 	Params params_dist_gen = params_gen.filter(filter_dist & filter_ev_type);
 	params_dist_foam.check_equivalent(params_dist_gen);
-	// Check that the initialization seeds and hashes are compatible.
+	// Check that the initialization seeds and hashes are compatible. Otherwise,
+	// assign the seed.
 	for (EventType ev_type : ev_types) {
-		std::string name_init_seed = p_name_init_seed(ev_type);
-		if (params_gen.is_set(name_init_seed)) {
-			Int seed_init_foam = params_foam[name_init_seed].any();
-			Int seed_init_gen = params_gen[name_init_seed].any();
+		std::string init_seed_name = p_name_init_seed(ev_type);
+		Int seed_init_foam = params_foam[init_seed_name].any();
+		if (params_gen.is_set(init_seed_name)) {
+			Int seed_init_gen = params_gen[init_seed_name].any();
 			if (seed_init_foam != seed_init_gen) {
 				throw make_incompatible_param_error(
-					p_name_init_seed(ev_type),
+					init_seed_name,
 					ValueSize(seed_init_foam),
 					ValueSize(seed_init_gen));
 			}
 		}
 
-		if (params_gen.is_set(p_name_init_hash(ev_type))) {
-			std::size_t hash_foam = params_foam[p_name_init_hash(ev_type)].any();
-			std::size_t hash_gen = params_gen[p_name_init_hash(ev_type)].any();
+		std::string hash_name = p_name_init_hash(ev_type);
+		std::size_t hash_foam = params_foam[hash_name].any();
+		if (params_gen.is_set(hash_name)) {
+			std::size_t hash_gen = params_gen[hash_name].any();
 			if (hash_foam != hash_gen) {
 				throw make_incompatible_param_error(
-					p_name_init_hash(ev_type),
+					hash_name,
 					ValueSize(hash_foam),
 					ValueSize(hash_gen));
 			}
@@ -564,23 +566,22 @@ Params merge_params(Params& params_1, Params& params_2) {
 	// * Seed must be equal.
 	// * Hash must be equal.
 	for (EventType ev_type : ev_types_shared) {
-		std::string name_init_seed = p_name_init_seed(ev_type);
-		if (!params_1.is_set(name_init_seed) && !params_2.is_set(name_init_seed)) {
-			Int seed_init_1 = params_1[name_init_seed].any();
-			Int seed_init_2 = params_2[name_init_seed].any();
-			if (seed_init_1 != seed_init_2) {
-				throw make_incompatible_param_error(
-					p_name_init_seed(ev_type),
-					ValueSize(seed_init_1),
-					ValueSize(seed_init_2));
-			}
+		std::string init_seed_name = p_name_init_seed(ev_type);
+		Int seed_init_1 = params_1[init_seed_name].any();
+		Int seed_init_2 = params_2[init_seed_name].any();
+		if (seed_init_1 != seed_init_2) {
+			throw make_incompatible_param_error(
+				init_seed_name,
+				ValueSize(seed_init_1),
+				ValueSize(seed_init_2));
 		}
 
-		std::size_t hash_1 = params_1[p_name_init_hash(ev_type)].any();
-		std::size_t hash_2 = params_2[p_name_init_hash(ev_type)].any();
+		std::string hash_name = p_name_init_hash(ev_type);
+		std::size_t hash_1 = params_1[hash_name].any();
+		std::size_t hash_2 = params_2[hash_name].any();
 		if (hash_1 != hash_2) {
 			throw make_incompatible_param_error(
-				p_name_init_hash(ev_type),
+				hash_name,
 				ValueSize(hash_1),
 				ValueSize(hash_2));
 		}
