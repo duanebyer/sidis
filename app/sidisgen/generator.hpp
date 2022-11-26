@@ -23,7 +23,7 @@ using StatsAccum = bubble::StatsAccum<Double>;
 // is provided that takes a unit vector to the full 9-dimensional phase space.
 // The `transform` method also returns the Jacobian of the transformation.
 
-class NradDensity {
+class NradDensity final {
 	sidis::cut::Cut _cut;
 	sidis::sf::SfSet const& _sf;
 	RcMethod _rc_method;
@@ -39,7 +39,7 @@ public:
 	Double transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept;
 };
 
-class RadDensity {
+class RadDensity final {
 	sidis::cut::Cut _cut;
 	sidis::cut::CutRad _cut_rad;
 	sidis::sf::SfSet const& _sf;
@@ -62,7 +62,7 @@ struct BuilderReporters {
 };
 
 // Builds a generator and writes it to a stream.
-class Builder {
+class Builder final {
 	// Internally, use a tagged union to distinguish the different possible
 	// phase space dimensions from each other.
 	using NradBuilder = bubble::CellBuilder<6, Double, NradDensity>;
@@ -107,7 +107,7 @@ public:
 };
 
 // Loads a generator from a stream and produces events from it.
-class Generator {
+class Generator final {
 	// Uses a tagged union, similar to `Builder`.
 	using NradGenerator = bubble::CellGenerator<6, Double, NradDensity>;
 	using RadGenerator = bubble::CellGenerator<9, Double, RadDensity>;
