@@ -25,7 +25,7 @@ Tag overview.
   compatibility, but doesn't affect results.
 * "file": File names.
 * "write": Describes the event file format.
-* "init": Used during the initialization phase, when constructing the FOAM.
+* "init": Used during the initialization phase, when building the generator.
 * "gen": Used in the generation phase.
 * "xs": Modifies the differential cross-section, excluding cuts.
 * "cut": Cuts on kinematic variables.
@@ -35,7 +35,7 @@ Tag overview.
 * "rad": Applies to radiative events.
 * "excl": Applies to exclusive events.
 * "seed": For random-number-generation seeds.
-* "hash": For hashes.
+* "uid": For unique identifiers.
 * "num": Special tag exclusively for "mc.num_events" parameter, as this
   parameter must be treated specially.
 * "cut-no-nrad": Special tag for cuts which are incompatible with non-radiative
@@ -64,10 +64,10 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"Path to ROOT file to be created to hold generated events. Will give "
 		"error instead of overwriting an existing file.");
 	params.add_param(
-		"file.foam", TypeString::INSTANCE,
+		"file.gen", TypeString::INSTANCE,
 		{ "init", "gen", "file", "nrad", "rad", "excl" },
-		"<file>", "ROOT file for FOAM",
-		"Path to the ROOT file to hold the FOAM during initialization. Will "
+		"<file>", "ROOT file for generator",
+		"Path to ROOT file to save the generator to after initialization. Will "
 		"give error instead of overwriting an existing file.");
 	params.add_param(
 		"file.write_momenta", new ValueBool(false),
@@ -108,16 +108,10 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"rejection sampling. Larger values make generation slower, but improve "
 		"efficiency. Suggested between 0 and 2. Default '0'.");
 	params.add_param(
-		"mc.nrad.init.seed", TypeInt::INSTANCE,
-		{ "init", "seed", "nrad" },
-		"<int>", "seed for non-radiative FOAM initialization",
-		"The seed that will be used for constructing the non-radiative FOAM. "
-		"Default randomly chosen seed.");
-	params.add_param(
-		"mc.nrad.init.hash", TypeSize::INSTANCE,
-		{ "init", "hash", "nrad" },
-		"<hash>", "hash of the non-radiative FOAM",
-		"Internally used hash of the FOAM produced during non-radiative "
+		"mc.nrad.init.uid", TypeLong::INSTANCE,
+		{ "init", "uid", "nrad" },
+		"<uid>", "UID of the non-radiative generator",
+		"Internally used UID of the generator produced during non-radiative "
 		"initialization. Should not be set manually.");
 	params.add_param(
 		"mc.nrad.init.max_cells", new ValueSize(262144),
@@ -154,16 +148,10 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"rejection sampling. Larger values make generation slower, but improve "
 		"efficiency. Suggested between 0 and 2. Default '0'.");
 	params.add_param(
-		"mc.rad.init.seed", TypeInt::INSTANCE,
-		{ "init", "seed", "rad" },
-		"<int>", "seed for radiative FOAM initialization",
-		"The seed that will be used for constructing the radiative FOAM. "
-		"Default randomly chosen seed.");
-	params.add_param(
-		"mc.rad.init.hash", TypeSize::INSTANCE,
-		{ "init", "hash", "rad" },
-		"<hash>", "hash of the radiative FOAM",
-		"Internally used hash of the FOAM produced during radiative "
+		"mc.rad.init.uid", TypeLong::INSTANCE,
+		{ "init", "uid", "rad" },
+		"<uid>", "UID of the radiative generator",
+		"Internally used UID of the generator produced during radiative "
 		"initialization. Should not be set manually.");
 	params.add_param(
 		"mc.rad.init.max_cells", new ValueSize(262144),
@@ -389,6 +377,15 @@ void params_merge_bool_and(
 		params_1, params_2, name, std::logical_and<bool>(), params_out); 
 }
 
+void params_merge_bool_or(
+		Params const& params_1,
+		Params const& params_2,
+		std::string const& name,
+		Params* params_out) {
+	return params_merge_value<ValueBool>(
+		params_1, params_2, name, std::logical_or<bool>(), params_out); 
+}
+
 void params_merge_version(
 		Params const& params_1,
 		Params const& params_2,
@@ -492,30 +489,17 @@ void check_can_provide_foam(
 	Params params_dist_foam = params_foam.filter(filter_dist & filter_ev_type);
 	Params params_dist_gen = params_gen.filter(filter_dist & filter_ev_type);
 	params_dist_foam.check_equivalent(params_dist_gen);
-	// Check that the initialization seeds and hashes are compatible. Otherwise,
-	// assign the seed.
+	// Check that the UIDs are compatible.
 	for (EventType ev_type : ev_types) {
-		std::string init_seed_name = p_name_init_seed(ev_type);
-		Int seed_init_foam = params_foam[init_seed_name].any();
-		if (params_gen.is_set(init_seed_name)) {
-			Int seed_init_gen = params_gen[init_seed_name].any();
-			if (seed_init_foam != seed_init_gen) {
+		std::string uid_name = p_name_init_uid(ev_type);
+		Long uid_foam = params_foam[uid_name].any();
+		if (params_gen.is_set(uid_name)) {
+			Long uid_gen = params_gen[uid_name].any();
+			if (uid_foam != uid_gen) {
 				throw make_incompatible_param_error(
-					init_seed_name,
-					ValueSize(seed_init_foam),
-					ValueSize(seed_init_gen));
-			}
-		}
-
-		std::string hash_name = p_name_init_hash(ev_type);
-		std::size_t hash_foam = params_foam[hash_name].any();
-		if (params_gen.is_set(hash_name)) {
-			std::size_t hash_gen = params_gen[hash_name].any();
-			if (hash_foam != hash_gen) {
-				throw make_incompatible_param_error(
-					hash_name,
-					ValueSize(hash_foam),
-					ValueSize(hash_gen));
+					uid_name,
+					ValueSize(uid_foam),
+					ValueSize(uid_gen));
 			}
 		}
 	}
@@ -539,10 +523,15 @@ Params merge_params(Params& params_1, Params& params_2) {
 	std::vector<EventType> ev_types_1 = p_enabled_event_types(params_1);
 	std::vector<EventType> ev_types_2 = p_enabled_event_types(params_2);
 	std::vector<EventType> ev_types_shared;
+	std::vector<EventType> ev_types;
 	std::set_intersection(
 		ev_types_1.begin(), ev_types_1.end(),
 		ev_types_2.begin(), ev_types_2.end(),
 		std::back_inserter(ev_types_shared));
+	std::set_union(
+		ev_types_1.begin(), ev_types_1.end(),
+		ev_types_2.begin(), ev_types_2.end(),
+		std::back_inserter(ev_types));
 
 	Filter filter_ev_type_1 = Filter::REJECT;
 	Filter filter_ev_type_2 = Filter::REJECT;
@@ -562,32 +551,20 @@ Params merge_params(Params& params_1, Params& params_2) {
 	Params params_dist_1 = params_1.filter(filter_dist & filter_ev_type_shared);
 	Params params_dist_2 = params_2.filter(filter_dist & filter_ev_type_shared);
 	params_dist_1.check_equivalent(params_dist_2);
-	// Check that the initialization seeds and hashes are compatible.
-	// * Seed must be equal.
-	// * Hash must be equal.
+	// Check that the UIDs are compatible.
 	for (EventType ev_type : ev_types_shared) {
-		std::string init_seed_name = p_name_init_seed(ev_type);
-		Int seed_init_1 = params_1[init_seed_name].any();
-		Int seed_init_2 = params_2[init_seed_name].any();
-		if (seed_init_1 != seed_init_2) {
+		std::string uid_name = p_name_init_uid(ev_type);
+		Long uid_1 = params_1[uid_name].any();
+		Long uid_2 = params_2[uid_name].any();
+		if (uid_1 != uid_2) {
 			throw make_incompatible_param_error(
-				init_seed_name,
-				ValueSize(seed_init_1),
-				ValueSize(seed_init_2));
-		}
-
-		std::string hash_name = p_name_init_hash(ev_type);
-		std::size_t hash_1 = params_1[hash_name].any();
-		std::size_t hash_2 = params_2[hash_name].any();
-		if (hash_1 != hash_2) {
-			throw make_incompatible_param_error(
-				hash_name,
-				ValueSize(hash_1),
-				ValueSize(hash_2));
+				uid_name,
+				ValueSize(uid_1),
+				ValueSize(uid_2));
 		}
 	}
-	// Check that the generation seeds are compatible.
-	// * Seed must be non-overlapping.
+	// Check that the generation seeds are compatible, meaning non-overlapping,
+	// so that each set of events are independent.
 	if (params_1.is_set("mc.seed") && params_2.is_set("mc.seed")) {
 		SeedGen seed_gen_1 = params_1["mc.seed"].any();
 		SeedGen seed_gen_2 = params_2["mc.seed"].any();
@@ -613,6 +590,10 @@ Params merge_params(Params& params_1, Params& params_2) {
 	params_merge_bool_and(params_1, params_2, "file.write_photon", &result);
 	params_merge_bool_and(params_1, params_2, "file.write_sf_set", &result);
 	params_merge_bool_and(params_1, params_2, "file.write_mc_coords", &result);
+	// Merge event type enables.
+	for (EventType ev_type : ev_types) {
+		params_merge_bool_or(params_1, params_2, p_name_enable(ev_type), &result);
+	}
 	// Merge seeds.
 	params_merge_seed_gen(params_1, params_2, "mc.seed", &result);
 	// Merge counts.
@@ -620,7 +601,7 @@ Params merge_params(Params& params_1, Params& params_2) {
 	// All other information must be equal between `params_dist_1` and
 	// `params_dist_2` from the earlier call to `equivalent()`, so no need to
 	// merge, just copy value direct from `params_dist_1`.
-	Filter filter_set = (filter_dist | "hash"_F | "seed"_F);
+	Filter filter_set = (filter_dist | "uid"_F | "seed"_F);
 	result.set_from(params_1.filter(filter_set & filter_ev_type_1));
 	result.set_from(params_2.filter(filter_set & filter_ev_type_2));
 	// TODO: This check verifies that every parameter set in `params_1` or
@@ -707,6 +688,7 @@ VALUE_TYPE_DEFINE_SINGLETON(TypeVersion);
 // Numbers.
 VALUE_TYPE_DEFINE_SINGLETON(TypeDouble);
 VALUE_TYPE_DEFINE_SINGLETON(TypeInt);
+VALUE_TYPE_DEFINE_SINGLETON(TypeLong);
 VALUE_TYPE_DEFINE_SINGLETON(TypeSize);
 VALUE_TYPE_DEFINE_SINGLETON(TypeBool);
 // Strings.
@@ -726,6 +708,7 @@ VALUE_TYPE_DEFINE_SINGLETON(TypeBound);
 // Numbers.
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeDouble, Double);
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeInt, Int);
+VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeLong, Long);
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeSize, std::size_t);
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 	TypeRcMethod, RcMethod, 3,
@@ -748,6 +731,7 @@ VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 // Numbers.
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeDouble, Double, Double);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeInt, Int, Int);
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeLong, Long, Long);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeSize, std::size_t, std::size_t);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeBool, bool, bool);
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeRcMethod, RcMethod, int);

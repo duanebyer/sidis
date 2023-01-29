@@ -14,6 +14,8 @@ by `sidisgen --help`. As an example:
 
 ```csv
 mc.num_events        10000
+file.gen             gen.root
+file.event           event.root
 phys.sf_set          prokudin
 phys.rc_method       approx
 phys.soft_threshold  0.01

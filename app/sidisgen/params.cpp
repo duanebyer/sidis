@@ -182,7 +182,7 @@ void Params::check_format(Params const& other) const {
 		auto it = other._params.find(name);
 		if (it == other._params.end()) {
 			throw std::runtime_error(
-				"Couldn't find parameter '" + name + "'.");
+				"Could not find parameter '" + name + "'.");
 		}
 		Param const& other_param = it->second;
 		if (param.type != other_param.type) {
@@ -215,13 +215,20 @@ void Params::check_equivalent(Params const& other) const {
 		std::string const& name = pair.first;
 		Param const& param = pair.second;
 		Param const& other_param = other._params.find(name)->second;
-		if ((param.value == nullptr ^ other_param.value == nullptr)
+		if (((param.value == nullptr) ^ (other_param.value == nullptr))
 				|| (param.value != nullptr && other_param.value != nullptr
 					&& !param.type.equivalent(*param.value, *other_param.value))) {
+			std::string param_str = "no value given";
+			std::string other_param_str = "no value given";
+			if (param.value != nullptr) {
+				param_str = "value '" + param.value->to_string() + "'";
+			}
+			if (other_param.value != nullptr) {
+				other_param_str = "value '" + other_param.value->to_string() + "'";
+			}
 			throw std::runtime_error(
 				"Parameter '" + name + "' is not equivalent between source "
-				"(value " + param.value->to_string() + ") and dest (value "
-				+ other_param.value->to_string() + ").");
+				"(" + param_str + ") and dest (" + other_param_str + ").");
 		}
 	}
 }
@@ -235,32 +242,40 @@ void Params::clear_unused() {
 }
 
 void Params::read_root(TDirectory& dir) {
+	TDirectory* params_dir = dir.GetDirectory("params");
+	if (params_dir == nullptr) {
+		throw std::runtime_error("Could not open directory 'params'.");
+	}
 	for (auto& pair : _params) {
 		std::string const& name = pair.first;
 		Param& param = pair.second;
 		param.used = false;
 		try {
-			param.value = param.type.read_root(dir, name);
+			param.value = param.type.read_root(*params_dir, name);
 		} catch (...) {
 			// TODO: Don't catch every exception here.
 			throw std::runtime_error(
-				"Couldn't read parameter '" + name + "' from ROOT directory.");
+				"Could not read parameter '" + name + "' from ROOT directory.");
 		}
 	}
 }
 
 void Params::write_root(TDirectory& dir) const {
+	TDirectory* params_dir = dir.mkdir("params", "params");
+	if (params_dir == nullptr) {
+		throw std::runtime_error("Could not create directory 'stats'.");
+	}
 	for (auto& pair : _params) {
 		std::string const& name = pair.first;
 		Param const& param = pair.second;
 		// TODO: Force writing the version parameter.
 		if (param.value != nullptr) {
 			try {
-				param.type.write_root(dir, name, *param.value);
+				param.type.write_root(*params_dir, name, *param.value);
 			} catch (...) {
 				// TODO: Don't catch every exception here.
 				throw std::runtime_error(
-					"Couldn't write parameter '" + name + "' to ROOT "
+					"Could not write parameter '" + name + "' to ROOT "
 					"directory.");
 			}
 		}

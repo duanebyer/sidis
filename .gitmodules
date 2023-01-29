@@ -6,4 +6,4 @@
 	url = https://github.com/duanebyer/cubature-cpp.git
 [submodule "external/bubble"]
 	path = external/bubble
-	url = https://github.com/duanebyer/bubble
+	url = https://github.com/duanebyer/bubble.git

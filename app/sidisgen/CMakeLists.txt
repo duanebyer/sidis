@@ -2,7 +2,7 @@ find_package(ROOT 6.16 REQUIRED COMPONENTS Core Physics Tree CONFIG)
 add_executable(sidisgen
 	main.cpp
 	exception.hpp
-	generator.hpp generator.cpp
+	generator.hpp generator.ipp generator.cpp
 	params.hpp params.cpp
 	params_format.hpp params_format.cpp
 	terminal.hpp terminal.cpp

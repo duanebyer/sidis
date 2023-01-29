@@ -1,28 +1,28 @@
 #ifndef SIDISGEN_GENERATOR_HPP
 #define SIDISGEN_GENERATOR_HPP
 
-#include <istream>
-#include <ostream>
+#include <array>
+#include <random>
 
 #include <bubble.hpp>
 
 #include <sidis/sidis.hpp>
 
-#include "params.hpp"
 #include "utility.hpp"
 
-using Seed = bubble::Seed;
-template<bubble::Dim DIM>
-using Point = bubble::Point<DIM, Double>;
-using Stats = bubble::Stats<Double>;
-using StatsAccum = bubble::StatsAccum<Double>;
+template<std::size_t D>
+using Point = std::array<Double, D>;
 
-// Each of the following functions computes a different cross-section on the
-// unit hypercube. The full phase space is rescaled to fit on a hypercube for
-// the convenience of the underlying event generator, but a `transform` method
-// is provided that takes a unit vector to the full 9-dimensional phase space.
-// The `transform` method also returns the Jacobian of the transformation.
+class Params;
 
+namespace sidis {
+	namespace kin {
+		struct Kinematics;
+		struct KinematicsRad;
+	}
+}
+
+// Map the non-radiative cross-section onto unit hypercube for Monte-Carlo.
 class NradDensity final {
 	sidis::cut::Cut _cut;
 	sidis::sf::SfSet const& _sf;
@@ -35,10 +35,18 @@ class NradDensity final {
 
 public:
 	NradDensity(Params& params, sidis::sf::SfSet const& sf);
-	Double operator()(Point<6> const& vec) const noexcept;
-	Double transform(Point<6> const& unit_vec, Point<6>* ph_vec) const noexcept;
+	// Get the density in the unit hypercube.
+	Double eval(Point<6> const& unit_vec, sidis::kin::Kinematics* kin) const noexcept;
+	Double eval(Point<6> const& unit_vec) const noexcept;
+	// Transform from the unit hypercube into phase space.
+	Double transform(Point<6> const& unit_vec, sidis::kin::Kinematics* kin) const noexcept;
+
+	Double operator()(Point<6> const& unit_vec) const noexcept {
+		return eval(unit_vec);
+	}
 };
 
+// Map the radiative cross-section onto unit hypercube for Monte-Carlo.
 class RadDensity final {
 	sidis::cut::Cut _cut;
 	sidis::cut::CutRad _cut_rad;
@@ -52,139 +60,199 @@ class RadDensity final {
 
 public:
 	RadDensity(Params& params, sidis::sf::SfSet const& sf);
-	Double operator()(Point<9> const& vec) const noexcept;
-	Double transform(Point<9> const& unit_vec, Point<9>* ph_vec) const noexcept;
+	Double eval(Point<9> const& unit_vec, sidis::kin::KinematicsRad* kin) const noexcept;
+	Double eval(Point<9> const& unit_vec) const noexcept;
+	Double transform(Point<9> const& unit_vec, sidis::kin::KinematicsRad* kin) const noexcept;
+
+	Double operator()(Point<9> const& unit_vec) const noexcept {
+		return eval(unit_vec);
+	}
 };
 
-struct BuilderReporters {
-	bubble::ExploreProgressReporter<Double>* explore_progress = nullptr;
-	bubble::TuneProgressReporter<Double>* tune_progress = nullptr;
+// Tagged union for different cross-section types.
+struct Density final {
+	EventType event_type;
+	union Impl {
+		NradDensity nrad;
+		RadDensity rad;
+		Impl() { }
+	} density;
+
+	Density(EventType event_type, Params& params, sidis::sf::SfSet const& sf) :
+			event_type(event_type) {
+		switch (event_type) {
+		case EventType::NRAD:
+			new (&density.nrad) NradDensity(params, sf);
+			break;
+		case EventType::RAD:
+			new (&density.rad) RadDensity(params, sf);
+			break;
+		default:
+			UNREACHABLE();
+		}
+	}
 };
 
-// Builds a generator and writes it to a stream.
-class Builder final {
-	// Internally, use a tagged union to distinguish the different possible
-	// phase space dimensions from each other.
-	using NradBuilder = bubble::CellBuilder<6, Double, NradDensity>;
-	using RadBuilder = bubble::CellBuilder<9, Double, RadDensity>;
-	EventType const _ev_type;
-	union BuilderImpl {
-		NradBuilder nrad;
-		RadBuilder rad;
-		BuilderImpl() { }
-		~BuilderImpl() { }
-	} _builder;
-	Int _seed;
+// Types of probability distributions available.
+enum class DistType {
+	// Uniform distribution. Default.
+	UNIFORM,
+	// k-d tree constructed to approximate density.
+	FOAM,
+	// Variation of FOAM, with different construction process.
+	BUBBLE,
+	// Stratified VEGAS algorithm.
+	VEGAS,
+};
+
+// Identifying name for each type of distribution.
+inline char const* dist_type_name(DistType type) {
+	switch (type) {
+	case DistType::UNIFORM:
+		return "uniform";
+	case DistType::FOAM:
+		return "foam";
+	case DistType::BUBBLE:
+		return "bubble";
+	case DistType::VEGAS:
+		return "vegas";
+	default:
+		UNREACHABLE();
+	}
+}
+
+// Random number engine type used by Monte-Carlo generators.
+using RndEngine = std::mt19937_64;
+
+// Monte-Carlo event drawn from the unit hypercube.
+template<std::size_t D>
+struct UnitEvent final {
+	Point<D> vec;
+	Double weight;
+};
+
+struct UniformParams { };
+struct FoamParams { };
+using BubbleParams = bubble::CellBuilderParams<Double>;
+struct VegasParams { };
+
+// Parameters for building a probability distribution.
+struct DistParams final {
+	// Tagged union over different distribution types.
+	DistType dist_type;
+	union Impl {
+		UniformParams uniform;
+		FoamParams foam;
+		BubbleParams bubble;
+		VegasParams vegas;
+		Impl() { }
+	} params;
+
+	DistParams(EventType event_type, Params& params);
+};
+
+// Underlying engines.
+struct UniformEngine { };
+struct FoamEngine { };
+template<std::size_t D>
+using BubbleEngine = bubble::CellGenerator<D, Double>;
+struct VegasEngine { };
+
+// Random number distribution over the unit hypercube of dimension `D`. This
+// type wraps several possible underlying engines, as described by the enum
+// `DistType`.
+template<std::size_t D>
+class Dist final {
+	// Tagged union over the underlying engine.
+	DistType _dist_type;
+	union Impl {
+		UniformEngine uniform;
+		FoamEngine foam;
+		BubbleEngine<D> bubble;
+		VegasEngine vegas;
+		Impl() { }
+		~Impl() { }
+	} _engine;
 
 public:
+	// It's annoying to implement these, and for now only the move constructor
+	// is needed, so delete the others.
+	Dist(Dist const& other) = delete;
+	Dist(Dist&& other) noexcept;
+	Dist& operator=(Dist const& other) = delete;
+	Dist& operator=(Dist&& other) noexcept = delete;
+	~Dist();
 
-	Builder(
-		EventType type,
-		BuilderReporters const& reporters,
-		Params& params,
-		sidis::sf::SfSet const& sf);
-	Builder(Builder const& other) = delete;
-	Builder(Builder&& other);
-	Builder& operator=(Builder const& other) = delete;
-	~Builder();
+	// Constructs an empty distribution that provides events evenly throughout
+	// the unit hypercube.
+	explicit Dist(DistType dist_type);
 
-	EventType ev_type() const {
-		return _ev_type;
-	}
-	Int seed() const {
-		return _seed;
-	}
-	// Constructs the generator.
-	void explore();
-	void tune();
-	// Writes the generator to a binary stream. Returns the hash of the
-	// generator, for validation when reading it in later.
-	std::size_t write(std::ostream& os);
-	// Calculates the relative variance (with uncertainty).
-	Double rel_var(Double* err_out=nullptr) const;
-	// Number of cells.
-	std::size_t size() const;
+	// Draws a weighted event from the distribution.
+	UnitEvent<D> draw(RndEngine& rnd) const;
+
+	// Average weight of events produced by the distribution.
+	Double prime() const;
+
+	// Serialization to binary streams.
+	static std::ostream& write(std::ostream& os, Dist<D> const& dist);
+	static std::istream& read(std::istream& is, Dist<D>& dist);
+
+	// Constructs a distribution that approximates the provided density.
+	template<std::size_t D1, typename F1>
+	friend Dist<D1> build_dist_approx(DistParams const& dist_params, F1 const& density);
 };
 
-// Loads a generator from a stream and produces events from it.
+// Generated event from a cross-section.
+struct Event final {
+	// Tagged union over different event types (non-radiative, radiative, ...).
+	EventType event_type;
+	Double weight;
+	union Impl {
+		sidis::kin::Kinematics nrad;
+		sidis::kin::KinematicsRad rad;
+	} kin;
+};
+
+// Generator for producing Monte-Carlo events from a cross-section.
 class Generator final {
-	// Uses a tagged union, similar to `Builder`.
-	using NradGenerator = bubble::CellGenerator<6, Double, NradDensity>;
-	using RadGenerator = bubble::CellGenerator<9, Double, RadDensity>;
-	union GeneratorImpl {
-		NradGenerator nrad;
-		RadGenerator rad;
-		GeneratorImpl() { }
-		~GeneratorImpl() { }
-	} _generator;
-	EventType _ev_type;
-	Int _seed;
-	Double _rej_scale;
-	std::size_t _hash;
-
-	// Stores statistics about the produced weights.
-	StatsAccum _weights;
-	std::size_t _count;
-	std::size_t _count_acc;
+	EventType _event_type;
+	union DensityImpl {
+		NradDensity nrad;
+		RadDensity rad;
+		DensityImpl() { }
+	} _density;
+	union DistImpl {
+		Dist<6> nrad;
+		Dist<9> rad;
+		DistImpl() { }
+		~DistImpl() { }
+	} _dist;
 
 public:
-	Generator(
-		EventType type,
-		Params& params,
-		sidis::sf::SfSet const& sf,
-		std::istream& is);
 	Generator(Generator const& other) = delete;
-	Generator(Generator&& other);
+	Generator(Generator&& other) noexcept;
 	Generator& operator=(Generator const& other) = delete;
+	Generator& operator=(Generator&& other) noexcept = delete;
 	~Generator();
 
-	EventType ev_type() const {
-		return _ev_type;
-	}
-	Int seed() const {
-		return _seed;
-	}
-	// Returns a hash of the tree underlying the generator.
-	std::size_t hash() const {
-		return _hash;
-	}
-	// Produces an event with a certain weight. Sometimes, the generator may
-	// produce an event with weight zero. In this case, the event is rejected,
-	// and a new event is sampled to replace it. Rejected events are still
-	// tracked in the resulting statistics, but never returned from this
-	// function.
-	Double generate(Double* ph_out, Double* unit_out);
-	Double generate(Double* ph_out) {
-		Double unit_out[9];
-		return generate(ph_out, unit_out);
-	}
-	// Gets total number of events generated.
-	std::size_t count() const {
-		return _count;
-	}
-	// Gets total number of events generated that were accepted.
-	std::size_t count_acc() const {
-		return _count_acc;
-	}
-	// Gets acceptance fraction of events.
-	Double acceptance() const {
-		return static_cast<Double>(_count_acc) / _count;
-	}
-	// Gets statistics of the provided weights.
-	Stats weights() const {
-		return _weights.total();
-	}
-	// Gets statistics of the provided weights that were accepted.
-	Stats weights_acc() const {
-		Stats stats = _weights.total();
-		stats.rescale_count(_count_acc);
-		return stats;
+	Generator(Density density);
+
+	EventType event_type() const {
+		return _event_type;
 	}
 
-	// Gets the overall prime of the generator. Combine with the average weight
-	// to get the cross-section.
+	// Builds the underlying distribution to approximate the cross-section.
+	void build_dist(DistParams dist_params);
+
+	Event draw(RndEngine& rnd) const;
 	Double prime() const;
+
+	// Serialization to binary streams of underlying distribution.
+	static std::ostream& write_dist(std::ostream& os, Generator const& gen);
+	static std::istream& read_dist(std::istream& is, Generator& gen);
 };
+
+#include "generator.ipp"
 
 #endif
 

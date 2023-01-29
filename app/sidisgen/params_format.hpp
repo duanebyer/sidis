@@ -81,9 +81,6 @@ inline std::string p_name_enable(EventType ev_type) {
 inline std::string p_name_gen_rej_scale(EventType ev_type) {
 	return std::string("mc.") + event_type_short_name(ev_type) + ".gen.rej_scale";
 }
-inline std::string p_name_init_seed(EventType ev_type) {
-	return std::string("mc.") + event_type_short_name(ev_type) + ".init.seed";
-}
 inline std::string p_name_init_target_eff(EventType ev_type) {
 	return std::string("mc.") + event_type_short_name(ev_type) + ".init.target_eff";
 }
@@ -93,8 +90,8 @@ inline std::string p_name_init_scale_exp(EventType ev_type) {
 inline std::string p_name_init_max_cells(EventType ev_type) {
 	return std::string("mc.") + event_type_short_name(ev_type) + ".init.max_cells";
 }
-inline std::string p_name_init_hash(EventType ev_type) {
-	return std::string("mc.") + event_type_short_name(ev_type) + ".init.hash";
+inline std::string p_name_init_uid(EventType ev_type) {
+	return std::string("mc.") + event_type_short_name(ev_type) + ".init.uid";
 }
 
 // Convenience macros for declaring new types.
@@ -145,15 +142,17 @@ inline std::string p_name_init_hash(EventType ev_type) {
 		if (obj == nullptr) { \
 			return nullptr; \
 		} else { \
-			return std::make_unique<RValue>(convert_from_root_base(*obj)); \
+			return std::unique_ptr<RValue>(new RValue(convert_from_root_base(*obj))); \
 		} \
 	} \
 	inline void RType::write_root(TDirectory& dir, std::string const& name, Value const& val) const { \
 		WrappedRoot obj = convert_to_root_base(val.as<RValue>().val); \
-		dir.WriteObject(&obj, name.c_str()); \
+		if (dir.WriteObject(&obj, name.c_str()) == 0) { \
+			throw std::runtime_error("Couldn't write object."); \
+		} \
 	} \
 	inline std::unique_ptr<Value> RType::read_stream(std::istream& is) const { \
-		return std::make_unique<RValue>(read_stream_base(is)); \
+		return std::unique_ptr<RValue>(new RValue(read_stream_base(is))); \
 	} \
 	inline void RType::write_stream(std::ostream& os, Value const& val) const { \
 		RValue const& value_c = dynamic_cast<RValue const&>(val); \
