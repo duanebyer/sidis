@@ -229,7 +229,7 @@ struct Kinematics {
 	/// \}
 
 	/// Initialize an empty Kinematics in an invalid state.
-	Kinematics() { }
+	Kinematics() = default;
 	/// Fill in a Kinematics corresponding to particles \p ps, with beam energy
 	/// given by \p S (with \f$S = 2 p k_1\f$), and at a PhaseSpace point
 	/// \p ph_space.
@@ -543,7 +543,7 @@ struct KinematicsRad {
 	Kinematics project_shift() const;
 
 	/// Initialize an empty KinematicsRad in an invalid state.
-	KinematicsRad() { }
+	KinematicsRad() = default;
 	/// Fill in a KinematicsRad corresponding to particles \p ps, with beam
 	/// energy given by \p S (with \f$S = 2 p k_1\f$), and at a PhaseSpaceRad
 	/// point \p ph_space.
