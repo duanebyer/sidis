@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 				mask, new sf::set::TestSfSet(target)));
 		} else {
 			throw std::out_of_range(
-				"SF set index must be Prokudin (0), STF(1), or Test ("
+				"SF set index must be Prokudin (0), STF (1), or Test ("
 				+ std::to_string(-sf::set::NUM_SF) + " to -1)");
 		}
 

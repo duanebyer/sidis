@@ -10,7 +10,7 @@ namespace part {
 	struct Particles;
 }
 namespace sf {
-	struct SfSet;
+	class SfSet;
 }
 
 namespace asym {

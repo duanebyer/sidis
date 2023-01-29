@@ -67,7 +67,7 @@ T dilog_impl(T x) {
 	} else if (x > -0.5) {
 		a = 1.;
 		b = 0.;
-		x = x;
+		//x = x;
 	} else if (x > -1.) {
 		a = -1.;
 		b = -0.5 * sq(std::log1p(-x));
@@ -98,12 +98,14 @@ T dilog_impl(T x) {
 
 template<typename T>
 T prod_div_impl(T N, T k, T K, T& rem) {
+	if (k < 0) {
+		N = -N;
+		k = -k;
+	}
 	T N_max = N >= 0 ?
 		std::numeric_limits<T>::max() :
 		std::numeric_limits<T>::min();
-	if (k < 0) {
-		return prod_div_impl(-N, -k, K, rem);
-	} else if (k < N_max / N) {
+	if (k < N_max / N) {
 		// Base case, when there is no risk of overflow.
 		rem = (k * N) % K;
 		return (k * N) / K;

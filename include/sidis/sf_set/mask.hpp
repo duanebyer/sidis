@@ -106,7 +106,7 @@ public:
 	/// Constructs an SfSet for \p target with a \p mask determining which
 	/// structure functions will be non-zero. See the class documentation for a
 	/// table describing which structure functions correspond to which indices.
-	MaskSfSet(const bool (&mask)[NUM_SF], std::unique_ptr<SfSet>&& sf) :
+	MaskSfSet(const bool (&mask)[NUM_SF], std::unique_ptr<SfSet>&& sf) noexcept :
 			SfSet(sf->target),
 			_mask(),
 			_sf(std::move(sf)) {
@@ -125,7 +125,7 @@ public:
 		}
 	}
 	MaskSfSet(MaskSfSet const& other) = delete;
-	MaskSfSet(MaskSfSet&& other) : MaskSfSet(other._mask, std::move(other._sf)) { }
+	MaskSfSet(MaskSfSet&& other) noexcept : MaskSfSet(other._mask, std::move(other._sf)) { }
 	MaskSfSet& operator=(MaskSfSet const& other) = delete;
 	MaskSfSet& operator=(MaskSfSet&& other) = delete;
 	virtual ~MaskSfSet() = default;
@@ -202,7 +202,7 @@ public:
 			return 0.;
 		}
 	}
-	Real F_UT_sin_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	Real F_UT_sin_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override {
 		if (_mask[10]) {
 			return _sf->F_UT_sin_phis(h, x, z, Q_sq, ph_t_sq);
 		} else {

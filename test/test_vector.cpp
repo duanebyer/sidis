@@ -11,30 +11,28 @@
 #include <sidis/transform.hpp>
 #include <sidis/vector.hpp>
 
-#include "abs_matcher.hpp"
-#include "rel_matcher.hpp"
-#include "stream_generator.hpp"
-
-using namespace sidis;
-
+// Declare stream operators before including templates, since ADL fails us here.
 namespace {
-
-std::istream& operator>>(std::istream& in, math::Vec3& vec) {
+std::istream& operator>>(std::istream& in, sidis::math::Vec3& vec) {
 	in >> vec.x;
 	in >> vec.y;
 	in >> vec.z;
 	return in;
 }
-
-std::istream& operator>>(std::istream& in, math::Vec4& vec) {
+std::istream& operator>>(std::istream& in, sidis::math::Vec4& vec) {
 	in >> vec.t;
 	in >> vec.x;
 	in >> vec.y;
 	in >> vec.z;
 	return in;
 }
-
 }
+
+#include "abs_matcher.hpp"
+#include "rel_matcher.hpp"
+#include "stream_generator.hpp"
+
+using namespace sidis;
 
 TEST_CASE(
 		"3-vector basic operations checks",

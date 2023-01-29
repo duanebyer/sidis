@@ -517,7 +517,7 @@ TEST_CASE(
 		<< "φ_k   = " << ph_space.phi_k   << std::endl;
 	INFO(ss.str());
 
-	test_kin_rad(init, kin, 1e4);
+	test_kin_rad(init, kin, true, 1e4);
 }
 
 // The following `[kin-rand]` tests will likely have a handful of failures,

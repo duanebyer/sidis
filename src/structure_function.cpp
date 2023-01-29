@@ -23,7 +23,7 @@
 	( \
 		(2.*mass(target)*x)/std::sqrt(Q_sq) \
 			*CONVOLVE(weight_type, tmd, ff) \
-		+ sign*(2.*mass(h))/(z*std::sqrt(Q_sq)) \
+		+ (sign)*(2.*mass(h))/(z*std::sqrt(Q_sq)) \
 			*CONVOLVE(weight_type, tmd_tilde, ff_tilde))
 
 #define CONVOLVE_GAUSSIAN(weight_type, tmd, ff) \
@@ -37,7 +37,7 @@
 	( \
 		(2.*mass(target)*x)/std::sqrt(Q_sq) \
 			*CONVOLVE_GAUSSIAN(weight_type, tmd, ff) \
-		+ sign*(2.*mass(h))/(z*std::sqrt(Q_sq)) \
+		+ (sign)*(2.*mass(h))/(z*std::sqrt(Q_sq)) \
 			*CONVOLVE_GAUSSIAN(weight_type, tmd_tilde, ff_tilde))
 
 using namespace sidis;

@@ -8,8 +8,7 @@ set_target_properties(
 target_compile_options(
 	cross_section
 	PRIVATE
-	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
-	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+	${Sidis_COMPILER_WARNINGS})
 
 add_executable(random_phase_space random_phase_space.cpp)
 target_link_libraries(random_phase_space PRIVATE sidis)
@@ -21,8 +20,7 @@ set_target_properties(
 target_compile_options(
 	random_phase_space
 	PRIVATE
-	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
-	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+	${Sidis_COMPILER_WARNINGS})
 
 add_executable(quick_start quick_start.cpp)
 target_link_libraries(quick_start PRIVATE sidis)
@@ -34,8 +32,7 @@ set_target_properties(
 target_compile_options(
 	quick_start
 	PRIVATE
-	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
-	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+	${Sidis_COMPILER_WARNINGS})
 
 # ROOT is used to provide plotting for several of the examples. If not found,
 # then don't build those examples.
@@ -56,8 +53,7 @@ if(ROOT_FOUND)
 	target_compile_options(
 		plot_ssa
 		PRIVATE
-		$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
-		$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+		${Sidis_COMPILER_WARNINGS})
 
 	add_executable(plot_phase_space plot_phase_space.cpp)
 	target_link_libraries(plot_phase_space PRIVATE
@@ -68,8 +64,7 @@ if(ROOT_FOUND)
 	target_compile_options(
 		plot_phase_space
 		PRIVATE
-		$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
-		$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+		${Sidis_COMPILER_WARNINGS})
 
 	add_executable(process_events process_events.cpp)
 	target_link_libraries(process_events PRIVATE
@@ -79,7 +74,6 @@ if(ROOT_FOUND)
 	target_compile_options(
 		process_events
 		PRIVATE
-		$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
-		$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+		${Sidis_COMPILER_WARNINGS})
 endif()
 

@@ -71,7 +71,7 @@ namespace had {
 	struct HadRadFXX;
 }
 namespace sf {
-	struct SfSet;
+	class SfSet;
 }
 
 namespace xs {

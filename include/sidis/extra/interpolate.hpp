@@ -135,6 +135,7 @@ public:
 	}
 
 	T const& operator[](CellIndex cell_idx) {
+		static_cast<void>(cell_idx);
 		return *_data;
 	}
 	operator T const&() const {
@@ -241,6 +242,7 @@ class LinearView<T, 0> final {
 public:
 	explicit LinearView(GridView<T, 0> grid) : _grid(grid) { }
 	T operator()(typename GridView<T, 0>::Point x) const {
+		static_cast<void>(x);
 		return _grid;
 	}
 };

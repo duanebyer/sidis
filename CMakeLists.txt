@@ -33,12 +33,12 @@ endif()
 # Project-specific cache variable for tests.
 if(DEFINED Sidis_BUILD_TESTS)
 	set(
-		Sidis_BUILD_TESTS ${BUILD_TESTING}
+		Sidis_BUILD_TESTS ${Sidis_BUILD_TESTS}
 		CACHE BOOL
 		"should the tests be built (overrides BUILD_TESTING)")
 	set(BUILD_TESTING ${Sidis_BUILD_TESTS})
 else()
-	set(Sidis_BUILD_TEST ${BUILD_TESTING})
+	set(Sidis_BUILD_TESTS ${BUILD_TESTING})
 endif()
 
 set(
@@ -75,7 +75,7 @@ set_property(
 	"float" "double" "long double")
 
 # Interprocedural optimization support.
-set(IPO_SUPPORTED YES)
+set(IPO_SUPPORTED NO)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.9)
 	include(CheckIPOSupported)
 	check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_OUTPUT)
@@ -108,6 +108,12 @@ configure_file(
 	"${Sidis_SOURCE_DIR}/cog/gen_struct.py"
 	"${Sidis_BINARY_DIR}/cog/gen_struct.py"
 	COPYONLY)
+
+# Set up warnings.
+set(
+	Sidis_COMPILER_WARNINGS
+	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
+	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
 
 # Add external libraries.
 add_subdirectory(external/bubble EXCLUDE_FROM_ALL)

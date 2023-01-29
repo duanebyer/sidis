@@ -29,7 +29,7 @@ public:
 	ProkudinTmdSet& operator=(ProkudinTmdSet&& other) noexcept;
 	virtual ~ProkudinTmdSet();
 
-	Real charge(unsigned fl) const;
+	Real charge(unsigned fl) const override;
 
 	Real xf1(unsigned fl, Real x, Real Q_sq) const override;
 	Real xf1Tperp(unsigned fl, Real x, Real Q_sq) const override;

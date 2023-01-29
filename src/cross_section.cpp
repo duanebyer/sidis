@@ -37,50 +37,50 @@ using namespace sidis::xs;
 		Lep##UU lep_uu((kin)); \
 		Had##UU had_uu((kin), (sf)); \
 		uu = name##_uu_base((b), lep_uu, had_uu); \
-		if (eta.z != 0. && (eta.x != 0. || eta.y != 0.)) { \
+		if ((eta).z != 0. && ((eta).x != 0. || (eta).y != 0.)) { \
 			Lep##UP lep_up((kin)); \
 			Had##UL had_ul((kin), (sf)); \
 			Had##UT had_ut((kin), (sf)); \
 			up.z = name##_ul_base((b), lep_up, had_ul); \
-			up.x = eta.x == 0. ? 0. : name##_ut1_base((b), lep_up, had_ut); \
-			up.y = eta.y == 0. ? 0. : name##_ut2_base((b), lep_uu, had_ut); \
-		} else if (eta.z != 0.) { \
+			up.x = (eta).x == 0. ? 0. : name##_ut1_base((b), lep_up, had_ut); \
+			up.y = (eta).y == 0. ? 0. : name##_ut2_base((b), lep_uu, had_ut); \
+		} else if ((eta).z != 0.) { \
 			Lep##UP lep_up((kin)); \
 			Had##UL had_ul((kin), (sf)); \
 			up.z = name##_ul_base((b), lep_up, had_ul); \
 		} else { \
 			Had##UT had_ut((kin), (sf)); \
-			if (eta.x != 0.) { \
+			if ((eta).x != 0.) { \
 				Lep##UP lep_up((kin)); \
 				up.x = name##_ut1_base((b), lep_up, had_ut); \
 			} \
-			up.y = eta.y == 0. ? 0. : name##_ut2_base((b), lep_uu, had_ut); \
+			up.y = (eta).y == 0. ? 0. : name##_ut2_base((b), lep_uu, had_ut); \
 		} \
-		if (lambda_e != 0.) { \
+		if ((lambda_e) != 0.) { \
 			Lep##LU lep_lu((kin)); \
 			Had##LU had_lu((kin), (sf)); \
 			lu = name##_lu_base((b), lep_lu, had_lu); \
-			if (eta.z != 0. && (eta.x != 0. || eta.y != 0.)) { \
+			if ((eta).z != 0. && ((eta).x != 0. || (eta).y != 0.)) { \
 				Lep##LP lep_lp((kin)); \
 				Had##LL had_ll((kin), (sf)); \
 				Had##LT had_lt((kin), (sf)); \
 				lp.z = name##_ll_base((b), lep_lp, had_ll); \
-				lp.x = eta.x == 0. ? 0. : name##_lt1_base((b), lep_lp, had_lt); \
-				lp.y = eta.y == 0. ? 0. : name##_lt2_base((b), lep_lu, had_lt); \
-			} else if (eta.z != 0.) { \
+				lp.x = (eta).x == 0. ? 0. : name##_lt1_base((b), lep_lp, had_lt); \
+				lp.y = (eta).y == 0. ? 0. : name##_lt2_base((b), lep_lu, had_lt); \
+			} else if ((eta).z != 0.) { \
 				Lep##LP lep_lp((kin)); \
 				Had##LL had_ll((kin), (sf)); \
 				lp.z = name##_ll_base((b), lep_lp, had_ll); \
 			} else { \
 				Had##LT had_lt((kin), (sf)); \
-				if (eta.x != 0.) { \
+				if ((eta).x != 0.) { \
 					Lep##LP lep_lp((kin)); \
 					lp.x = name##_lt1_base((b), lep_lp, had_lt); \
 				} \
-				lp.y = eta.y == 0. ? 0. : name##_lt2_base((b), lep_lu, had_lt); \
+				lp.y = (eta).y == 0. ? 0. : name##_lt2_base((b), lep_lu, had_lt); \
 			} \
 		} \
-		return uu + dot(up, eta) + (lambda_e)*(lu + dot(lp, (eta))); \
+		return uu + dot(up, (eta)) + (lambda_e)*(lu + dot(lp, (eta))); \
 	}()
 
 // Similar to `SIDIS_MACRO_XS_FROM_BASE`, except this one works with base cross-
@@ -95,22 +95,22 @@ using namespace sidis::xs;
 		Lep##UU lep_uu((kin)); \
 		Had##UU had_uu((kin), (sf)); \
 		uu = name##_uu_base((b), lep_uu, had_uu); \
-		if (eta != Vec3::ZERO) { \
+		if ((eta) != Vec3::ZERO) { \
 			Lep##UX lep_ux(lep_uu, Lep##UP(kin)); \
 			Had##UP had_up((kin), (sf)); \
 			up = name##_up_base((b), lep_ux, had_up); \
 		} \
-		if (lambda_e != 0.) { \
+		if ((lambda_e) != 0.) { \
 			Lep##LU lep_lu((kin)); \
 			Had##LU had_lu((kin), (sf)); \
 			lu = name##_lu_base((b), lep_lu, had_lu); \
-			if (eta != Vec3::ZERO) { \
+			if ((eta) != Vec3::ZERO) { \
 				Lep##LX lep_lx(lep_lu, Lep##LP(kin)); \
 				Had##LP had_lp((kin), (sf)); \
 				lp = name##_lp_base((b), lep_lx, had_lp); \
 			} \
 		} \
-		return uu + dot(up, eta) + (lambda_e)*(lu + dot(lp, (eta))); \
+		return uu + dot(up, (eta)) + (lambda_e)*(lu + dot(lp, (eta))); \
 	}()
 
 namespace {
@@ -270,7 +270,7 @@ Real xs::delta_vert_rad_ir(Kinematics const& kin, Real k_0_bar) {
 	// Paragraph following equation [1.C17].
 	Real k0_max = (kin.mx_sq - sq(kin.Mth))/(2.*kin.mx);
 	if (!(k_0_bar > 0.)) {
-		return -INFINITY;
+		return -INF;
 	}
 	Real Q_m_sq = kin.Q_sq + 2.*sq(kin.m);
 	Real diff_m = sqrt1p_1m((4.*sq(kin.m))/kin.Q_sq);
@@ -290,7 +290,7 @@ Real xs::delta_vert_rad_ir(Kinematics const& kin, Real k_0_bar) {
 Real xs::delta_rad_ir_hard(Kinematics const& kin, Real k_0_bar) {
 	Real k0_max = (kin.mx_sq - sq(kin.Mth))/(2.*kin.mx);
 	if (!(k_0_bar > 0.)) {
-		return INFINITY;
+		return INF;
 	} else if (!(k_0_bar < k0_max)) {
 		return 0.;
 	}

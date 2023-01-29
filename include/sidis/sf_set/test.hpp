@@ -59,7 +59,7 @@ public:
 	Real F_UT_sin_3phih_m_phis(part::Hadron, Real, Real, Real, Real) const override {
 		return 1.;
 	}
-	Real F_UT_sin_phis(part::Hadron, Real, Real, Real, Real) const {
+	Real F_UT_sin_phis(part::Hadron, Real, Real, Real, Real) const override {
 		return 1.;
 	}
 	Real F_UT_sin_phih_p_phis(part::Hadron, Real, Real, Real, Real) const override {

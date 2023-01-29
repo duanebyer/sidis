@@ -63,7 +63,7 @@ public:
 		return (1. - x) * _min + x * _max;
 	}
 	/// Return whether the Bound is valid.
-	Real valid() const {
+	bool valid() const {
 		return _min <= _max;
 	}
 	/// The distance between the ends of the Bound.

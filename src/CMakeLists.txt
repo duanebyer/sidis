@@ -101,8 +101,7 @@ set_target_properties(
 target_compile_options(
 	sidis
 	PRIVATE
-	$<$<OR:$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:-Wall -Wextra -pedantic>
-	$<$<CXX_COMPILER_ID:MSVC>:/W4>)
+	${Sidis_COMPILER_WARNINGS})
 add_custom_command(
 	TARGET sidis POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E make_directory
