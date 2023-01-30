@@ -158,7 +158,7 @@ Real rad_f(kin::KinematicsRad const& kin, sf::SfSet const& sf, Real lambda_e, ma
 Real rad(kin::KinematicsRad const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
 
 /// Radiative cross-section with infrared divergence removed
-/// \f$\sigma_{R}^{F}\f$, integrated over the radiated photon with energy above
+/// \f$\sigma_{R}^{F}\f$, integrated over the radiated photon with energy below
 /// soft cutoff \p k_0_bar.
 math::EstErr rad_f_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
 /// Radiative cross-section \f$\sigma_{R}\f$, integrated over the radiated
