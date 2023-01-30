@@ -108,7 +108,7 @@ void root_write_integs(TDirectory& dir, IntegratorArray const& integs) {
 	RootArrayD norm(NUM_EVENT_TYPES + 1);
 
 	// Fill arrays.
-	Integrator total = Integrator();
+	Integrator total;
 	for (std::size_t ev_idx = 0; ev_idx < NUM_EVENT_TYPES + 1; ++ev_idx) {
 		Integrator const& integ = ev_idx < NUM_EVENT_TYPES ? integs.map[ev_idx] : total;
 		prime.SetAt(integ.prime(), ev_idx);

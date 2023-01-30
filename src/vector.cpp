@@ -6,7 +6,7 @@
 using namespace sidis;
 using namespace sidis::math;
 
-Vec3 const Vec3::ZERO = Vec3();
+Vec3 const Vec3::ZERO = Vec3(0., 0., 0.);
 Vec3 const Vec3::X = Vec3(1., 0., 0.);
 Vec3 const Vec3::Y = Vec3(0., 1., 0.);
 Vec3 const Vec3::Z = Vec3(0., 0., 1.);

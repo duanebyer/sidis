@@ -634,7 +634,7 @@ Params merge_params(Params& params_1, Params& params_2) {
 #define ESC(...) __VA_ARGS__
 
 #define VALUE_TYPE_DEFINE_SINGLETON(RType) \
-	RType const RType::INSTANCE = RType();
+	RType const RType::INSTANCE;
 
 #define VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(RType, Wrapped) \
 	Wrapped RType::read_stream_base(std::istream& is) const { \
