@@ -41,6 +41,20 @@ if(NOT ROOT_FOUND)
 	message(WARNING "Couldn't find ROOT, so some examples will not be built.")
 endif()
 if(ROOT_FOUND)
+	add_executable(plot_cutoff plot_cutoff.cpp)
+	target_link_libraries(plot_cutoff PRIVATE
+		sidis
+		ROOT::Core ROOT::Gpad ROOT::Graf)
+	target_compile_features(plot_cutoff PRIVATE cxx_std_11)
+	set_target_properties(
+		plot_cutoff PROPERTIES
+		CXX_EXTENSIONS OFF
+		INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+	target_compile_options(
+		plot_cutoff
+		PRIVATE
+		${Sidis_COMPILER_WARNINGS})
+
 	add_executable(plot_ssa plot_ssa.cpp)
 	target_link_libraries(plot_ssa PRIVATE
 		sidis
