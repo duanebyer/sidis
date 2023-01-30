@@ -684,60 +684,60 @@ Params merge_params(Params& params_1, Params& params_2) {
 
 // Singleton definitions.
 // Version.
-VALUE_TYPE_DEFINE_SINGLETON(TypeVersion);
+VALUE_TYPE_DEFINE_SINGLETON(TypeVersion)
 // Numbers.
-VALUE_TYPE_DEFINE_SINGLETON(TypeDouble);
-VALUE_TYPE_DEFINE_SINGLETON(TypeInt);
-VALUE_TYPE_DEFINE_SINGLETON(TypeLong);
-VALUE_TYPE_DEFINE_SINGLETON(TypeSize);
-VALUE_TYPE_DEFINE_SINGLETON(TypeBool);
+VALUE_TYPE_DEFINE_SINGLETON(TypeDouble)
+VALUE_TYPE_DEFINE_SINGLETON(TypeInt)
+VALUE_TYPE_DEFINE_SINGLETON(TypeLong)
+VALUE_TYPE_DEFINE_SINGLETON(TypeSize)
+VALUE_TYPE_DEFINE_SINGLETON(TypeBool)
 // Strings.
-VALUE_TYPE_DEFINE_SINGLETON(TypeString);
+VALUE_TYPE_DEFINE_SINGLETON(TypeString)
 // Random number seeds.
-VALUE_TYPE_DEFINE_SINGLETON(TypeSeedGen);
+VALUE_TYPE_DEFINE_SINGLETON(TypeSeedGen)
 // Enums.
-VALUE_TYPE_DEFINE_SINGLETON(TypeRcMethod);
-VALUE_TYPE_DEFINE_SINGLETON(TypeNucleus);
-VALUE_TYPE_DEFINE_SINGLETON(TypeLepton);
-VALUE_TYPE_DEFINE_SINGLETON(TypeHadron);
+VALUE_TYPE_DEFINE_SINGLETON(TypeRcMethod)
+VALUE_TYPE_DEFINE_SINGLETON(TypeNucleus)
+VALUE_TYPE_DEFINE_SINGLETON(TypeLepton)
+VALUE_TYPE_DEFINE_SINGLETON(TypeHadron)
 // Math types.
-VALUE_TYPE_DEFINE_SINGLETON(TypeVec3);
-VALUE_TYPE_DEFINE_SINGLETON(TypeBound);
+VALUE_TYPE_DEFINE_SINGLETON(TypeVec3)
+VALUE_TYPE_DEFINE_SINGLETON(TypeBound)
 
 // Stream IO definitions.
 // Numbers.
-VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeDouble, Double);
-VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeInt, Int);
-VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeLong, Long);
-VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeSize, std::size_t);
+VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeDouble, Double)
+VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeInt, Int)
+VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeLong, Long)
+VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeSize, std::size_t)
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 	TypeRcMethod, RcMethod, 3,
 	ESC({ RcMethod::NONE, RcMethod::APPROX, RcMethod::EXACT }),
-	ESC({ { "none" }, { "approx" }, { "exact" } }));
+	ESC({ { "none" }, { "approx" }, { "exact" } }))
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 	TypeNucleus, part::Nucleus, 3,
 	ESC({ part::Nucleus::P, part::Nucleus::N, part::Nucleus::D }),
-	ESC({ { "p", "proton" }, { "n", "neutron" }, { "d", "deuteron" } }));
+	ESC({ { "p", "proton" }, { "n", "neutron" }, { "d", "deuteron" } }))
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 	TypeLepton, part::Lepton, 3,
 	ESC({ part::Lepton::E, part::Lepton::MU, part::Lepton::TAU }),
-	ESC({ { "e", "electron" }, { "mu", "muon" }, { "tau", "tauon" } }));
+	ESC({ { "e", "electron" }, { "mu", "muon" }, { "tau", "tauon" } }))
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 	TypeHadron, part::Hadron, 6,
 	ESC({ part::Hadron::PI_0, part::Hadron::PI_P, part::Hadron::PI_M, part::Hadron::K_0, part::Hadron::K_P, part::Hadron::K_M }),
-	ESC({ { "pi0", "pion0" }, { "pi+", "pion+" }, { "pi-", "pion-" }, { "K0", "kaon0" }, { "K+", "kaon+" }, { "K-", "kaon-" } }));
+	ESC({ { "pi0", "pion0" }, { "pi+", "pion+" }, { "pi-", "pion-" }, { "K0", "kaon0" }, { "K+", "kaon+" }, { "K-", "kaon-" } }))
 
 // ROOT conversion definitions.
 // Numbers.
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeDouble, Double, Double);
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeInt, Int, Int);
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeLong, Long, Long);
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeSize, std::size_t, std::size_t);
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeBool, bool, bool);
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeRcMethod, RcMethod, int);
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeNucleus, part::Nucleus, int);
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeLepton, part::Lepton, int);
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeHadron, part::Hadron, int);
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeDouble, Double, Double)
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeInt, Int, Int)
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeLong, Long, Long)
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeSize, std::size_t, std::size_t)
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeBool, bool, bool)
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeRcMethod, RcMethod, int)
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeNucleus, part::Nucleus, int)
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeLepton, part::Lepton, int)
+VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeHadron, part::Hadron, int)
 
 // Read/write to stream.
 

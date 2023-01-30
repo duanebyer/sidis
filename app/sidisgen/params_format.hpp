@@ -161,25 +161,25 @@ inline std::string p_name_init_uid(EventType ev_type) {
 
 // Built-in val types.
 // Version.
-VALUE_TYPE_DECLARE(TypeVersion, ValueVersion, Version, RootArrayI);
+VALUE_TYPE_DECLARE(TypeVersion, ValueVersion, Version, RootArrayI)
 // Numbers.
-VALUE_TYPE_DECLARE(TypeDouble, ValueDouble, Double, TParameter<Double>);
-VALUE_TYPE_DECLARE(TypeInt, ValueInt, Int, TParameter<Int>);
-VALUE_TYPE_DECLARE(TypeLong, ValueLong, Long, TParameter<Long>);
-VALUE_TYPE_DECLARE(TypeSize, ValueSize, std::size_t, TParameter<std::size_t>);
-VALUE_TYPE_DECLARE(TypeBool, ValueBool, bool, TParameter<bool>);
+VALUE_TYPE_DECLARE(TypeDouble, ValueDouble, Double, TParameter<Double>)
+VALUE_TYPE_DECLARE(TypeInt, ValueInt, Int, TParameter<Int>)
+VALUE_TYPE_DECLARE(TypeLong, ValueLong, Long, TParameter<Long>)
+VALUE_TYPE_DECLARE(TypeSize, ValueSize, std::size_t, TParameter<std::size_t>)
+VALUE_TYPE_DECLARE(TypeBool, ValueBool, bool, TParameter<bool>)
 // Strings.
-VALUE_TYPE_DECLARE(TypeString, ValueString, std::string, TObjString);
+VALUE_TYPE_DECLARE(TypeString, ValueString, std::string, TObjString)
 // Random number seeds.
-VALUE_TYPE_DECLARE(TypeSeedGen, ValueSeedGen, SeedGen, RootArrayI);
+VALUE_TYPE_DECLARE(TypeSeedGen, ValueSeedGen, SeedGen, RootArrayI)
 // Enums.
-VALUE_TYPE_DECLARE(TypeRcMethod, ValueRcMethod, RcMethod, TParameter<int>);
-VALUE_TYPE_DECLARE(TypeNucleus, ValueNucleus, sidis::part::Nucleus, TParameter<int>);
-VALUE_TYPE_DECLARE(TypeLepton, ValueLepton, sidis::part::Lepton, TParameter<int>);
-VALUE_TYPE_DECLARE(TypeHadron, ValueHadron, sidis::part::Hadron, TParameter<int>);
+VALUE_TYPE_DECLARE(TypeRcMethod, ValueRcMethod, RcMethod, TParameter<int>)
+VALUE_TYPE_DECLARE(TypeNucleus, ValueNucleus, sidis::part::Nucleus, TParameter<int>)
+VALUE_TYPE_DECLARE(TypeLepton, ValueLepton, sidis::part::Lepton, TParameter<int>)
+VALUE_TYPE_DECLARE(TypeHadron, ValueHadron, sidis::part::Hadron, TParameter<int>)
 // Math types.
-VALUE_TYPE_DECLARE(TypeVec3, ValueVec3, sidis::math::Vec3, RootArrayD);
-VALUE_TYPE_DECLARE(TypeBound, ValueBound, sidis::math::Bound, RootArrayD);
+VALUE_TYPE_DECLARE(TypeVec3, ValueVec3, sidis::math::Vec3, RootArrayD)
+VALUE_TYPE_DECLARE(TypeBound, ValueBound, sidis::math::Bound, RootArrayD)
 
 #endif
 
