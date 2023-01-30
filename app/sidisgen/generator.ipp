@@ -70,7 +70,7 @@ UnitEvent<D> Dist<D>::draw(RndEngine& rnd) const {
 	switch (_dist_type) {
 	case DistType::UNIFORM:
 		{
-			std::uniform_real_distribution dist;
+			std::uniform_real_distribution<Double> dist;
 			event.weight = 1.;
 			for (std::size_t dim = 0; dim < D; ++dim) {
 				event.vec[dim] = dist(rnd);

@@ -250,9 +250,9 @@ void alloc_sf(
 		sf_out->reset(new sf::set::ProkudinSfSet());
 	} else if (base == "test") {
 		std::cout << "Using test structure functions." << std::endl;
+		part::Nucleus target = params["setup.target"].any();
 		tmd_out->reset();
-		sf_out->reset(
-			new sf::set::TestSfSet(params["setup.target"].any()));
+		sf_out->reset(new sf::set::TestSfSet(target));
 	} else {
 		// TODO: Make this work on Windows as well, and make providing the
 		// extension optional.
