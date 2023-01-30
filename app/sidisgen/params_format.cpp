@@ -16,8 +16,8 @@ using namespace sidis;
 // Within a major version, there is forward compatibility (e.x. 1.4 is
 // forward-compatible with 1.5). Between major versions, there is no
 // compatibility.
-#define PARAMS_VERSION_MAJOR 4
-#define PARAMS_VERSION_MINOR 1
+#define PARAMS_VERSION_MAJOR 5
+#define PARAMS_VERSION_MINOR 0
 
 /*
 Tag overview.
