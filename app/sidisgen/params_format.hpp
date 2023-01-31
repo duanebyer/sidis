@@ -166,7 +166,6 @@ VALUE_TYPE_DECLARE(TypeVersion, ValueVersion, Version, RootArrayI)
 VALUE_TYPE_DECLARE(TypeDouble, ValueDouble, Double, TParameter<Double>)
 VALUE_TYPE_DECLARE(TypeInt, ValueInt, Int, TParameter<Int>)
 VALUE_TYPE_DECLARE(TypeLong, ValueLong, Long, TParameter<Long>)
-VALUE_TYPE_DECLARE(TypeSize, ValueSize, std::size_t, TParameter<std::size_t>)
 VALUE_TYPE_DECLARE(TypeBool, ValueBool, bool, TParameter<bool>)
 // Strings.
 VALUE_TYPE_DECLARE(TypeString, ValueString, std::string, TObjString)

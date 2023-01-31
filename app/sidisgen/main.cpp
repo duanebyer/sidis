@@ -799,7 +799,12 @@ int command_generate(std::string params_file_name) {
 	Double S = 2.*beam_energy*ps.M;
 
 	kin::Initial init(ps, beam_energy);
-	std::size_t num_events = params["mc.num_events"].any();
+	Long num_events = params["mc.num_events"].any();
+	if (num_events <= 0) {
+		throw Exception(
+			ERROR_PARAMS_INVALID,
+			"Parameter 'mc.num_events' must be greater than zero.");
+	}
 
 	// Prepare branches in output ROOT file.
 	event_file.cd();
@@ -883,9 +888,9 @@ int command_generate(std::string params_file_name) {
 	std::cout << "Generating events." << std::endl;
 	bool update_progress = true;
 	std::size_t percent = 0;
-	std::size_t next_percent_rem = num_events % 100;
-	std::size_t next_percent = num_events / 100;
-	for (std::size_t event_idx = 0; event_idx < num_events; ++event_idx) {
+	Long next_percent_rem = num_events % 100;
+	Long next_percent = num_events / 100;
+	for (Long event_idx = 0; event_idx < num_events; ++event_idx) {
 		// Update the progress bar.
 		while (event_idx >= next_percent + (next_percent_rem != 0)) {
 			percent += 1;

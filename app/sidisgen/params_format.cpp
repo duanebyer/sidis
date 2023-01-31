@@ -114,7 +114,7 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"Internally used UID of the generator produced during non-radiative "
 		"initialization. Should not be set manually.");
 	params.add_param(
-		"mc.nrad.init.max_cells", new ValueSize(262144),
+		"mc.nrad.init.max_cells", new ValueInt(262144),
 		{ "init", "dist", "nrad" },
 		"<int>", "max number of cells in non-radiative FOAM",
 		"Maximum number of cells that will be created during construction of "
@@ -154,7 +154,7 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"Internally used UID of the generator produced during radiative "
 		"initialization. Should not be set manually.");
 	params.add_param(
-		"mc.rad.init.max_cells", new ValueSize(262144),
+		"mc.rad.init.max_cells", new ValueInt(262144),
 		{ "init", "dist", "rad" },
 		"<int>", "max number of cells in radiative FOAM",
 		"Maximum number of cells that will be created during construction of "
@@ -174,7 +174,7 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"to number of cells. Accurate value allows for faster construction of "
 		"FOAM. Suggested between 0 and 2. Default '0.18'.");
 	params.add_param(
-		"mc.num_events", TypeSize::INSTANCE,
+		"mc.num_events", TypeLong::INSTANCE,
 		{ "gen", "num" },
 		"<int>", "number of events to generate",
 		"Total number of events that should be generated. Events are randomly "
@@ -430,7 +430,7 @@ void params_merge_count(
 		Params const& params_2,
 		std::string const& name,
 		Params* params_out) {
-	return params_merge_value<ValueSize>(
+	return params_merge_value<ValueLong>(
 		params_1, params_2, name, std::plus<std::size_t>(), params_out);
 }
 
@@ -498,8 +498,8 @@ void check_can_provide_foam(
 			if (uid_foam != uid_gen) {
 				throw make_incompatible_param_error(
 					uid_name,
-					ValueSize(uid_foam),
-					ValueSize(uid_gen));
+					ValueLong(uid_foam),
+					ValueLong(uid_gen));
 			}
 		}
 	}
@@ -559,8 +559,8 @@ Params merge_params(Params& params_1, Params& params_2) {
 		if (uid_1 != uid_2) {
 			throw make_incompatible_param_error(
 				uid_name,
-				ValueSize(uid_1),
-				ValueSize(uid_2));
+				ValueLong(uid_1),
+				ValueLong(uid_2));
 		}
 	}
 	// Check that the generation seeds are compatible, meaning non-overlapping,
@@ -689,7 +689,6 @@ VALUE_TYPE_DEFINE_SINGLETON(TypeVersion)
 VALUE_TYPE_DEFINE_SINGLETON(TypeDouble)
 VALUE_TYPE_DEFINE_SINGLETON(TypeInt)
 VALUE_TYPE_DEFINE_SINGLETON(TypeLong)
-VALUE_TYPE_DEFINE_SINGLETON(TypeSize)
 VALUE_TYPE_DEFINE_SINGLETON(TypeBool)
 // Strings.
 VALUE_TYPE_DEFINE_SINGLETON(TypeString)
@@ -709,7 +708,6 @@ VALUE_TYPE_DEFINE_SINGLETON(TypeBound)
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeDouble, Double)
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeInt, Int)
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeLong, Long)
-VALUE_TYPE_DEFINE_READ_WRITE_STREAM_SIMPLE(TypeSize, std::size_t)
 VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 	TypeRcMethod, RcMethod, 3,
 	ESC({ RcMethod::NONE, RcMethod::APPROX, RcMethod::EXACT }),
@@ -732,7 +730,6 @@ VALUE_TYPE_DEFINE_READ_WRITE_STREAM_ENUM(
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeDouble, Double, Double)
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeInt, Int, Int)
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeLong, Long, Long)
-VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeSize, std::size_t, std::size_t)
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeBool, bool, bool)
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeRcMethod, RcMethod, int)
 VALUE_TYPE_DEFINE_CONVERT_ROOT_NUMBER(TypeNucleus, part::Nucleus, int)

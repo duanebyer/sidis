@@ -202,14 +202,17 @@ DistParams::DistParams(EventType event_type, Params& params_full) {
 	dist_type = DistType::BUBBLE;
 	Double target_eff = params_full[p_name_init_target_eff(event_type)].any();
 	Double scale_exp = params_full[p_name_init_scale_exp(event_type)].any();
-	std::size_t max_cells = params_full[p_name_init_max_cells(event_type)].any();
+	Int max_cells = params_full[p_name_init_max_cells(event_type)].any();
+	if (max_cells <= 0) {
+		max_cells = 1;
+	}
 	new (&params.bubble) BubbleParams();
 	params.bubble.check_samples = 16384;
 	params.bubble.target_rel_var = std::expm1(-2. * std::log(target_eff));
 	params.bubble.scale_exp_est = scale_exp;
 	params.bubble.min_cell_explore_samples = 512;
 	params.bubble.hist_num_per_bin = 2;
-	params.bubble.max_explore_cells = max_cells;
+	params.bubble.max_explore_cells = static_cast<std::size_t>(max_cells);
 }
 
 Generator::Generator(Density density) :
