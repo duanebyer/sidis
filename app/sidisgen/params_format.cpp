@@ -446,14 +446,23 @@ std::runtime_error make_incompatible_param_error(
 }
 
 std::vector<EventType> p_enabled_event_types(Params& params) {
-	std::vector<EventType> result;
-	for (int idx = 0; idx < NUM_EVENT_TYPES; ++idx) {
-		EventType ev_type = static_cast<EventType>(idx);
-		if (params[p_name_enable(ev_type)].any()) {
-			result.push_back(ev_type);
+	RcMethod rc_method = params["phys.rc_method"].any();
+	if (rc_method == RcMethod::NONE) {
+		if (params[p_name_enable(EventType::NRAD)].any()) {
+			return { EventType::NRAD };
+		} else {
+			return { };
 		}
+	} else {
+		std::vector<EventType> result;
+		for (int idx = 0; idx < NUM_EVENT_TYPES; ++idx) {
+			EventType ev_type = static_cast<EventType>(idx);
+			if (params[p_name_enable(ev_type)].any()) {
+				result.push_back(ev_type);
+			}
+		}
+		return result;
 	}
-	return result;
 }
 
 void check_can_provide_foam(

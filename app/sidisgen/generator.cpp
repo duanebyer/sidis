@@ -159,6 +159,11 @@ RadDensity::RadDensity(Params& params, sf::SfSet const& sf) :
 		_S(2. * mass(_ps.target) * params["setup.beam_energy"].any().as<Double>()),
 		_beam_pol(params["setup.beam_pol"].any()),
 		_target_pol(params["setup.target_pol"].any()) {
+	if (_rc_method == RcMethod::NONE) {
+		throw std::runtime_error(
+			"Cannot enable radiative events while parameter 'phys.rc_method' "
+			"has a value of 'none'.");
+	}
 	// Validate that the `k_0_bar` maximum is above the soft threshold.
 	math::Bound k_0_bar = params["cut.k_0_bar"].any();
 	if (!(k_0_bar.max() > _soft_threshold)) {
