@@ -108,20 +108,19 @@ void root_write_integs(TDirectory& dir, IntegratorArray const& integs) {
 	RootArrayD norm(NUM_EVENT_TYPES + 1);
 
 	// Fill arrays.
-	Integrator total;
-	for (std::size_t ev_idx = 0; ev_idx < NUM_EVENT_TYPES + 1; ++ev_idx) {
-		Integrator const& integ = ev_idx < NUM_EVENT_TYPES ? integs.map[ev_idx] : total;
-		prime.SetAt(integ.prime(), ev_idx);
-		weight_mom.SetAt(integ.weights().ratio_m1_to_max1(), 4 * ev_idx + 0);
-		weight_mom.SetAt(integ.weights().ratio_m2_to_max2(), 4 * ev_idx + 1);
-		weight_mom.SetAt(integ.weights().ratio_m3_to_max3(), 4 * ev_idx + 2);
-		weight_mom.SetAt(integ.weights().ratio_m4_to_max4(), 4 * ev_idx + 3);
-		weight_max.SetAt(integ.weights().max1(), ev_idx);
+	for (std::size_t arr_idx = 0; arr_idx < NUM_EVENT_TYPES + 1; ++arr_idx) {
+		Integrator const& integ = arr_idx == 0 ? integs.total() : integs.map[arr_idx - 1];
+		prime.SetAt(integ.prime(), arr_idx);
+		weight_mom.SetAt(integ.weights().ratio_m1_to_max1(), 4 * arr_idx + 0);
+		weight_mom.SetAt(integ.weights().ratio_m2_to_max2(), 4 * arr_idx + 1);
+		weight_mom.SetAt(integ.weights().ratio_m3_to_max3(), 4 * arr_idx + 2);
+		weight_mom.SetAt(integ.weights().ratio_m4_to_max4(), 4 * arr_idx + 3);
+		weight_max.SetAt(integ.weights().max1(), arr_idx);
 		// TODO: We treat counts as floating point numbers for the statistics,
 		// check if this is valid later.
-		count.SetAt(integ.count(), ev_idx);
-		count_acc.SetAt(integ.count_acc(), ev_idx);
-		norm.SetAt(integ.norm(), ev_idx);
+		count.SetAt(integ.count(), arr_idx);
+		count_acc.SetAt(integ.count_acc(), arr_idx);
+		norm.SetAt(integ.norm(), arr_idx);
 	}
 
 	// Write arrays.
@@ -166,19 +165,19 @@ IntegratorArray root_read_integs(TDirectory& dir) {
 	}
 
 	// Fill integrators.
-	for (std::size_t ev_idx = 0; ev_idx < NUM_EVENT_TYPES; ++ev_idx) {
+	for (std::size_t arr_idx = 1; arr_idx < NUM_EVENT_TYPES + 1; ++arr_idx) {
 		Stats weights = Stats(
 			{
-				weight_mom->At(4 * ev_idx + 0),
-				weight_mom->At(4 * ev_idx + 1),
-				weight_mom->At(4 * ev_idx + 2),
-				weight_mom->At(4 * ev_idx + 3),
+				weight_mom->At(4 * arr_idx + 0),
+				weight_mom->At(4 * arr_idx + 1),
+				weight_mom->At(4 * arr_idx + 2),
+				weight_mom->At(4 * arr_idx + 3),
 			},
-			weight_max->At(ev_idx),
-			count->At(ev_idx));
-		integs.map[ev_idx] = Integrator(
-			1. / prime->At(ev_idx),
-			count_acc->At(ev_idx),
+			weight_max->At(arr_idx),
+			count->At(arr_idx));
+		integs.map[arr_idx - 1] = Integrator(
+			1. / prime->At(arr_idx),
+			count_acc->At(arr_idx),
 			weights);
 	}
 	return integs;
@@ -962,7 +961,7 @@ int command_generate(std::string params_file_name) {
 		} while (event.weight == 0.);
 
 		// Fill in the branches.
-		ev_idx = static_cast<Int>(ev_type);
+		ev_idx = static_cast<Int>(ev_type) + 1;
 		weight = event.weight;
 		switch (event.event_type) {
 		case EventType::NRAD:
