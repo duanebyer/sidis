@@ -5,6 +5,9 @@ scattering (SIDIS) with QED radiative corrections, following closely work done
 in [1]. The project is divided into a library component `sidis` for calculating
 SIDIS cross-sections, and a binary component `sidisgen` for generating events.
 
+A detailed description of the generator can be found on
+[the arxiv](https://arxiv.org/abs/2210.03785).
+
 ## Quick start
 
 ### Generator
