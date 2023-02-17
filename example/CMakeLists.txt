@@ -10,6 +10,18 @@ target_compile_options(
 	PRIVATE
 	${Sidis_COMPILER_WARNINGS})
 
+add_executable(alpha_qed alpha_qed.cpp)
+target_link_libraries(alpha_qed PRIVATE sidis)
+target_compile_features(alpha_qed PRIVATE cxx_std_11)
+set_target_properties(
+	alpha_qed PROPERTIES
+	CXX_EXTENSIONS OFF
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+target_compile_options(
+	alpha_qed
+	PRIVATE
+	${Sidis_COMPILER_WARNINGS})
+
 add_executable(random_phase_space random_phase_space.cpp)
 target_link_libraries(random_phase_space PRIVATE sidis)
 target_compile_features(random_phase_space PRIVATE cxx_std_11)

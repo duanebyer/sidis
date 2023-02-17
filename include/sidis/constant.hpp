@@ -19,9 +19,6 @@ static Real const SQRT_2 = 1.414213562373095048801688724209698078569671875376948
 /// Positive infinity.
 extern Real const INF;
 
-/// Fine structure constant.
-static Real const ALPHA = 7.2973525664e-3L;
-
 /// \name Particle masses
 /// \sa ParticleGroup
 /// \{

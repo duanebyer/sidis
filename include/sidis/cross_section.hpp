@@ -14,6 +14,9 @@ namespace kin {
 	struct Kinematics;
 	struct KinematicsRad;
 }
+namespace ph {
+	struct Phenom;
+}
 namespace lep {
 	struct LepBornUU;
 	struct LepBornUP;
@@ -133,37 +136,54 @@ math::IntegParams const DEFAULT_INTEG_PARAMS {
  * \defgroup GeneralXsGroup General cross-section functions
  * Functions for doing various kinds of cross-section calculations. They take a
  * kin::Kinematics, an sf::SfSet for structure functions, and the beam and
- * target polarizations.
+ * target polarizations. Additionally, a ph::Phenom object may (optionally) be
+ * provided, to use custom phenomenological inputs.
  * \ingroup XsGroup
  */
 /// \{
 
 /// %Born cross-section \f$\sigma_{B}\f$.
 Real born(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
+/// \copydoc born()
+Real born(kin::Kinematics const& kin, ph::Phenom const& phenom, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
 /// Anomalous magnetic moment cross-section \f$\sigma_{AMM}\f$, related to
 /// vertex correction diagram.
 Real amm(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
+/// \copydoc amm()
+Real amm(kin::Kinematics const& kin, ph::Phenom const& phenom, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
 /// Non-radiative cross-section neglecting infrared-divergent-free soft photon
 /// part \f$\sigma_{\text{nrad}}^{IR}\f$.
 Real nrad_ir(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF);
+/// \copydoc nrad_ir()
+Real nrad_ir(kin::Kinematics const& kin, ph::Phenom const& phenom, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF);
 /// Non-radiative cross-section \f$\sigma_{\text{nrad}}\f$, integrated over the
 /// radiated photon with energy below soft cutoff \p k_0_bar (if \p k_0_bar is
 /// set to infinity (default), then the entire radiative part is integrated
 /// over).
 math::EstErr nrad_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
+/// \copydoc nrad_integ()
+math::EstErr nrad_integ(kin::Kinematics const& kin, ph::Phenom const& phenom, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
 /// Radiative cross-section with infrared divergence removed
 /// \f$\sigma_{R}^{F}\f$.
 Real rad_f(kin::KinematicsRad const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
+/// \copydoc rad_f()
+Real rad_f(kin::KinematicsRad const& kin, ph::Phenom const& phenom, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
 /// Radiative cross-section \f$\sigma_{R}\f$.
 Real rad(kin::KinematicsRad const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
+/// \copydoc rad()
+Real rad(kin::KinematicsRad const& kin, ph::Phenom const& phenom, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta);
 
 /// Radiative cross-section with infrared divergence removed
 /// \f$\sigma_{R}^{F}\f$, integrated over the radiated photon with energy below
 /// soft cutoff \p k_0_bar.
 math::EstErr rad_f_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
+/// \copydoc rad_f_integ()
+math::EstErr rad_f_integ(kin::Kinematics const& kin, ph::Phenom const& phenom, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
 /// Radiative cross-section \f$\sigma_{R}\f$, integrated over the radiated
 /// photon with energy above soft cutoff \p k_0_bar.
 math::EstErr rad_integ(kin::Kinematics const& kin, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
+/// \copydoc rad_integ()
+math::EstErr rad_integ(kin::Kinematics const& kin, ph::Phenom const& phenom, sf::SfSet const& sf, Real lambda_e, math::Vec3 eta, Real k_0_bar=INF, math::IntegParams params=DEFAULT_INTEG_PARAMS);
 /// \}
 
 /// \name Born correction factors
@@ -200,7 +220,7 @@ Real delta_vac_had(kin::Kinematics const& kin);
 
 struct Born {
 	Real coeff;
-	explicit Born(kin::Kinematics const& kin);
+	Born(kin::Kinematics const& kin, ph::Phenom const& phenom);
 };
 
 Real born_uu_base(Born const& b, lep::LepBornUU const& lep, had::HadUU const& had);
@@ -226,7 +246,7 @@ math::Vec3 born_lp_base(Born const& b, lep::LepBornLX const& lep, had::HadLP con
 
 struct Amm {
 	Real coeff;
-	explicit Amm(kin::Kinematics const& kin);
+	Amm(kin::Kinematics const& kin, ph::Phenom const& phenom);
 };
 
 Real amm_uu_base(Amm const& b, lep::LepAmmUU const& lep, had::HadUU const& had);
@@ -255,7 +275,7 @@ math::Vec3 amm_lp_base(Amm const& b, lep::LepAmmLX const& lep, had::HadLP const&
 struct Nrad {
 	Real coeff_born;
 	Real coeff_amm;
-	explicit Nrad(kin::Kinematics const& kin, Real k_0_bar);
+	Nrad(kin::Kinematics const& kin, ph::Phenom const& phenom, Real k_0_bar);
 };
 
 Real nrad_ir_uu_base(Nrad const& b, lep::LepNradUU const& lep, had::HadUU const& had);
@@ -285,7 +305,7 @@ math::Vec3 nrad_ir_lp_base(Nrad const& b, lep::LepNradLX const& lep, had::HadLP 
 struct Rad {
 	Real coeff;
 	Real R;
-	explicit Rad(kin::KinematicsRad const& kin);
+	Rad(kin::KinematicsRad const& kin, ph::Phenom const& phenom);
 };
 
 Real rad_uu_base(Rad const& b, lep::LepRadUU const& lep, had::HadRadUU const& had);
