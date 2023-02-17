@@ -11,6 +11,7 @@
 #include "sidis/hadronic_coeff.hpp"
 #include "sidis/kinematics.hpp"
 #include "sidis/leptonic_coeff.hpp"
+#include "sidis/phenom.hpp"
 #include "sidis/structure_function.hpp"
 #include "sidis/vector.hpp"
 #include "sidis/extra/integrate.hpp"
@@ -22,6 +23,7 @@ using namespace sidis::had;
 using namespace sidis::kin;
 using namespace sidis::lep;
 using namespace sidis::math;
+using namespace sidis::ph;
 using namespace sidis::sf;
 using namespace sidis::xs;
 
@@ -163,42 +165,42 @@ Real delta_vert_rad_0(Kinematics const& kin) {
 
 }
 
-Real xs::born(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
-	Born b(kin);
+Real xs::born(Kinematics const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta) {
+	Born b(kin, phenom);
 	return SIDIS_MACRO_XS_FROM_BASE(born, LepBorn, Had, kin, sf, b, lambda_e, eta);
 }
 
-Real xs::amm(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
-	Amm b(kin);
+Real xs::amm(Kinematics const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta) {
+	Amm b(kin, phenom);
 	return SIDIS_MACRO_XS_FROM_BASE(amm, LepAmm, Had, kin, sf, b, lambda_e, eta);
 }
 
-Real xs::nrad_ir(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar) {
-	Nrad b(kin, k_0_bar);
+Real xs::nrad_ir(Kinematics const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar) {
+	Nrad b(kin, phenom, k_0_bar);
 	return SIDIS_MACRO_XS_FROM_BASE(nrad_ir, LepNrad, Had, kin, sf, b, lambda_e, eta);
 }
 
-Real xs::rad(KinematicsRad const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
-	Rad b(kin);
+Real xs::rad(KinematicsRad const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta) {
+	Rad b(kin, phenom);
 	return SIDIS_MACRO_XS_FROM_BASE_P(rad, LepRad, HadRad, kin, sf, b, lambda_e, eta);
 }
 
-Real xs::rad_f(KinematicsRad const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
-	Rad b(kin);
+Real xs::rad_f(KinematicsRad const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta) {
+	Rad b(kin, phenom);
 	return SIDIS_MACRO_XS_FROM_BASE_P(rad_f, LepRad, HadRadF, kin, sf, b, lambda_e, eta);
 }
 
-EstErr xs::nrad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
+EstErr xs::nrad_integ(Kinematics const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
 	// The soft part of the radiative cross-section (below `k_0_bar`) is bundled
 	// into the return value here.
-	Real xs_nrad_ir = nrad_ir(kin, sf, lambda_e, eta, k_0_bar);
+	Real xs_nrad_ir = nrad_ir(kin, phenom, sf, lambda_e, eta, k_0_bar);
 	// TODO: The integration parameters should be modified here to account for
 	// the `xs_nrad_ir` contribution.
-	EstErr xs_rad_f = rad_f_integ(kin, sf, lambda_e, eta, k_0_bar, params);
+	EstErr xs_rad_f = rad_f_integ(kin, phenom, sf, lambda_e, eta, k_0_bar, params);
 	return { xs_nrad_ir + xs_rad_f.val, xs_rad_f.err };
 }
 
-EstErr xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
+EstErr xs::rad_f_integ(Kinematics const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
 	HadXX had_0(kin, sf);
 	CutRad cut;
 	cut.k_0_bar = Bound(0., k_0_bar);
@@ -210,7 +212,7 @@ EstErr xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Ve
 				return 0.;
 			}
 
-			Rad b(kin_rad);
+			Rad b(kin_rad, phenom);
 			LepRadXX lep(kin_rad);
 			HadRadFXX had(kin_rad, sf, had_0);
 			Real uu = rad_f_uu_base(b, lep, had);
@@ -234,7 +236,7 @@ EstErr xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Ve
 	return xs_integ;
 }
 
-EstErr xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
+EstErr xs::rad_integ(Kinematics const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
 	CutRad cut;
 	cut.k_0_bar = Bound(k_0_bar, INF);
 	EstErr xs_integ = integrate<3>(
@@ -245,7 +247,7 @@ EstErr xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3
 				return 0.;
 			}
 
-			Rad b(kin_rad);
+			Rad b(kin_rad, phenom);
 			LepRadXX lep(kin_rad);
 			HadRadXX had(kin_rad, sf);
 			Real uu = rad_uu_base(b, lep, had);
@@ -263,6 +265,31 @@ EstErr xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3
 		std::array<Real, 3>{ 1., 1., 1. },
 		params);
 	return xs_integ;
+}
+
+Real xs::born(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
+	return born(kin, Phenom(kin), sf, lambda_e, eta);
+}
+Real xs::amm(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
+	return amm(kin, Phenom(kin), sf, lambda_e, eta);
+}
+Real xs::nrad_ir(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar) {
+	return nrad_ir(kin, Phenom(kin), sf, lambda_e, eta, k_0_bar);
+}
+Real xs::rad(KinematicsRad const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
+	return rad(kin, Phenom(kin.project()), sf, lambda_e, eta);
+}
+Real xs::rad_f(KinematicsRad const& kin, SfSet const& sf, Real lambda_e, Vec3 eta) {
+	return rad_f(kin, Phenom(kin.project()), sf, lambda_e, eta);
+}
+EstErr xs::nrad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
+	return nrad_integ(kin, Phenom(kin), sf, lambda_e, eta, k_0_bar, params);
+}
+EstErr xs::rad_f_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
+	return rad_f_integ(kin, Phenom(kin), sf, lambda_e, eta, k_0_bar, params);
+}
+EstErr xs::rad_integ(Kinematics const& kin, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
+	return rad_integ(kin, Phenom(kin), sf, lambda_e, eta, k_0_bar, params);
 }
 
 // Radiative corrections to Born cross-section.
@@ -324,20 +351,10 @@ Real xs::delta_vac_lep(Kinematics const& kin) {
 	return delta;
 }
 
-Real xs::delta_vac_had(Kinematics const& kin) {
-	if (kin.Q_sq < 1.) {
-		return -(2.*PI)/ALPHA*(-1.345e-9L - 2.302e-3L*std::log(1. + 4.091L*kin.Q_sq));
-	} else if (kin.Q_sq < 64.) {
-		return -(2.*PI)/ALPHA*(-1.512e-3L - 2.822e-3L*std::log(1. + 1.218L*kin.Q_sq));
-	} else {
-		return -(2.*PI)/ALPHA*(-1.1344e-3L - 3.0680e-3L*std::log(1. + 0.99992L*kin.Q_sq));
-	}
-}
-
 // Born base functions.
-Born::Born(Kinematics const& kin) :
+Born::Born(Kinematics const& kin, Phenom const& phenom) :
 	// Equation [1.15]. The `Q^4` factor has been absorbed into `C_1`.
-	coeff((sq(ALPHA)*kin.S*sq(kin.S_x))/(8.*kin.M*kin.ph_l*kin.lambda_S)) { }
+	coeff((sq(phenom.alpha_qed)*kin.S*sq(kin.S_x))/(8.*kin.M*kin.ph_l*kin.lambda_S)) { }
 
 Real xs::born_uu_base(Born const& b, LepBornUU const& lep, HadUU const& had) {
 	return b.coeff*(
@@ -385,14 +402,14 @@ Vec3 xs::born_lp_base(Born const& b, LepBornLX const& lep, HadLP const& had) {
 }
 
 // AMM base functions.
-Amm::Amm(Kinematics const& kin) {
+Amm::Amm(Kinematics const& kin, Phenom const& phenom) {
 	// Equation [1.53]. The `Q^4` factor has been absorbed into `C_1`.
 	Real lambda_m = kin.Q_sq*(kin.Q_sq + 4.*sq(kin.m));
 	Real lambda_m_sqrt = std::sqrt(lambda_m);
 	Real diff_m = sqrt1p_1m((4.*sq(kin.m))/kin.Q_sq);
 	Real sum_m = 2. + diff_m;
 	Real L_m = 1./lambda_m_sqrt*std::log(sum_m/diff_m);
-	coeff = L_m*kin.Q_sq*(std::pow(ALPHA, 3)*sq(kin.m)*kin.S*sq(kin.S_x))
+	coeff = L_m*kin.Q_sq*(std::pow(phenom.alpha_qed, 3)*sq(kin.m)*kin.S*sq(kin.S_x))
 		/(16.*PI*kin.M*kin.ph_l*kin.lambda_S);
 }
 
@@ -442,13 +459,13 @@ Vec3 xs::amm_lp_base(Amm const& b, LepAmmLX const& lep, HadLP const& had) {
 }
 
 // Non-radiative infrared-divergence-free base functions.
-Nrad::Nrad(Kinematics const& kin, Real k_0_bar) {
-	Born born(kin);
-	Amm amm(kin);
-	Real born_factor = 1. + ALPHA/PI*(
+Nrad::Nrad(Kinematics const& kin, Phenom const& phenom, Real k_0_bar) {
+	Born born(kin, phenom);
+	Amm amm(kin, phenom);
+	Real born_factor = 1. + phenom.alpha_qed/PI*(
 		delta_vert_rad_ir(kin, k_0_bar)
 		+ delta_vac_lep(kin)
-		+ delta_vac_had(kin));
+		+ phenom.delta_vac_had);
 	coeff_born = born_factor*born.coeff;
 	coeff_amm = amm.coeff;
 }
@@ -507,9 +524,9 @@ Vec3 xs::nrad_ir_lp_base(Nrad const& b, LepNradLX const& lep, HadLP const& had) 
 }
 
 // Radiative base functions.
-Rad::Rad(KinematicsRad const& kin) {
+Rad::Rad(KinematicsRad const& kin, Phenom const& phenom) {
 	// Equation [1.43].
-	coeff = -(std::pow(ALPHA, 3)*kin.S*sq(kin.S_x))
+	coeff = -(std::pow(phenom.alpha_qed, 3)*kin.S*sq(kin.S_x))
 		/(64.*sq(PI)*kin.M*kin.ph_l*kin.lambda_S*kin.lambda_Y_sqrt);
 	R = kin.R;
 }

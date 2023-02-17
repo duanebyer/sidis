@@ -10,6 +10,7 @@ set(
 	"sidis/integ_params.hpp"
 	"sidis/kinematics.hpp"
 	"sidis/particle.hpp"
+	"sidis/phenom.hpp"
 	"sidis/tmd.hpp"
 	"sidis/transform.hpp"
 	"sidis/vector.hpp"
@@ -82,6 +83,7 @@ add_library(
 	leptonic_coeff.cpp
 	math.cpp
 	particle.cpp
+	phenom.cpp
 	structure_function.cpp
 	tmd.cpp
 	transform.cpp

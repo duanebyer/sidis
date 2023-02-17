@@ -19,6 +19,9 @@ using namespace sidis;
 
 namespace {
 
+// We use a fixed value of alpha for the comparisons.
+Real const ALPHA = 7.2973525664e-3L;
+
 struct Input {
 	int sf_set_idx;
 	Real k0_cut;
@@ -210,9 +213,10 @@ TEST_CASE(
 	Real beam_pol = input.beam_pol;
 	math::Vec3 eta = frame::hadron_from_target(kin) * input.target_pol;
 	// Compute the cross-sections.
-	Real born = xs::born(kin, *sf, beam_pol, eta);
-	Real amm = xs::amm(kin, *sf, beam_pol, eta);
-	Real nrad = xs::nrad_ir(kin, *sf, beam_pol, eta, input.k0_cut);
+	ph::Phenom phenom(ALPHA, kin);
+	Real born = xs::born(kin, phenom, *sf, beam_pol, eta);
+	Real amm = xs::amm(kin, phenom, *sf, beam_pol, eta);
+	Real nrad = xs::nrad_ir(kin, phenom, *sf, beam_pol, eta, input.k0_cut);
 
 	// Print state information.
 	std::stringstream ss;
@@ -282,8 +286,9 @@ TEST_CASE(
 	Real beam_pol = input.beam_pol;
 	math::Vec3 eta = frame::hadron_from_target(kin.project()) * input.target_pol;
 	// Compute the cross-sections.
-	Real rad_f = xs::rad_f(kin, *sf, beam_pol, eta);
-	Real rad = xs::rad(kin, *sf, beam_pol, eta);
+	ph::Phenom phenom(ALPHA, kin.project());
+	Real rad_f = xs::rad_f(kin, phenom, *sf, beam_pol, eta);
+	Real rad = xs::rad(kin, phenom, *sf, beam_pol, eta);
 
 	// Print state information.
 	std::stringstream ss;

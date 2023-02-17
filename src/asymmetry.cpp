@@ -8,6 +8,7 @@
 #include "sidis/leptonic_coeff.hpp"
 #include "sidis/kinematics.hpp"
 #include "sidis/particle.hpp"
+#include "sidis/phenom.hpp"
 #include "sidis/structure_function.hpp"
 #include "sidis/vector.hpp"
 #include "sidis/extra/integrate.hpp"
@@ -17,6 +18,7 @@ using namespace sidis::asym;
 using namespace sidis::kin;
 using namespace sidis::math;
 using namespace sidis::part;
+using namespace sidis::ph;
 
 namespace {
 
@@ -36,7 +38,9 @@ EstErr ut_integ_h(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
-				xs::Born b(kin);
+				// TODO: Find a way to expose phenomenological inputs in the
+				// function interface.
+				xs::Born b(kin, Phenom(kin));
 				lep::LepBornUX lep(kin);
 				had::HadUP had(kin, sf);
 				Vec3 eta(
@@ -59,7 +63,7 @@ EstErr ut_integ_h(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
-				xs::Nrad b(kin, INF);
+				xs::Nrad b(kin, Phenom(kin), INF);
 				lep::LepNradUX lep(kin);
 				had::HadUP had(kin, sf);
 				Vec3 eta(
@@ -86,7 +90,7 @@ EstErr ut_integ_h(
 				}
 				jacobian *= phi_h_b.size();
 
-				xs::Rad b(kin_rad);
+				xs::Rad b(kin_rad, Phenom(kin));
 				sf::SfUP shift_sf = sf_set.sf_up(
 					ps.hadron,
 					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
@@ -131,7 +135,7 @@ EstErr asym::uu_integ(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
-				xs::Born born(kin);
+				xs::Born born(kin, Phenom(kin));
 				lep::LepBornUU lep(kin);
 				had::HadUU had(kin, sf);
 				return xs::born_uu_base(born, lep, had);
@@ -149,7 +153,7 @@ EstErr asym::uu_integ(
 			[&](Real phi_h) {
 				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
 				Kinematics kin(ps, S, ph_space);
-				xs::Nrad b(kin, INF);
+				xs::Nrad b(kin, Phenom(kin), INF);
 				lep::LepNradUU lep(kin);
 				had::HadUU had(kin, sf);
 				return xs::nrad_ir_uu_base(b, lep, had);
@@ -171,7 +175,7 @@ EstErr asym::uu_integ(
 				}
 				jacobian *= phi_h_b.size();
 
-				xs::Rad b(kin_rad);
+				xs::Rad b(kin_rad, Phenom(kin));
 				sf::SfUU shift_sf = sf_set.sf_uu(
 					ps.hadron,
 					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
