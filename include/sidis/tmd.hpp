@@ -1,5 +1,5 @@
-#ifndef SIDIS_Tmd_HPP
-#define SIDIS_Tmd_HPP
+#ifndef SIDIS_TMD_HPP
+#define SIDIS_TMD_HPP
 
 #include <vector>
 
@@ -27,7 +27,7 @@ class TmdSet {
 public:
 	/// The number of flavors supported by the TmdSet.
 	unsigned const flavor_count;
-	/// What type of part::Nucleus the structure functions are valid for.
+	/// What type of part::Nucleus the TMDs are valid for.
 	part::Nucleus const target;
 
 	/// Initialize a TMDSet with \p flavor_count number of flavors and for the
@@ -35,6 +35,10 @@ public:
 	TmdSet(unsigned flavor_count, part::Nucleus target) :
 		flavor_count(flavor_count),
 		target(target) { }
+	TmdSet(TmdSet const&) = delete;
+	TmdSet(TmdSet&&) = delete;
+	TmdSet& operator=(TmdSet const&) = delete;
+	TmdSet& operator=(TmdSet&&) = delete;
 	virtual ~TmdSet() = default;
 
 	/// Charge of a given flavor (for use as the weighting when computing
