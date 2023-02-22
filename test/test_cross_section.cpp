@@ -152,27 +152,27 @@ TEST_CASE(
 
 	part::Hadron h = part::Hadron::PI_P;
 
-	sf::Sf sf_1 = sf_set_1.sf(h, x, z, Q_sq, ph_t_sq);
-	sf::Sf sf_2 = sf_set_2.sf(h, x, z, Q_sq, ph_t_sq);
+	sf::SfLP sf_1 = sf_set_1.sf_lp(h, x, z, Q_sq, ph_t_sq);
+	sf::SfLP sf_2 = sf_set_2.sf_lp(h, x, z, Q_sq, ph_t_sq);
 
 	Real prec = 1e2*std::numeric_limits<Real>::epsilon();
 	// Two of the structure functions are commented out. For technical reasons,
 	// those two are only approximately equal instead of exactly equal.
-	CHECK_THAT(sf_1.F_UUT, RelMatcher<Real>(sf_2.F_UUT, prec));
-	CHECK_THAT(sf_1.F_UU_cos_phih, RelMatcher<Real>(sf_2.F_UU_cos_phih, prec));
-	CHECK_THAT(sf_1.F_UU_cos_2phih, RelMatcher<Real>(sf_2.F_UU_cos_2phih, prec));
-	CHECK_THAT(sf_1.F_UL_sin_phih, RelMatcher<Real>(sf_2.F_UL_sin_phih, prec));
-	CHECK_THAT(sf_1.F_UL_sin_2phih, RelMatcher<Real>(sf_2.F_UL_sin_2phih, prec));
-	CHECK_THAT(sf_1.F_UTT_sin_phih_m_phis, RelMatcher<Real>(sf_2.F_UTT_sin_phih_m_phis, prec));
-	//CHECK_THAT(sf_1.F_UT_sin_2phih_m_phis, RelMatcher<Real>(sf_2.F_UT_sin_2phih_m_phis, prec));
-	CHECK_THAT(sf_1.F_UT_sin_3phih_m_phis, RelMatcher<Real>(sf_2.F_UT_sin_3phih_m_phis, prec));
-	//CHECK_THAT(sf_1.F_UT_sin_phis, RelMatcher<Real>(sf_2.F_UT_sin_phis, prec));
-	CHECK_THAT(sf_1.F_UT_sin_phih_p_phis, RelMatcher<Real>(sf_2.F_UT_sin_phih_p_phis, prec));
-	CHECK_THAT(sf_1.F_LL, RelMatcher<Real>(sf_2.F_LL, prec));
-	CHECK_THAT(sf_1.F_LL_cos_phih, RelMatcher<Real>(sf_2.F_LL_cos_phih, prec));
-	CHECK_THAT(sf_1.F_LT_cos_phih_m_phis, RelMatcher<Real>(sf_2.F_LT_cos_phih_m_phis, prec));
-	CHECK_THAT(sf_1.F_LT_cos_2phih_m_phis, RelMatcher<Real>(sf_2.F_LT_cos_2phih_m_phis, prec));
-	CHECK_THAT(sf_1.F_LT_cos_phis, RelMatcher<Real>(sf_2.F_LT_cos_phis, prec));
+	CHECK_THAT(sf_1.uu.F_UUT, RelMatcher<Real>(sf_2.uu.F_UUT, prec));
+	CHECK_THAT(sf_1.uu.F_UU_cos_phih, RelMatcher<Real>(sf_2.uu.F_UU_cos_phih, prec));
+	CHECK_THAT(sf_1.uu.F_UU_cos_2phih, RelMatcher<Real>(sf_2.uu.F_UU_cos_2phih, prec));
+	CHECK_THAT(sf_1.ul.F_UL_sin_phih, RelMatcher<Real>(sf_2.ul.F_UL_sin_phih, prec));
+	CHECK_THAT(sf_1.ul.F_UL_sin_2phih, RelMatcher<Real>(sf_2.ul.F_UL_sin_2phih, prec));
+	CHECK_THAT(sf_1.ut.F_UTT_sin_phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UTT_sin_phih_m_phis, prec));
+	//CHECK_THAT(sf_1.ut.F_UT_sin_2phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_2phih_m_phis, prec));
+	CHECK_THAT(sf_1.ut.F_UT_sin_3phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_3phih_m_phis, prec));
+	//CHECK_THAT(sf_1.ut.F_UT_sin_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_phis, prec));
+	CHECK_THAT(sf_1.ut.F_UT_sin_phih_p_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_phih_p_phis, prec));
+	CHECK_THAT(sf_1.ll.F_LL, RelMatcher<Real>(sf_2.ll.F_LL, prec));
+	CHECK_THAT(sf_1.ll.F_LL_cos_phih, RelMatcher<Real>(sf_2.ll.F_LL_cos_phih, prec));
+	CHECK_THAT(sf_1.lt.F_LT_cos_phih_m_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_phih_m_phis, prec));
+	CHECK_THAT(sf_1.lt.F_LT_cos_2phih_m_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_2phih_m_phis, prec));
+	CHECK_THAT(sf_1.lt.F_LT_cos_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_phis, prec));
 }
 
 TEST_CASE(

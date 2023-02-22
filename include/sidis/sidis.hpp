@@ -242,7 +242,7 @@ namespace sidis {
  * \subsection CalcXsSection Cross-sections
  *
  * As per equation (8), the cross-sections can be calculated in a number of
- * parts. For example, the `xs::born_ut1_base()` function computes the term
+ * parts. For example, the `xs::born_base_ut1()` function computes the term
  * \f$\sigma_{B}^{UT_1}\f$. For ease of use, the xs::born() function can combine
  * all of these pieces with the provided polarizations to give a cross-section
  * (and similarly with the other types of cross-sections). See the

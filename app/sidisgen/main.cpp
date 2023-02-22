@@ -840,7 +840,7 @@ int command_generate(std::string params_file_name) {
 			}
 		}
 	}
-	sf::SfXX sf_out;
+	sf::SfLP sf_out;
 	if (write_sf_set) {
 		// TODO: Right now, this is depending on the `SfXX` structure having a
 		// very specific format. This isn't guaranteed to be true in the future,
@@ -986,7 +986,7 @@ int command_generate(std::string params_file_name) {
 					k = TLorentzVector();
 				}
 				if (write_sf_set) {
-					sf_out = sf->sf(hadron, x, z, S * x * y, ph_t_sq);
+					sf_out = sf->sf_lp(hadron, x, z, S * x * y, ph_t_sq);
 				}
 			}
 			break;
@@ -1012,7 +1012,7 @@ int command_generate(std::string params_file_name) {
 					k = convert_vec4(fin.k);
 				}
 				if (write_sf_set) {
-					sf_out = sf->sf(hadron, x, z, S * x * y, ph_t_sq);
+					sf_out = sf->sf_lp(hadron, x, z, S * x * y, ph_t_sq);
 				}
 			}
 			break;

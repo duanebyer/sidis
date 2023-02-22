@@ -18,60 +18,43 @@ namespace ph {
 	struct Phenom;
 }
 namespace lep {
-	struct LepBornUU;
-	struct LepBornUP;
-	struct LepBornUX;
-	struct LepBornLU;
-	struct LepBornLP;
-	struct LepBornLX;
-	struct LepBornXX;
+	struct LepBornBaseUU;
+	struct LepBornBaseUP;
+	struct LepBornBaseLU;
+	struct LepBornBaseLP;
 
-	struct LepAmmUU;
-	struct LepAmmUP;
-	struct LepAmmUX;
-	struct LepAmmLU;
-	struct LepAmmLP;
-	struct LepAmmLX;
-	struct LepAmmXX;
+	struct LepAmmBaseUU;
+	struct LepAmmBaseUP;
+	struct LepAmmBaseLU;
+	struct LepAmmBaseLP;
 
-	struct LepNradUU;
-	struct LepNradUP;
-	struct LepNradUX;
-	struct LepNradLU;
-	struct LepNradLP;
-	struct LepNradLX;
-	struct LepNradXX;
+	struct LepNradBaseUU;
+	struct LepNradBaseUP;
+	struct LepNradBaseLU;
+	struct LepNradBaseLP;
 
-	struct LepRadUU;
-	struct LepRadUP;
-	struct LepRadUX;
-	struct LepRadLU;
-	struct LepRadLP;
-	struct LepRadLX;
-	struct LepRadXX;
+	struct LepRadBaseUU;
+	struct LepRadBaseUP;
+	struct LepRadBaseLU;
+	struct LepRadBaseLP;
 }
 namespace had {
-	struct HadUU;
-	struct HadUL;
-	struct HadUT;
-	struct HadUP;
-	struct HadLU;
-	struct HadLL;
-	struct HadLT;
-	struct HadLP;
-	struct HadXX;
+	struct HadBaseUU;
+	struct HadBaseUL;
+	struct HadBaseUT;
+	struct HadBaseLU;
+	struct HadBaseLL;
+	struct HadBaseLT;
 
-	struct HadRadUU;
-	struct HadRadUP;
-	struct HadRadLU;
-	struct HadRadLP;
-	struct HadRadXX;
+	struct HadRadBaseUU;
+	struct HadRadBaseUP;
+	struct HadRadBaseLU;
+	struct HadRadBaseLP;
 
-	struct HadRadFUU;
-	struct HadRadFUP;
-	struct HadRadFLU;
-	struct HadRadFLP;
-	struct HadRadFXX;
+	struct HadRadFBaseUU;
+	struct HadRadFBaseUP;
+	struct HadRadFBaseLU;
+	struct HadRadFBaseLP;
 }
 namespace sf {
 	class SfSet;
@@ -223,16 +206,14 @@ struct Born {
 	Born(kin::Kinematics const& kin, ph::Phenom const& phenom);
 };
 
-Real born_uu_base(Born const& b, lep::LepBornUU const& lep, had::HadUU const& had);
-Real born_ul_base(Born const& b, lep::LepBornUP const& lep, had::HadUL const& had);
-Real born_ut1_base(Born const& b, lep::LepBornUP const& lep, had::HadUT const& had);
-Real born_ut2_base(Born const& b, lep::LepBornUU const& lep, had::HadUT const& had);
-math::Vec3 born_up_base(Born const& b, lep::LepBornUX const& lep, had::HadUP const& had);
-Real born_lu_base(Born const& b, lep::LepBornLU const& lep, had::HadLU const& had);
-Real born_ll_base(Born const& b, lep::LepBornLP const& lep, had::HadLL const& had);
-Real born_lt1_base(Born const& b, lep::LepBornLP const& lep, had::HadLT const& had);
-Real born_lt2_base(Born const& b, lep::LepBornLU const& lep, had::HadLT const& had);
-math::Vec3 born_lp_base(Born const& b, lep::LepBornLX const& lep, had::HadLP const& had);
+Real born_base_uu(Born const& b, lep::LepBornBaseUU const& lep, had::HadBaseUU const& had);
+Real born_base_ul(Born const& b, lep::LepBornBaseUP const& lep, had::HadBaseUL const& had);
+Real born_base_ut1(Born const& b, lep::LepBornBaseUP const& lep, had::HadBaseUT const& had);
+Real born_base_ut2(Born const& b, lep::LepBornBaseUU const& lep, had::HadBaseUT const& had);
+Real born_base_lu(Born const& b, lep::LepBornBaseLU const& lep, had::HadBaseLU const& had);
+Real born_base_ll(Born const& b, lep::LepBornBaseLP const& lep, had::HadBaseLL const& had);
+Real born_base_lt1(Born const& b, lep::LepBornBaseLP const& lep, had::HadBaseLT const& had);
+Real born_base_lt2(Born const& b, lep::LepBornBaseLU const& lep, had::HadBaseLT const& had);
 /// \}
 
 /**
@@ -249,16 +230,14 @@ struct Amm {
 	Amm(kin::Kinematics const& kin, ph::Phenom const& phenom);
 };
 
-Real amm_uu_base(Amm const& b, lep::LepAmmUU const& lep, had::HadUU const& had);
-Real amm_ul_base(Amm const& b, lep::LepAmmUP const& lep, had::HadUL const& had);
-Real amm_ut1_base(Amm const& b, lep::LepAmmUP const& lep, had::HadUT const& had);
-Real amm_ut2_base(Amm const& b, lep::LepAmmUU const& lep, had::HadUT const& had);
-math::Vec3 amm_up_base(Amm const& b, lep::LepAmmUX const& lep, had::HadUP const& had);
-Real amm_lu_base(Amm const& b, lep::LepAmmLU const& lep, had::HadLU const& had);
-Real amm_ll_base(Amm const& b, lep::LepAmmLP const& lep, had::HadLL const& had);
-Real amm_lt1_base(Amm const& b, lep::LepAmmLP const& lep, had::HadLT const& had);
-Real amm_lt2_base(Amm const& b, lep::LepAmmLU const& lep, had::HadLT const& had);
-math::Vec3 amm_lp_base(Amm const& b, lep::LepAmmLX const& lep, had::HadLP const& had);
+Real amm_base_uu(Amm const& b, lep::LepAmmBaseUU const& lep, had::HadBaseUU const& had);
+Real amm_base_ul(Amm const& b, lep::LepAmmBaseUP const& lep, had::HadBaseUL const& had);
+Real amm_base_ut1(Amm const& b, lep::LepAmmBaseUP const& lep, had::HadBaseUT const& had);
+Real amm_base_ut2(Amm const& b, lep::LepAmmBaseUU const& lep, had::HadBaseUT const& had);
+Real amm_base_lu(Amm const& b, lep::LepAmmBaseLU const& lep, had::HadBaseLU const& had);
+Real amm_base_ll(Amm const& b, lep::LepAmmBaseLP const& lep, had::HadBaseLL const& had);
+Real amm_base_lt1(Amm const& b, lep::LepAmmBaseLP const& lep, had::HadBaseLT const& had);
+Real amm_base_lt2(Amm const& b, lep::LepAmmBaseLU const& lep, had::HadBaseLT const& had);
 /// \}
 
 /**
@@ -278,16 +257,14 @@ struct Nrad {
 	Nrad(kin::Kinematics const& kin, ph::Phenom const& phenom, Real k_0_bar);
 };
 
-Real nrad_ir_uu_base(Nrad const& b, lep::LepNradUU const& lep, had::HadUU const& had);
-Real nrad_ir_ul_base(Nrad const& b, lep::LepNradUP const& lep, had::HadUL const& had);
-Real nrad_ir_ut1_base(Nrad const& b, lep::LepNradUP const& lep, had::HadUT const& had);
-Real nrad_ir_ut2_base(Nrad const& b, lep::LepNradUU const& lep, had::HadUT const& had);
-math::Vec3 nrad_ir_up_base(Nrad const& b, lep::LepNradUX const& lep, had::HadUP const& had);
-Real nrad_ir_lu_base(Nrad const& b, lep::LepNradLU const& lep, had::HadLU const& had);
-Real nrad_ir_ll_base(Nrad const& b, lep::LepNradLP const& lep, had::HadLL const& had);
-Real nrad_ir_lt1_base(Nrad const& b, lep::LepNradLP const& lep, had::HadLT const& had);
-Real nrad_ir_lt2_base(Nrad const& b, lep::LepNradLU const& lep, had::HadLT const& had);
-math::Vec3 nrad_ir_lp_base(Nrad const& b, lep::LepNradLX const& lep, had::HadLP const& had);
+Real nrad_ir_base_uu(Nrad const& b, lep::LepNradBaseUU const& lep, had::HadBaseUU const& had);
+Real nrad_ir_base_ul(Nrad const& b, lep::LepNradBaseUP const& lep, had::HadBaseUL const& had);
+Real nrad_ir_base_ut1(Nrad const& b, lep::LepNradBaseUP const& lep, had::HadBaseUT const& had);
+Real nrad_ir_base_ut2(Nrad const& b, lep::LepNradBaseUU const& lep, had::HadBaseUT const& had);
+Real nrad_ir_base_lu(Nrad const& b, lep::LepNradBaseLU const& lep, had::HadBaseLU const& had);
+Real nrad_ir_base_ll(Nrad const& b, lep::LepNradBaseLP const& lep, had::HadBaseLL const& had);
+Real nrad_ir_base_lt1(Nrad const& b, lep::LepNradBaseLP const& lep, had::HadBaseLT const& had);
+Real nrad_ir_base_lt2(Nrad const& b, lep::LepNradBaseLU const& lep, had::HadBaseLT const& had);
 /// \}
 
 /**
@@ -308,15 +285,15 @@ struct Rad {
 	Rad(kin::KinematicsRad const& kin, ph::Phenom const& phenom);
 };
 
-Real rad_uu_base(Rad const& b, lep::LepRadUU const& lep, had::HadRadUU const& had);
-math::Vec3 rad_up_base(Rad const& b, lep::LepRadUX const& lep, had::HadRadUP const& had);
-Real rad_lu_base(Rad const& b, lep::LepRadLU const& lep, had::HadRadLU const& had);
-math::Vec3 rad_lp_base(Rad const& b, lep::LepRadLX const& lep, had::HadRadLP const& had);
+Real rad_base_uu(Rad const& b, lep::LepRadBaseUU const& lep, had::HadRadBaseUU const& had);
+math::Vec3 rad_base_up(Rad const& b, lep::LepRadBaseUU const& lep_uu, lep::LepRadBaseUP const& lep_up, had::HadRadBaseUP const& had);
+Real rad_base_lu(Rad const& b, lep::LepRadBaseLU const& lep, had::HadRadBaseLU const& had);
+math::Vec3 rad_base_lp(Rad const& b, lep::LepRadBaseLU const& lep_lu, lep::LepRadBaseLP const& lep_lp, had::HadRadBaseLP const& had);
 
-Real rad_f_uu_base(Rad const& b, lep::LepRadUU const& lep, had::HadRadFUU const& had);
-math::Vec3 rad_f_up_base(Rad const& b, lep::LepRadUX const& lep, had::HadRadFUP const& had);
-Real rad_f_lu_base(Rad const& b, lep::LepRadLU const& lep, had::HadRadFLU const& had);
-math::Vec3 rad_f_lp_base(Rad const& b, lep::LepRadLX const& lep, had::HadRadFLP const& had);
+Real rad_f_base_uu(Rad const& b, lep::LepRadBaseUU const& lep, had::HadRadFBaseUU const& had);
+math::Vec3 rad_f_base_up(Rad const& b, lep::LepRadBaseUU const& lep_uu, lep::LepRadBaseUP const& lep_up, had::HadRadFBaseUP const& had);
+Real rad_f_base_lu(Rad const& b, lep::LepRadBaseLU const& lep, had::HadRadFBaseLU const& had);
+math::Vec3 rad_f_base_lp(Rad const& b, lep::LepRadBaseLU const& lep_lu, lep::LepRadBaseLP const& lep_lp, had::HadRadFBaseLP const& had);
 /// \}
 
 }
