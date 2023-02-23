@@ -72,7 +72,7 @@ std::istream& operator>>(std::istream& in, TestPair& pair) {
 	Input& input = pair.input;
 	Output& output = pair.output;
 	in >> input.sf_set_idx;
-	if (!(input.sf_set_idx >= -sf::set::NUM_SF && input.sf_set_idx < 1)) {
+	if (!(input.sf_set_idx >= -static_cast<int>(sf::set::NUM_SF) && input.sf_set_idx < 2)) {
 		in.setstate(std::ios_base::failbit);
 	}
 	in >> input.k0_cut;
@@ -104,7 +104,7 @@ std::istream& operator>>(std::istream& in, TestPairRad& pair) {
 	InputRad& input = pair.input;
 	OutputRad& output = pair.output;
 	in >> input.sf_set_idx;
-	if (!(input.sf_set_idx >= -sf::set::NUM_SF && input.sf_set_idx < 1)) {
+	if (!(input.sf_set_idx >= -static_cast<int>(sf::set::NUM_SF) && input.sf_set_idx < 2)) {
 		in.setstate(std::ios_base::failbit);
 	}
 	in >> input.k0_cut;
@@ -189,6 +189,8 @@ TEST_CASE(
 	std::unique_ptr<sf::SfSet> sf;
 	if (input.sf_set_idx == 0) {
 		sf.reset(new sf::set::ProkudinSfSet());
+	} else if (input.sf_set_idx == 1) {
+		sf.reset(new sf::set::TestSfSet(part::Nucleus::P));
 	} else {
 		bool mask[sf::set::NUM_SF] = { false };
 		mask[-input.sf_set_idx - 1] = true;
@@ -262,6 +264,8 @@ TEST_CASE(
 	std::unique_ptr<sf::SfSet> sf;
 	if (input.sf_set_idx == 0) {
 		sf.reset(new sf::set::ProkudinSfSet());
+	} else if (input.sf_set_idx == 1) {
+		sf.reset(new sf::set::TestSfSet(part::Nucleus::P));
 	} else {
 		bool mask[sf::set::NUM_SF] = { false };
 		mask[-input.sf_set_idx - 1] = true;
