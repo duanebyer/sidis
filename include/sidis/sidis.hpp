@@ -157,7 +157,8 @@ namespace sidis {
  * interaction, and \f$\mathcal{H}_i\f$ describe the hadron part of the
  * interaction (using the standard SIDIS structure functions).
  *
- * The process by which the `sidis` library performs this setup is:
+ * The process by which the cross sections are calculated by the `sidis` library
+ * is:
  * * Set up the initial state, including particle IDs, the beam energy, and the
  *   threshold mass \f$M_{\text{th}}\f$ (see part::Particles and kin::Initial).
  * * Choose a point in phase space using the kinematic variables from equations
@@ -177,9 +178,9 @@ namespace sidis {
  *
  * For each different target and beam polarization, and for each type of
  * cross-section, there is a different subset of lepton and hadron coefficients
- * that must be computed. For example, the lep::LepAmmUU coefficients are used
- * when computing the AMM cross-section for unpolarized beam and target. Any
- * polarized cross-section for a lepton beam with longitudinal polarization
+ * that must be computed. For example, the lep::LepAmmBaseUU coefficients are
+ * used when computing the AMM cross-section for unpolarized beam and target.
+ * Any polarized cross-section for a lepton beam with longitudinal polarization
  * \f$\lambda_e\f$ and a target with polarization \f$\pmb{\eta}\f$ can be
  * decomposed as:
  *
@@ -199,7 +200,6 @@ namespace sidis {
  * * Beam
  *   * U: Unpolarized
  *   * L: Longitudinally polarized
- *   * X: Unpolarized or longitudinally polarized
  * * Target
  *   * U: Unpolarized
  *   * L: Longitudinally polarized
@@ -207,9 +207,8 @@ namespace sidis {
  *   * T2: Transversely polarized out of the lepton plane
  *   * T: Transversely polarized
  *   * P: Polarized in any direction
- *   * X: Unpolarized or polarized
  *
- * For example, the had::HadLP structure is used to calculate the
+ * For example, the had::HadBaseLP structure is used to calculate the
  * \f$\pmb{\sigma}^{LP}\f$ cross-section, which corresponds to a longitudinally
  * polarized beam and a target polarized in any direction.
  *

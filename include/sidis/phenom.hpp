@@ -20,7 +20,7 @@ namespace ph {
 
 /// QED coupling constant at electron mass.
 static Real const ALPHA_QED_0 = 1.L / 137.03599L;
-/// Calculates the QED coupling constant at a certain Q^2 value.
+/// Calculates the QED coupling constant at a certain \f$Q^2\f$ value.
 Real alpha_qed(Real Q_sq=0.);
 /// Factor \f$\frac{\alpha}{\pi}\delta_{\text{vac}}^{\text{had}}\sigma_{B}\f$
 /// gives the vacuum polarization cross-section due to hadron loops.
