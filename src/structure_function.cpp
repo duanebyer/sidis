@@ -1,9 +1,6 @@
 #include "sidis/structure_function.hpp"
-#include <iostream>
 
 #include <cmath>
-#include <stdexcept>
-#include <string>
 
 #include <cubature.hpp>
 
@@ -249,7 +246,7 @@ Real SfSet::F_LT_cos_phis(part::Hadron, Real, Real, Real, Real) const {
 	return 0.;
 }
 
-SfUU SfSet::sf_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+SfBaseUU SfSet::sf_base_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
 		F_UUL(h, x, z, Q_sq, ph_t_sq),
 		F_UUT(h, x, z, Q_sq, ph_t_sq),
@@ -257,13 +254,13 @@ SfUU SfSet::sf_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const
 		F_UU_cos_2phih(h, x, z, Q_sq, ph_t_sq),
 	};
 }
-SfUL SfSet::sf_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+SfBaseUL SfSet::sf_base_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
 		F_UL_sin_phih(h, x, z, Q_sq, ph_t_sq),
 		F_UL_sin_2phih(h, x, z, Q_sq, ph_t_sq),
 	};
 }
-SfUT SfSet::sf_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+SfBaseUT SfSet::sf_base_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
 		F_UTL_sin_phih_m_phis(h, x, z, Q_sq, ph_t_sq),
 		F_UTT_sin_phih_m_phis(h, x, z, Q_sq, ph_t_sq),
@@ -273,84 +270,92 @@ SfUT SfSet::sf_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const
 		F_UT_sin_phih_p_phis(h, x, z, Q_sq, ph_t_sq),
 	};
 }
-SfLU SfSet::sf_lu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+SfBaseUP SfSet::sf_base_up(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	return {
+		sf_base_ul(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ut(h, x, z, Q_sq, ph_t_sq),
+	};
+}
+SfBaseLU SfSet::sf_base_lu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
 		F_LU_sin_phih(h, x, z, Q_sq, ph_t_sq),
 	};
 }
-SfLL SfSet::sf_ll(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+SfBaseLL SfSet::sf_base_ll(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
 		F_LL(h, x, z, Q_sq, ph_t_sq),
 		F_LL_cos_phih(h, x, z, Q_sq, ph_t_sq),
 	};
 }
-SfLT SfSet::sf_lt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+SfBaseLT SfSet::sf_base_lt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
 		F_LT_cos_phih_m_phis(h, x, z, Q_sq, ph_t_sq),
 		F_LT_cos_2phih_m_phis(h, x, z, Q_sq, ph_t_sq),
 		F_LT_cos_phis(h, x, z, Q_sq, ph_t_sq),
 	};
 }
+SfBaseLP SfSet::sf_base_lp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	return {
+		sf_base_ll(h, x, z, Q_sq, ph_t_sq),
+		sf_base_lt(h, x, z, Q_sq, ph_t_sq),
+	};
+}
 
-SfXU SfSet::sf_xu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+SfUU SfSet::sf_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
-		sf_uu(h, x, z, Q_sq, ph_t_sq),
-		sf_lu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_uu(h, x, z, Q_sq, ph_t_sq),
 	};
 }
-SfXL SfSet::sf_xl(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+SfUL SfSet::sf_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
-		sf_ul(h, x, z, Q_sq, ph_t_sq),
-		sf_ll(h, x, z, Q_sq, ph_t_sq),
+		sf_base_uu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ul(h, x, z, Q_sq, ph_t_sq),
 	};
 }
-SfXT SfSet::sf_xt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+SfUT SfSet::sf_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
-		sf_ut(h, x, z, Q_sq, ph_t_sq),
-		sf_lt(h, x, z, Q_sq, ph_t_sq),
+		sf_base_uu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ut(h, x, z, Q_sq, ph_t_sq),
 	};
 }
 SfUP SfSet::sf_up(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
-		sf_ul(h, x, z, Q_sq, ph_t_sq),
-		sf_ut(h, x, z, Q_sq, ph_t_sq),
+		sf_base_uu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ul(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ut(h, x, z, Q_sq, ph_t_sq),
+	};
+}
+SfLU SfSet::sf_lu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	return {
+		sf_base_uu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_lu(h, x, z, Q_sq, ph_t_sq),
+	};
+}
+SfLL SfSet::sf_ll(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	return {
+		sf_base_uu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ul(h, x, z, Q_sq, ph_t_sq),
+		sf_base_lu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ll(h, x, z, Q_sq, ph_t_sq),
+	};
+}
+SfLT SfSet::sf_lt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	return {
+		sf_base_uu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ut(h, x, z, Q_sq, ph_t_sq),
+		sf_base_lu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_lt(h, x, z, Q_sq, ph_t_sq),
 	};
 }
 SfLP SfSet::sf_lp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	return {
-		sf_ll(h, x, z, Q_sq, ph_t_sq),
-		sf_lt(h, x, z, Q_sq, ph_t_sq),
+		sf_base_uu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ul(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ut(h, x, z, Q_sq, ph_t_sq),
+		sf_base_lu(h, x, z, Q_sq, ph_t_sq),
+		sf_base_ll(h, x, z, Q_sq, ph_t_sq),
+		sf_base_lt(h, x, z, Q_sq, ph_t_sq),
 	};
-}
-SfUX SfSet::sf_ux(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return {
-		sf_uu(h, x, z, Q_sq, ph_t_sq),
-		sf_ul(h, x, z, Q_sq, ph_t_sq),
-		sf_ut(h, x, z, Q_sq, ph_t_sq),
-	};
-}
-SfLX SfSet::sf_lx(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return {
-		sf_lu(h, x, z, Q_sq, ph_t_sq),
-		sf_ll(h, x, z, Q_sq, ph_t_sq),
-		sf_lt(h, x, z, Q_sq, ph_t_sq),
-	};
-}
-
-SfXP SfSet::sf_xp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return {
-		sf_up(h, x, z, Q_sq, ph_t_sq),
-		sf_lp(h, x, z, Q_sq, ph_t_sq),
-	};
-}
-SfXX SfSet::sf_xx(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return {
-		sf_ux(h, x, z, Q_sq, ph_t_sq),
-		sf_lx(h, x, z, Q_sq, ph_t_sq),
-	};
-}
-SfXX SfSet::sf(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
-	return sf_xx(h, x, z, Q_sq, ph_t_sq);
 }
 
 // Full structure function calculations from equations [2.17], [2.18].

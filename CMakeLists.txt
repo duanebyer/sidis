@@ -104,10 +104,6 @@ set(
 configure_file(
 	"${Sidis_SOURCE_DIR}/cog/const.py.in"
 	"${Sidis_BINARY_DIR}/cog/const.py")
-configure_file(
-	"${Sidis_SOURCE_DIR}/cog/gen_struct.py"
-	"${Sidis_BINARY_DIR}/cog/gen_struct.py"
-	COPYONLY)
 
 # Set up warnings.
 set(

@@ -7,10 +7,13 @@ set(
 	"sidis/cross_section.hpp"
 	"sidis/cut.hpp"
 	"sidis/frame.hpp"
+	"sidis/hadronic_coeff.hpp"
 	"sidis/integ_params.hpp"
 	"sidis/kinematics.hpp"
+	"sidis/leptonic_coeff.hpp"
 	"sidis/particle.hpp"
 	"sidis/phenom.hpp"
+	"sidis/structure_function.hpp"
 	"sidis/tmd.hpp"
 	"sidis/transform.hpp"
 	"sidis/vector.hpp"
@@ -25,10 +28,7 @@ set(
 	"sidis/extra/map.hpp")
 set(
 	HEADER_LIST_GENERATE
-	"sidis/hadronic_coeff.hpp"
-	"sidis/leptonic_coeff.hpp"
 	"sidis/numeric.hpp"
-	"sidis/structure_function.hpp"
 	"sidis/version.hpp")
 
 set(HEADER_LIST_SOURCE)
