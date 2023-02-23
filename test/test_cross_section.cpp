@@ -223,18 +223,18 @@ TEST_CASE(
 	// Print state information.
 	std::stringstream ss;
 	ss
-		<< "sf_set_idx = " << input.sf_set_idx    << std::endl
-		<< "pid        = " << part::name(lep) << std::endl
-		<< "S          = " << input.S             << std::endl
+		<< "sf_set_idx = " << input.sf_set_idx << std::endl
+		<< "pid        = " << part::name(lep)  << std::endl
+		<< "S          = " << input.S          << std::endl
 		<< "x          = " << ph_space.x       << std::endl
 		<< "y          = " << ph_space.y       << std::endl
 		<< "z          = " << ph_space.z       << std::endl
 		<< "ph_t²      = " << ph_space.ph_t_sq << std::endl
 		<< "φ_h        = " << ph_space.phi_h   << std::endl
 		<< "φ          = " << ph_space.phi     << std::endl
-		<< "λ_e        = " << beam_pol            << std::endl
-		<< "η_1        = " << eta.x               << std::endl
-		<< "η_2        = " << eta.y               << std::endl
+		<< "λ_e        = " << beam_pol         << std::endl
+		<< "η_1        = " << eta.x            << std::endl
+		<< "η_2        = " << eta.y            << std::endl
 		<< "η_3        = " << eta.z;
 	INFO(ss.str());
 
@@ -297,18 +297,18 @@ TEST_CASE(
 	// Print state information.
 	std::stringstream ss;
 	ss
-		<< "sf_set_idx = " << input.sf_set_idx    << std::endl
-		<< "pid        = " << part::name(lep) << std::endl
-		<< "S          = " << input.S             << std::endl
+		<< "sf_set_idx = " << input.sf_set_idx << std::endl
+		<< "pid        = " << part::name(lep)  << std::endl
+		<< "S          = " << input.S          << std::endl
 		<< "x          = " << ph_space.x       << std::endl
 		<< "y          = " << ph_space.y       << std::endl
 		<< "z          = " << ph_space.z       << std::endl
 		<< "ph_t²      = " << ph_space.ph_t_sq << std::endl
 		<< "φ_h        = " << ph_space.phi_h   << std::endl
 		<< "φ          = " << ph_space.phi     << std::endl
-		<< "λ_e        = " << beam_pol            << std::endl
-		<< "η_1        = " << eta.x               << std::endl
-		<< "η_2        = " << eta.y               << std::endl
+		<< "λ_e        = " << beam_pol         << std::endl
+		<< "η_1        = " << eta.x            << std::endl
+		<< "η_2        = " << eta.y            << std::endl
 		<< "η_3        = " << eta.z;
 	INFO(ss.str());
 
