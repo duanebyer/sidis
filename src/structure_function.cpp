@@ -1,9 +1,6 @@
 #include "sidis/structure_function.hpp"
-#include <iostream>
 
 #include <cmath>
-#include <stdexcept>
-#include <string>
 
 #include <cubature.hpp>
 
