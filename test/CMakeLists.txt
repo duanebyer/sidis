@@ -23,7 +23,7 @@ target_compile_features(sidistest PRIVATE cxx_std_11)
 set_target_properties(
 	sidistest PROPERTIES
 	CXX_EXTENSIONS OFF
-	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 
 catch_discover_tests(sidistest)
 

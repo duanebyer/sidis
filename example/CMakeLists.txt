@@ -4,7 +4,7 @@ target_compile_features(cross_section PRIVATE cxx_std_11)
 set_target_properties(
 	cross_section PROPERTIES
 	CXX_EXTENSIONS OFF
-	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 target_compile_options(
 	cross_section
 	PRIVATE
@@ -16,7 +16,7 @@ target_compile_features(alpha_qed PRIVATE cxx_std_11)
 set_target_properties(
 	alpha_qed PROPERTIES
 	CXX_EXTENSIONS OFF
-	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 target_compile_options(
 	alpha_qed
 	PRIVATE
@@ -28,7 +28,7 @@ target_compile_features(random_phase_space PRIVATE cxx_std_11)
 set_target_properties(
 	random_phase_space PROPERTIES
 	CXX_EXTENSIONS OFF
-	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 target_compile_options(
 	random_phase_space
 	PRIVATE
@@ -40,7 +40,7 @@ target_compile_features(quick_start PRIVATE cxx_std_11)
 set_target_properties(
 	quick_start PROPERTIES
 	CXX_EXTENSIONS OFF
-	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 target_compile_options(
 	quick_start
 	PRIVATE
@@ -61,7 +61,7 @@ if(ROOT_FOUND)
 	set_target_properties(
 		plot_cutoff PROPERTIES
 		CXX_EXTENSIONS OFF
-		INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+		INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 	target_compile_options(
 		plot_cutoff
 		PRIVATE
@@ -75,7 +75,7 @@ if(ROOT_FOUND)
 	set_target_properties(
 		plot_ssa PROPERTIES
 		CXX_EXTENSIONS OFF
-		INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+		INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 	target_compile_options(
 		plot_ssa
 		PRIVATE
@@ -89,7 +89,7 @@ if(ROOT_FOUND)
 	set_target_properties(
 		plot_phase_space PROPERTIES
 		CXX_EXTENSIONS OFF
-		INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+		INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 	target_compile_options(
 		plot_phase_space
 		PRIVATE
@@ -102,7 +102,7 @@ if(ROOT_FOUND)
 	set_target_properties(
 		process_events PROPERTIES
 		CXX_EXTENSIONS OFF
-		INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+		INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 	target_compile_options(
 		process_events
 		PRIVATE
