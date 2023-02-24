@@ -38,36 +38,14 @@ foreach(HEADER ${HEADER_LIST_BASE})
 	list(APPEND HEADER_LIST_DIST "${Sidis_SOURCE_DIR}/include/${HEADER}")
 endforeach(HEADER)
 foreach(HEADER ${HEADER_LIST_GENERATE})
+	configure_file(
+		"${Sidis_SOURCE_DIR}/include/${HEADER}.in"
+		"${Sidis_BINARY_DIR}/include/${HEADER}")
 	list(APPEND HEADER_LIST_SOURCE "${Sidis_SOURCE_DIR}/include/${HEADER}.in")
 	list(APPEND HEADER_LIST_DIST "${Sidis_BINARY_DIR}/include/${HEADER}")
 endforeach(HEADER)
 
 find_package(GSL REQUIRED)
-
-# Check that Python is installed.
-if(CMAKE_VERSION VERSION_LESS 3.12)
-	find_package(PythonInterp 2.7 REQUIRED)
-	find_package(PythonLibs 2.7 REQUIRED)
-	set(Python_EXECUTABLE PYTHON_EXECUTABLE)
-else()
-	find_package(Python REQUIRED COMPONENTS Interpreter Development)
-endif()
-
-# Generated header files are processed through the `cog` utility.
-foreach(HEADER ${HEADER_LIST_GENERATE})
-	add_custom_command(
-		OUTPUT "${Sidis_BINARY_DIR}/include/${HEADER}"
-		COMMAND ${CMAKE_COMMAND}
-		ARGS
-			-E env "PYTHONPATH=${Sidis_SOURCE_DIR}/external"
-			"${Python_EXECUTABLE}" ARGS -m cogapp -d
-			-I "${Sidis_BINARY_DIR}/cog"
-			-o "${Sidis_BINARY_DIR}/include/${HEADER}"
-			"${Sidis_SOURCE_DIR}/include/${HEADER}.in"
-		MAIN_DEPENDENCY "${Sidis_SOURCE_DIR}/include/${HEADER}.in"
-		COMMENT "Generating header file ${HEADER}."
-		VERBATIM)
-endforeach(HEADER)
 
 add_library(
 	sidis

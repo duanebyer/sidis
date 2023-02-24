@@ -101,10 +101,6 @@ set(
 	CACHE BOOL
 	"should OpenMP multithreading support be enabled")
 
-configure_file(
-	"${Sidis_SOURCE_DIR}/cog/const.py.in"
-	"${Sidis_BINARY_DIR}/cog/const.py")
-
 # Set up warnings.
 set(
 	Sidis_COMPILER_WARNINGS
