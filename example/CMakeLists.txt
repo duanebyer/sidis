@@ -86,7 +86,10 @@ if(ROOT_FOUND)
 		sidis
 		ROOT::Core ROOT::Gpad ROOT::Graf)
 	target_compile_features(plot_phase_space PRIVATE cxx_std_11)
-	set_target_properties(plot_phase_space PROPERTIES CXX_EXTENSIONS OFF)
+	set_target_properties(
+		plot_phase_space PROPERTIES
+		CXX_EXTENSIONS OFF
+		INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 	target_compile_options(
 		plot_phase_space
 		PRIVATE
@@ -96,7 +99,10 @@ if(ROOT_FOUND)
 	target_link_libraries(process_events PRIVATE
 		ROOT::Core ROOT::Gpad ROOT::Graf ROOT::Tree)
 	target_compile_features(process_events PRIVATE cxx_std_11)
-	set_target_properties(process_events PROPERTIES CXX_EXTENSIONS OFF)
+	set_target_properties(
+		process_events PROPERTIES
+		CXX_EXTENSIONS OFF
+		INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
 	target_compile_options(
 		process_events
 		PRIVATE
