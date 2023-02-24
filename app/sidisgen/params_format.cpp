@@ -661,7 +661,7 @@ Params merge_params(Params& params_1, Params& params_2) {
 		std::vector<char const*> names[enum_count] = names_list; \
 		std::string name_in; \
 		is >> name_in; \
-		for (std::size_t idx = 0; idx < enum_count; ++idx) { \
+		for (std::size_t idx = 0; idx < (enum_count); ++idx) { \
 			for (char const* name : names[idx]) { \
 				if (name_in == name) { \
 					return enum_vals[idx]; \
@@ -674,7 +674,7 @@ Params merge_params(Params& params_1, Params& params_2) {
 	void RType::write_stream_base(std::ostream& os, Wrapped const& val) const { \
 		Wrapped enum_vals[enum_count] = enum_vals_list; \
 		std::vector<char const*> names[enum_count] = names_list; \
-		for (std::size_t idx = 0; idx < enum_count; ++idx) { \
+		for (std::size_t idx = 0; idx < (enum_count); ++idx) { \
 			if (enum_vals[idx] == val) { \
 				os << names[idx][0]; \
 				return; \

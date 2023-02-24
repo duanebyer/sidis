@@ -207,7 +207,7 @@ using namespace sidis::xs;
 #define SIDIS_MACRO_XS_FROM_BASE_P(name, Lep, Had, kin, sf, b, lambda_e, eta) ([&]() { \
 	/* Create a mask describing the polarization state. */ \
 	unsigned pol_mask = (((lambda_e) != 0.) << 1) \
-		| (((eta).x != 0. || (eta).y != 0. || (eta.z) != 0.) << 0); \
+		| (((eta).x != 0. || (eta).y != 0. || (eta).z != 0.) << 0); \
 	Real uu = 0.; \
 	Vec3 up = Vec3::ZERO; \
 	Real lu = 0.; \
@@ -256,7 +256,7 @@ using namespace sidis::xs;
 #define SIDIS_MACRO_XS_FROM_BASE_P_0(name, Lep, Had, kin, sf, had_0, b, lambda_e, eta) ([&]() { \
 	/* Create a mask describing the polarization state. */ \
 	unsigned pol_mask = (((lambda_e) != 0.) << 1) \
-		| (((eta).x != 0. || (eta).y != 0. || (eta.z) != 0.) << 0); \
+		| (((eta).x != 0. || (eta).y != 0. || (eta).z != 0.) << 0); \
 	Real uu = 0.; \
 	Vec3 up = Vec3::ZERO; \
 	Real lu = 0.; \
