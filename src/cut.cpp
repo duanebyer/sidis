@@ -34,32 +34,32 @@ static Real const X_CUTOFF = 1e-3;
 }
 
 Cut::Cut() :
-	x(Bound::INVALID),
-	y(Bound::INVALID),
-	z(Bound::INVALID),
-	ph_t_sq(Bound::INVALID),
-	phi_h(Bound::INVALID),
-	phi(Bound::INVALID),
-	Q_sq(Bound::INVALID),
-	t(Bound::INVALID),
-	W_sq(Bound::INVALID),
-	r(Bound::INVALID),
-	mx_sq(Bound::INVALID),
-	qt_to_Q(Bound::INVALID),
-	lab_mom_q(Bound::INVALID),
-	lab_mom_k2(Bound::INVALID),
-	lab_mom_h(Bound::INVALID),
-	lab_theta_q(Bound::INVALID),
-	lab_theta_k2(Bound::INVALID),
-	lab_theta_h(Bound::INVALID) { }
+	x(BOUND_INVALID),
+	y(BOUND_INVALID),
+	z(BOUND_INVALID),
+	ph_t_sq(BOUND_INVALID),
+	phi_h(BOUND_INVALID),
+	phi(BOUND_INVALID),
+	Q_sq(BOUND_INVALID),
+	t(BOUND_INVALID),
+	W_sq(BOUND_INVALID),
+	r(BOUND_INVALID),
+	mx_sq(BOUND_INVALID),
+	qt_to_Q(BOUND_INVALID),
+	lab_mom_q(BOUND_INVALID),
+	lab_mom_k2(BOUND_INVALID),
+	lab_mom_h(BOUND_INVALID),
+	lab_theta_q(BOUND_INVALID),
+	lab_theta_k2(BOUND_INVALID),
+	lab_theta_h(BOUND_INVALID) { }
 
 CutRad::CutRad() :
-	tau(Bound::INVALID),
-	phi_k(Bound::INVALID),
-	R(Bound::INVALID),
-	k_0_bar(Bound::INVALID),
-	lab_mom_k(Bound::INVALID),
-	lab_theta_k(Bound::INVALID) { }
+	tau(BOUND_INVALID),
+	phi_k(BOUND_INVALID),
+	R(BOUND_INVALID),
+	k_0_bar(BOUND_INVALID),
+	lab_mom_k(BOUND_INVALID),
+	lab_theta_k(BOUND_INVALID) { }
 
 // Bound of kinematic variables.
 // TODO: Some of the calculations in this section are redundant with earlier
@@ -83,7 +83,7 @@ Bound cut::x_bound(Particles const& ps, Real S) {
 	Real x_2 = (a + b)/denom;
 	Bound kin_b(x_1, x_2);
 
-	return Bound::UNIT & kin_b;
+	return BOUND_UNIT & kin_b;
 }
 Bound cut::y_bound(Particles const& ps, Real S, Real x) {
 	Real M = ps.M;
@@ -98,7 +98,7 @@ Bound cut::y_bound(Particles const& ps, Real S, Real x) {
 	Real q_threshold = (x*lambda_S)/(S*(sq(M*x) + S*x + sq(m)));
 	Bound kin_b(px_threshold, q_threshold);
 
-	return Bound::UNIT & kin_b;
+	return BOUND_UNIT & kin_b;
 }
 Bound cut::z_bound(Particles const& ps, Real S, Real x, Real y) {
 	Real M = ps.M;
@@ -121,7 +121,7 @@ Bound cut::z_bound(Particles const& ps, Real S, Real x, Real y) {
 	Real px_threshold_max = z_2;
 	Bound kin_b(px_threshold_min, px_threshold_max);
 
-	return Bound::UNIT & kin_b;
+	return BOUND_UNIT & kin_b;
 }
 Bound cut::ph_t_sq_bound(Particles const& ps, Real S, Real x, Real y, Real z) {
 	Real M = ps.M;
@@ -141,7 +141,7 @@ Bound cut::ph_t_sq_bound(Particles const& ps, Real S, Real x, Real y, Real z) {
 	Real px_threshold = sq(ph_0) - sq(mh) - sq(M)/lambda_Y*sq(det);
 	Bound kin_b(0., px_threshold);
 
-	return Bound::POSITIVE & kin_b;
+	return BOUND_POSITIVE & kin_b;
 }
 Bound cut::tau_bound(Kinematics const& kin) {
 	// Equation [1.44].
@@ -149,7 +149,7 @@ Bound cut::tau_bound(Kinematics const& kin) {
 	Real max = (kin.S_x + kin.lambda_Y_sqrt)/(2.*sq(kin.M));
 	Bound kin_b(min, max);
 
-	return Bound::FULL & kin_b;
+	return BOUND_FULL & kin_b;
 }
 Bound cut::R_bound(Kinematics const& kin, Real tau, Real phi_k) {
 	Bound tau_b = tau_bound(kin);
@@ -170,7 +170,7 @@ Bound cut::R_bound(Kinematics const& kin, Real tau, Real phi_k) {
 	Bound x(0., (1. - kin.x) / (1. + tau) * kin.S_x);
 	Bound z(0., (1. - kin.z) * kin.S_x);
 	// Shifted Q-squared must be positive.
-	Bound Q_sq = tau < 0. ? Bound(0., -kin.Q_sq / tau) : Bound::POSITIVE;
+	Bound Q_sq = tau < 0. ? Bound(0., -kin.Q_sq / tau) : BOUND_POSITIVE;
 	// TODO: Missing an additional bound to ensure shifted `ph_t_sq` is
 	// positive.
 	*/

@@ -37,9 +37,9 @@ using namespace sidis::xs;
 		| (((eta).y != 0.) << 1) \
 		| (((eta).z != 0.) << 0); \
 	Real uu = 0.; \
-	Vec3 up = Vec3::ZERO; \
+	Vec3 up = VEC3_ZERO; \
 	Real lu = 0.; \
-	Vec3 lp = Vec3::ZERO; \
+	Vec3 lp = VEC3_ZERO; \
 	switch (pol_mask) { \
 	case 0:  /* 0000 */ \
 		{ \
@@ -209,9 +209,9 @@ using namespace sidis::xs;
 	unsigned pol_mask = (((lambda_e) != 0.) << 1) \
 		| (((eta).x != 0. || (eta).y != 0. || (eta).z != 0.) << 0); \
 	Real uu = 0.; \
-	Vec3 up = Vec3::ZERO; \
+	Vec3 up = VEC3_ZERO; \
 	Real lu = 0.; \
-	Vec3 lp = Vec3::ZERO; \
+	Vec3 lp = VEC3_ZERO; \
 	switch (pol_mask) { \
 	case 0:  /* 00 */ \
 		{ \
@@ -258,9 +258,9 @@ using namespace sidis::xs;
 	unsigned pol_mask = (((lambda_e) != 0.) << 1) \
 		| (((eta).x != 0. || (eta).y != 0. || (eta).z != 0.) << 0); \
 	Real uu = 0.; \
-	Vec3 up = Vec3::ZERO; \
+	Vec3 up = VEC3_ZERO; \
 	Real lu = 0.; \
-	Vec3 lp = Vec3::ZERO; \
+	Vec3 lp = VEC3_ZERO; \
 	switch (pol_mask) { \
 	case 0:  /* 00 */ \
 		{ \

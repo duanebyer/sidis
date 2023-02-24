@@ -247,102 +247,102 @@ extern Params const PARAMS_STD_FORMAT = []() {
 		"radiative cross-section becomes invalid. If too large, RC method "
 		"'approx' is no longer accurate. Default '0.01'.");
 	params.add_param(
-		"cut.k_0_bar", new ValueBound(math::Bound::POSITIVE),
+		"cut.k_0_bar", new ValueBound(math::BOUND_POSITIVE),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on photon energy",
 		"Defined in frame `p + q - p_h = 0`, same as 'phys.soft_threshold'. "
 		"This cut is a pre-requisite for all other cuts on the radiated "
 		"photon.");
 	params.add_param(
-		"cut.x", new ValueBound(math::Bound::INVALID),
+		"cut.x", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on x", "");
 	params.add_param(
-		"cut.y", new ValueBound(math::Bound::INVALID),
+		"cut.y", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on y", "");
 	params.add_param(
-		"cut.z", new ValueBound(math::Bound::INVALID),
+		"cut.z", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on z", "");
 	params.add_param(
-		"cut.ph_t_sq", new ValueBound(math::Bound::INVALID),
+		"cut.ph_t_sq", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on p_ht^2", "");
 	params.add_param(
-		"cut.phi_h", new ValueBound(math::Bound::INVALID),
+		"cut.phi_h", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on φ_h", "");
 	params.add_param(
-		"cut.phi", new ValueBound(math::Bound::INVALID),
+		"cut.phi", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on φ", "");
 	params.add_param(
-		"cut.Q_sq", new ValueBound(math::Bound::INVALID),
+		"cut.Q_sq", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on Q^2", "");
 	params.add_param(
-		"cut.W_sq", new ValueBound(math::Bound::INVALID),
+		"cut.W_sq", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on W^2", "");
 	params.add_param(
-		"cut.mx_sq", new ValueBound(math::Bound::INVALID),
+		"cut.mx_sq", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on m_x^2 (also known as W'^2)", "");
 	params.add_param(
-		"cut.t", new ValueBound(math::Bound::INVALID),
+		"cut.t", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on t", "");
 	params.add_param(
-		"cut.r", new ValueBound(math::Bound::INVALID),
+		"cut.r", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on r", "");
 	params.add_param(
-		"cut.qt_to_Q", new ValueBound(math::Bound::INVALID),
+		"cut.qt_to_Q", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min> <max>", "bound on qt/Q", "");
 	params.add_param(
-		"cut.tau", new ValueBound(math::Bound::INVALID),
+		"cut.tau", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "rad", "excl", "cut-no-nrad" },
 		"<min> <max>", "bound on τ", "");
 	params.add_param(
-		"cut.phi_k", new ValueBound(math::Bound::INVALID),
+		"cut.phi_k", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "rad", "excl", "cut-no-nrad" },
 		"<min> <max>", "bound on φ_k", "");
 	params.add_param(
-		"cut.R", new ValueBound(math::Bound::INVALID),
+		"cut.R", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "rad", "cut-no-nrad" },
 		"<min (GeV^2)> <max (GeV^2)>", "bound on R", "");
 	params.add_param(
-		"cut.lab.mom_q", new ValueBound(math::Bound::INVALID),
+		"cut.lab.mom_q", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on q momentum in lab frame", "");
 	params.add_param(
-		"cut.lab.mom_k2", new ValueBound(math::Bound::INVALID),
+		"cut.lab.mom_k2", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on k_2 momentum in lab frame", "");
 	params.add_param(
-		"cut.lab.mom_h", new ValueBound(math::Bound::INVALID),
+		"cut.lab.mom_h", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (GeV)> <max (GeV)>", "bound on p_h momentum in lab frame", "");
 	params.add_param(
-		"cut.lab.mom_k", new ValueBound(math::Bound::INVALID),
+		"cut.lab.mom_k", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "rad", "cut-no-nrad" },
 		"<min (GeV)> <max (GeV)>", "bound on k momentum in lab frame", "");
 	params.add_param(
-		"cut.lab.theta_q", new ValueBound(math::Bound::INVALID),
+		"cut.lab.theta_q", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on q polar angle in lab frame", "");
 	params.add_param(
-		"cut.lab.theta_k2", new ValueBound(math::Bound::INVALID),
+		"cut.lab.theta_k2", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on k_2 polar angle in lab frame", "");
 	params.add_param(
-		"cut.lab.theta_h", new ValueBound(math::Bound::INVALID),
+		"cut.lab.theta_h", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "nrad", "rad", "excl" },
 		"<min (deg.)> <max (deg.)>", "bound on p_h polar angle in lab frame", "");
 	params.add_param(
-		"cut.lab.theta_k", new ValueBound(math::Bound::INVALID),
+		"cut.lab.theta_k", new ValueBound(math::BOUND_INVALID),
 		{ "init", "gen", "cut", "dist", "rad", "excl", "cut-no-nrad" },
 		"<min (deg.)> <max (deg.)>", "bound on k polar angle in lab frame", "");
 	return params;

@@ -6,20 +6,11 @@
 using namespace sidis;
 using namespace sidis::math;
 
-Transform3 const Transform3::ZERO = Transform3(
-	0., 0., 0.,
-	0., 0., 0.,
-	0., 0., 0.);
-Transform3 const Transform3::ID = Transform3(
-	1., 0., 0.,
-	0., 1., 0.,
-	0., 0., 1.);
-
 Transform3 Transform3::rotate(Vec3 const& dir, Real angle) {
 	Vec3 dir_unit = dir.unit();
 	Real cos = std::cos(angle);
 	Real sin = std::sin(angle);
-	return cos * Transform3::ID
+	return cos * TRANSFORM3_ID
 		+ sin * cross(dir_unit)
 		+ (1. - cos) * outer(dir_unit, dir_unit);
 }
@@ -30,13 +21,13 @@ Transform3 Transform3::rotate_to(Vec3 const& dir_old, Vec3 const& dir_new) {
 	Vec3 dir = cross(dir_old_unit, dir_new_unit).unit();
 	Real cos = dot(dir_old_unit, dir_new_unit);
 	Real sin = cross(dir_old_unit, dir_new_unit).norm();
-	return cos * Transform3::ID
+	return cos * TRANSFORM3_ID
 		+ sin * cross(dir)
 		+ (1. - cos) * outer(dir, dir);
 }
 
 Transform3 Transform3::rotate_to(Vec3 const& z_new) {
-	return Transform3::rotate_to(Vec3::Z, z_new);
+	return Transform3::rotate_to(VEC3_Z, z_new);
 }
 
 Transform3 Transform3::rotate_basis(Vec3 const& z_axis, Vec3 const& y_up) {
@@ -48,7 +39,7 @@ Transform3 Transform3::rotate_basis(Vec3 const& z_axis, Vec3 const& y_up) {
 
 Transform3 Transform3::scale(Vec3 const& dir, Real scale) {
 	Vec3 dir_unit = dir.unit();
-	return Transform3::ID + (scale - 1.) * outer(dir_unit, dir_unit);
+	return TRANSFORM3_ID + (scale - 1.) * outer(dir_unit, dir_unit);
 }
 
 Transform3 Transform3::project(Vec3 const& dir) {
@@ -99,17 +90,6 @@ Transform4 Transform3::transform(Transform4 const& other) const {
 	return Transform4(*this).transform(other);
 }
 
-Transform4 const Transform4::ZERO = Transform4(
-	0., 0., 0., 0.,
-	0., 0., 0., 0.,
-	0., 0., 0., 0.,
-	0., 0., 0., 0.);
-Transform4 const Transform4::ID = Transform4(
-	1., 0., 0., 0.,
-	0., 1., 0., 0.,
-	0., 0., 1., 0.,
-	0., 0., 0., 1.);
-
 Transform4 Transform4::rotate(Vec3 const& dir, Real angle) {
 	return Transform4(Transform3::rotate(dir, angle));
 }
@@ -133,9 +113,9 @@ Transform4 Transform4::boost(Vec3 const& dir, Real rapidity) {
 	Vec4 dir_unit = Vec4(0., dir.unit());
 	Real cosh = std::cosh(rapidity);
 	Real sinh = std::sinh(rapidity);
-	return Transform4::ID
-		+ sinh * (outer(dir_unit, Vec4::T) - outer(Vec4::T, dir_unit))
-		+ (1. - cosh) * (outer(dir_unit, dir_unit) - outer(Vec4::T, Vec4::T));
+	return TRANSFORM4_ID
+		+ sinh * (outer(dir_unit, VEC4_T) - outer(VEC4_T, dir_unit))
+		+ (1. - cosh) * (outer(dir_unit, dir_unit) - outer(VEC4_T, VEC4_T));
 }
 
 Transform4 Transform4::boost_to(Vec4 const& t_new) {
@@ -149,18 +129,18 @@ Transform4 Transform4::transform_to(Vec4 const& dir_old, Vec4 const& dir_new) {
 	int s_old = dir_old_unit.sign();
 	int s = dir_new_unit.sign();
 	if (s_old != s || s == 0) {
-		return std::numeric_limits<Real>::quiet_NaN() * Transform4::ID;
+		return std::numeric_limits<Real>::quiet_NaN() * TRANSFORM4_ID;
 	}
 	Transform4 sym = outer(dir_old_unit, dir_old_unit)
 		+ outer(dir_new_unit, dir_new_unit);
 	Transform4 asym = outer(dir_old_unit, dir_new_unit)
 		- outer(dir_new_unit, dir_old_unit);
 	Transform4 transport = 2. * s * cos * outer(dir_new_unit, dir_old_unit);
-	return Transform4::ID - (sym + asym - transport) / (s + cos);
+	return TRANSFORM4_ID - (sym + asym - transport) / (s + cos);
 }
 
 Transform4 Transform4::transform_to(Vec4 const& t_new) {
-	return Transform4::transform_to(Vec4::T, t_new);
+	return Transform4::transform_to(VEC4_T, t_new);
 }
 
 Transform4 Transform4::project(Vec4 const& dir) {

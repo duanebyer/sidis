@@ -51,7 +51,6 @@ add_library(
 	sidis
 	asymmetry.cpp
 	bound.cpp
-	constant.cpp
 	cross_section.cpp
 	cut.cpp
 	exception.cpp
