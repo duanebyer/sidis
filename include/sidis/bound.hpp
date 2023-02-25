@@ -29,8 +29,8 @@ public:
 		return _max;
 	}
 
-	/// Initialize to BOUND_ZERO.
-	Bound() : _min(0.), _max(0.) { }
+	/// Initialize to BOUND_INVALID.
+	Bound();
 	/// Constructs a Bound between \p min and \p max. If the invariant
 	/// `min <= max` is not satisfied, then sets the Bound to be the invalid
 	/// Bound instead.
@@ -83,7 +83,7 @@ public:
 };
 
 /// Unique invalid Bound.
-Bound const BOUND_INVALID(0. / 0., 0. / 0.); // TODO: Ensure no signalling NaN.
+Bound const BOUND_INVALID;
 /// Bound for \f$[0, 0)\f$.
 Bound const BOUND_ZERO(0., 0.);
 /// Bound for \f$[0, 1)\f$.

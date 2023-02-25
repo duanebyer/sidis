@@ -64,8 +64,6 @@ struct Cut {
 	math::Bound lab_theta_k2;
 	math::Bound lab_theta_h;
 	/// \}
-
-	Cut();
 };
 
 /**
@@ -85,8 +83,6 @@ struct CutRad {
 	math::Bound lab_mom_k;
 	math::Bound lab_theta_k;
 	/// \}
-
-	CutRad();
 };
 
 /// Minimum value that \f$S\f$ can take for a given set of particles.

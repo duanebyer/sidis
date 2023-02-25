@@ -33,34 +33,6 @@ static Real const X_CUTOFF = 1e-3;
 
 }
 
-Cut::Cut() :
-	x(BOUND_INVALID),
-	y(BOUND_INVALID),
-	z(BOUND_INVALID),
-	ph_t_sq(BOUND_INVALID),
-	phi_h(BOUND_INVALID),
-	phi(BOUND_INVALID),
-	Q_sq(BOUND_INVALID),
-	t(BOUND_INVALID),
-	W_sq(BOUND_INVALID),
-	r(BOUND_INVALID),
-	mx_sq(BOUND_INVALID),
-	qt_to_Q(BOUND_INVALID),
-	lab_mom_q(BOUND_INVALID),
-	lab_mom_k2(BOUND_INVALID),
-	lab_mom_h(BOUND_INVALID),
-	lab_theta_q(BOUND_INVALID),
-	lab_theta_k2(BOUND_INVALID),
-	lab_theta_h(BOUND_INVALID) { }
-
-CutRad::CutRad() :
-	tau(BOUND_INVALID),
-	phi_k(BOUND_INVALID),
-	R(BOUND_INVALID),
-	k_0_bar(BOUND_INVALID),
-	lab_mom_k(BOUND_INVALID),
-	lab_theta_k(BOUND_INVALID) { }
-
 // Bound of kinematic variables.
 // TODO: Some of the calculations in this section are redundant with earlier
 // kinematic calculations. This should be refactored to avoid that later.

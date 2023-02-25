@@ -6,6 +6,11 @@
 using namespace sidis;
 using namespace sidis::math;
 
+Bound::Bound() :
+	_min(std::numeric_limits<Real>::quiet_NaN()),
+	_max(std::numeric_limits<Real>::quiet_NaN()) {
+}
+
 Bound::Bound(Real min, Real max) : _min(min), _max(max) {
 	if (!(_min <= _max)) {
 		*this = BOUND_INVALID;
