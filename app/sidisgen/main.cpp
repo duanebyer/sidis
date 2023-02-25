@@ -71,8 +71,7 @@ struct IntegratorArray final {
 		Double prime = 0.;
 		std::size_t count_acc = 0.;
 		Stats weights;
-		for (std::size_t ev_idx = 0; ev_idx < NUM_EVENT_TYPES; ++ev_idx) {
-			Integrator const& integ = map[ev_idx];
+		for (Integrator const& integ : map) {
 			prime += integ.prime();
 			count_acc += integ.count_acc();
 			weights += integ.weights();
