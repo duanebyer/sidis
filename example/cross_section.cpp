@@ -82,11 +82,11 @@ int main(int argc, char** argv) {
 				"Beam must be unpolarized (U) or longitudinally polarized (L)");
 		}
 		if (target_pol_str == "U") {
-			target_pol = Vec3::ZERO;
+			target_pol = VEC3_ZERO;
 		} else if (target_pol_str == "L") {
-			target_pol = Vec3::Z;
+			target_pol = VEC3_Z;
 		} else if (target_pol_str == "T") {
-			target_pol = Vec3::Y;
+			target_pol = VEC3_Y;
 		} else {
 			throw std::out_of_range(
 				"Target must be unpolarized (U), longitudinally polarized (L), "

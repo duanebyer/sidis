@@ -118,7 +118,7 @@ The following CMake configuration options may be of use:
 * `Sidis_BUILD_EXAMPLES`: Whether to build the examples.
 * `Sidis_BUILD_DOXYGEN`: Whether to build the Doxygen documentation.
 * `Sidis_BUILD_APPS`: Whether to build the `sidisgen` binary.
-* `Sidis_IPO_ENABLED`: Whether to build with interprocedural optimization.
+* `Sidis_ENABLE_IPO`: Whether to build with interprocedural optimization.
 
 ## Acknowledgements
 

@@ -18,9 +18,6 @@ struct Transform4;
  * A linear transformation acting on 3-vectors.
  */
 struct Transform3 {
-	static Transform3 const ZERO;
-	static Transform3 const ID;
-
 	static Transform3 rotate(Vec3 const& dir, Real angle);
 	static Transform3 rotate_to(Vec3 const& dir_old, Vec3 const& dir_new);
 	static Transform3 rotate_to(Vec3 const& z_new);
@@ -33,7 +30,7 @@ struct Transform3 {
 	Vec3 y;
 	Vec3 z;
 
-	Transform3() : x(Vec3::ZERO), y(Vec3::ZERO), z(Vec3::ZERO) { }
+	Transform3() : x(VEC3_ZERO), y(VEC3_ZERO), z(VEC3_ZERO) { }
 	Transform3(Vec3 const& x, Vec3 const& y, Vec3 const& z)
 		: x(x), y(y), z(z) { }
 	Transform3(
@@ -104,6 +101,15 @@ struct Transform3 {
 	Transform4 transform(Transform4 const& other) const;
 };
 
+Transform3 const TRANSFORM3_ZERO(
+	0., 0., 0.,
+	0., 0., 0.,
+	0., 0., 0.);
+Transform3 const TRANSFORM3_ID(
+	1., 0., 0.,
+	0., 1., 0.,
+	0., 0., 1.);
+
 inline Transform3 operator+(Transform3 lhs, Transform3 const& rhs) {
 	lhs += rhs;
 	return lhs;
@@ -164,9 +170,6 @@ inline Transform3 sym_prod(Vec3 const& v1, Vec3 const& v2) {
  * A linear transformation acting on 4-vectors.
  */
 struct Transform4 {
-	static Transform4 const ZERO;
-	static Transform4 const ID;
-
 	static Transform4 rotate(Vec3 const& dir, Real angle);
 	static Transform4 rotate_to(Vec3 const& dir_old, Vec3 const& dir_new);
 	static Transform4 rotate_to(Vec3 const& z_axis);
@@ -185,7 +188,7 @@ struct Transform4 {
 	Vec4 y;
 	Vec4 z;
 
-	Transform4() : t(Vec4::ZERO), x(Vec4::ZERO), y(Vec4::ZERO), z(Vec4::ZERO) { }
+	Transform4() : t(VEC4_ZERO), x(VEC4_ZERO), y(VEC4_ZERO), z(VEC4_ZERO) { }
 	Transform4(Vec4 const& t, Vec4 const& x, Vec4 const& y, Vec4 const& z)
 		: t(t), x(x), y(y), z(z) { }
 	Transform4(
@@ -204,7 +207,7 @@ struct Transform4 {
 		0., 0., 0., s) { };
 	Transform4(Transform3 const& tr) :
 		Transform4(
-			Vec4::T,
+			VEC4_T,
 			Vec4(0., -tr.x),
 			Vec4(0., -tr.y),
 			Vec4(0., -tr.z)) { }
@@ -268,6 +271,17 @@ struct Transform4 {
 	Transform4 transform(Transform3 const& other) const;
 	Transform4 transform(Transform4 const& other) const;
 };
+
+Transform4 const TRANSFORM4_ZERO(
+	0., 0., 0., 0.,
+	0., 0., 0., 0.,
+	0., 0., 0., 0.,
+	0., 0., 0., 0.);
+Transform4 const TRANSFORM4_ID(
+	1., 0., 0., 0.,
+	0., 1., 0., 0.,
+	0., 0., 1., 0.,
+	0., 0., 0., 1.);
 
 inline Transform4 operator+(Transform4 lhs, Transform4 const& rhs) {
 	lhs += rhs;

@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 	kin::PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, phi };
 	kin::Kinematics kin(ps, S, ph_space);
 
-	math::EstErr xs = xs::nrad_integ(kin, *sf, 0., math::Vec3::ZERO, INF, params);
+	math::EstErr xs = xs::nrad_integ(kin, *sf, 0., math::VEC3_ZERO, INF, params);
 	std::cout << "Total cross-section: "
 		<< xs.val << " ± " << xs.err << std::endl;
 
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
 		Real lambda = static_cast<Real>(idx) / (k0_steps - 1);
 		Real k0_pow = lambda * k0_min_pow + (1. - lambda) * k0_max_pow;
 		Real k0_cut = std::pow(10., k0_pow);
-		math::EstErr xs_rad_f = xs::rad_f_integ(kin, *sf, 0., math::Vec3::ZERO, k0_cut, params);
+		math::EstErr xs_rad_f = xs::rad_f_integ(kin, *sf, 0., math::VEC3_ZERO, k0_cut, params);
 
 		Real ratio = xs_rad_f.val / xs.val;
 		Real err_rel = std::abs(xs_rad_f.err / xs_rad_f.val) + std::abs(xs.err / xs.val);

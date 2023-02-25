@@ -11,61 +11,61 @@ namespace sidis {
 namespace sf {
 namespace set {
 
-static std::size_t const NUM_SF = 18;
+std::size_t const NUM_SF = 18;
 
 /// Mask that selects only leading structure functions.
-static bool const MASK_LEADING[NUM_SF] {
+bool const MASK_LEADING[NUM_SF] {
 	0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
 };
 /// Mask that selects only subleading structure functions.
-static bool const MASK_SUBLEADING[NUM_SF] {
+bool const MASK_SUBLEADING[NUM_SF] {
 	1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1,
 };
 /// Masks for different structure function polarizations.
 /// \{
-static bool const MASK_UU[NUM_SF] {
+bool const MASK_UU[NUM_SF] {
 	1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
-static bool const MASK_UL[NUM_SF] {
+bool const MASK_UL[NUM_SF] {
 	0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
-static bool const MASK_UT[NUM_SF] {
+bool const MASK_UT[NUM_SF] {
 	0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
 };
-static bool const MASK_UP[NUM_SF] {
+bool const MASK_UP[NUM_SF] {
 	0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
 };
-static bool const MASK_UX[NUM_SF] {
+bool const MASK_UX[NUM_SF] {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
 };
-static bool const MASK_LU[NUM_SF] {
+bool const MASK_LU[NUM_SF] {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
 };
-static bool const MASK_LL[NUM_SF] {
+bool const MASK_LL[NUM_SF] {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,
 };
-static bool const MASK_LT[NUM_SF] {
+bool const MASK_LT[NUM_SF] {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
 };
-static bool const MASK_LP[NUM_SF] {
+bool const MASK_LP[NUM_SF] {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
 };
-static bool const MASK_LX[NUM_SF] {
+bool const MASK_LX[NUM_SF] {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
 };
-static bool const MASK_XU[NUM_SF] {
+bool const MASK_XU[NUM_SF] {
 	1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
 };
-static bool const MASK_XL[NUM_SF] {
+bool const MASK_XL[NUM_SF] {
 	0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0,
 };
-static bool const MASK_XT[NUM_SF] {
+bool const MASK_XT[NUM_SF] {
 	0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1,
 };
-static bool const MASK_XP[NUM_SF] {
+bool const MASK_XP[NUM_SF] {
 	0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1,
 };
-static bool const MASK_XX[NUM_SF] {
+bool const MASK_XX[NUM_SF] {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 /// \}

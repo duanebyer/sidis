@@ -48,8 +48,8 @@ Filter& Filter::operator|=(Filter const& rhs) {
 
 Filter& Filter::operator&=(Filter const& rhs) {
 	Condition condition_next;
-	for (Term term_1 : _condition) {
-		for (Term term_2 : rhs._condition) {
+	for (Term const& term_1 : _condition) {
+		for (Term const& term_2 : rhs._condition) {
 			Term term_union;
 			std::set_union(
 				term_1.begin(), term_1.end(),
@@ -161,7 +161,7 @@ bool Params::set_from(Params const& other) {
 	// TODO: This implementation could be made much more efficient by iterating
 	// over the parameter map directly.
 	bool old = false;
-	for (std::string name : other.names()) {
+	for (std::string const& name : other.names()) {
 		old |= this->set_from(other, name);
 	}
 	return old;

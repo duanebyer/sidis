@@ -6,11 +6,6 @@
 using namespace sidis;
 using namespace sidis::math;
 
-Vec3 const Vec3::ZERO = Vec3(0., 0., 0.);
-Vec3 const Vec3::X = Vec3(1., 0., 0.);
-Vec3 const Vec3::Y = Vec3(0., 1., 0.);
-Vec3 const Vec3::Z = Vec3(0., 0., 1.);
-
 Real Vec3::norm_sq() const {
 	return dot(*this, *this);
 }
@@ -34,7 +29,7 @@ Real Vec3::norm() const {
 Vec3 Vec3::unit() const {
 	Real n = norm();
 	if (n == 0.) {
-		return Vec3::ZERO;
+		return VEC3_ZERO;
 	} else {
 		return *this / n;
 	}
@@ -52,7 +47,7 @@ Vec3 Vec3::par(Vec3 const& v) const {
 Vec3 Vec3::perp(Vec3 const& v) const {
 	Real n_sq = v.norm_sq();
 	if (n_sq == 0.) {
-		return Vec3::ZERO;
+		return VEC3_ZERO;
 	} else {
 		return cross(cross(v, *this), v) / n_sq;
 	}
@@ -61,12 +56,6 @@ Vec3 Vec3::perp(Vec3 const& v) const {
 Real math::angle_between(Vec3 const& v_a, Vec3 const& v_b) {
 	return std::acos(dot(v_a.unit(), v_b.unit()));
 }
-
-Vec4 const Vec4::ZERO = Vec4();
-Vec4 const Vec4::T = Vec4(1., 0., 0., 0.);
-Vec4 const Vec4::X = Vec4(0., 1., 0., 0.);
-Vec4 const Vec4::Y = Vec4(0., 0., 1., 0.);
-Vec4 const Vec4::Z = Vec4(0., 0., 0., 1.);
 
 Vec4 Vec4::from_length_and_r(Real m, Vec3 const& p) {
 	Real max = std::max({
@@ -123,7 +112,7 @@ Real Vec4::norm() const {
 Vec4 Vec4::unit() const {
 	Real n = norm();
 	if (n == 0.) {
-		return Vec4::ZERO;
+		return VEC4_ZERO;
 	} else {
 		return *this / n;
 	}

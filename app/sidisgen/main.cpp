@@ -71,8 +71,7 @@ struct IntegratorArray final {
 		Double prime = 0.;
 		std::size_t count_acc = 0.;
 		Stats weights;
-		for (std::size_t ev_idx = 0; ev_idx < NUM_EVENT_TYPES; ++ev_idx) {
-			Integrator const& integ = map[ev_idx];
+		for (Integrator const& integ : map) {
 			prime += integ.prime();
 			count_acc += integ.count_acc();
 			weights += integ.weights();
@@ -572,7 +571,7 @@ int command_initialize(std::string params_file_name) {
 
 	// Generate UID for each generator type.
 	std::random_device rnd_dev;
-	std::mt19937_64 gen(rnd_dev());
+	std::mt19937_64 rnd(rnd_dev());
 	// Long is guaranteed to be able to store 63 bits at least.
 	std::uniform_int_distribution<Long> uid_dist(
 		//-0x7FFFFFFFFFFFFFFF,
@@ -584,7 +583,7 @@ int command_initialize(std::string params_file_name) {
 		EventType ev_type = builder.density.event_type;
 		std::string ev_name = event_type_name(ev_type);
 		std::string ev_key = event_type_short_name(ev_type);
-		params.set(p_name_init_uid(ev_type), new ValueLong(uid_dist(gen)));
+		params.set(p_name_init_uid(ev_type), new ValueLong(uid_dist(rnd)));
 		std::cout << "Building " << ev_name << " generator." << std::endl;
 		Generator gen(builder.density);
 		try {

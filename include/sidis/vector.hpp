@@ -17,11 +17,6 @@ namespace math {
  * A spatial 3-vector.
  */
 struct Vec3 {
-	static Vec3 const ZERO;
-	static Vec3 const X;
-	static Vec3 const Y;
-	static Vec3 const Z;
-
 	Real x;
 	Real y;
 	Real z;
@@ -76,6 +71,11 @@ struct Vec3 {
 	Vec3 perp(Vec3 const& v) const;
 };
 
+Vec3 const VEC3_ZERO(0., 0., 0.);
+Vec3 const VEC3_X(1., 0., 0.);
+Vec3 const VEC3_Y(0., 1., 0.);
+Vec3 const VEC3_Z(0., 0., 1.);
+
 inline Vec3 operator+(Vec3 lhs, Vec3 const& rhs) {
 	lhs += rhs;
 	return lhs;
@@ -112,12 +112,6 @@ Real angle_between(Vec3 const& v_a, Vec3 const& v_b);
  * A 4-vector for representing 4-momenta of particles.
  */
 struct Vec4 {
-	static Vec4 const ZERO;
-	static Vec4 const T;
-	static Vec4 const X;
-	static Vec4 const Y;
-	static Vec4 const Z;
-
 	Real t;
 	Real x;
 	Real y;
@@ -185,6 +179,12 @@ struct Vec4 {
 	Vec4 par(Vec4 const& v) const;
 	Vec4 perp(Vec4 const& v) const;
 };
+
+Vec4 const VEC4_ZERO(0., 0., 0., 0.);
+Vec4 const VEC4_T(1., 0., 0., 0.);
+Vec4 const VEC4_X(0., 1., 0., 0.);
+Vec4 const VEC4_Y(0., 0., 1., 0.);
+Vec4 const VEC4_Z(0., 0., 0., 1.);
 
 inline Vec4 operator+(Vec4 lhs, Vec4 const& rhs) {
 	lhs += rhs;

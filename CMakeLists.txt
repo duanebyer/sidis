@@ -87,7 +87,7 @@ if(Sidis_BUILD_SHARED_LIBS)
 	set(IPO_SUPPORTED NO)
 endif()
 set(
-	Sidis_IPO_ENABLED ${IPO_SUPPORTED}
+	Sidis_ENABLE_IPO ${IPO_SUPPORTED}
 	CACHE BOOL
 	"should interprocedural optimization support be enabled")
 

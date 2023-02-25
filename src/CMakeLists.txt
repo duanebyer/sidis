@@ -51,7 +51,6 @@ add_library(
 	sidis
 	asymmetry.cpp
 	bound.cpp
-	constant.cpp
 	cross_section.cpp
 	cut.cpp
 	exception.cpp
@@ -77,7 +76,7 @@ target_compile_features(sidis PUBLIC cxx_std_11)
 set_target_properties(
 	sidis PROPERTIES
 	CXX_EXTENSIONS OFF
-	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 target_compile_options(
 	sidis
 	PRIVATE

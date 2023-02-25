@@ -30,7 +30,7 @@ target_compile_features(sidisgen PRIVATE cxx_std_11)
 set_target_properties(
 	sidisgen PROPERTIES
 	CXX_EXTENSIONS OFF
-	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 target_compile_options(
 	sidisgen
 	PRIVATE
