@@ -221,30 +221,37 @@ DistParams::DistParams(EventType event_type, Params& params_full) {
 }
 
 Generator::Generator(Density density) :
-		_event_type(density.event_type) {
+		_event_type(density.event_type),
+		_dist_valid(false) {
 	switch (_event_type) {
 	case EventType::NRAD:
 		new (&_density.nrad) NradDensity(density.density.nrad);
 		new (&_dist.nrad) Dist<6>(DistType::UNIFORM);
+		_dist_valid = true;
 		break;
 	case EventType::RAD:
 		new (&_density.rad) RadDensity(density.density.rad);
 		new (&_dist.rad) Dist<9>(DistType::UNIFORM);
+		_dist_valid = true;
 		break;
 	default:
 		UNREACHABLE();
 	}
 }
 
-Generator::Generator(Generator&& other) noexcept : _event_type(other._event_type) {
+Generator::Generator(Generator&& other) noexcept :
+		_event_type(other._event_type),
+		_dist_valid(false) {
 	switch (_event_type) {
 	case EventType::NRAD:
 		new (&_density.nrad) NradDensity(std::move(other._density.nrad));
 		new (&_dist.nrad) Dist<6>(std::move(other._dist.nrad));
+		_dist_valid = true;
 		break;
 	case EventType::RAD:
 		new (&_density.rad) RadDensity(std::move(other._density.rad));
 		new (&_dist.rad) Dist<9>(std::move(other._dist.rad));
+		_dist_valid = true;
 		break;
 	default:
 		UNREACHABLE();
@@ -252,15 +259,19 @@ Generator::Generator(Generator&& other) noexcept : _event_type(other._event_type
 }
 
 Generator::~Generator() {
-	switch (_event_type) {
-	case EventType::NRAD:
-		_dist.nrad.~Dist<6>();
-		break;
-	case EventType::RAD:
-		_dist.rad.~Dist<9>();
-		break;
-	default:
-		UNREACHABLE();
+	if (_dist_valid) {
+		switch (_event_type) {
+		case EventType::NRAD:
+			_dist_valid = false;
+			_dist.nrad.~Dist<6>();
+			break;
+		case EventType::RAD:
+			_dist_valid = false;
+			_dist.rad.~Dist<9>();
+			break;
+		default:
+			UNREACHABLE();
+		}
 	}
 }
 
@@ -300,12 +311,16 @@ Event Generator::draw(RndEngine& rnd) const {
 void Generator::build_dist(DistParams dist_params) {
 	switch (_event_type) {
 	case EventType::NRAD:
+		_dist_valid = false;
 		_dist.nrad.~Dist<6>();
 		new (&_dist.nrad) Dist<6>(build_dist_approx<6>(dist_params, _density.nrad));
+		_dist_valid = true;
 		break;
 	case EventType::RAD:
+		_dist_valid = false;
 		_dist.rad.~Dist<9>();
 		new (&_dist.rad) Dist<9>(build_dist_approx<9>(dist_params, _density.rad));
+		_dist_valid = true;
 		break;
 	default:
 		UNREACHABLE();

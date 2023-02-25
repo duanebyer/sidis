@@ -165,6 +165,12 @@ template<std::size_t D>
 class Dist final {
 	// Tagged union over the underlying engine.
 	DistType _dist_type;
+	// This flag is used to ensure exception safety. If false, then none of the
+	// union variants are active. Initialize to false, set to true right after
+	// any placement new, set to false right before any destructor. Only
+	// destruct if true. That way, even if the constructors/destructors
+	// themselves fail, no undefined behaviour can happen.
+	bool _dist_valid;
 	union Impl {
 		UniformEngine uniform;
 		FoamEngine foam;
@@ -221,6 +227,9 @@ class Generator final {
 		RadDensity rad;
 		DensityImpl() { }
 	} _density;
+	// Need a validity flag for the distribution because it has a non-trivial
+	// destructor.
+	bool _dist_valid;
 	union DistImpl {
 		Dist<6> nrad;
 		Dist<9> rad;
