@@ -5,7 +5,7 @@ endif()
 
 project(
 	Sidis
-	VERSION 0.5.0.6
+	VERSION 0.6.0.0
 	DESCRIPTION "Event generator for polarized SIDIS with radiative corrections"
 	HOMEPAGE_URL "https://github.com/duanebyer/sidis"
 	LANGUAGES CXX)
@@ -87,7 +87,7 @@ if(Sidis_BUILD_SHARED_LIBS)
 	set(IPO_SUPPORTED NO)
 endif()
 set(
-	Sidis_IPO_ENABLED ${IPO_SUPPORTED}
+	Sidis_ENABLE_IPO ${IPO_SUPPORTED}
 	CACHE BOOL
 	"should interprocedural optimization support be enabled")
 
@@ -100,14 +100,6 @@ set(
 	Sidis_OPENMP_ENABLED ${OPENMP_SUPPORTED}
 	CACHE BOOL
 	"should OpenMP multithreading support be enabled")
-
-configure_file(
-	"${Sidis_SOURCE_DIR}/cog/const.py.in"
-	"${Sidis_BINARY_DIR}/cog/const.py")
-configure_file(
-	"${Sidis_SOURCE_DIR}/cog/gen_struct.py"
-	"${Sidis_BINARY_DIR}/cog/gen_struct.py"
-	COPYONLY)
 
 # Set up warnings.
 set(

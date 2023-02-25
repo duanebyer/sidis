@@ -12,20 +12,20 @@ using namespace sidis::kin;
 using namespace sidis::math;
 
 Transform4 frame::target_from_lab(Initial const& init, Vec3 pol) {
-	Transform4 boost = Transform4::transform_to(init.p, Vec4::T);
+	Transform4 boost = Transform4::transform_to(init.p, VEC4_T);
 	Vec4 k1_boost = boost * init.k1;
 	Vec3 y_axis = pol.perp(k1_boost.r().unit());
 	// If the target polarization is parallel to the beam, then choose an
 	// arbitrary direction to be the y-axis. One of these is guaranteed to be
 	// non-zero.
 	if (y_axis.norm_sq() == 0.) {
-		y_axis = cross(Vec3::X, k1_boost.r().unit());
+		y_axis = cross(VEC3_X, k1_boost.r().unit());
 	}
 	if (y_axis.norm_sq() == 0.) {
-		y_axis = cross(Vec3::Y, k1_boost.r().unit());
+		y_axis = cross(VEC3_Y, k1_boost.r().unit());
 	}
 	if (y_axis.norm_sq() == 0.) {
-		y_axis = cross(Vec3::Z, k1_boost.r().unit());
+		y_axis = cross(VEC3_Z, k1_boost.r().unit());
 	}
 	Transform4 rotate = Transform3::rotate_basis(k1_boost.r(), y_axis);
 	return rotate * boost;

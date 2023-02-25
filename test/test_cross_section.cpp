@@ -19,6 +19,9 @@ using namespace sidis;
 
 namespace {
 
+// We use a fixed value of alpha for the comparisons.
+Real const ALPHA = 7.2973525664e-3L;
+
 struct Input {
 	int sf_set_idx;
 	Real k0_cut;
@@ -69,7 +72,7 @@ std::istream& operator>>(std::istream& in, TestPair& pair) {
 	Input& input = pair.input;
 	Output& output = pair.output;
 	in >> input.sf_set_idx;
-	if (!(input.sf_set_idx >= -sf::set::NUM_SF && input.sf_set_idx < 1)) {
+	if (!(input.sf_set_idx >= -static_cast<int>(sf::set::NUM_SF) && input.sf_set_idx < 2)) {
 		in.setstate(std::ios_base::failbit);
 	}
 	in >> input.k0_cut;
@@ -101,7 +104,7 @@ std::istream& operator>>(std::istream& in, TestPairRad& pair) {
 	InputRad& input = pair.input;
 	OutputRad& output = pair.output;
 	in >> input.sf_set_idx;
-	if (!(input.sf_set_idx >= -sf::set::NUM_SF && input.sf_set_idx < 1)) {
+	if (!(input.sf_set_idx >= -static_cast<int>(sf::set::NUM_SF) && input.sf_set_idx < 2)) {
 		in.setstate(std::ios_base::failbit);
 	}
 	in >> input.k0_cut;
@@ -149,27 +152,27 @@ TEST_CASE(
 
 	part::Hadron h = part::Hadron::PI_P;
 
-	sf::Sf sf_1 = sf_set_1.sf(h, x, z, Q_sq, ph_t_sq);
-	sf::Sf sf_2 = sf_set_2.sf(h, x, z, Q_sq, ph_t_sq);
+	sf::SfLP sf_1 = sf_set_1.sf_lp(h, x, z, Q_sq, ph_t_sq);
+	sf::SfLP sf_2 = sf_set_2.sf_lp(h, x, z, Q_sq, ph_t_sq);
 
 	Real prec = 1e2*std::numeric_limits<Real>::epsilon();
 	// Two of the structure functions are commented out. For technical reasons,
 	// those two are only approximately equal instead of exactly equal.
-	CHECK_THAT(sf_1.F_UUT, RelMatcher<Real>(sf_2.F_UUT, prec));
-	CHECK_THAT(sf_1.F_UU_cos_phih, RelMatcher<Real>(sf_2.F_UU_cos_phih, prec));
-	CHECK_THAT(sf_1.F_UU_cos_2phih, RelMatcher<Real>(sf_2.F_UU_cos_2phih, prec));
-	CHECK_THAT(sf_1.F_UL_sin_phih, RelMatcher<Real>(sf_2.F_UL_sin_phih, prec));
-	CHECK_THAT(sf_1.F_UL_sin_2phih, RelMatcher<Real>(sf_2.F_UL_sin_2phih, prec));
-	CHECK_THAT(sf_1.F_UTT_sin_phih_m_phis, RelMatcher<Real>(sf_2.F_UTT_sin_phih_m_phis, prec));
-	//CHECK_THAT(sf_1.F_UT_sin_2phih_m_phis, RelMatcher<Real>(sf_2.F_UT_sin_2phih_m_phis, prec));
-	CHECK_THAT(sf_1.F_UT_sin_3phih_m_phis, RelMatcher<Real>(sf_2.F_UT_sin_3phih_m_phis, prec));
-	//CHECK_THAT(sf_1.F_UT_sin_phis, RelMatcher<Real>(sf_2.F_UT_sin_phis, prec));
-	CHECK_THAT(sf_1.F_UT_sin_phih_p_phis, RelMatcher<Real>(sf_2.F_UT_sin_phih_p_phis, prec));
-	CHECK_THAT(sf_1.F_LL, RelMatcher<Real>(sf_2.F_LL, prec));
-	CHECK_THAT(sf_1.F_LL_cos_phih, RelMatcher<Real>(sf_2.F_LL_cos_phih, prec));
-	CHECK_THAT(sf_1.F_LT_cos_phih_m_phis, RelMatcher<Real>(sf_2.F_LT_cos_phih_m_phis, prec));
-	CHECK_THAT(sf_1.F_LT_cos_2phih_m_phis, RelMatcher<Real>(sf_2.F_LT_cos_2phih_m_phis, prec));
-	CHECK_THAT(sf_1.F_LT_cos_phis, RelMatcher<Real>(sf_2.F_LT_cos_phis, prec));
+	CHECK_THAT(sf_1.uu.F_UUT, RelMatcher<Real>(sf_2.uu.F_UUT, prec));
+	CHECK_THAT(sf_1.uu.F_UU_cos_phih, RelMatcher<Real>(sf_2.uu.F_UU_cos_phih, prec));
+	CHECK_THAT(sf_1.uu.F_UU_cos_2phih, RelMatcher<Real>(sf_2.uu.F_UU_cos_2phih, prec));
+	CHECK_THAT(sf_1.ul.F_UL_sin_phih, RelMatcher<Real>(sf_2.ul.F_UL_sin_phih, prec));
+	CHECK_THAT(sf_1.ul.F_UL_sin_2phih, RelMatcher<Real>(sf_2.ul.F_UL_sin_2phih, prec));
+	CHECK_THAT(sf_1.ut.F_UTT_sin_phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UTT_sin_phih_m_phis, prec));
+	//CHECK_THAT(sf_1.ut.F_UT_sin_2phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_2phih_m_phis, prec));
+	CHECK_THAT(sf_1.ut.F_UT_sin_3phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_3phih_m_phis, prec));
+	//CHECK_THAT(sf_1.ut.F_UT_sin_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_phis, prec));
+	CHECK_THAT(sf_1.ut.F_UT_sin_phih_p_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_phih_p_phis, prec));
+	CHECK_THAT(sf_1.ll.F_LL, RelMatcher<Real>(sf_2.ll.F_LL, prec));
+	CHECK_THAT(sf_1.ll.F_LL_cos_phih, RelMatcher<Real>(sf_2.ll.F_LL_cos_phih, prec));
+	CHECK_THAT(sf_1.lt.F_LT_cos_phih_m_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_phih_m_phis, prec));
+	CHECK_THAT(sf_1.lt.F_LT_cos_2phih_m_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_2phih_m_phis, prec));
+	CHECK_THAT(sf_1.lt.F_LT_cos_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_phis, prec));
 }
 
 TEST_CASE(
@@ -186,6 +189,8 @@ TEST_CASE(
 	std::unique_ptr<sf::SfSet> sf;
 	if (input.sf_set_idx == 0) {
 		sf.reset(new sf::set::ProkudinSfSet());
+	} else if (input.sf_set_idx == 1) {
+		sf.reset(new sf::set::TestSfSet(part::Nucleus::P));
 	} else {
 		bool mask[sf::set::NUM_SF] = { false };
 		mask[-input.sf_set_idx - 1] = true;
@@ -210,25 +215,26 @@ TEST_CASE(
 	Real beam_pol = input.beam_pol;
 	math::Vec3 eta = frame::hadron_from_target(kin) * input.target_pol;
 	// Compute the cross-sections.
-	Real born = xs::born(kin, *sf, beam_pol, eta);
-	Real amm = xs::amm(kin, *sf, beam_pol, eta);
-	Real nrad = xs::nrad_ir(kin, *sf, beam_pol, eta, input.k0_cut);
+	ph::Phenom phenom(ALPHA, kin);
+	Real born = xs::born(kin, phenom, *sf, beam_pol, eta);
+	Real amm = xs::amm(kin, phenom, *sf, beam_pol, eta);
+	Real nrad = xs::nrad_ir(kin, phenom, *sf, beam_pol, eta, input.k0_cut);
 
 	// Print state information.
 	std::stringstream ss;
 	ss
-		<< "sf_set_idx = " << input.sf_set_idx    << std::endl
-		<< "pid        = " << part::name(lep) << std::endl
-		<< "S          = " << input.S             << std::endl
+		<< "sf_set_idx = " << input.sf_set_idx << std::endl
+		<< "pid        = " << part::name(lep)  << std::endl
+		<< "S          = " << input.S          << std::endl
 		<< "x          = " << ph_space.x       << std::endl
 		<< "y          = " << ph_space.y       << std::endl
 		<< "z          = " << ph_space.z       << std::endl
 		<< "ph_t²      = " << ph_space.ph_t_sq << std::endl
 		<< "φ_h        = " << ph_space.phi_h   << std::endl
 		<< "φ          = " << ph_space.phi     << std::endl
-		<< "λ_e        = " << beam_pol            << std::endl
-		<< "η_1        = " << eta.x               << std::endl
-		<< "η_2        = " << eta.y               << std::endl
+		<< "λ_e        = " << beam_pol         << std::endl
+		<< "η_1        = " << eta.x            << std::endl
+		<< "η_2        = " << eta.y            << std::endl
 		<< "η_3        = " << eta.z;
 	INFO(ss.str());
 
@@ -258,6 +264,8 @@ TEST_CASE(
 	std::unique_ptr<sf::SfSet> sf;
 	if (input.sf_set_idx == 0) {
 		sf.reset(new sf::set::ProkudinSfSet());
+	} else if (input.sf_set_idx == 1) {
+		sf.reset(new sf::set::TestSfSet(part::Nucleus::P));
 	} else {
 		bool mask[sf::set::NUM_SF] = { false };
 		mask[-input.sf_set_idx - 1] = true;
@@ -282,24 +290,25 @@ TEST_CASE(
 	Real beam_pol = input.beam_pol;
 	math::Vec3 eta = frame::hadron_from_target(kin.project()) * input.target_pol;
 	// Compute the cross-sections.
-	Real rad_f = xs::rad_f(kin, *sf, beam_pol, eta);
-	Real rad = xs::rad(kin, *sf, beam_pol, eta);
+	ph::Phenom phenom(ALPHA, kin.project());
+	Real rad_f = xs::rad_f(kin, phenom, *sf, beam_pol, eta);
+	Real rad = xs::rad(kin, phenom, *sf, beam_pol, eta);
 
 	// Print state information.
 	std::stringstream ss;
 	ss
-		<< "sf_set_idx = " << input.sf_set_idx    << std::endl
-		<< "pid        = " << part::name(lep) << std::endl
-		<< "S          = " << input.S             << std::endl
+		<< "sf_set_idx = " << input.sf_set_idx << std::endl
+		<< "pid        = " << part::name(lep)  << std::endl
+		<< "S          = " << input.S          << std::endl
 		<< "x          = " << ph_space.x       << std::endl
 		<< "y          = " << ph_space.y       << std::endl
 		<< "z          = " << ph_space.z       << std::endl
 		<< "ph_t²      = " << ph_space.ph_t_sq << std::endl
 		<< "φ_h        = " << ph_space.phi_h   << std::endl
 		<< "φ          = " << ph_space.phi     << std::endl
-		<< "λ_e        = " << beam_pol            << std::endl
-		<< "η_1        = " << eta.x               << std::endl
-		<< "η_2        = " << eta.y               << std::endl
+		<< "λ_e        = " << beam_pol         << std::endl
+		<< "η_1        = " << eta.x            << std::endl
+		<< "η_2        = " << eta.y            << std::endl
 		<< "η_3        = " << eta.z;
 	INFO(ss.str());
 

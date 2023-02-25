@@ -7,9 +7,13 @@ set(
 	"sidis/cross_section.hpp"
 	"sidis/cut.hpp"
 	"sidis/frame.hpp"
+	"sidis/hadronic_coeff.hpp"
 	"sidis/integ_params.hpp"
 	"sidis/kinematics.hpp"
+	"sidis/leptonic_coeff.hpp"
 	"sidis/particle.hpp"
+	"sidis/phenom.hpp"
+	"sidis/structure_function.hpp"
 	"sidis/tmd.hpp"
 	"sidis/transform.hpp"
 	"sidis/vector.hpp"
@@ -24,10 +28,7 @@ set(
 	"sidis/extra/map.hpp")
 set(
 	HEADER_LIST_GENERATE
-	"sidis/hadronic_coeff.hpp"
-	"sidis/leptonic_coeff.hpp"
 	"sidis/numeric.hpp"
-	"sidis/structure_function.hpp"
 	"sidis/version.hpp")
 
 set(HEADER_LIST_SOURCE)
@@ -37,42 +38,19 @@ foreach(HEADER ${HEADER_LIST_BASE})
 	list(APPEND HEADER_LIST_DIST "${Sidis_SOURCE_DIR}/include/${HEADER}")
 endforeach(HEADER)
 foreach(HEADER ${HEADER_LIST_GENERATE})
+	configure_file(
+		"${Sidis_SOURCE_DIR}/include/${HEADER}.in"
+		"${Sidis_BINARY_DIR}/include/${HEADER}")
 	list(APPEND HEADER_LIST_SOURCE "${Sidis_SOURCE_DIR}/include/${HEADER}.in")
 	list(APPEND HEADER_LIST_DIST "${Sidis_BINARY_DIR}/include/${HEADER}")
 endforeach(HEADER)
 
 find_package(GSL REQUIRED)
 
-# Check that Python is installed.
-if(CMAKE_VERSION VERSION_LESS 3.12)
-	find_package(PythonInterp 2.7 REQUIRED)
-	find_package(PythonLibs 2.7 REQUIRED)
-	set(Python_EXECUTABLE PYTHON_EXECUTABLE)
-else()
-	find_package(Python REQUIRED COMPONENTS Interpreter Development)
-endif()
-
-# Generated header files are processed through the `cog` utility.
-foreach(HEADER ${HEADER_LIST_GENERATE})
-	add_custom_command(
-		OUTPUT "${Sidis_BINARY_DIR}/include/${HEADER}"
-		COMMAND ${CMAKE_COMMAND}
-		ARGS
-			-E env "PYTHONPATH=${Sidis_SOURCE_DIR}/external"
-			"${Python_EXECUTABLE}" ARGS -m cogapp -d
-			-I "${Sidis_BINARY_DIR}/cog"
-			-o "${Sidis_BINARY_DIR}/include/${HEADER}"
-			"${Sidis_SOURCE_DIR}/include/${HEADER}.in"
-		MAIN_DEPENDENCY "${Sidis_SOURCE_DIR}/include/${HEADER}.in"
-		COMMENT "Generating header file ${HEADER}."
-		VERBATIM)
-endforeach(HEADER)
-
 add_library(
 	sidis
 	asymmetry.cpp
 	bound.cpp
-	constant.cpp
 	cross_section.cpp
 	cut.cpp
 	exception.cpp
@@ -82,6 +60,7 @@ add_library(
 	leptonic_coeff.cpp
 	math.cpp
 	particle.cpp
+	phenom.cpp
 	structure_function.cpp
 	tmd.cpp
 	transform.cpp
@@ -97,7 +76,7 @@ target_compile_features(sidis PUBLIC cxx_std_11)
 set_target_properties(
 	sidis PROPERTIES
 	CXX_EXTENSIONS OFF
-	INTERPROCEDURAL_OPTIMIZATION ${Sidis_IPO_ENABLED})
+	INTERPROCEDURAL_OPTIMIZATION ${Sidis_ENABLE_IPO})
 target_compile_options(
 	sidis
 	PRIVATE

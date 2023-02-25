@@ -8,6 +8,7 @@
 #include "sidis/leptonic_coeff.hpp"
 #include "sidis/kinematics.hpp"
 #include "sidis/particle.hpp"
+#include "sidis/phenom.hpp"
 #include "sidis/structure_function.hpp"
 #include "sidis/vector.hpp"
 #include "sidis/extra/integrate.hpp"
@@ -17,6 +18,7 @@ using namespace sidis::asym;
 using namespace sidis::kin;
 using namespace sidis::math;
 using namespace sidis::part;
+using namespace sidis::ph;
 
 namespace {
 
@@ -29,22 +31,22 @@ EstErr ut_integ_h(
 		Real eta_2, int phi_h_coeff_2, int offset_2,
 		bool include_rc,
 		IntegParams params) {
-	Real Q_sq = S * x * y;
-	sf::SfUP sf = sf_set.sf_up(ps.hadron, x, z, Q_sq, ph_t_sq);
+	Kinematics kin_0(ps, S, { x, y, z, ph_t_sq, 0., 0. });
+	had::HadBaseUP had_0(kin_0, sf_set);
 	if (!include_rc) {
 		EstErr born_integ = integrate(
 			[&](Real phi_h) {
-				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, ph_space);
-				xs::Born b(kin);
-				lep::LepBornUX lep(kin);
-				had::HadUP had(kin, sf);
+				Kinematics kin(ps, S, { x, y, z, ph_t_sq, phi_h, 0. });
+				// TODO: Find a way to expose phenomenological inputs in the
+				// function interface.
+				xs::Born b(kin, Phenom(kin));
+				lep::LepBornUP lep(kin);
 				Vec3 eta(
 					eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
 					eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
 					0.);
-				Real result = eta.x * xs::born_ut1_base(b, lep, had)
-					+ eta.y * xs::born_ut2_base(b, lep, had);
+				Real result = eta.x * xs::born_base_ut1(b, lep.up, had_0.ut)
+					+ eta.y * xs::born_base_ut2(b, lep.uu, had_0.ut);
 				return result;
 			},
 			-PI, PI,
@@ -57,17 +59,15 @@ EstErr ut_integ_h(
 		// then much less accuracy on `rad_f_integ` is needed.
 		EstErr nrad_ir_integ = integrate(
 			[&](Real phi_h) {
-				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, ph_space);
-				xs::Nrad b(kin, INF);
-				lep::LepNradUX lep(kin);
-				had::HadUP had(kin, sf);
+				Kinematics kin(ps, S, { x, y, z, ph_t_sq, phi_h, 0. });
+				xs::Nrad b(kin, Phenom(kin), INF);
+				lep::LepNradUP lep(kin);
 				Vec3 eta(
 					eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
 					eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
 					0.);
-				return eta.x * xs::nrad_ir_ut1_base(b, lep, had)
-					+ eta.y * xs::nrad_ir_ut2_base(b, lep, had);
+				return eta.x * xs::nrad_ir_base_ut1(b, lep.up, had_0.ut)
+					+ eta.y * xs::nrad_ir_base_ut2(b, lep.uu, had_0.ut);
 			},
 			-PI, PI,
 			params);
@@ -75,33 +75,29 @@ EstErr ut_integ_h(
 			[&](std::array<Real, 4> ph) {
 				Bound phi_h_b(-PI, PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
-				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, ph_space);
+				Kinematics kin(ps, S, { x, y, z, ph_t_sq, phi_h, 0. });
 
 				KinematicsRad kin_rad;
-				Real jacobian;
+				Real jac;
 				Real ph_rad[3] = { ph[1], ph[2], ph[3] };
-				if (!cut::take(kin, ph_rad, &kin_rad, &jacobian)) {
+				if (!cut::take(kin, ph_rad, &kin_rad, &jac)) {
 					return 0.;
 				}
-				jacobian *= phi_h_b.size();
+				jac *= phi_h_b.size();
 
-				xs::Rad b(kin_rad);
-				sf::SfUP shift_sf = sf_set.sf_up(
-					ps.hadron,
-					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
-				lep::LepRadUX lep(kin_rad);
-				had::HadRadFUP had(kin_rad, sf, shift_sf);
+				xs::Rad b(kin_rad, Phenom(kin));
+				lep::LepRadUP lep(kin_rad);
+				had::HadRadFBaseUP had(kin_rad, sf_set, had_0);
 
 				Vec3 eta(
 					eta_1 * std::sin(phi_h_coeff_1 * phi_h + 0.5 * offset_1 * PI),
 					eta_2 * std::sin(phi_h_coeff_2 * phi_h + 0.5 * offset_2 * PI),
 					0.);
-				Real xs = dot(eta, xs::rad_f_up_base(b, lep, had));
+				Real xs = jac * dot(eta, xs::rad_f_base_up(b, lep.uu, lep.up, had));
 				if (std::isnan(xs)) {
 					xs = 0.;
 				}
-				return jacobian * xs;
+				return xs;
 			},
 			std::array<Real, 4>{ 0., 0., 0., 0. },
 			std::array<Real, 4>{ 1., 1., 1., 1. },
@@ -121,20 +117,18 @@ EstErr asym::uu_integ(
 		IntegParams params) {
 	// The `phi` integration only contributes a factor of `2 pi`, so we don't
 	// need to evaluate it. This leaves the `phi_h` integration.
-	Real Q_sq = S * x * y;
+	Kinematics kin_0(ps, S, { x, y, z, ph_t_sq, 0., 0. });
 	// Calculate the structure functions ahead of time, because they are
 	// constant over the integrals we'll be doing.
-	sf::SfUU sf = sf_set.sf_uu(ps.hadron, x, z, Q_sq, ph_t_sq);
+	had::HadBaseUU had_0(kin_0, sf_set);
 	if (!include_rc) {
 		// Without radiative corrections, there is only the Born cross-section.
 		EstErr born_integ = integrate(
 			[&](Real phi_h) {
-				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, ph_space);
-				xs::Born born(kin);
-				lep::LepBornUU lep(kin);
-				had::HadUU had(kin, sf);
-				return xs::born_uu_base(born, lep, had);
+				Kinematics kin(ps, S, { x, y, z, ph_t_sq, phi_h, 0. });
+				xs::Born born(kin, Phenom(kin));
+				lep::LepBornBaseUU lep(kin);
+				return xs::born_base_uu(born, lep, had_0);
 			},
 			-PI, PI,
 			params);
@@ -147,12 +141,10 @@ EstErr asym::uu_integ(
 		// freedom.
 		EstErr nrad_ir_integ = integrate(
 			[&](Real phi_h) {
-				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, ph_space);
-				xs::Nrad b(kin, INF);
-				lep::LepNradUU lep(kin);
-				had::HadUU had(kin, sf);
-				return xs::nrad_ir_uu_base(b, lep, had);
+				Kinematics kin(ps, S, { x, y, z, ph_t_sq, phi_h, 0. });
+				xs::Nrad b(kin, Phenom(kin), INF);
+				lep::LepNradBaseUU lep(kin);
+				return xs::nrad_ir_base_uu(b, lep, had_0);
 			},
 			-PI, PI,
 			params);
@@ -160,28 +152,24 @@ EstErr asym::uu_integ(
 			[&](std::array<Real, 4> ph) {
 				Bound phi_h_b(-PI, PI);
 				Real phi_h = phi_h_b.lerp(ph[0]);
-				PhaseSpace ph_space { x, y, z, ph_t_sq, phi_h, 0. };
-				Kinematics kin(ps, S, ph_space);
+				Kinematics kin(ps, S, { x, y, z, ph_t_sq, phi_h, 0. });
 
 				KinematicsRad kin_rad;
-				Real jacobian;
+				Real jac;
 				Real ph_rad[3] = { ph[1], ph[2], ph[3] };
-				if (!cut::take(kin, ph_rad, &kin_rad, &jacobian)) {
+				if (!cut::take(kin, ph_rad, &kin_rad, &jac)) {
 					return 0.;
 				}
-				jacobian *= phi_h_b.size();
+				jac *= phi_h_b.size();
 
-				xs::Rad b(kin_rad);
-				sf::SfUU shift_sf = sf_set.sf_uu(
-					ps.hadron,
-					kin_rad.shift_x, kin_rad.shift_z, kin_rad.shift_Q_sq, kin_rad.shift_ph_t_sq);
-				lep::LepRadUU lep(kin_rad);
-				had::HadRadFUU had(kin_rad, sf, shift_sf);
-				Real xs = xs::rad_f_uu_base(b, lep, had);
+				xs::Rad b(kin_rad, Phenom(kin));
+				lep::LepRadBaseUU lep(kin_rad);
+				had::HadRadFBaseUU had(kin_rad, sf_set, had_0);
+				Real xs = jac * xs::rad_f_base_uu(b, lep, had);
 				if (std::isnan(xs)) {
 					xs = 0.;
 				}
-				return jacobian * xs;
+				return xs;
 			},
 			std::array<Real, 4>{ 0., 0., 0., 0. },
 			std::array<Real, 4>{ 1., 1., 1., 1. },

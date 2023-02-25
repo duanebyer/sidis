@@ -10,24 +10,10 @@ namespace math {
  * Half-open interval between two real numbers \f$[a, b)\f$.
  *
  * A Bound between \f$a\f$ and \f$b\f$ is required to satisfy \f$a \le b\f$. The
- * invalid Bound is also permitted through the use of Bound::INVALID, and the
+ * invalid Bound is also permitted through the use of BOUND_INVALID, and the
  * validity of the Bound can be checked through Bound::valid().
  */
 class Bound {
-public:
-	/// Unique invalid Bound.
-	static Bound const INVALID;
-	/// Bound for \f$[0, 0)\f$.
-	static Bound const ZERO;
-	/// Bound for \f$[0, 1)\f$.
-	static Bound const UNIT;
-	/// Bound for \f$[-\infty, +\infty)\f$.
-	static Bound const FULL;
-	/// Bound for \f$[0, +\infty)\f$.
-	static Bound const POSITIVE;
-	/// Bound for \f$[-\infty, 0)\f$.
-	static Bound const NEGATIVE;
-
 private:
 	Real _min;
 	Real _max;
@@ -43,8 +29,8 @@ public:
 		return _max;
 	}
 
-	/// Initialize to Bound::ZERO.
-	Bound() : _min(0.), _max(0.) { }
+	/// Initialize to BOUND_INVALID.
+	Bound();
 	/// Constructs a Bound between \p min and \p max. If the invariant
 	/// `min <= max` is not satisfied, then sets the Bound to be the invalid
 	/// Bound instead.
@@ -96,8 +82,21 @@ public:
 	Bound& operator/=(Real s);
 };
 
+/// Unique invalid Bound.
+Bound const BOUND_INVALID;
+/// Bound for \f$[0, 0)\f$.
+Bound const BOUND_ZERO(0., 0.);
+/// Bound for \f$[0, 1)\f$.
+Bound const BOUND_UNIT(0., 1.);
+/// Bound for \f$[-\infty, +\infty)\f$.
+Bound const BOUND_FULL(-1. / 0., 1. / 0.);
+/// Bound for \f$[0, +\infty)\f$.
+Bound const BOUND_POSITIVE(0., 1. / 0.);
+/// Bound for \f$[-\infty, 0)\f$.
+Bound const BOUND_NEGATIVE(-1. / 0., 0.);
+
 /// Intersection of two Bound%s. If there is no overlap, then give
-/// Bound::INVALID.
+/// BOUND_INVALID.
 /// \relates Bound
 inline Bound operator&(Bound lhs, Bound const& rhs) {
 	lhs &= rhs;

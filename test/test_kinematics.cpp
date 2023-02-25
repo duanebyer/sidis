@@ -81,7 +81,7 @@ void test_kin_nrad(
 		kin::Kinematics kin,
 		bool complete,
 		Real rel_prec=1e4) {
-	kin::Final fin(init, math::Vec3::Y, kin);
+	kin::Final fin(init, math::VEC3_Y, kin);
 	// Get 4-momenta of particles.
 	math::Vec4 p = init.p;
 	math::Vec4 k1 = init.k1;
@@ -250,7 +250,7 @@ void test_kin_rad(
 		kin::KinematicsRad kin,
 		bool complete,
 		Real rel_prec=1e4) {
-	kin::FinalRad fin(init, math::Vec3::ZERO, kin);
+	kin::FinalRad fin(init, math::VEC3_ZERO, kin);
 	// Get 4-momenta of particles.
 	math::Vec4 p = init.p;
 	math::Vec4 k1 = init.k1;
@@ -783,7 +783,7 @@ TEST_CASE(
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpace ph_space = input.ph_space;
 	kin::Kinematics kin(ps, S, ph_space);
-	kin::Final fin(init, math::Vec3::Y, kin);
+	kin::Final fin(init, math::VEC3_Y, kin);
 	// Reference frames.
 	math::Transform4 target_from_lepton = frame::target_from_lepton(kin);
 	math::Transform4 target_from_hadron = frame::target_from_hadron(kin);
@@ -927,7 +927,7 @@ TEST_CASE(
 	kin::Initial init(ps, E_b);
 	kin::PhaseSpaceRad ph_space = input.ph_space;
 	kin::KinematicsRad kin(ps, S, ph_space);
-	kin::FinalRad fin(init, math::Vec3::Y, kin);
+	kin::FinalRad fin(init, math::VEC3_Y, kin);
 	// Reference frames.
 	math::Transform4 target_from_shift = frame::target_from_shift(kin);
 	math::Transform4 target_from_hadron = frame::target_from_hadron(kin.project_shift());

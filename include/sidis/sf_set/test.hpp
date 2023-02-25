@@ -8,13 +8,7 @@ namespace sf {
 namespace set {
 
 /**
- * Structure function set that returns a constant value of one for some subset
- * of all structure functions, for testing purposes.
- *
- * This class takes a bitset determining which of the structure functions will
- * return a constant value of one, and which will return zero. This is used for
- * doing tests on the contributions of structure functions which normally might
- * not significantly affect the cross-section.
+ * Structure function set that always returns 1, for testing purposes.
  */
 class TestSfSet final : public SfSet {
 public:

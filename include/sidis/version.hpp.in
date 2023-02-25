@@ -1,18 +1,10 @@
 #ifndef SIDIS_VERSION_HPP
 #define SIDIS_VERSION_HPP
 
-#define SIDIS_VERSION_MAJOR \
-/*[[[cog import const; const.lookup("Sidis_VERSION_MAJOR")]]]*/
-/*[[[end]]]*/
-#define SIDIS_VERSION_MINOR \
-/*[[[cog import const; const.lookup("Sidis_VERSION_MINOR")]]]*/
-/*[[[end]]]*/
-#define SIDIS_VERSION_PATCH \
-/*[[[cog import const; const.lookup("Sidis_VERSION_PATCH")]]]*/
-/*[[[end]]]*/
-#define SIDIS_VERSION_TWEAK \
-/*[[[cog import const; const.lookup("Sidis_VERSION_TWEAK")]]]*/
-/*[[[end]]]*/
+#define SIDIS_VERSION_MAJOR ($CACHE{CMAKE_PROJECT_VERSION_MAJOR})
+#define SIDIS_VERSION_MINOR ($CACHE{CMAKE_PROJECT_VERSION_MINOR})
+#define SIDIS_VERSION_PATCH ($CACHE{CMAKE_PROJECT_VERSION_PATCH})
+#define SIDIS_VERSION_TWEAK ($CACHE{CMAKE_PROJECT_VERSION_TWEAK})
 
 #endif
 

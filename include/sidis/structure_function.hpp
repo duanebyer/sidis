@@ -8,21 +8,23 @@
 namespace sidis {
 namespace sf {
 
+struct SfBaseUU;
+struct SfBaseUL;
+struct SfBaseUT;
+struct SfBaseUP;
+struct SfBaseLU;
+struct SfBaseLL;
+struct SfBaseLT;
+struct SfBaseLP;
+
 struct SfUU;
 struct SfUL;
 struct SfUT;
+struct SfUP;
 struct SfLU;
 struct SfLL;
 struct SfLT;
-struct SfXU;
-struct SfXL;
-struct SfXT;
-struct SfUP;
 struct SfLP;
-struct SfUX;
-struct SfLX;
-struct SfXP;
-struct SfXX;
 
 /**
  * \defgroup SfGroup Structure functions
@@ -45,7 +47,7 @@ public:
 	/// What type of part::Nucleus the structure functions are valid for.
 	part::Nucleus const target;
 
-	/// Initialize an SfSet for use on the specified type of target.
+	/// Initialize a SfSet for the specified target.
 	SfSet(part::Nucleus target) : target(target) { }
 	SfSet(SfSet const&) = delete;
 	SfSet(SfSet&&) = delete;
@@ -82,29 +84,44 @@ public:
 	virtual Real F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	/// \}
 
-	/// \name Structure function combinations
+	/// \name Base structure function combinations
 	/// Convenience methods for retrieving groups of structure functions based
-	/// on beam and target polarizations. For example, `sf_ut` will retrieve all
-	/// structure functions of the form \f$F_{UT}^{\cdot}\f$.
+	/// on beam and target polarizations. For example, SfSet::sf_base_ut() will
+	/// retrieve all structure functions of the form \f$F_{UT}^{\cdot}\f$.
+	///
+	/// By default, this method packages together independent calls to the
+	/// individual structure functions. The method is declared virtual in case a
+	/// more efficient implementation is possible.
 	/// \{
-	SfUU sf_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfUL sf_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfUT sf_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfLU sf_lu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfLL sf_ll(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfLT sf_lt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfBaseUU sf_base_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfBaseUL sf_base_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfBaseUT sf_base_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfBaseUP sf_base_up(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfBaseLU sf_base_lu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfBaseLL sf_base_ll(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfBaseLT sf_base_lt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfBaseLP sf_base_lp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	/// \}
 
-	SfXU sf_xu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfXL sf_xl(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfXT sf_xt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfUP sf_up(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfLP sf_lp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfUX sf_ux(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfLX sf_lx(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-
-	SfXP sf_xp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfXX sf_xx(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
-	SfXX sf(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	/// \name Structure function combinations
+	/// Similar to the base structure function combinations, except that these
+	/// methods will provide unpolarized variants as well. For example,
+	/// SfSet::sf_ut() will retrieve structure functions of the form
+	/// \f$F_{UT}^{\cdot}\f$ as well as \f$F_{UU}^{\cdot}\f$. The unpolarized
+	/// variants are needed for the complete polarized cross-section.
+	///
+	/// By default, this method packages together independent calls to the
+	/// individual structure functions. The method is declared virtual in case a
+	/// more efficient implementation is possible.
+	/// \{
+	virtual SfUU sf_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfUL sf_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfUT sf_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfUP sf_up(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfLU sf_lu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfLL sf_ll(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfLT sf_lt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
+	virtual SfLP sf_lp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const;
 	/// \}
 };
 
@@ -288,63 +305,108 @@ public:
 };
 
 /**
- * \defgroup SfCombsGroup Structure function combinations
- * The types here are used to combine structure function results by beam and
- * target polarization.
+ * \defgroup SfCombsBaseGroup Base structure function combinations
+ * These types cache the results of structure function calculations from SfSet.
+ * They are grouped by beam and target polarization. For instance, for
+ * calculating the LT part of the cross-section through xs::born_base_lt(), you
+ * would fill in the SfBaseLT type.
+ *
+ * To compute the full LT cross-section (including unpolarized contributions),
+ * you would instead fill in the SfLT type.
  *
  * \sa SfSet
  */
 /// \{
-/*[[[cog
-import gen_struct
-gen_struct.generate_structs_pol(
-	"Sf",
-	["U", "L"], ["U", "L", "T"],
-	{
-		("U", "U"): [
-			["Real", "F_UUL"],
-			["Real", "F_UUT"],
-			["Real", "F_UU_cos_phih"],
-			["Real", "F_UU_cos_2phih"],
-		],
-		("U", "L"): [
-			["Real", "F_UL_sin_phih"],
-			["Real", "F_UL_sin_2phih"],
-		],
-		("U", "T"): [
-			["Real", "F_UTL_sin_phih_m_phis"],
-			["Real", "F_UTT_sin_phih_m_phis"],
-			["Real", "F_UT_sin_2phih_m_phis"],
-			["Real", "F_UT_sin_3phih_m_phis"],
-			["Real", "F_UT_sin_phis"],
-			["Real", "F_UT_sin_phih_p_phis"],
-		],
-		("L", "U"): [
-			["Real", "F_LU_sin_phih"],
-		],
-		("L", "L"): [
-			["Real", "F_LL"],
-			["Real", "F_LL_cos_phih"],
-		],
-		("L", "T"): [
-			["Real", "F_LT_cos_phih_m_phis"],
-			["Real", "F_LT_cos_2phih_m_phis"],
-			["Real", "F_LT_cos_phis"],
-		],
-	},
-	constructor_fields=True,
-	constructor_default=True,
-	generate_target_p=True
-)
-]]]*/
-/*[[[end]]]*/
+struct SfBaseUU {
+	Real F_UUL;
+	Real F_UUT;
+	Real F_UU_cos_phih;
+	Real F_UU_cos_2phih;
+};
+struct SfBaseUL {
+	Real F_UL_sin_phih;
+	Real F_UL_sin_2phih;
+};
+struct SfBaseUT {
+	Real F_UTL_sin_phih_m_phis;
+	Real F_UTT_sin_phih_m_phis;
+	Real F_UT_sin_2phih_m_phis;
+	Real F_UT_sin_3phih_m_phis;
+	Real F_UT_sin_phis;
+	Real F_UT_sin_phih_p_phis;
+};
+struct SfBaseUP {
+	SfBaseUL ul;
+	SfBaseUT ut;
+};
+struct SfBaseLU {
+	Real F_LU_sin_phih;
+};
+struct SfBaseLL {
+	Real F_LL;
+	Real F_LL_cos_phih;
+};
+struct SfBaseLT {
+	Real F_LT_cos_phih_m_phis;
+	Real F_LT_cos_2phih_m_phis;
+	Real F_LT_cos_phis;
+};
+struct SfBaseLP {
+	SfBaseLL ll;
+	SfBaseLT lt;
+};
+/// \}
 
-using SfUT1 = SfUT;
-using SfUT2 = SfUT;
-using SfLT1 = SfLT;
-using SfLT2 = SfLT;
-using SfXT1 = SfXT;
-using SfXT2 = SfXT;
+/**
+ * \defgroup SfCombsGroup Structure function combinations
+ * These types combine the base structure function combinations together so that
+ * a complete polarized cross-section can be calculated. For instance, if you
+ * want to calculate an LT cross-section, you need to combine the UU, UT, LU,
+ * and LT parts of the cross-section.
+ *
+ * \sa SfSet
+ */
+/// \{
+struct SfUU {
+	SfBaseUU uu;
+};
+struct SfUL {
+	SfBaseUU uu;
+	SfBaseUL ul;
+};
+struct SfUT {
+	SfBaseUU uu;
+	SfBaseUT ut;
+};
+struct SfUP {
+	SfBaseUU uu;
+	SfBaseUL ul;
+	SfBaseUT ut;
+};
+struct SfLU {
+	SfBaseUU uu;
+	SfBaseLU lu;
+};
+struct SfLL {
+	SfBaseUU uu;
+	SfBaseUL ul;
+	SfBaseLU lu;
+	SfBaseLL ll;
+};
+struct SfLT {
+	SfBaseUU uu;
+	SfBaseUT ut;
+	SfBaseLU lu;
+	SfBaseLT lt;
+};
+struct SfLP {
+	SfBaseUU uu;
+	SfBaseUL ul;
+	SfBaseUT ut;
+	SfBaseLU lu;
+	SfBaseLL ll;
+	SfBaseLT lt;
+};
 /// \}
 /// \}
 

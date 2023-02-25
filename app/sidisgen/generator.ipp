@@ -7,19 +7,24 @@
 
 template<std::size_t D>
 Dist<D>::Dist(DistType dist_type) :
-		_dist_type(dist_type) {
+		_dist_type(dist_type),
+		_dist_valid(false) {
 	switch (_dist_type) {
 	case DistType::UNIFORM:
 		new (&_engine.uniform) UniformEngine();
+		_dist_valid = true;
 		break;
 	case DistType::FOAM:
 		new (&_engine.foam) FoamEngine();
+		_dist_valid = true;
 		break;
 	case DistType::BUBBLE:
 		new (&_engine.bubble) BubbleEngine<D>();
+		_dist_valid = true;
 		break;
 	case DistType::VEGAS:
 		new (&_engine.vegas) VegasEngine();
+		_dist_valid = true;
 		break;
 	default:
 		UNREACHABLE();
@@ -27,19 +32,25 @@ Dist<D>::Dist(DistType dist_type) :
 }
 
 template<std::size_t D>
-Dist<D>::Dist(Dist<D>&& other) noexcept : _dist_type(other._dist_type) {
+Dist<D>::Dist(Dist<D>&& other) noexcept :
+		_dist_type(other._dist_type),
+		_dist_valid(false) {
 	switch (_dist_type) {
 	case DistType::UNIFORM:
 		new (&_engine.uniform) UniformEngine(std::move(other._engine.uniform));
+		_dist_valid = true;
 		break;
 	case DistType::FOAM:
 		new (&_engine.foam) FoamEngine(std::move(other._engine.foam));
+		_dist_valid = true;
 		break;
 	case DistType::BUBBLE:
 		new (&_engine.bubble) BubbleEngine<D>(std::move(other._engine.bubble));
+		_dist_valid = true;
 		break;
 	case DistType::VEGAS:
 		new (&_engine.vegas) VegasEngine(std::move(other._engine.vegas));
+		_dist_valid = true;
 		break;
 	default:
 		UNREACHABLE();
@@ -48,19 +59,27 @@ Dist<D>::Dist(Dist<D>&& other) noexcept : _dist_type(other._dist_type) {
 
 template<std::size_t D>
 Dist<D>::~Dist() {
-	switch (_dist_type) {
-	case DistType::UNIFORM:
-		_engine.uniform.~UniformEngine();
-		break;
-	case DistType::FOAM:
-		_engine.foam.~FoamEngine();
-		break;
-	case DistType::BUBBLE:
-		_engine.bubble.~BubbleEngine<D>();
-		break;
-	case DistType::VEGAS:
-		_engine.vegas.~VegasEngine();
-		break;
+	if (_dist_valid) {
+		switch (_dist_type) {
+		case DistType::UNIFORM:
+			_dist_valid = false;
+			_engine.uniform.~UniformEngine();
+			break;
+		case DistType::FOAM:
+			_dist_valid = false;
+			_engine.foam.~FoamEngine();
+			break;
+		case DistType::BUBBLE:
+			_dist_valid = false;
+			_engine.bubble.~BubbleEngine<D>();
+			break;
+		case DistType::VEGAS:
+			_dist_valid = false;
+			_engine.vegas.~VegasEngine();
+			break;
+		default:
+			UNREACHABLE();
+		}
 	}
 }
 
@@ -145,38 +164,29 @@ std::istream& Dist<D>::read(std::istream& is, Dist<D>& dist) {
 	if (dim != D) {
 		goto error;
 	}
-	// Delete existing engine.
-	switch (dist._dist_type) {
-	case DistType::UNIFORM:
-		dist._engine.uniform.~UniformEngine();
-		break;
-	case DistType::FOAM:
-		dist._engine.foam.~FoamEngine();
-		break;
-	case DistType::BUBBLE:
-		dist._engine.bubble.~BubbleEngine<D>();
-		break;
-	case DistType::VEGAS:
-		dist._engine.vegas.~VegasEngine();
-		break;
-	default:
-		UNREACHABLE();
-	}
-	dist._dist_type = dist_type_read;
+	dist.~Dist<D>();
 	// Create new engine.
-	switch (dist._dist_type) {
+	switch (dist_type_read) {
 	case DistType::UNIFORM:
+		dist._dist_type = DistType::UNIFORM;
 		new (&dist._engine.uniform) UniformEngine();
+		dist._dist_valid = true;
 		goto error;
 	case DistType::FOAM:
+		dist._dist_type = DistType::FOAM;
 		new (&dist._engine.foam) FoamEngine();
+		dist._dist_valid = true;
 		goto error;
 	case DistType::BUBBLE:
+		dist._dist_type = DistType::BUBBLE;
 		new (&dist._engine.bubble) BubbleEngine<D>();
+		dist._dist_valid = true;
 		dist._engine.bubble.read(is);
 		break;
 	case DistType::VEGAS:
+		dist._dist_type = DistType::VEGAS;
 		new (&dist._engine.vegas) VegasEngine();
+		dist._dist_valid = true;
 		goto error;
 	default:
 		goto error;

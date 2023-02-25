@@ -6,36 +6,26 @@
 using namespace sidis;
 using namespace sidis::math;
 
-Bound const Bound::INVALID = Bound(
-	std::numeric_limits<Real>::quiet_NaN(),
-	std::numeric_limits<Real>::quiet_NaN());
-Bound const Bound::ZERO = Bound(0., 0.);
-Bound const Bound::UNIT = Bound(0., 1.);
-Bound const Bound::FULL = Bound(
-	-std::numeric_limits<Real>::infinity(),
-	std::numeric_limits<Real>::infinity());
-Bound const Bound::POSITIVE = Bound(
-	0.,
-	std::numeric_limits<Real>::infinity());
-Bound const Bound::NEGATIVE = Bound(
-	-std::numeric_limits<Real>::infinity(),
-	0.);
+Bound::Bound() :
+	_min(std::numeric_limits<Real>::quiet_NaN()),
+	_max(std::numeric_limits<Real>::quiet_NaN()) {
+}
 
 Bound::Bound(Real min, Real max) : _min(min), _max(max) {
 	if (!(_min <= _max)) {
-		*this = Bound::INVALID;
+		*this = BOUND_INVALID;
 	}
 }
 
 Bound& Bound::operator&=(Bound const& rhs) {
 	if (std::isnan(_min) || std::isnan(rhs._min)
 			|| std::isnan(_max) || std::isnan(rhs._max)) {
-		*this = Bound::INVALID;
+		*this = BOUND_INVALID;
 	} else {
 		_min = std::fmax(_min, rhs._min);
 		_max = std::fmin(_max, rhs._max);
 		if (!(_min <= _max)) {
-			*this = Bound::INVALID;
+			*this = BOUND_INVALID;
 		}
 	}
 	return *this;
@@ -43,7 +33,7 @@ Bound& Bound::operator&=(Bound const& rhs) {
 Bound& Bound::operator|=(Bound const& rhs) {
 	if (std::isnan(_min) || std::isnan(rhs._min)
 			|| std::isnan(_max) || std::isnan(rhs._max)) {
-		*this = Bound::INVALID;
+		*this = BOUND_INVALID;
 	} else {
 		_min = std::fmin(_min, rhs._min);
 		_max = std::fmax(_max, rhs._max);
@@ -63,7 +53,7 @@ Bound& Bound::operator-=(Real s) {
 }
 Bound& Bound::operator*=(Real s) {
 	if (s < 0.) {
-		*this = Bound::INVALID;
+		*this = BOUND_INVALID;
 	} else {
 		_min *= s;
 		_max *= s;
@@ -72,7 +62,7 @@ Bound& Bound::operator*=(Real s) {
 }
 Bound& Bound::operator/=(Real s) {
 	if (s <= 0.) {
-		*this = Bound::INVALID;
+		*this = BOUND_INVALID;
 	} else {
 		_min /= s;
 		_max /= s;
