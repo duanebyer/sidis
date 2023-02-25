@@ -177,10 +177,10 @@ class Dist final {
 public:
 	// It's annoying to implement these, and for now only the move constructor
 	// is needed, so delete the others.
-	Dist(Dist const& other) = delete;
-	Dist(Dist&& other) noexcept;
-	Dist& operator=(Dist const& other) = delete;
-	Dist& operator=(Dist&& other) noexcept = delete;
+	Dist(Dist<D> const& other) = delete;
+	Dist(Dist<D>&& other) noexcept;
+	Dist<D>& operator=(Dist<D> const& other) = delete;
+	Dist<D>& operator=(Dist<D>&& other) noexcept = delete;
 	~Dist();
 
 	// Constructs an empty distribution that provides events evenly throughout
