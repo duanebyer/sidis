@@ -30,7 +30,7 @@ using namespace sidis::xs;
 // Macro that computes the cross-section from the base cross-sections in an
 // optimized way. For example, if the polarization is zero, then the
 // cross-section can be computed just using the UU base cross-section.
-#define SIDIS_MACRO_XS_FROM_BASE(name, Lep, Had, kin, sf, b, lambda_e, eta) ([&]() { \
+#define XS_FROM_BASE(name, Lep, Had, kin, sf, b, lambda_e, eta) ([&]() { \
 	/* Create a mask describing the polarization state. */ \
 	unsigned pol_mask = (((lambda_e) != 0.) << 3) \
 		| (((eta).x != 0.) << 2) \
@@ -201,10 +201,9 @@ using namespace sidis::xs;
 	return uu + dot(up, (eta)) + (lambda_e)*(lu + dot(lp, (eta))); \
 }())
 
-// Similar to `SIDIS_MACRO_XS_FROM_BASE`, except this one works with base cross-
-// sections where the XL, XT1, and XT2 cases are all grouped together into an
-// XP case.
-#define SIDIS_MACRO_XS_FROM_BASE_P(name, Lep, Had, kin, sf, b, lambda_e, eta) ([&]() { \
+// Similar to `XS_FROM_BASE`, except this one works with base cross-sections
+// where the XL, XT1, and XT2 cases are all grouped together into an XP case.
+#define XS_FROM_BASE_P(name, Lep, Had, kin, sf, b, lambda_e, eta) ([&]() { \
 	/* Create a mask describing the polarization state. */ \
 	unsigned pol_mask = (((lambda_e) != 0.) << 1) \
 		| (((eta).x != 0. || (eta).y != 0. || (eta).z != 0.) << 0); \
@@ -250,10 +249,9 @@ using namespace sidis::xs;
 	return uu + dot(up, (eta)) + (lambda_e)*(lu + dot(lp, (eta))); \
 }())
 
-// This variant of `SIDIS_MACRO_XS_FROM_BASE_P` allows for an "endpoint" set of
-// structure functions to be provided, for endpoint-subtraction-related
-// calculations.
-#define SIDIS_MACRO_XS_FROM_BASE_P_0(name, Lep, Had, kin, sf, had_0, b, lambda_e, eta) ([&]() { \
+// This variant of `XS_FROM_BASE_P` allows for an "endpoint" set of structure
+// functions to be provided, for endpoint-subtraction-related calculations.
+#define XS_FROM_BASE_P_0(name, Lep, Had, kin, sf, had_0, b, lambda_e, eta) ([&]() { \
 	/* Create a mask describing the polarization state. */ \
 	unsigned pol_mask = (((lambda_e) != 0.) << 1) \
 		| (((eta).x != 0. || (eta).y != 0. || (eta).z != 0.) << 0); \
@@ -360,27 +358,27 @@ Real delta_vert_rad_0(Kinematics const& kin) {
 
 Real xs::born(Kinematics const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta) {
 	Born b(kin, phenom);
-	return SIDIS_MACRO_XS_FROM_BASE(born, LepBorn, Had, kin, sf, b, lambda_e, eta);
+	return XS_FROM_BASE(born, LepBorn, Had, kin, sf, b, lambda_e, eta);
 }
 
 Real xs::amm(Kinematics const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta) {
 	Amm b(kin, phenom);
-	return SIDIS_MACRO_XS_FROM_BASE(amm, LepAmm, Had, kin, sf, b, lambda_e, eta);
+	return XS_FROM_BASE(amm, LepAmm, Had, kin, sf, b, lambda_e, eta);
 }
 
 Real xs::nrad_ir(Kinematics const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar) {
 	Nrad b(kin, phenom, k_0_bar);
-	return SIDIS_MACRO_XS_FROM_BASE(nrad_ir, LepNrad, Had, kin, sf, b, lambda_e, eta);
+	return XS_FROM_BASE(nrad_ir, LepNrad, Had, kin, sf, b, lambda_e, eta);
 }
 
 Real xs::rad(KinematicsRad const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta) {
 	Rad b(kin, phenom);
-	return SIDIS_MACRO_XS_FROM_BASE_P(rad, LepRad, HadRad, kin, sf, b, lambda_e, eta);
+	return XS_FROM_BASE_P(rad, LepRad, HadRad, kin, sf, b, lambda_e, eta);
 }
 
 Real xs::rad_f(KinematicsRad const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta) {
 	Rad b(kin, phenom);
-	return SIDIS_MACRO_XS_FROM_BASE_P(rad_f, LepRad, HadRadF, kin, sf, b, lambda_e, eta);
+	return XS_FROM_BASE_P(rad_f, LepRad, HadRadF, kin, sf, b, lambda_e, eta);
 }
 
 EstErr xs::nrad_integ(Kinematics const& kin, Phenom const& phenom, SfSet const& sf, Real lambda_e, Vec3 eta, Real k_0_bar, IntegParams params) {
@@ -405,7 +403,7 @@ EstErr xs::rad_f_integ(Kinematics const& kin, Phenom const& phenom, SfSet const&
 				return 0.;
 			}
 			Rad b(kin_rad, phenom);
-			Real xs = jac * SIDIS_MACRO_XS_FROM_BASE_P_0(rad_f, LepRad, HadRadF, kin_rad, sf, had_0, b, lambda_e, eta);
+			Real xs = jac * XS_FROM_BASE_P_0(rad_f, LepRad, HadRadF, kin_rad, sf, had_0, b, lambda_e, eta);
 			if (std::isnan(xs)) {
 				// If the result is `NaN`, it most likely means we went out of
 				// the allowed region for the structure function grids (or we
@@ -433,7 +431,7 @@ EstErr xs::rad_integ(Kinematics const& kin, Phenom const& phenom, SfSet const& s
 				return 0.;
 			}
 			Rad b(kin_rad, phenom);
-			Real xs = jac * SIDIS_MACRO_XS_FROM_BASE_P(rad, LepRad, HadRad, kin_rad, sf, b, lambda_e, eta);
+			Real xs = jac * XS_FROM_BASE_P(rad, LepRad, HadRad, kin_rad, sf, b, lambda_e, eta);
 			if (std::isnan(xs)) {
 				return 0.;
 			} else {
