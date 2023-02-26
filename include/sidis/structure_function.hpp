@@ -305,14 +305,13 @@ public:
 };
 
 /**
- * \defgroup SfCombsBaseGroup Base structure function combinations
+ * \defgroup SfCombsGroup Base structure function combinations
  * These types cache the results of structure function calculations from SfSet.
  * They are grouped by beam and target polarization. For instance, for
  * calculating the LT part of the cross-section through xs::born_base_lt(), you
- * would fill in the SfBaseLT type.
- *
- * To compute the full LT cross-section (including unpolarized contributions),
- * you would instead fill in the SfLT type.
+ * would fill in the SfBaseLT type. Or, to compute the full LT cross-section
+ * (including unpolarized contributions), you would instead fill in the SfLT
+ * type.
  *
  * \sa SfSet
  */
@@ -355,18 +354,7 @@ struct SfBaseLP {
 	SfBaseLL ll;
 	SfBaseLT lt;
 };
-/// \}
 
-/**
- * \defgroup SfCombsGroup Structure function combinations
- * These types combine the base structure function combinations together so that
- * a complete polarized cross-section can be calculated. For instance, if you
- * want to calculate an LT cross-section, you need to combine the UU, UT, LU,
- * and LT parts of the cross-section.
- *
- * \sa SfSet
- */
-/// \{
 struct SfUU {
 	SfBaseUU uu;
 };
