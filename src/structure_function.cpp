@@ -5,6 +5,7 @@
 #include <cubature.hpp>
 
 #include "sidis/constant.hpp"
+#include "sidis/flavor_vec.hpp"
 #include "sidis/extra/math.hpp"
 
 // These macros are used to make it a little easier to read the structure
@@ -27,8 +28,8 @@
 	convolve_gaussian( \
 		tmd_set, \
 		Weight::weight_type, \
-		tmd_set.mean_ ## tmd.data(), &GaussianTmdSet::x ## tmd, \
-		tmd_set.mean_ ## ff.data(), &GaussianTmdSet::ff, \
+		tmd_set.vars.tmd, &GaussianTmdSet::x ## tmd, \
+		tmd_set.vars.ff, &GaussianTmdSet::ff, \
 		target, h, x, z, Q_sq, ph_t_sq)
 #define CONVOLVE_TILDE_GAUSSIAN(weight_type, tmd, ff, tmd_tilde, ff_tilde, sign) \
 	( \
@@ -120,10 +121,10 @@ using namespace sidis::sf;
 
 namespace {
 
-using Tmd = Real (TmdSet::*)(unsigned, Real, Real, Real) const;
-using Ff = Real (TmdSet::*)(part::Hadron, unsigned, Real, Real, Real) const;
-using GaussianTmd = Real (GaussianTmdSet::*)(unsigned, Real, Real) const;
-using GaussianFf = Real (GaussianTmdSet::*)(part::Hadron, unsigned, Real, Real) const;
+using Tmd = FlavorVec (TmdSet::*)(Real, Real, Real) const;
+using Ff = FlavorVec (TmdSet::*)(part::Hadron, Real, Real, Real) const;
+using GaussianTmd = FlavorVec (GaussianTmdSet::*)(Real, Real) const;
+using GaussianFf = FlavorVec (GaussianTmdSet::*)(part::Hadron, Real, Real) const;
 
 enum class Weight {
 	W0,
@@ -189,11 +190,10 @@ Real convolve_numeric(
 				weight = 0.;
 			}
 			Real integrand = 0.;
-			for (unsigned fl = 0; fl < tmd_set.flavor_count; ++fl) {
-				integrand += sq(tmd_set.charge(fl))
-					*(tmd_set.*tmd)(fl, x, Q_sq, sq(k_perp))
-					*(tmd_set.*ff)(h, fl, z, Q_sq, p_perp_sq);
-			}
+			FlavorVec charge_arr = tmd_set.charges;
+			FlavorVec tmd_arr = (tmd_set.*tmd)(x, Q_sq, sq(k_perp));
+			FlavorVec ff_arr = (tmd_set.*ff)(h, z, Q_sq, p_perp_sq);
+			integrand += (sq_vec(charge_arr)*tmd_arr*ff_arr).sum();
 			return jacobian*weight*integrand;
 		},
 		cubature::Point<2, Real>{ 0., 0. },
@@ -206,58 +206,53 @@ Real convolve_numeric(
 Real convolve_gaussian(
 		GaussianTmdSet const& tmd_set,
 		Weight weight_type,
-		Real const* mean_tmd, GaussianTmd tmd,
-		Real const* mean_ff, GaussianFf ff,
+		FlavorVec const& var_tmd, GaussianTmd tmd,
+		FlavorVec const& var_ff, GaussianFf ff,
 		part::Nucleus target, part::Hadron h,
 		Real x, Real z, Real Q_sq, Real ph_t_sq) {
 	Real M = mass(target);
 	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
-	for (unsigned fl = 0; fl < tmd_set.flavor_count; ++fl) {
-		Real mean = mean_ff[fl] + sq(z)*mean_tmd[fl];
-		if (std::isinf(mean)) {
-			continue;
-		}
-		Real gaussian = std::exp(-ph_t_sq/mean)/(PI*mean);
-		// Analytically evaluate the convolution integral for the TMD and FF
-		// Gaussians with the given means.
-		Real weight;
-		switch (weight_type) {
-		case Weight::W0:
-			weight = 1.;
-			break;
-		case Weight::WA1:
-			weight = (mean_ff[fl]*ph_t)/(mh*mean*z);
-			break;
-		case Weight::WB1:
-			weight = (mean_tmd[fl]*ph_t*z)/(M*mean);
-			break;
-		case Weight::WA2:
-			weight = (mean_tmd[fl]*mean_ff[fl]*(2.*ph_t_sq - mean))/(M*mh*sq(mean));
-			break;
-		case Weight::WB2:
-			weight = (mean_tmd[fl]*mean_ff[fl]*(mean - ph_t_sq))/(M*mh*sq(mean));
-			break;
-		case Weight::WAB2:
-			weight = (mean_tmd[fl]*mean_ff[fl]*ph_t_sq)/(M*mh*sq(mean));
-			break;
-		case Weight::WC2:
-			weight = (sq(mean_tmd[fl])*ph_t_sq*sq(z))/(2.*sq(M)*sq(mean));
-			break;
-		case Weight::W3:
-			weight = (sq(mean_tmd[fl])*mean_ff[fl]*ph_t*ph_t_sq*z)
-				/(2.*sq(M)*mh*mean*sq(mean));
-			break;
-		default:
-			// Unknown integrand.
-			weight = 0.;
-		}
-		result += sq(tmd_set.charge(fl))
-			*weight*gaussian
-			*(tmd_set.*tmd)(fl, x, Q_sq)
-			*(tmd_set.*ff)(h, fl, z, Q_sq);
+	FlavorVec charge_arr = tmd_set.charges;
+	FlavorVec tmd_arr = (tmd_set.*tmd)(x, Q_sq);
+	FlavorVec ff_arr = (tmd_set.*ff)(h, z, Q_sq);
+	FlavorVec var = var_ff + sq(z)*var_tmd;
+
+	FlavorVec gaussian = tmd_gaussian_factor(var, ph_t_sq);
+	// Analytically evaluate the convolution integral for the TMD and FF
+	// Gaussians with the given means.
+	FlavorVec weight(6, 1.);
+	switch (weight_type) {
+	case Weight::W0:
+		//weight = 1.;
+		break;
+	case Weight::WA1:
+		weight = (var_ff*ph_t)/(mh*var*z);
+		break;
+	case Weight::WB1:
+		weight = (var_tmd*ph_t*z)/(M*var);
+		break;
+	case Weight::WA2:
+		weight = (var_tmd*var_ff*(2.*ph_t_sq - var))/(M*mh*sq_vec(var));
+		break;
+	case Weight::WB2:
+		weight = (var_tmd*var_ff*(var - ph_t_sq))/(M*mh*sq_vec(var));
+		break;
+	case Weight::WAB2:
+		weight = (var_tmd*var_ff*ph_t_sq)/(M*mh*sq_vec(var));
+		break;
+	case Weight::WC2:
+		weight = (sq_vec(var_tmd)*ph_t_sq*sq(z))/(2.*sq(M)*sq_vec(var));
+		break;
+	case Weight::W3:
+		weight = (sq_vec(var_tmd)*var_ff*ph_t*ph_t_sq*z)/(2.*sq(M)*mh*var*sq_vec(var));
+		break;
+	default:
+		// Unknown integrand.
+		weight = 0.;
 	}
+	result += (sq_vec(charge_arr)*weight*gaussian*tmd_arr*ff_arr).sum();
 	return result;
 }
 

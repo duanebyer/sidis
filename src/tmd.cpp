@@ -1,797 +1,682 @@
 #include "sidis/tmd.hpp"
 
 #include <cmath>
-#include <vector>
+
+#include "sidis/extra/exception.hpp"
 
 using namespace sidis;
 using namespace sidis::sf;
 
-namespace {
-
-Real gaussian(Real k_perp_sq, Real mean) {
-	return std::exp(-k_perp_sq/mean)/(PI*mean);
-}
-
+TmdSet::TmdSet(unsigned flavor_count, FlavorVec const& charges, part::Nucleus target) :
+		flavor_count(flavor_count),
+		charges(charges),
+		target(target) {
+	if (!(flavor_count < MAX_FLAVOR_VEC_SIZE)) {
+		throw FlavorOutOfRange(flavor_count);
+	}
+	if (charges.size() != flavor_count) {
+		throw FlavorVecUnexpectedSize(charges.size(), flavor_count);
+	}
 }
 
 // Standard TMDs.
-Real TmdSet::xf1(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xf1(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xf1Tperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xf1Tperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xfT(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xfT(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xfperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xfperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xfLperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xfLperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xfTperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xfTperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xg1(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xg1(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xg1Tperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xg1Tperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xgT(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xgT(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xgperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xgperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xgLperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xgLperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xgTperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xgTperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xh1(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xh1(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xh1perp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xh1perp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xh1Lperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xh1Lperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xh1Tperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xh1Tperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xh(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xh(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xhL(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xhL(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xhT(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xhT(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xhTperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xhTperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xe(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xe(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xeL(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xeL(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xeT(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xeT(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::xeTperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::xeTperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
 
-Real TmdSet::D1(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::D1(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::H1perp(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::H1perp(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::Dperp_tilde(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::Dperp_tilde(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::H_tilde(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::H_tilde(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::Gperp_tilde(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::Gperp_tilde(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real TmdSet::E_tilde(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec TmdSet::E_tilde(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
+}
+
+GaussianTmdVars::GaussianTmdVars() :
+	f1(1, INF),
+	f1Tperp(1, INF),
+	fT(1, INF),
+	fperp(1, INF),
+	fLperp(1, INF),
+	fTperp(1, INF),
+	g1(1, INF),
+	g1Tperp(1, INF),
+	gT(1, INF),
+	gperp(1, INF),
+	gLperp(1, INF),
+	gTperp(1, INF),
+	h1(1, INF),
+	h1perp(1, INF),
+	h1Lperp(1, INF),
+	h1Tperp(1, INF),
+	h(1, INF),
+	hL(1, INF),
+	hT(1, INF),
+	hTperp(1, INF),
+	e(1, INF),
+	eL(1, INF),
+	eT(1, INF),
+	eTperp(1, INF),
+	D1(1, INF),
+	H1perp(1, INF),
+	Dperp_tilde(1, INF),
+	H_tilde(1, INF),
+	Gperp_tilde(1, INF),
+	E_tilde(1, INF) { }
+
+GaussianTmdVars::GaussianTmdVars(GaussianWwTmdVars const& ww_vars) :
+	// We choose infinity for the width of the structure functions that are to
+	// be neglected.
+	f1(ww_vars.f1),
+	f1Tperp(ww_vars.f1Tperp),
+	fT(ww_vars.fT),
+	fperp(ww_vars.f1),
+	fLperp(f1.size(), INF),
+	fTperp(ww_vars.f1Tperp),
+	g1(ww_vars.g1),
+	g1Tperp(ww_vars.g1Tperp),
+	gT(ww_vars.gT),
+	gperp(f1.size(), INF),
+	gLperp(ww_vars.g1),
+	gTperp(ww_vars.g1Tperp),
+	h1(ww_vars.h1),
+	h1perp(ww_vars.h1perp),
+	h1Lperp(ww_vars.h1Lperp),
+	h1Tperp(ww_vars.h1Tperp),
+	h(ww_vars.h),
+	hL(ww_vars.hL),
+	hT(ww_vars.hT),
+	hTperp(ww_vars.hTperp),
+	e(f1.size(), INF),
+	eL(f1.size(), INF),
+	eT(f1.size(), INF),
+	eTperp(f1.size(), INF),
+	D1(ww_vars.D1),
+	H1perp(ww_vars.H1perp),
+	Dperp_tilde(f1.size(), INF),
+	H_tilde(f1.size(), INF),
+	Gperp_tilde(f1.size(), INF),
+	E_tilde(f1.size(), INF) { }
+
+#define FILL_AND_CHECK_TMD_VAR(f) do { \
+	if (vars.f.size() == 1) { \
+		vars.f = FlavorVec(flavor_count, vars.f[0]); \
+	} \
+	if (vars.f.size() != flavor_count) { \
+		throw FlavorVecUnexpectedSize(vars.f.size(), flavor_count); \
+	} \
+} while (false)
+
+namespace {
+// Checks that all of the variances have one entry for every flavor. If any
+// variances have only a single entry, then that entry is copied `flavor_count`
+// times. Otherwise, an exception is thrown.
+GaussianTmdVars fill_vars(unsigned flavor_count, GaussianTmdVars vars) {
+	FILL_AND_CHECK_TMD_VAR(f1);
+	FILL_AND_CHECK_TMD_VAR(f1Tperp);
+	FILL_AND_CHECK_TMD_VAR(fT);
+	FILL_AND_CHECK_TMD_VAR(fperp);
+	FILL_AND_CHECK_TMD_VAR(fLperp);
+	FILL_AND_CHECK_TMD_VAR(fTperp);
+	FILL_AND_CHECK_TMD_VAR(g1);
+	FILL_AND_CHECK_TMD_VAR(g1Tperp);
+	FILL_AND_CHECK_TMD_VAR(gT);
+	FILL_AND_CHECK_TMD_VAR(gperp);
+	FILL_AND_CHECK_TMD_VAR(gLperp);
+	FILL_AND_CHECK_TMD_VAR(gTperp);
+	FILL_AND_CHECK_TMD_VAR(h1);
+	FILL_AND_CHECK_TMD_VAR(h1perp);
+	FILL_AND_CHECK_TMD_VAR(h1Lperp);
+	FILL_AND_CHECK_TMD_VAR(h1Tperp);
+	FILL_AND_CHECK_TMD_VAR(h);
+	FILL_AND_CHECK_TMD_VAR(hL);
+	FILL_AND_CHECK_TMD_VAR(hT);
+	FILL_AND_CHECK_TMD_VAR(hTperp);
+	FILL_AND_CHECK_TMD_VAR(e);
+	FILL_AND_CHECK_TMD_VAR(eL);
+	FILL_AND_CHECK_TMD_VAR(eT);
+	FILL_AND_CHECK_TMD_VAR(eTperp);
+	FILL_AND_CHECK_TMD_VAR(D1);
+	FILL_AND_CHECK_TMD_VAR(H1perp);
+	FILL_AND_CHECK_TMD_VAR(Dperp_tilde);
+	FILL_AND_CHECK_TMD_VAR(H_tilde);
+	FILL_AND_CHECK_TMD_VAR(Gperp_tilde);
+	FILL_AND_CHECK_TMD_VAR(E_tilde);
+	return vars;
+}
 }
 
 // Gaussian approximation.
 GaussianTmdSet::GaussianTmdSet(
-	unsigned flavor_count,
-	part::Nucleus target,
-	Real mean_f1,
-	Real mean_f1Tperp,
-	Real mean_fT,
-	Real mean_fperp,
-	Real mean_fLperp,
-	Real mean_fTperp,
-	Real mean_g1,
-	Real mean_g1Tperp,
-	Real mean_gT,
-	Real mean_gperp,
-	Real mean_gLperp,
-	Real mean_gTperp,
-	Real mean_h1,
-	Real mean_h1perp,
-	Real mean_h1Lperp,
-	Real mean_h1Tperp,
-	Real mean_h,
-	Real mean_hL,
-	Real mean_hT,
-	Real mean_hTperp,
-	Real mean_e,
-	Real mean_eL,
-	Real mean_eT,
-	Real mean_eTperp,
-	Real mean_D1,
-	Real mean_H1perp,
-	Real mean_Dperp_tilde,
-	Real mean_H_tilde,
-	Real mean_Gperp_tilde,
-	Real mean_E_tilde) :
-	TmdSet(flavor_count, target),
-	mean_f1(flavor_count, mean_f1),
-	mean_f1Tperp(flavor_count, mean_f1Tperp),
-	mean_fT(flavor_count, mean_fT),
-	mean_fperp(flavor_count, mean_fperp),
-	mean_fLperp(flavor_count, mean_fLperp),
-	mean_fTperp(flavor_count, mean_fTperp),
-	mean_g1(flavor_count, mean_g1),
-	mean_g1Tperp(flavor_count, mean_g1Tperp),
-	mean_gT(flavor_count, mean_gT),
-	mean_gperp(flavor_count, mean_gperp),
-	mean_gLperp(flavor_count, mean_gLperp),
-	mean_gTperp(flavor_count, mean_gTperp),
-	mean_h1(flavor_count, mean_h1),
-	mean_h1perp(flavor_count, mean_h1perp),
-	mean_h1Lperp(flavor_count, mean_h1Lperp),
-	mean_h1Tperp(flavor_count, mean_h1Tperp),
-	mean_h(flavor_count, mean_h),
-	mean_hL(flavor_count, mean_hL),
-	mean_hT(flavor_count, mean_hT),
-	mean_hTperp(flavor_count, mean_hTperp),
-	mean_e(flavor_count, mean_e),
-	mean_eL(flavor_count, mean_eL),
-	mean_eT(flavor_count, mean_eT),
-	mean_eTperp(flavor_count, mean_eTperp),
-	mean_D1(flavor_count, mean_D1),
-	mean_H1perp(flavor_count, mean_H1perp),
-	mean_Dperp_tilde(flavor_count, mean_Dperp_tilde),
-	mean_H_tilde(flavor_count, mean_H_tilde),
-	mean_Gperp_tilde(flavor_count, mean_Gperp_tilde),
-	mean_E_tilde(flavor_count, mean_E_tilde) { }
-GaussianTmdSet::GaussianTmdSet(
-	unsigned flavor_count,
-	part::Nucleus target,
-	Real const* mean_f1,
-	Real const* mean_f1Tperp,
-	Real const* mean_fT,
-	Real const* mean_fperp,
-	Real const* mean_fLperp,
-	Real const* mean_fTperp,
-	Real const* mean_g1,
-	Real const* mean_g1Tperp,
-	Real const* mean_gT,
-	Real const* mean_gperp,
-	Real const* mean_gLperp,
-	Real const* mean_gTperp,
-	Real const* mean_h1,
-	Real const* mean_h1perp,
-	Real const* mean_h1Lperp,
-	Real const* mean_h1Tperp,
-	Real const* mean_h,
-	Real const* mean_hL,
-	Real const* mean_hT,
-	Real const* mean_hTperp,
-	Real const* mean_e,
-	Real const* mean_eL,
-	Real const* mean_eT,
-	Real const* mean_eTperp,
-	Real const* mean_D1,
-	Real const* mean_H1perp,
-	Real const* mean_Dperp_tilde,
-	Real const* mean_H_tilde,
-	Real const* mean_Gperp_tilde,
-	Real const* mean_E_tilde) :
-	TmdSet(flavor_count, target),
-	mean_f1(mean_f1, mean_f1 + flavor_count),
-	mean_f1Tperp(mean_f1Tperp, mean_f1Tperp + flavor_count),
-	mean_fT(mean_fT, mean_fT + flavor_count),
-	mean_fperp(mean_fperp, mean_fperp + flavor_count),
-	mean_fLperp(mean_fLperp, mean_fLperp + flavor_count),
-	mean_fTperp(mean_fTperp, mean_fTperp + flavor_count),
-	mean_g1(mean_g1, mean_g1 + flavor_count),
-	mean_g1Tperp(mean_g1Tperp, mean_g1Tperp + flavor_count),
-	mean_gT(mean_gT, mean_gT + flavor_count),
-	mean_gperp(mean_gperp, mean_gperp + flavor_count),
-	mean_gLperp(mean_gLperp, mean_gLperp + flavor_count),
-	mean_gTperp(mean_gTperp, mean_gTperp + flavor_count),
-	mean_h1(mean_h1, mean_h1 + flavor_count),
-	mean_h1perp(mean_h1perp, mean_h1perp + flavor_count),
-	mean_h1Lperp(mean_h1Lperp, mean_h1Lperp + flavor_count),
-	mean_h1Tperp(mean_h1Tperp, mean_h1Tperp + flavor_count),
-	mean_h(mean_h, mean_h + flavor_count),
-	mean_hL(mean_hL, mean_hL + flavor_count),
-	mean_hT(mean_hT, mean_hT + flavor_count),
-	mean_hTperp(mean_hTperp, mean_hTperp + flavor_count),
-	mean_e(mean_e, mean_e + flavor_count),
-	mean_eL(mean_eL, mean_eL + flavor_count),
-	mean_eT(mean_eT, mean_eT + flavor_count),
-	mean_eTperp(mean_eTperp, mean_eTperp + flavor_count),
-	mean_D1(mean_D1, mean_D1 + flavor_count),
-	mean_H1perp(mean_H1perp, mean_H1perp + flavor_count),
-	mean_Dperp_tilde(mean_Dperp_tilde, mean_Dperp_tilde + flavor_count),
-	mean_H_tilde(mean_H_tilde, mean_H_tilde + flavor_count),
-	mean_Gperp_tilde(mean_Gperp_tilde, mean_Gperp_tilde + flavor_count),
-	mean_E_tilde(mean_E_tilde, mean_E_tilde + flavor_count) { }
+		unsigned flavor_count,
+		FlavorVec const& charges,
+		part::Nucleus target,
+		GaussianTmdVars const& vars) :
+		TmdSet(flavor_count, charges, target),
+		vars(fill_vars(flavor_count, vars)) { }
 
-Real GaussianTmdSet::xf1(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xf1(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xf1Tperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xf1Tperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xfT(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xfT(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xfperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xfperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xfLperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xfLperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xfTperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xfTperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xg1(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xg1(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xg1Tperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xg1Tperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xgT(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xgT(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xgperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xgperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xgLperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xgLperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xgTperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xgTperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xh1(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xh1(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xh1perp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xh1perp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xh1Lperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xh1Lperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xh1Tperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xh1Tperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xh(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xh(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xhL(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xhL(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xhT(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xhT(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xhTperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xhTperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xe(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xe(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xeL(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xeL(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xeT(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xeT(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::xeTperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::xeTperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
 
-Real GaussianTmdSet::D1(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::D1(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::H1perp(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::H1perp(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::Dperp_tilde(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::Dperp_tilde(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::H_tilde(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::H_tilde(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::Gperp_tilde(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianTmdSet::Gperp_tilde(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianTmdSet::E_tilde(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
-}
-
-Real GaussianTmdSet::xf1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xf1(fl, x, Q_sq)*gaussian(k_perp_sq, mean_f1[fl]);
-}
-Real GaussianTmdSet::xf1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xf1Tperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_f1Tperp[fl]);
-}
-Real GaussianTmdSet::xfT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xfT(fl, x, Q_sq)*gaussian(k_perp_sq, mean_fT[fl]);
-}
-Real GaussianTmdSet::xfperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xfperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_fperp[fl]);
-}
-Real GaussianTmdSet::xfLperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xfLperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_fLperp[fl]);
-}
-Real GaussianTmdSet::xfTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xfTperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_fTperp[fl]);
-}
-Real GaussianTmdSet::xg1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xg1(fl, x, Q_sq)*gaussian(k_perp_sq, mean_g1[fl]);
-}
-Real GaussianTmdSet::xg1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xg1Tperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_g1Tperp[fl]);
-}
-Real GaussianTmdSet::xgT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xgT(fl, x, Q_sq)*gaussian(k_perp_sq, mean_gT[fl]);
-}
-Real GaussianTmdSet::xgperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xgperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_gperp[fl]);
-}
-Real GaussianTmdSet::xgLperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xgLperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_gLperp[fl]);
-}
-Real GaussianTmdSet::xgTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xgTperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_gTperp[fl]);
-}
-Real GaussianTmdSet::xh1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xh1(fl, x, Q_sq)*gaussian(k_perp_sq, mean_h1[fl]);
-}
-Real GaussianTmdSet::xh1perp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xh1perp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_h1perp[fl]);
-}
-Real GaussianTmdSet::xh1Lperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xh1Lperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_h1Lperp[fl]);
-}
-Real GaussianTmdSet::xh1Tperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xh1Tperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_h1Tperp[fl]);
-}
-Real GaussianTmdSet::xh(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xh(fl, x, Q_sq)*gaussian(k_perp_sq, mean_h[fl]);
-}
-Real GaussianTmdSet::xhL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xhL(fl, x, Q_sq)*gaussian(k_perp_sq, mean_hL[fl]);
-}
-Real GaussianTmdSet::xhT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xhT(fl, x, Q_sq)*gaussian(k_perp_sq, mean_hT[fl]);
-}
-Real GaussianTmdSet::xhTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xhTperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_hTperp[fl]);
-}
-Real GaussianTmdSet::xe(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xe(fl, x, Q_sq)*gaussian(k_perp_sq, mean_e[fl]);
-}
-Real GaussianTmdSet::xeL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xeL(fl, x, Q_sq)*gaussian(k_perp_sq, mean_eL[fl]);
-}
-Real GaussianTmdSet::xeT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xeT(fl, x, Q_sq)*gaussian(k_perp_sq, mean_eT[fl]);
-}
-Real GaussianTmdSet::xeTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xeTperp(fl, x, Q_sq)*gaussian(k_perp_sq, mean_eTperp[fl]);
+FlavorVec GaussianTmdSet::E_tilde(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
 
-Real GaussianTmdSet::D1(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
-	return D1(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_D1[fl]);
+FlavorVec GaussianTmdSet::xf1(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.f1, k_perp_sq)*xf1(x, Q_sq);
 }
-Real GaussianTmdSet::H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
-	return H1perp(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_H1perp[fl]);
+FlavorVec GaussianTmdSet::xf1Tperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.f1Tperp, k_perp_sq)*xf1Tperp(x, Q_sq);
 }
-Real GaussianTmdSet::Dperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
-	return Dperp_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_Dperp_tilde[fl]);
+FlavorVec GaussianTmdSet::xfT(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.fT, k_perp_sq)*xfT(x, Q_sq);
 }
-Real GaussianTmdSet::H_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
-	return H_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_H_tilde[fl]);
+FlavorVec GaussianTmdSet::xfperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.fperp, k_perp_sq)*xfperp(x, Q_sq);
 }
-Real GaussianTmdSet::Gperp_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
-	return Gperp_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_Gperp_tilde[fl]);
+FlavorVec GaussianTmdSet::xfLperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.fLperp, k_perp_sq)*xfLperp(x, Q_sq);
 }
-Real GaussianTmdSet::E_tilde(part::Hadron h, unsigned fl, Real z, Real Q_sq, Real p_perp_sq) const {
-	return E_tilde(h, fl, z, Q_sq)*gaussian(p_perp_sq, mean_E_tilde[fl]);
+FlavorVec GaussianTmdSet::xfTperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.fTperp, k_perp_sq)*xfTperp(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xg1(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.g1, k_perp_sq)*xg1(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xg1Tperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.g1Tperp, k_perp_sq)*xg1Tperp(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xgT(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.gT, k_perp_sq)*xgT(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xgperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.gperp, k_perp_sq)*xgperp(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xgLperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.gLperp, k_perp_sq)*xgLperp(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xgTperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.gTperp, k_perp_sq)*xgTperp(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xh1(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.h1, k_perp_sq)*xh1(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xh1perp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.h1perp, k_perp_sq)*xh1perp(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xh1Lperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.h1Lperp, k_perp_sq)*xh1Lperp(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xh1Tperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.h1Tperp, k_perp_sq)*xh1Tperp(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xh(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.h, k_perp_sq)*xh(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xhL(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.hL, k_perp_sq)*xhL(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xhT(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.hT, k_perp_sq)*xhT(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xhTperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.hTperp, k_perp_sq)*xhTperp(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xe(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.e, k_perp_sq)*xe(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xeL(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.eL, k_perp_sq)*xeL(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xeT(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.eT, k_perp_sq)*xeT(x, Q_sq);
+}
+FlavorVec GaussianTmdSet::xeTperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return tmd_gaussian_factor(vars.eTperp, k_perp_sq)*xeTperp(x, Q_sq);
+}
+
+FlavorVec GaussianTmdSet::D1(part::Hadron h, Real z, Real Q_sq, Real p_perp_sq) const {
+	return tmd_gaussian_factor(vars.D1, p_perp_sq)*D1(h, z, Q_sq);
+}
+FlavorVec GaussianTmdSet::H1perp(part::Hadron h, Real z, Real Q_sq, Real p_perp_sq) const {
+	return tmd_gaussian_factor(vars.H1perp, p_perp_sq)*H1perp(h, z, Q_sq);
+}
+FlavorVec GaussianTmdSet::Dperp_tilde(part::Hadron h, Real z, Real Q_sq, Real p_perp_sq) const {
+	return tmd_gaussian_factor(vars.Dperp_tilde, p_perp_sq)*Dperp_tilde(h, z, Q_sq);
+}
+FlavorVec GaussianTmdSet::H_tilde(part::Hadron h, Real z, Real Q_sq, Real p_perp_sq) const {
+	return tmd_gaussian_factor(vars.H_tilde, p_perp_sq)*H_tilde(h, z, Q_sq);
+}
+FlavorVec GaussianTmdSet::Gperp_tilde(part::Hadron h, Real z, Real Q_sq, Real p_perp_sq) const {
+	return tmd_gaussian_factor(vars.Gperp_tilde, p_perp_sq)*Gperp_tilde(h, z, Q_sq);
+}
+FlavorVec GaussianTmdSet::E_tilde(part::Hadron h, Real z, Real Q_sq, Real p_perp_sq) const {
+	return tmd_gaussian_factor(vars.E_tilde, p_perp_sq)*E_tilde(h, z, Q_sq);
 }
 
 // WW-type approximation.
-Real WwTmdSet::xf1(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xf1(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real WwTmdSet::xf1Tperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xf1Tperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real WwTmdSet::xg1(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xg1(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real WwTmdSet::xg1Tperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xg1Tperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real WwTmdSet::xh1(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xh1(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real WwTmdSet::xh1perp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xh1perp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real WwTmdSet::xh1Lperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xh1Lperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real WwTmdSet::xh1Tperp(unsigned, Real, Real, Real) const {
-	return 0.;
-}
-
-Real WwTmdSet::D1(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
-}
-Real WwTmdSet::H1perp(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xh1Tperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
 
-Real WwTmdSet::xf1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	Real M = mass(target);
-	return k_perp_sq/(2.*M*M)*xf1Tperp(fl, x, Q_sq, k_perp_sq);
+FlavorVec WwTmdSet::D1(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real WwTmdSet::xg1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	Real M = mass(target);
-	return k_perp_sq/(2.*M*M)*xg1Tperp(fl, x, Q_sq, k_perp_sq);
-}
-Real WwTmdSet::xh1perpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	Real M = mass(target);
-	return k_perp_sq/(2.*M*M)*xh1perp(fl, x, Q_sq, k_perp_sq);
-}
-Real WwTmdSet::xh1LperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	Real M = mass(target);
-	return k_perp_sq/(2.*M*M)*xh1Lperp(fl, x, Q_sq, k_perp_sq);
-}
-Real WwTmdSet::xh1TperpM1(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	Real M = mass(target);
-	return k_perp_sq/(2.*M*M)*xh1Tperp(fl, x, Q_sq, k_perp_sq);
+FlavorVec WwTmdSet::H1perp(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
 
-Real WwTmdSet::xfT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return -xf1TperpM1(fl, x, Q_sq, k_perp_sq)/x;
+FlavorVec WwTmdSet::xf1TperpM1(Real x, Real Q_sq, Real k_perp_sq) const {
+	Real M = mass(target);
+	return (k_perp_sq/(2*M*M))*xf1Tperp(x, Q_sq, k_perp_sq);
 }
-Real WwTmdSet::xfperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xf1(fl, x, Q_sq, k_perp_sq)/x;
+FlavorVec WwTmdSet::xg1TperpM1(Real x, Real Q_sq, Real k_perp_sq) const {
+	Real M = mass(target);
+	return (k_perp_sq/(2*M*M))*xg1Tperp(x, Q_sq, k_perp_sq);
 }
-Real WwTmdSet::xfLperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xh1perpM1(Real x, Real Q_sq, Real k_perp_sq) const {
+	Real M = mass(target);
+	return (k_perp_sq/(2*M*M))*xh1perp(x, Q_sq, k_perp_sq);
 }
-Real WwTmdSet::xfTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xf1Tperp(fl, x, Q_sq, k_perp_sq)/x;
+FlavorVec WwTmdSet::xh1LperpM1(Real x, Real Q_sq, Real k_perp_sq) const {
+	Real M = mass(target);
+	return (k_perp_sq/(2*M*M))*xh1Lperp(x, Q_sq, k_perp_sq);
 }
-Real WwTmdSet::xgT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xg1TperpM1(fl, x, Q_sq, k_perp_sq)/x;
-}
-Real WwTmdSet::xgperp(unsigned, Real, Real, Real) const {
-	return 0.;
-}
-Real WwTmdSet::xgLperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xg1(fl, x, Q_sq, k_perp_sq)/x;
-}
-Real WwTmdSet::xgTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return xg1Tperp(fl, x, Q_sq, k_perp_sq)/x;
-}
-Real WwTmdSet::xh(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return -2.*xh1perpM1(fl, x, Q_sq, k_perp_sq)/x;
-}
-Real WwTmdSet::xhL(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return -2.*xh1LperpM1(fl, x, Q_sq, k_perp_sq)/x;
-}
-Real WwTmdSet::xhT(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return -(xh1(fl, x, Q_sq, k_perp_sq) + xh1TperpM1(fl, x, Q_sq, k_perp_sq))/x;
-}
-Real WwTmdSet::xhTperp(unsigned fl, Real x, Real Q_sq, Real k_perp_sq) const {
-	return (xh1(fl, x, Q_sq, k_perp_sq) - xh1TperpM1(fl, x, Q_sq, k_perp_sq))/x;
-}
-Real WwTmdSet::xe(unsigned, Real, Real, Real) const {
-	return 0.;
-}
-Real WwTmdSet::xeL(unsigned, Real, Real, Real) const {
-	return 0.;
-}
-Real WwTmdSet::xeT(unsigned, Real, Real, Real) const {
-	return 0.;
-}
-Real WwTmdSet::xeTperp(unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xh1TperpM1(Real x, Real Q_sq, Real k_perp_sq) const {
+	Real M = mass(target);
+	return (k_perp_sq/(2*M*M))*xh1Tperp(x, Q_sq, k_perp_sq);
 }
 
-Real WwTmdSet::Dperp_tilde(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xfT(Real x, Real Q_sq, Real k_perp_sq) const {
+	return -xf1TperpM1(x, Q_sq, k_perp_sq)/x;
 }
-Real WwTmdSet::H_tilde(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xfperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return xf1(x, Q_sq, k_perp_sq)/x;
 }
-Real WwTmdSet::Gperp_tilde(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xfLperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real WwTmdSet::E_tilde(part::Hadron, unsigned, Real, Real, Real) const {
-	return 0.;
+FlavorVec WwTmdSet::xfTperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return xf1Tperp(x, Q_sq, k_perp_sq)/x;
 }
+FlavorVec WwTmdSet::xgT(Real x, Real Q_sq, Real k_perp_sq) const {
+	return xg1TperpM1(x, Q_sq, k_perp_sq)/x;
+}
+FlavorVec WwTmdSet::xgperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
+}
+FlavorVec WwTmdSet::xgLperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return xg1(x, Q_sq, k_perp_sq)/x;
+}
+FlavorVec WwTmdSet::xgTperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return xg1Tperp(x, Q_sq, k_perp_sq)/x;
+}
+FlavorVec WwTmdSet::xh(Real x, Real Q_sq, Real k_perp_sq) const {
+	return -2.*xh1perpM1(x, Q_sq, k_perp_sq)/x;
+}
+FlavorVec WwTmdSet::xhL(Real x, Real Q_sq, Real k_perp_sq) const {
+	return -2.*xh1LperpM1(x, Q_sq, k_perp_sq)/x;
+}
+FlavorVec WwTmdSet::xhT(Real x, Real Q_sq, Real k_perp_sq) const {
+	return -(xh1(x, Q_sq, k_perp_sq) + xh1TperpM1(x, Q_sq, k_perp_sq))/x;
+}
+FlavorVec WwTmdSet::xhTperp(Real x, Real Q_sq, Real k_perp_sq) const {
+	return (xh1(x, Q_sq, k_perp_sq) - xh1TperpM1(x, Q_sq, k_perp_sq))/x;
+}
+FlavorVec WwTmdSet::xe(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
+}
+FlavorVec WwTmdSet::xeL(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
+}
+FlavorVec WwTmdSet::xeT(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
+}
+FlavorVec WwTmdSet::xeTperp(Real, Real, Real) const {
+	return FlavorVec(flavor_count);
+}
+
+FlavorVec WwTmdSet::Dperp_tilde(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
+}
+FlavorVec WwTmdSet::H_tilde(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
+}
+FlavorVec WwTmdSet::Gperp_tilde(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
+}
+FlavorVec WwTmdSet::E_tilde(part::Hadron, Real, Real, Real) const {
+	return FlavorVec(flavor_count);
+}
+
+GaussianWwTmdVars::GaussianWwTmdVars() :
+	f1(1, INF),
+	f1Tperp(1, INF),
+	fT(1, INF),
+	g1(1, INF),
+	g1Tperp(1, INF),
+	gT(1, INF),
+	h1(1, INF),
+	h1perp(1, INF),
+	h1Lperp(1, INF),
+	h1Tperp(1, INF),
+	h(1, INF),
+	hL(1, INF),
+	hT(1, INF),
+	hTperp(1, INF),
+	D1(1, INF),
+	H1perp(1, INF) { }
 
 // Gaussian and WW-type approximation combined.
 GaussianWwTmdSet::GaussianWwTmdSet(
 	unsigned flavor_count,
+	FlavorVec const& charges,
 	part::Nucleus target,
-	Real mean_f1,
-	Real mean_f1Tperp,
-	Real mean_fT,
-	Real mean_g1,
-	Real mean_g1Tperp,
-	Real mean_gT,
-	Real mean_h1,
-	Real mean_h1perp,
-	Real mean_h1Lperp,
-	Real mean_h1Tperp,
-	Real mean_h,
-	Real mean_hL,
-	Real mean_hT,
-	Real mean_hTperp,
-	Real mean_D1,
-	Real mean_H1perp) :
-	// We choose infinity for the width of the structure functions that are to
-	// be neglected.
-	GaussianTmdSet(
-		flavor_count,
-		target,
-		mean_f1,
-		mean_f1Tperp,
-		mean_fT,
-		// `mean_fperp`
-		mean_f1,
-		// `mean_fLperp`
-		INF,
-		// `mean_fTperp`
-		mean_f1Tperp,
-		mean_g1,
-		mean_g1Tperp,
-		mean_gT,
-		// `mean_gperp`
-		INF,
-		// `mean_gLperp`
-		mean_g1,
-		// `mean_gTperp`
-		mean_g1Tperp,
-		mean_h1,
-		mean_h1perp,
-		mean_h1Lperp,
-		mean_h1Tperp,
-		mean_h,
-		mean_hL,
-		mean_hT,
-		mean_hTperp,
-		// `mean_e`
-		INF,
-		// `mean_eL`
-		INF,
-		// `mean_eT`
-		INF,
-		// `mean_eTperp`
-		INF,
-		mean_D1,
-		mean_H1perp,
-		// `mean_Dperp_tilde`
-		INF,
-		// `mean_H_tilde`
-		INF,
-		// `mean_Gperp_tilde`
-		INF,
-		// `mean_E_tilde`
-		INF) { }
-// Gaussian and WW-type approximation combined.
-GaussianWwTmdSet::GaussianWwTmdSet(
-	unsigned flavor_count,
-	part::Nucleus target,
-	Real const* mean_f1,
-	Real const* mean_f1Tperp,
-	Real const* mean_fT,
-	Real const* mean_g1,
-	Real const* mean_g1Tperp,
-	Real const* mean_gT,
-	Real const* mean_h1,
-	Real const* mean_h1perp,
-	Real const* mean_h1Lperp,
-	Real const* mean_h1Tperp,
-	Real const* mean_h,
-	Real const* mean_hL,
-	Real const* mean_hT,
-	Real const* mean_hTperp,
-	Real const* mean_D1,
-	Real const* mean_H1perp) :
-	// We choose infinity for the width of the structure functions that are to
-	// be neglected.
-	GaussianTmdSet(
-		flavor_count,
-		target,
-		mean_f1,
-		mean_f1Tperp,
-		mean_fT,
-		// `mean_fperp`
-		mean_f1,
-		// `mean_fLperp`
-		std::vector<Real>(flavor_count, INF).data(),
-		// `mean_fTperp`
-		mean_f1Tperp,
-		mean_g1,
-		mean_g1Tperp,
-		mean_gT,
-		// `mean_gperp`
-		std::vector<Real>(flavor_count, INF).data(),
-		// `mean_gLperp`
-		mean_g1,
-		// `mean_gTperp`
-		mean_g1Tperp,
-		mean_h1,
-		mean_h1perp,
-		mean_h1Lperp,
-		mean_h1Tperp,
-		mean_h,
-		mean_hL,
-		mean_hT,
-		mean_hTperp,
-		// `mean_e`
-		std::vector<Real>(flavor_count, INF).data(),
-		// `mean_eL`
-		std::vector<Real>(flavor_count, INF).data(),
-		// `mean_eT`
-		std::vector<Real>(flavor_count, INF).data(),
-		// `mean_eTperp`
-		std::vector<Real>(flavor_count, INF).data(),
-		mean_D1,
-		mean_H1perp,
-		// `mean_Dperp_tilde`
-		std::vector<Real>(flavor_count, INF).data(),
-		// `mean_H_tilde`
-		std::vector<Real>(flavor_count, INF).data(),
-		// `mean_Gperp_tilde`
-		std::vector<Real>(flavor_count, INF).data(),
-		// `mean_E_tilde`
-		std::vector<Real>(flavor_count, INF).data()) { }
+	GaussianWwTmdVars const& vars) :
+	GaussianTmdSet(flavor_count, charges, target, GaussianTmdVars(vars)) { }
 
-Real GaussianWwTmdSet::xf1(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xf1(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xf1Tperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xf1Tperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xg1(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xg1(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xg1Tperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xg1Tperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xh1(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xh1(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xh1perp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xh1perp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xh1Lperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xh1Lperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xh1Tperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xh1Tperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
 
-Real GaussianWwTmdSet::D1(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::D1(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::H1perp(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::H1perp(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
 
 // Following [2], we take the approach of first integrating over `k_perp_sq`
 // with the Gaussian approximation, and then using Ww-type approximation. This
 // is done to avoid contradictions between these two approximations (see section
 // 4.4 of [2]).
-Real GaussianWwTmdSet::xf1TperpM1(unsigned fl, Real x, Real Q_sq) const {
+FlavorVec GaussianWwTmdSet::xf1TperpM1(Real x, Real Q_sq) const {
 	Real M = mass(target);
-	return mean_f1Tperp[fl]/(2.*M*M)*xf1Tperp(fl, x, Q_sq);
+	return vars.f1Tperp*xf1Tperp(x, Q_sq)/(2*M*M);
 }
-Real GaussianWwTmdSet::xg1TperpM1(unsigned fl, Real x, Real Q_sq) const {
+FlavorVec GaussianWwTmdSet::xg1TperpM1(Real x, Real Q_sq) const {
 	Real M = mass(target);
-	return mean_g1Tperp[fl]/(2.*M*M)*xg1Tperp(fl, x, Q_sq);
+	return vars.g1Tperp*xg1Tperp(x, Q_sq)/(2.*M*M);
 }
-Real GaussianWwTmdSet::xh1perpM1(unsigned fl, Real x, Real Q_sq) const {
+FlavorVec GaussianWwTmdSet::xh1perpM1(Real x, Real Q_sq) const {
 	Real M = mass(target);
-	return mean_h1perp[fl]/(2.*M*M)*xh1perp(fl, x, Q_sq);
+	return vars.h1perp*xh1perp(x, Q_sq)/(2.*M*M);
 }
-Real GaussianWwTmdSet::xh1LperpM1(unsigned fl, Real x, Real Q_sq) const {
+FlavorVec GaussianWwTmdSet::xh1LperpM1(Real x, Real Q_sq) const {
 	Real M = mass(target);
-	return mean_h1Lperp[fl]/(2.*M*M)*xh1Lperp(fl, x, Q_sq);
+	return vars.h1Lperp*xh1Lperp(x, Q_sq)/(2.*M*M);
 }
-Real GaussianWwTmdSet::xh1TperpM1(unsigned fl, Real x, Real Q_sq) const {
+FlavorVec GaussianWwTmdSet::xh1TperpM1(Real x, Real Q_sq) const {
 	Real M = mass(target);
-	return mean_h1Tperp[fl]/(2.*M*M)*xh1Tperp(fl, x, Q_sq);
+	return vars.h1Tperp*xh1Tperp(x, Q_sq)/(2.*M*M);
 }
 
-Real GaussianWwTmdSet::xfT(unsigned fl, Real x, Real Q_sq) const {
-	return -xf1TperpM1(fl, x, Q_sq)/x;
+FlavorVec GaussianWwTmdSet::xfT(Real x, Real Q_sq) const {
+	return -xf1TperpM1(x, Q_sq)/x;
 }
-Real GaussianWwTmdSet::xfperp(unsigned fl, Real x, Real Q_sq) const {
-	return xf1(fl, x, Q_sq)/x;
+FlavorVec GaussianWwTmdSet::xfperp(Real x, Real Q_sq) const {
+	return xf1(x, Q_sq)/x;
 }
-Real GaussianWwTmdSet::xfLperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xfLperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xfTperp(unsigned fl, Real x, Real Q_sq) const {
-	return xf1Tperp(fl, x, Q_sq)/x;
+FlavorVec GaussianWwTmdSet::xfTperp(Real x, Real Q_sq) const {
+	return xf1Tperp(x, Q_sq)/x;
 }
-Real GaussianWwTmdSet::xgT(unsigned fl, Real x, Real Q_sq) const {
-	return xg1TperpM1(fl, x, Q_sq)/x;
+FlavorVec GaussianWwTmdSet::xgT(Real x, Real Q_sq) const {
+	return xg1TperpM1(x, Q_sq)/x;
 }
-Real GaussianWwTmdSet::xgperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xgperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xgLperp(unsigned fl, Real x, Real Q_sq) const {
-	return xg1(fl, x, Q_sq)/x;
+FlavorVec GaussianWwTmdSet::xgLperp(Real x, Real Q_sq) const {
+	return xg1(x, Q_sq)/x;
 }
-Real GaussianWwTmdSet::xgTperp(unsigned fl, Real x, Real Q_sq) const {
-	return xg1Tperp(fl, x, Q_sq)/x;
+FlavorVec GaussianWwTmdSet::xgTperp(Real x, Real Q_sq) const {
+	return xg1Tperp(x, Q_sq)/x;
 }
-Real GaussianWwTmdSet::xh(unsigned fl, Real x, Real Q_sq) const {
-	return -2.*xh1perpM1(fl, x, Q_sq)/x;
+FlavorVec GaussianWwTmdSet::xh(Real x, Real Q_sq) const {
+	return -2.*xh1perpM1(x, Q_sq)/x;
 }
-Real GaussianWwTmdSet::xhL(unsigned fl, Real x, Real Q_sq) const {
-	return -2.*xh1LperpM1(fl, x, Q_sq)/x;
+FlavorVec GaussianWwTmdSet::xhL(Real x, Real Q_sq) const {
+	return -2.*xh1LperpM1(x, Q_sq)/x;
 }
-Real GaussianWwTmdSet::xhT(unsigned fl, Real x, Real Q_sq) const {
-	return -(xh1(fl, x, Q_sq) + xh1TperpM1(fl, x, Q_sq))/x;
+FlavorVec GaussianWwTmdSet::xhT(Real x, Real Q_sq) const {
+	return -(xh1(x, Q_sq) + xh1TperpM1(x, Q_sq))/x;
 }
-Real GaussianWwTmdSet::xhTperp(unsigned fl, Real x, Real Q_sq) const {
-	return (xh1(fl, x, Q_sq) - xh1TperpM1(fl, x, Q_sq))/x;
+FlavorVec GaussianWwTmdSet::xhTperp(Real x, Real Q_sq) const {
+	return (xh1(x, Q_sq) - xh1TperpM1(x, Q_sq))/x;
 }
-Real GaussianWwTmdSet::xe(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xe(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xeL(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xeL(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xeT(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xeT(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::xeTperp(unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::xeTperp(Real, Real) const {
+	return FlavorVec(flavor_count);
 }
 
-Real GaussianWwTmdSet::Dperp_tilde(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::Dperp_tilde(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::H_tilde(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::H_tilde(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::Gperp_tilde(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::Gperp_tilde(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
-Real GaussianWwTmdSet::E_tilde(part::Hadron, unsigned, Real, Real) const {
-	return 0.;
+FlavorVec GaussianWwTmdSet::E_tilde(part::Hadron, Real, Real) const {
+	return FlavorVec(flavor_count);
 }
 

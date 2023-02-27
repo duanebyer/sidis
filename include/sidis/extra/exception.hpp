@@ -83,6 +83,22 @@ public:
 };
 
 /**
+ * A FlavorVec was a different size than expected.
+ */
+class FlavorVecUnexpectedSize final : public std::exception {
+	std::string _what;
+
+public:
+	unsigned size;
+	unsigned expected_size;
+
+	FlavorVecUnexpectedSize(unsigned size, unsigned expected_size);
+	char const* what() const noexcept override {
+		return _what.c_str();
+	}
+};
+
+/**
  * Disallowed hadron in a FF.
  *
  * This exception is intended for use in user-defined FFs to indicate an

@@ -29,19 +29,17 @@ public:
 	ProkudinTmdSet& operator=(ProkudinTmdSet&& other) noexcept;
 	virtual ~ProkudinTmdSet();
 
-	Real charge(unsigned fl) const override;
+	FlavorVec xf1(Real x, Real Q_sq) const override;
+	FlavorVec xf1Tperp(Real x, Real Q_sq) const override;
+	FlavorVec xg1(Real x, Real Q_sq) const override;
+	FlavorVec xg1Tperp(Real x, Real Q_sq) const override;
+	FlavorVec xh1(Real x, Real Q_sq) const override;
+	FlavorVec xh1perp(Real x, Real Q_sq) const override;
+	FlavorVec xh1Lperp(Real x, Real Q_sq) const override;
+	FlavorVec xh1Tperp(Real x, Real Q_sq) const override;
 
-	Real xf1(unsigned fl, Real x, Real Q_sq) const override;
-	Real xf1Tperp(unsigned fl, Real x, Real Q_sq) const override;
-	Real xg1(unsigned fl, Real x, Real Q_sq) const override;
-	Real xg1Tperp(unsigned fl, Real x, Real Q_sq) const override;
-	Real xh1(unsigned fl, Real x, Real Q_sq) const override;
-	Real xh1perp(unsigned fl, Real x, Real Q_sq) const override;
-	Real xh1Lperp(unsigned fl, Real x, Real Q_sq) const override;
-	Real xh1Tperp(unsigned fl, Real x, Real Q_sq) const override;
-
-	Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
-	Real H1perp(part::Hadron h, unsigned fl, Real z, Real Q_sq) const override;
+	FlavorVec D1(part::Hadron h, Real z, Real Q_sq) const override;
+	FlavorVec H1perp(part::Hadron h, Real z, Real Q_sq) const override;
 };
 
 /**
@@ -52,19 +50,19 @@ class ProkudinSfSet final : public SfSet {
 	Impl* _impl;
 
 	// Fragmentation functions.
-	Real D1(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
-	Real H1perpM1(part::Hadron h, unsigned fl, Real z, Real Q_sq) const;
+	FlavorVec D1(part::Hadron h, Real z, Real Q_sq) const;
+	FlavorVec H1perpM1(part::Hadron h, Real z, Real Q_sq) const;
 
 	// Transverse momentum distributions.
-	Real xf1(unsigned fl, Real x, Real Q_sq) const;
-	Real xf1TperpM1(unsigned fl, Real x, Real Q_sq) const;
-	Real xg1(unsigned fl, Real x, Real Q_sq) const;
-	Real xgT(unsigned fl, Real x, Real Q_sq) const;
-	Real xh1(unsigned fl, Real x, Real Q_sq) const;
-	Real xh1M1(unsigned fl, Real x, Real Q_sq) const;
-	Real xh1LperpM1(unsigned fl, Real x, Real Q_sq) const;
-	Real xh1TperpM2(unsigned fl, Real x, Real Q_sq) const;
-	Real xh1perpM1(unsigned fl, Real x, Real Q_sq) const;
+	FlavorVec xf1(Real x, Real Q_sq) const;
+	FlavorVec xf1TperpM1(Real x, Real Q_sq) const;
+	FlavorVec xg1(Real x, Real Q_sq) const;
+	FlavorVec xgT(Real x, Real Q_sq) const;
+	FlavorVec xh1(Real x, Real Q_sq) const;
+	FlavorVec xh1M1(Real x, Real Q_sq) const;
+	FlavorVec xh1LperpM1(Real x, Real Q_sq) const;
+	FlavorVec xh1TperpM2(Real x, Real Q_sq) const;
+	FlavorVec xh1perpM1(Real x, Real Q_sq) const;
 
 public:
 	ProkudinSfSet();

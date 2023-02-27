@@ -40,6 +40,16 @@ FlavorOutOfRange::FlavorOutOfRange(unsigned flavor) :
 		+ " is out of range for TMD"),
 	flavor(flavor) { }
 
+FlavorVecUnexpectedSize::FlavorVecUnexpectedSize(
+	unsigned size,
+	unsigned expected_size) :
+	_what(
+		"FlavorVec of size " + std::to_string(size)
+		+ " but needed size " + std::to_string(expected_size)
+		+ " for TMD"),
+	size(size),
+	expected_size(expected_size) { }
+
 HadronOutOfRange::HadronOutOfRange(part::Hadron hadron) :
 	_what(
 		std::string("Hadron '") + part::name(hadron)

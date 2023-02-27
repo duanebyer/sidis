@@ -6,6 +6,7 @@ set(
 	"sidis/constant.hpp"
 	"sidis/cross_section.hpp"
 	"sidis/cut.hpp"
+	"sidis/flavor_vec.hpp"
 	"sidis/frame.hpp"
 	"sidis/hadronic_coeff.hpp"
 	"sidis/integ_params.hpp"
@@ -54,6 +55,7 @@ add_library(
 	cross_section.cpp
 	cut.cpp
 	exception.cpp
+	flavor_vec.cpp
 	frame.cpp
 	hadronic_coeff.cpp
 	kinematics.cpp
