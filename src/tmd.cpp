@@ -178,12 +178,12 @@ GaussianTmdVars::GaussianTmdVars(GaussianWwTmdVars const& ww_vars) :
 	Gperp_tilde(f1.size(), INF),
 	E_tilde(f1.size(), INF) { }
 
-#define FILL_AND_CHECK_TMD_VAR(f) do { \
-	if (vars.f.size() == 1) { \
-		vars.f = FlavorVec(flavor_count, vars.f[0]); \
+#define FILL_AND_CHECK_TMD_VAR(tmd) do { \
+	if (vars.tmd.size() == 1) { \
+		vars.tmd = FlavorVec(flavor_count, vars.tmd[0]); \
 	} \
-	if (vars.f.size() != flavor_count) { \
-		throw FlavorVecUnexpectedSize(vars.f.size(), flavor_count); \
+	if (vars.tmd.size() != flavor_count) { \
+		throw FlavorVecUnexpectedSize(vars.tmd.size(), flavor_count); \
 	} \
 } while (false)
 
