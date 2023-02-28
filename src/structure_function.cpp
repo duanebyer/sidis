@@ -15,7 +15,7 @@
 	convolve_numeric( \
 		tmd_set, \
 		Weight::weight_type, \
-		&TmdSet::x ## tmd, &TmdSet::ff, \
+		&TmdSet::x##tmd, &TmdSet::ff, \
 		target, h, x, z, Q_sq, ph_t_sq)
 #define CONVOLVE_TILDE_NUMERIC(weight_type, tmd, ff, tmd_tilde, ff_tilde, sign) \
 	( \
@@ -28,9 +28,9 @@
 	convolve_gaussian( \
 		tmd_set, \
 		Weight::weight_type, \
-		tmd_set.vars.tmd, &GaussianTmdSet::x ## tmd, \
-		tmd_set.vars.ff, &GaussianTmdSet::ff, \
-		target, h, x, z, Q_sq, ph_t_sq)
+		tmd_set.vars.tmd, x##tmd, \
+		tmd_set.vars.ff, ff, \
+		target, h, z, ph_t_sq)
 #define CONVOLVE_TILDE_GAUSSIAN(weight_type, tmd, ff, tmd_tilde, ff_tilde, sign) \
 	( \
 		(2.*mass(target)*x)/std::sqrt(Q_sq) \
@@ -42,6 +42,11 @@
 	(CONVOLVE_##METHOD(weight_type, tmd, ff))
 #define CONVOLVE_TILDE(METHOD, weight_type, tmd, ff, tmd_tilde, ff_tilde, sign) \
 	(CONVOLVE_TILDE_##METHOD(weight_type, tmd, ff, tmd_tilde, ff_tilde, sign))
+
+#define CACHE_TMD(tmd) FlavorVec x##tmd = tmd_set.x##tmd(x, Q_sq)
+#define CACHE_FF(ff) FlavorVec ff = tmd_set.ff(h, z, Q_sq)
+
+#define TMD_X_MOM1(tmd) (tmd_set.vars.tmd*x##tmd/(2.*sq(mass(target))))
 
 // Definitions of structure functions in terms of convolutions on TMDs and FFs.
 #define M_F_UUT(METHOD) (CONVOLVE(METHOD, W0, f1, D1))
@@ -190,10 +195,9 @@ Real convolve_numeric(
 				weight = 0.;
 			}
 			Real integrand = 0.;
-			FlavorVec charge_arr = tmd_set.charges;
 			FlavorVec tmd_arr = (tmd_set.*tmd)(x, Q_sq, sq(k_perp));
 			FlavorVec ff_arr = (tmd_set.*ff)(h, z, Q_sq, p_perp_sq);
-			integrand += (sq_vec(charge_arr)*tmd_arr*ff_arr).sum();
+			integrand += (sq_vec(tmd_set.charges)*tmd_arr*ff_arr).sum();
 			return jacobian*weight*integrand;
 		},
 		cubature::Point<2, Real>{ 0., 0. },
@@ -206,17 +210,14 @@ Real convolve_numeric(
 Real convolve_gaussian(
 		GaussianTmdSet const& tmd_set,
 		Weight weight_type,
-		FlavorVec const& var_tmd, GaussianTmd tmd,
-		FlavorVec const& var_ff, GaussianFf ff,
+		FlavorVec const& var_tmd, FlavorVec const& tmd,
+		FlavorVec const& var_ff, FlavorVec const& ff,
 		part::Nucleus target, part::Hadron h,
-		Real x, Real z, Real Q_sq, Real ph_t_sq) {
+		Real z, Real ph_t_sq) {
 	Real M = mass(target);
 	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
 	Real result = 0.;
-	FlavorVec charge_arr = tmd_set.charges;
-	FlavorVec tmd_arr = (tmd_set.*tmd)(x, Q_sq);
-	FlavorVec ff_arr = (tmd_set.*ff)(h, z, Q_sq);
 	FlavorVec var = var_ff + sq(z)*var_tmd;
 
 	FlavorVec gaussian = tmd_gaussian_factor(var, ph_t_sq);
@@ -252,7 +253,7 @@ Real convolve_gaussian(
 		// Unknown integrand.
 		weight = 0.;
 	}
-	result += (sq_vec(charge_arr)*weight*gaussian*tmd_arr*ff_arr).sum();
+	result += (sq_vec(tmd_set.charges)*weight*gaussian*tmd*ff).sum();
 	return result;
 }
 
@@ -497,19 +498,29 @@ Real GaussianTmdSfSet::F_UUL(part::Hadron, Real, Real, Real, Real) const {
 	return 0.;
 }
 Real GaussianTmdSfSet::F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1);
+	CACHE_FF(D1);
 	return M_F_UUT(GAUSSIAN);
 }
 Real GaussianTmdSfSet::F_UU_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1); CACHE_TMD(fperp); CACHE_TMD(h1perp); CACHE_TMD(h);
+	CACHE_FF(D1); CACHE_FF(H1perp); CACHE_FF(Dperp_tilde); CACHE_FF(H_tilde);
 	return M_F_UU_COS_PHIH(GAUSSIAN);
 }
 Real GaussianTmdSfSet::F_UU_cos_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(h1perp);
+	CACHE_FF(H1perp);
 	return M_F_UU_COS_2PHIH(GAUSSIAN);
 }
 
 Real GaussianTmdSfSet::F_UL_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(fLperp); CACHE_TMD(g1); CACHE_TMD(h1Lperp); CACHE_TMD(hL);
+	CACHE_FF(D1); CACHE_FF(H1perp); CACHE_FF(Gperp_tilde); CACHE_FF(H_tilde);
 	return M_F_UL_SIN_PHIH(GAUSSIAN);
 }
 Real GaussianTmdSfSet::F_UL_sin_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(h1Lperp);
+	CACHE_FF(H1perp);
 	return M_F_UL_SIN_2PHIH(GAUSSIAN);
 }
 
@@ -517,39 +528,61 @@ Real GaussianTmdSfSet::F_UTL_sin_phih_m_phis(part::Hadron, Real, Real, Real, Rea
 	return 0.;
 }
 Real GaussianTmdSfSet::F_UTT_sin_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1Tperp);
+	CACHE_FF(D1);
 	return M_F_UTT_SIN_PHIH_M_PHIS(GAUSSIAN);
 }
 Real GaussianTmdSfSet::F_UT_sin_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1Tperp); CACHE_TMD(fTperp); CACHE_TMD(g1Tperp); CACHE_TMD(h1Tperp); CACHE_TMD(hT); CACHE_TMD(hTperp);
+	CACHE_FF(D1); CACHE_FF(H1perp); CACHE_FF(Dperp_tilde); CACHE_FF(Gperp_tilde); CACHE_FF(H_tilde);
 	return M_F_UT_SIN_2PHIH_M_PHIS(GAUSSIAN);
 }
 Real GaussianTmdSfSet::F_UT_sin_3phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(h1Tperp);
+	CACHE_FF(H1perp);
 	return M_F_UT_SIN_3PHIH_M_PHIS(GAUSSIAN);
 }
 Real GaussianTmdSfSet::F_UT_sin_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1Tperp); CACHE_TMD(fT); CACHE_TMD(g1Tperp); CACHE_TMD(h1); CACHE_TMD(hT); CACHE_TMD(hTperp);
+	CACHE_FF(D1); CACHE_FF(H1perp); CACHE_FF(Dperp_tilde); CACHE_FF(Gperp_tilde); CACHE_FF(H_tilde);
 	return M_F_UT_SIN_PHIS(GAUSSIAN);
 }
 Real GaussianTmdSfSet::F_UT_sin_phih_p_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(h1);
+	CACHE_FF(H1perp);
 	return M_F_UT_SIN_PHIH_P_PHIS(GAUSSIAN);
 }
 
 Real GaussianTmdSfSet::F_LU_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1); CACHE_TMD(gperp); CACHE_TMD(h1perp); CACHE_TMD(e);
+	CACHE_FF(D1); CACHE_FF(H1perp); CACHE_FF(Gperp_tilde); CACHE_FF(E_tilde);
 	return M_F_LU_SIN_PHIH(GAUSSIAN);
 }
 
 Real GaussianTmdSfSet::F_LL(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(g1);
+	CACHE_FF(D1);
 	return M_F_LL(GAUSSIAN);
 }
 Real GaussianTmdSfSet::F_LL_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(g1); CACHE_TMD(gLperp); CACHE_TMD(h1Lperp); CACHE_TMD(eL);
+	CACHE_FF(D1); CACHE_FF(H1perp); CACHE_FF(Dperp_tilde); CACHE_FF(E_tilde);
 	return M_F_LL_COS_PHIH(GAUSSIAN);
 }
 
 Real GaussianTmdSfSet::F_LT_cos_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(g1Tperp);
+	CACHE_FF(D1);
 	return M_F_LT_COS_PHIH_M_PHIS(GAUSSIAN);
 }
 Real GaussianTmdSfSet::F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1Tperp); CACHE_TMD(g1Tperp); CACHE_TMD(gTperp); CACHE_TMD(h1Tperp); CACHE_TMD(eT); CACHE_TMD(eTperp);
+	CACHE_FF(D1); CACHE_FF(H1perp); CACHE_FF(Dperp_tilde); CACHE_FF(Gperp_tilde); CACHE_FF(E_tilde);
 	return M_F_LT_COS_2PHIH_M_PHIS(GAUSSIAN);
 }
 Real GaussianTmdSfSet::F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1Tperp); CACHE_TMD(g1Tperp); CACHE_TMD(gT); CACHE_TMD(h1); CACHE_TMD(eT); CACHE_TMD(eTperp);
+	CACHE_FF(D1); CACHE_FF(H1perp); CACHE_FF(Dperp_tilde); CACHE_FF(Gperp_tilde); CACHE_FF(E_tilde);
 	return M_F_LT_COS_PHIS(GAUSSIAN);
 }
 
@@ -614,24 +647,38 @@ Real WwTmdSfSet::F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real p
 	return M_F_LT_COS_PHIS_WW(NUMERIC);
 }
 
-// WW-type approximation combined with Gaussian TMDs.
+// WW-type approximation combined with Gaussian TMDs. We inline some of the
+// WW-type approximations to avoid evaluating TmdSet more times than needed.
 Real GaussianWwTmdSfSet::F_UUL(part::Hadron, Real, Real, Real, Real) const {
 	return 0.;
 }
 Real GaussianWwTmdSfSet::F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1);
+	CACHE_FF(D1);
 	return M_F_UUT_WW(GAUSSIAN);
 }
 Real GaussianWwTmdSfSet::F_UU_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1); CACHE_TMD(h1perp);
+	CACHE_FF(D1); CACHE_FF(H1perp);
+	FlavorVec xfperp = xf1/x;
+	FlavorVec xh = -2.*TMD_X_MOM1(h1perp)/x;
 	return M_F_UU_COS_PHIH_WW(GAUSSIAN);
 }
 Real GaussianWwTmdSfSet::F_UU_cos_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(h1perp);
+	CACHE_FF(H1perp);
 	return M_F_UU_COS_2PHIH_WW(GAUSSIAN);
 }
 
 Real GaussianWwTmdSfSet::F_UL_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(h1Lperp);
+	CACHE_FF(H1perp);
+	FlavorVec xhL = -2.*TMD_X_MOM1(h1Lperp)/x;
 	return M_F_UL_SIN_PHIH_WW(GAUSSIAN);
 }
 Real GaussianWwTmdSfSet::F_UL_sin_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(h1Lperp);
+	CACHE_FF(H1perp);
 	return M_F_UL_SIN_2PHIH_WW(GAUSSIAN);
 }
 
@@ -639,18 +686,34 @@ Real GaussianWwTmdSfSet::F_UTL_sin_phih_m_phis(part::Hadron, Real, Real, Real, R
 	return 0.;
 }
 Real GaussianWwTmdSfSet::F_UTT_sin_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1Tperp);
+	CACHE_FF(D1);
 	return M_F_UTT_SIN_PHIH_M_PHIS_WW(GAUSSIAN);
 }
 Real GaussianWwTmdSfSet::F_UT_sin_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1Tperp); CACHE_TMD(h1); CACHE_TMD(h1Tperp);
+	CACHE_FF(D1); CACHE_FF(H1perp);
+	FlavorVec xfTperp = xf1Tperp/x;
+	FlavorVec xhT = -(xh1 + TMD_X_MOM1(h1Tperp))/x;
+	FlavorVec xhTperp = (xh1 - TMD_X_MOM1(h1Tperp))/x;
 	return M_F_UT_SIN_2PHIH_M_PHIS_WW(GAUSSIAN);
 }
 Real GaussianWwTmdSfSet::F_UT_sin_3phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(h1Tperp);
+	CACHE_FF(H1perp);
 	return M_F_UT_SIN_3PHIH_M_PHIS_WW(GAUSSIAN);
 }
 Real GaussianWwTmdSfSet::F_UT_sin_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(f1Tperp); CACHE_TMD(h1); CACHE_TMD(h1Tperp);
+	CACHE_FF(D1); CACHE_FF(H1perp);
+	FlavorVec xfT = -TMD_X_MOM1(f1Tperp)/x;
+	FlavorVec xhT = -(xh1 + TMD_X_MOM1(h1Tperp))/x;
+	FlavorVec xhTperp = (xh1 - TMD_X_MOM1(h1Tperp))/x;
 	return M_F_UT_SIN_PHIS_WW(GAUSSIAN);
 }
 Real GaussianWwTmdSfSet::F_UT_sin_phih_p_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(h1);
+	CACHE_FF(H1perp);
 	return M_F_UT_SIN_PHIH_P_PHIS_WW(GAUSSIAN);
 }
 
@@ -659,19 +722,32 @@ Real GaussianWwTmdSfSet::F_LU_sin_phih(part::Hadron, Real, Real, Real, Real) con
 }
 
 Real GaussianWwTmdSfSet::F_LL(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(g1);
+	CACHE_FF(D1);
 	return M_F_LL_WW(GAUSSIAN);
 }
 Real GaussianWwTmdSfSet::F_LL_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(g1);
+	CACHE_FF(D1);
+	FlavorVec xgLperp = xg1/x;
 	return M_F_LL_COS_PHIH_WW(GAUSSIAN);
 }
 
 Real GaussianWwTmdSfSet::F_LT_cos_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(g1Tperp);
+	CACHE_FF(D1);
 	return M_F_LT_COS_PHIH_M_PHIS_WW(GAUSSIAN);
 }
 Real GaussianWwTmdSfSet::F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(g1Tperp);
+	CACHE_FF(D1);
+	FlavorVec xgTperp = xg1Tperp/x;
 	return M_F_LT_COS_2PHIH_M_PHIS_WW(GAUSSIAN);
 }
 Real GaussianWwTmdSfSet::F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
+	CACHE_TMD(g1Tperp);
+	CACHE_FF(D1);
+	FlavorVec xgT = TMD_X_MOM1(g1Tperp)/x;
 	return M_F_LT_COS_PHIS_WW(GAUSSIAN);
 }
 
