@@ -153,14 +153,22 @@ Real convolve_numeric(
 	Real mh = mass(h);
 	cubature::EstErr<Real> result = cubature::cubature(
 		[&](cubature::Point<2, Real> k_perp_polar) {
-			Real dot_k_perp = k_perp_polar[1]*std::cos(k_perp_polar[0]);
+			Real k_perp_theta = k_perp_polar[0];
+			// Use a tan function as an integral transform. This does two
+			// things. First, it maps the semi-infinite range `[0, inf)` into
+			// `[0, PI/2)` so that it can be numerically integrated. Second, it
+			// smooths out the peaked TMDs. The transform takes a `width`
+			// parameter which should be chosen to be close to the widths of the
+			// TMDs themselves. Most TMDs have a width around 0.4-0.6 GeV.
+			Real width = 0.5;
+			Real k_perp = SQRT_2*width*std::tan(k_perp_polar[1]);
+			Real jac = SQRT_2*width*k_perp/(sq(std::cos(k_perp_polar[1])));
+			Real dot_k_perp = k_perp*std::cos(k_perp_theta);
 			Real dot_p_perp = ph_t - z*dot_k_perp;
-			Real k_perp = k_perp_polar[1];
 			Real k_perp_sq = sq(k_perp);
 			Real p_perp_sq = ph_t_sq + sq(z)*k_perp_sq
 				- 2.*ph_t*z*dot_k_perp;
 			Real dot_p_k_perp = ph_t*dot_k_perp - z*k_perp_sq;
-			Real jacobian = k_perp;
 			Real weight;
 			switch (weight_type) {
 			case Weight::W0:
@@ -198,12 +206,11 @@ Real convolve_numeric(
 			FlavorVec tmd_arr = (tmd_set.*tmd)(x, Q_sq, sq(k_perp));
 			FlavorVec ff_arr = (tmd_set.*ff)(h, z, Q_sq, p_perp_sq);
 			integrand += (sq_vec(tmd_set.charges)*tmd_arr*ff_arr).sum();
-			return jacobian*weight*integrand;
+			return jac*weight*integrand;
 		},
 		cubature::Point<2, Real>{ 0., 0. },
-		// TODO: Choose the upper bound on `k_perp` using a better method.
-		cubature::Point<2, Real>{ 2. * PI, 10. },
-		100000, 0., 1e-6);
+		cubature::Point<2, Real>{ 2.*PI, 0.5*PI },
+		100000, 0., 1e-4);
 	return result.val;
 }
 
