@@ -62,7 +62,7 @@ public:
 		}
 	}
 	/// Initialize a FlavorVec from a single number.
-	FlavorVec(Real val) : _arr{val}, _size(1) { }
+	explicit FlavorVec(Real val) : _arr{val}, _size(1) { }
 	/// Initialize a FlavorVec from an initializer list.
 	FlavorVec(std::initializer_list<Real> list);
 
@@ -79,6 +79,18 @@ public:
 	FlavorVec& operator/=(Real scale) {
 		for (unsigned fl = 0; fl < _size; ++fl) {
 			_arr[fl] /= scale;
+		}
+		return *this;
+	}
+	FlavorVec& operator+=(Real offset) {
+		for (unsigned fl = 0; fl < _size; ++fl) {
+			_arr[fl] += offset;
+		}
+		return *this;
+	}
+	FlavorVec& operator-=(Real offset) {
+		for (unsigned fl = 0; fl < _size; ++fl) {
+			_arr[fl] -= offset;
 		}
 		return *this;
 	}
@@ -137,8 +149,15 @@ public:
 	/// \}
 
 	friend FlavorVec tmd_gaussian_factor(FlavorVec var, Real k_perp_sq);
+	friend inline FlavorVec operator-(FlavorVec vec) {
+		for (unsigned fl = 0; fl < vec._size; ++fl) {
+			vec._arr[fl] = -vec._arr[fl];
+		}
+		return vec;
+	}
 };
 
+// Arithmetic with real numbers.
 inline FlavorVec operator*(FlavorVec lhs, Real rhs) {
 	lhs *= rhs;
 	return lhs;
@@ -147,6 +166,7 @@ inline FlavorVec operator*(Real lhs, FlavorVec rhs) {
 	rhs *= lhs;
 	return rhs;
 }
+
 inline FlavorVec operator/(FlavorVec lhs, Real rhs) {
 	lhs /= rhs;
 	return lhs;
@@ -155,6 +175,26 @@ inline FlavorVec operator/(Real lhs, FlavorVec rhs) {
 	rhs.inv(lhs);
 	return rhs;
 }
+
+inline FlavorVec operator+(FlavorVec lhs, Real rhs) {
+	lhs += rhs;
+	return lhs;
+}
+inline FlavorVec operator+(Real lhs, FlavorVec rhs) {
+	rhs += lhs;
+	return rhs;
+}
+
+inline FlavorVec operator-(FlavorVec lhs, Real rhs) {
+	lhs -= rhs;
+	return lhs;
+}
+inline FlavorVec operator-(Real lhs, FlavorVec rhs) {
+	rhs -= lhs;
+	return -rhs;
+}
+
+// Arithemetic with two FlavorVec%s.
 inline FlavorVec operator+(FlavorVec lhs, FlavorVec const& rhs) {
 	lhs += rhs;
 	return lhs;
@@ -170,12 +210,6 @@ inline FlavorVec operator*(FlavorVec lhs, FlavorVec const& rhs) {
 inline FlavorVec operator/(FlavorVec lhs, FlavorVec const& rhs) {
 	lhs /= rhs;
 	return lhs;
-}
-inline FlavorVec operator-(FlavorVec vec) {
-	for (unsigned fl = 0; fl < vec.size(); ++fl) {
-		vec[fl] = -vec[fl];
-	}
-	return vec;
 }
 
 FlavorVec sqrt_vec(FlavorVec vec);

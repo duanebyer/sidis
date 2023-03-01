@@ -258,7 +258,7 @@ Real convolve_gaussian(
 		break;
 	default:
 		// Unknown integrand.
-		weight = 0.;
+		weight = FlavorVec(tmd_set.flavor_count);
 	}
 	result += (sq_vec(tmd_set.charges)*weight*gaussian*tmd*ff).sum();
 	return result;

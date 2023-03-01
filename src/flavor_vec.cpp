@@ -49,7 +49,7 @@ FlavorVec sf::pow_vec(FlavorVec lhs, Real rhs) {
 	for (unsigned fl = 0; fl < lhs.size(); ++fl) {
 		lhs[fl] = std::pow(lhs[fl], rhs);
 	}
-	return rhs;
+	return lhs;
 }
 FlavorVec sf::pow_vec(FlavorVec lhs, FlavorVec const& rhs) {
 	for (unsigned fl = 0; fl < lhs.size(); ++fl) {
