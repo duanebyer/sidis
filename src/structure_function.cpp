@@ -195,7 +195,7 @@ Real convolve_numeric(
 			case Weight::W3:
 				weight = (
 					4.*dot_p_perp*sq(dot_k_perp)
-					- dot_k_perp*dot_p_k_perp
+					- 2.*dot_k_perp*dot_p_k_perp
 					- dot_p_perp*k_perp_sq)/(2.*z*sq(M)*mh);
 				break;
 			default:
