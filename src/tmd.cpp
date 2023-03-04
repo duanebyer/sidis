@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "sidis/constant.hpp"
 #include "sidis/extra/exception.hpp"
 
 using namespace sidis;
@@ -111,38 +112,6 @@ FlavorVec TmdSet::Gperp_tilde(part::Hadron, Real, Real, Real) const {
 FlavorVec TmdSet::E_tilde(part::Hadron, Real, Real, Real) const {
 	return FlavorVec(flavor_count);
 }
-
-GaussianTmdVars::GaussianTmdVars() :
-	f1(1, INF),
-	f1Tperp(1, INF),
-	fT(1, INF),
-	fperp(1, INF),
-	fLperp(1, INF),
-	fTperp(1, INF),
-	g1(1, INF),
-	g1Tperp(1, INF),
-	gT(1, INF),
-	gperp(1, INF),
-	gLperp(1, INF),
-	gTperp(1, INF),
-	h1(1, INF),
-	h1perp(1, INF),
-	h1Lperp(1, INF),
-	h1Tperp(1, INF),
-	h(1, INF),
-	hL(1, INF),
-	hT(1, INF),
-	hTperp(1, INF),
-	e(1, INF),
-	eL(1, INF),
-	eT(1, INF),
-	eTperp(1, INF),
-	D1(1, INF),
-	H1perp(1, INF),
-	Dperp_tilde(1, INF),
-	H_tilde(1, INF),
-	Gperp_tilde(1, INF),
-	E_tilde(1, INF) { }
 
 GaussianTmdVars::GaussianTmdVars(GaussianWwTmdVars const& ww_vars) :
 	// We choose infinity for the width of the structure functions that are to
@@ -534,24 +503,6 @@ FlavorVec WwTmdSet::Gperp_tilde(part::Hadron, Real, Real, Real) const {
 FlavorVec WwTmdSet::E_tilde(part::Hadron, Real, Real, Real) const {
 	return FlavorVec(flavor_count);
 }
-
-GaussianWwTmdVars::GaussianWwTmdVars() :
-	f1(1, INF),
-	f1Tperp(1, INF),
-	fT(1, INF),
-	g1(1, INF),
-	g1Tperp(1, INF),
-	gT(1, INF),
-	h1(1, INF),
-	h1perp(1, INF),
-	h1Lperp(1, INF),
-	h1Tperp(1, INF),
-	h(1, INF),
-	hL(1, INF),
-	hT(1, INF),
-	hTperp(1, INF),
-	D1(1, INF),
-	H1perp(1, INF) { }
 
 // Gaussian and WW-type approximation combined.
 GaussianWwTmdSet::GaussianWwTmdSet(

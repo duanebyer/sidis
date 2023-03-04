@@ -1,6 +1,7 @@
 #ifndef SIDIS_TMD_HPP
 #define SIDIS_TMD_HPP
 
+#include "sidis/constant.hpp"
 #include "sidis/flavor_vec.hpp"
 #include "sidis/particle.hpp"
 
@@ -94,45 +95,45 @@ struct GaussianWwTmdVars;
 struct GaussianTmdVars {
 	/// \name Variances of TMDs
 	/// \{
-	FlavorVec f1;
-	FlavorVec f1Tperp;
-	FlavorVec fT;
-	FlavorVec fperp;
-	FlavorVec fLperp;
-	FlavorVec fTperp;
-	FlavorVec g1;
-	FlavorVec g1Tperp;
-	FlavorVec gT;
-	FlavorVec gperp;
-	FlavorVec gLperp;
-	FlavorVec gTperp;
-	FlavorVec h1;
-	FlavorVec h1perp;
-	FlavorVec h1Lperp;
-	FlavorVec h1Tperp;
-	FlavorVec h;
-	FlavorVec hL;
-	FlavorVec hT;
-	FlavorVec hTperp;
-	FlavorVec e;
-	FlavorVec eL;
-	FlavorVec eT;
-	FlavorVec eTperp;
+	FlavorVec f1          = FlavorVec(1, INF);
+	FlavorVec f1Tperp     = FlavorVec(1, INF);
+	FlavorVec fT          = FlavorVec(1, INF);
+	FlavorVec fperp       = FlavorVec(1, INF);
+	FlavorVec fLperp      = FlavorVec(1, INF);
+	FlavorVec fTperp      = FlavorVec(1, INF);
+	FlavorVec g1          = FlavorVec(1, INF);
+	FlavorVec g1Tperp     = FlavorVec(1, INF);
+	FlavorVec gT          = FlavorVec(1, INF);
+	FlavorVec gperp       = FlavorVec(1, INF);
+	FlavorVec gLperp      = FlavorVec(1, INF);
+	FlavorVec gTperp      = FlavorVec(1, INF);
+	FlavorVec h1          = FlavorVec(1, INF);
+	FlavorVec h1perp      = FlavorVec(1, INF);
+	FlavorVec h1Lperp     = FlavorVec(1, INF);
+	FlavorVec h1Tperp     = FlavorVec(1, INF);
+	FlavorVec h           = FlavorVec(1, INF);
+	FlavorVec hL          = FlavorVec(1, INF);
+	FlavorVec hT          = FlavorVec(1, INF);
+	FlavorVec hTperp      = FlavorVec(1, INF);
+	FlavorVec e           = FlavorVec(1, INF);
+	FlavorVec eL          = FlavorVec(1, INF);
+	FlavorVec eT          = FlavorVec(1, INF);
+	FlavorVec eTperp      = FlavorVec(1, INF);
 	/// \}
 
 	/// \name Variances of FFs
 	/// \{
-	FlavorVec D1;
-	FlavorVec H1perp;
-	FlavorVec Dperp_tilde;
-	FlavorVec H_tilde;
-	FlavorVec Gperp_tilde;
-	FlavorVec E_tilde;
+	FlavorVec D1          = FlavorVec(1, INF);
+	FlavorVec H1perp      = FlavorVec(1, INF);
+	FlavorVec Dperp_tilde = FlavorVec(1, INF);
+	FlavorVec H_tilde     = FlavorVec(1, INF);
+	FlavorVec Gperp_tilde = FlavorVec(1, INF);
+	FlavorVec E_tilde     = FlavorVec(1, INF);
 	/// \}
 
 	/// Initializes the variances. Each variance is set to be infinity by
 	/// default, which means the corresponding TMD will be completely neglected.
-	explicit GaussianTmdVars();
+	GaussianTmdVars() { }
 	/// Initializes the variances using the variances for the Wandzura-Wilczek
 	/// base set of TMDs and FFs.
 	explicit GaussianTmdVars(GaussianWwTmdVars const& ww_vars);
@@ -324,31 +325,31 @@ public:
 struct GaussianWwTmdVars {
 	/// \name Variances of TMDs
 	/// \{
-	FlavorVec f1;
-	FlavorVec f1Tperp;
-	FlavorVec fT;
-	FlavorVec g1;
-	FlavorVec g1Tperp;
-	FlavorVec gT;
-	FlavorVec h1;
-	FlavorVec h1perp;
-	FlavorVec h1Lperp;
-	FlavorVec h1Tperp;
-	FlavorVec h;
-	FlavorVec hL;
-	FlavorVec hT;
-	FlavorVec hTperp;
+	FlavorVec f1      = FlavorVec(1, INF);
+	FlavorVec f1Tperp = FlavorVec(1, INF);
+	FlavorVec fT      = FlavorVec(1, INF);
+	FlavorVec g1      = FlavorVec(1, INF);
+	FlavorVec g1Tperp = FlavorVec(1, INF);
+	FlavorVec gT      = FlavorVec(1, INF);
+	FlavorVec h1      = FlavorVec(1, INF);
+	FlavorVec h1perp  = FlavorVec(1, INF);
+	FlavorVec h1Lperp = FlavorVec(1, INF);
+	FlavorVec h1Tperp = FlavorVec(1, INF);
+	FlavorVec h       = FlavorVec(1, INF);
+	FlavorVec hL      = FlavorVec(1, INF);
+	FlavorVec hT      = FlavorVec(1, INF);
+	FlavorVec hTperp  = FlavorVec(1, INF);
 	/// \}
 
 	/// \name Variances of FFs
 	/// \{
-	FlavorVec D1;
-	FlavorVec H1perp;
+	FlavorVec D1      = FlavorVec(1, INF);
+	FlavorVec H1perp  = FlavorVec(1, INF);
 	/// \}
 
 	/// Initializes the variances. Each variance is set to be infinity by
 	/// default, which means the corresponding TMD will be completely neglected.
-	explicit GaussianWwTmdVars();
+	GaussianWwTmdVars() { }
 };
 
 /**
