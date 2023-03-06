@@ -240,6 +240,7 @@ void alloc_sf(
 	}
 
 	// The last part is the base structure function.
+	// TODO: Check that target matches the SfSet target.
 	std::string base = parts.back();
 	parts.pop_back();
 	if (base == "prokudin") {
@@ -248,9 +249,8 @@ void alloc_sf(
 		sf_out->reset(new sf::set::ProkudinSfSet());
 	} else if (base == "test") {
 		std::cout << "Using test structure functions." << std::endl;
-		part::Nucleus target = params["setup.target"].any();
 		tmd_out->reset();
-		sf_out->reset(new sf::set::TestSfSet(target));
+		sf_out->reset(new sf::set::TestSfSet());
 	} else {
 		// TODO: Make this work on Windows as well, and make providing the
 		// extension optional.
