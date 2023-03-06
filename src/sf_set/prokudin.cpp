@@ -144,7 +144,7 @@ GaussianWwTmdVars const TMD_VARS = []() {
 	return vars;
 }();
 
-FlavorVec CHARGES = {
+FlavorVec const CHARGES = {
 	+2./3., // Up.
 	-1./3., // Down.
 	-1./3., // Strange.
