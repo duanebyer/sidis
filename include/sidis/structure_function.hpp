@@ -217,6 +217,24 @@ public:
 	Real F_LT_cos_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 	Real F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 	Real F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	SfBaseUU sf_base_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseUL sf_base_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseUT sf_base_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseUP sf_base_up(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseLU sf_base_lu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseLL sf_base_ll(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseLT sf_base_lt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseLP sf_base_lp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	SfUU sf_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfUL sf_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfUT sf_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfUP sf_up(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfLU sf_lu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfLL sf_ll(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfLT sf_lt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfLP sf_lp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 };
 
 /**
@@ -302,17 +320,34 @@ public:
 	Real F_LT_cos_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 	Real F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 	Real F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	SfBaseUU sf_base_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseUL sf_base_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseUT sf_base_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseUP sf_base_up(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseLU sf_base_lu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseLL sf_base_ll(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseLT sf_base_lt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfBaseLP sf_base_lp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+
+	SfUU sf_uu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfUL sf_ul(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfUT sf_ut(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfUP sf_up(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfLU sf_lu(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfLL sf_ll(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfLT sf_lt(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
+	SfLP sf_lp(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;
 };
 
 /**
- * \defgroup SfCombsBaseGroup Base structure function combinations
+ * \defgroup SfCombsGroup Base structure function combinations
  * These types cache the results of structure function calculations from SfSet.
  * They are grouped by beam and target polarization. For instance, for
  * calculating the LT part of the cross-section through xs::born_base_lt(), you
- * would fill in the SfBaseLT type.
- *
- * To compute the full LT cross-section (including unpolarized contributions),
- * you would instead fill in the SfLT type.
+ * would fill in the SfBaseLT type. Or, to compute the full LT cross-section
+ * (including unpolarized contributions), you would instead fill in the SfLT
+ * type.
  *
  * \sa SfSet
  */
@@ -355,18 +390,7 @@ struct SfBaseLP {
 	SfBaseLL ll;
 	SfBaseLT lt;
 };
-/// \}
 
-/**
- * \defgroup SfCombsGroup Structure function combinations
- * These types combine the base structure function combinations together so that
- * a complete polarized cross-section can be calculated. For instance, if you
- * want to calculate an LT cross-section, you need to combine the UU, UT, LU,
- * and LT parts of the cross-section.
- *
- * \sa SfSet
- */
-/// \{
 struct SfUU {
 	SfBaseUU uu;
 };

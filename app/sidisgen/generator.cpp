@@ -97,16 +97,16 @@ NradDensity::NradDensity(Params& params, sf::SfSet const& sf) :
 Double NradDensity::transform(
 		Point<6> const& unit_vec,
 		kin::Kinematics* kin) const noexcept {
-	Double jacobian;
-	if (!cut::take(_cut, _ps, _S, unit_vec.data(), kin, &jacobian)) {
-		jacobian = 0.;
+	Double jac;
+	if (!cut::take(_cut, _ps, _S, unit_vec.data(), kin, &jac)) {
+		jac = 0.;
 	}
-	return jacobian;
+	return jac;
 }
 
 Double NradDensity::eval(Point<6> const& unit_vec, kin::Kinematics* kin) const noexcept {
-	Double jacobian;
-	if (!cut::take(_cut, _ps, _S, unit_vec.data(), kin, &jacobian)) {
+	Double jac;
+	if (!cut::take(_cut, _ps, _S, unit_vec.data(), kin, &jac)) {
 		return 0.;
 	}
 	math::Vec3 eta = frame::hadron_from_target(*kin) * _target_pol;
@@ -136,7 +136,7 @@ Double NradDensity::eval(Point<6> const& unit_vec, kin::Kinematics* kin) const n
 	if (!std::isfinite(xs) || !(xs >= 0.)) {
 		return 0.;
 	} else {
-		return jacobian * xs;
+		return jac * xs;
 	}
 }
 
@@ -176,16 +176,16 @@ RadDensity::RadDensity(Params& params, sf::SfSet const& sf) :
 Double RadDensity::transform(
 		Point<9> const& unit_vec,
 		kin::KinematicsRad* kin) const noexcept {
-	Double jacobian;
-	if (!cut::take(_cut, _cut_rad, _ps, _S, unit_vec.data(), kin, &jacobian)) {
-		jacobian = 0.;
+	Double jac;
+	if (!cut::take(_cut, _cut_rad, _ps, _S, unit_vec.data(), kin, &jac)) {
+		jac = 0.;
 	}
-	return jacobian;
+	return jac;
 }
 
 Double RadDensity::eval(Point<9> const& unit_vec, kin::KinematicsRad* kin_rad) const noexcept {
-	Double jacobian;
-	if (!cut::take(_cut, _cut_rad, _ps, _S, unit_vec.data(), kin_rad, &jacobian)) {
+	Double jac;
+	if (!cut::take(_cut, _cut_rad, _ps, _S, unit_vec.data(), kin_rad, &jac)) {
 		return 0.;
 	}
 	kin::Kinematics kin = kin_rad->project();
@@ -194,7 +194,7 @@ Double RadDensity::eval(Point<9> const& unit_vec, kin::KinematicsRad* kin_rad) c
 	if (!std::isfinite(xs) || !(xs >= 0.)) {
 		return 0.;
 	} else {
-		return jacobian * xs;
+		return jac * xs;
 	}
 }
 

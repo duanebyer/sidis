@@ -138,11 +138,15 @@ std::istream& operator>>(std::istream& in, TestPairRad& pair) {
 TEST_CASE(
 		"Gaussian-WW structure functions",
 		"[xs]") {
-	// Verify that these two methods for computing structure functions are
-	// equivalent.
+	// Verify that these three methods for computing structure functions are
+	// equivalent. The methods are:
+	// 1. Gaussian + WW-type approximation for TMDs
+	// 2. Numeric integration of TMDs.
+	// 3. Direct structure function evaluation.
 	static sf::set::ProkudinTmdSet tmd_set;
 	static sf::GaussianWwTmdSfSet sf_set_1(tmd_set);
-	static sf::set::ProkudinSfSet sf_set_2;
+	static sf::TmdSfSet sf_set_2(tmd_set);
+	static sf::set::ProkudinSfSet sf_set_3;
 
 	Real x = GENERATE(0.12, 0.31, 0.43, 0.23, 0.65, 0.74);
 	Real Q_sq = GENERATE(2.4, 5.3, 7.9, 12.5);
@@ -150,29 +154,56 @@ TEST_CASE(
 	Real ph_t = GENERATE(0.012, 0.102, 0.046, 0.242);
 	Real ph_t_sq = ph_t * ph_t;
 
+	// Print state information.
+	std::stringstream ss;
+	ss
+		<< "x          = " << x       << std::endl
+		<< "Q²         = " << Q_sq    << std::endl
+		<< "z          = " << z       << std::endl
+		<< "ph_t²      = " << ph_t_sq;
+	INFO(ss.str());
+
 	part::Hadron h = part::Hadron::PI_P;
 
 	sf::SfLP sf_1 = sf_set_1.sf_lp(h, x, z, Q_sq, ph_t_sq);
 	sf::SfLP sf_2 = sf_set_2.sf_lp(h, x, z, Q_sq, ph_t_sq);
+	sf::SfLP sf_3 = sf_set_3.sf_lp(h, x, z, Q_sq, ph_t_sq);
 
-	Real prec = 1e2*std::numeric_limits<Real>::epsilon();
+	Real prec_num = 1e-3;
+	CHECK_THAT(sf_1.uu.F_UUT, RelMatcher<Real>(sf_2.uu.F_UUT, prec_num));
+	CHECK_THAT(sf_1.uu.F_UU_cos_phih, RelMatcher<Real>(sf_2.uu.F_UU_cos_phih, prec_num));
+	CHECK_THAT(sf_1.uu.F_UU_cos_2phih, RelMatcher<Real>(sf_2.uu.F_UU_cos_2phih, prec_num));
+	CHECK_THAT(sf_1.ul.F_UL_sin_phih, RelMatcher<Real>(sf_2.ul.F_UL_sin_phih, prec_num));
+	CHECK_THAT(sf_1.ul.F_UL_sin_2phih, RelMatcher<Real>(sf_2.ul.F_UL_sin_2phih, prec_num));
+	CHECK_THAT(sf_1.ut.F_UTT_sin_phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UTT_sin_phih_m_phis, prec_num));
+	CHECK_THAT(sf_1.ut.F_UT_sin_2phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_2phih_m_phis, prec_num));
+	CHECK_THAT(sf_1.ut.F_UT_sin_3phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_3phih_m_phis, prec_num));
+	CHECK_THAT(sf_1.ut.F_UT_sin_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_phis, prec_num));
+	CHECK_THAT(sf_1.ut.F_UT_sin_phih_p_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_phih_p_phis, prec_num));
+	CHECK_THAT(sf_1.ll.F_LL, RelMatcher<Real>(sf_2.ll.F_LL, prec_num));
+	CHECK_THAT(sf_1.ll.F_LL_cos_phih, RelMatcher<Real>(sf_2.ll.F_LL_cos_phih, prec_num));
+	CHECK_THAT(sf_1.lt.F_LT_cos_phih_m_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_phih_m_phis, prec_num));
+	CHECK_THAT(sf_1.lt.F_LT_cos_2phih_m_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_2phih_m_phis, prec_num));
+	CHECK_THAT(sf_1.lt.F_LT_cos_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_phis, prec_num));
+
 	// Two of the structure functions are commented out. For technical reasons,
 	// those two are only approximately equal instead of exactly equal.
-	CHECK_THAT(sf_1.uu.F_UUT, RelMatcher<Real>(sf_2.uu.F_UUT, prec));
-	CHECK_THAT(sf_1.uu.F_UU_cos_phih, RelMatcher<Real>(sf_2.uu.F_UU_cos_phih, prec));
-	CHECK_THAT(sf_1.uu.F_UU_cos_2phih, RelMatcher<Real>(sf_2.uu.F_UU_cos_2phih, prec));
-	CHECK_THAT(sf_1.ul.F_UL_sin_phih, RelMatcher<Real>(sf_2.ul.F_UL_sin_phih, prec));
-	CHECK_THAT(sf_1.ul.F_UL_sin_2phih, RelMatcher<Real>(sf_2.ul.F_UL_sin_2phih, prec));
-	CHECK_THAT(sf_1.ut.F_UTT_sin_phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UTT_sin_phih_m_phis, prec));
-	//CHECK_THAT(sf_1.ut.F_UT_sin_2phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_2phih_m_phis, prec));
-	CHECK_THAT(sf_1.ut.F_UT_sin_3phih_m_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_3phih_m_phis, prec));
-	//CHECK_THAT(sf_1.ut.F_UT_sin_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_phis, prec));
-	CHECK_THAT(sf_1.ut.F_UT_sin_phih_p_phis, RelMatcher<Real>(sf_2.ut.F_UT_sin_phih_p_phis, prec));
-	CHECK_THAT(sf_1.ll.F_LL, RelMatcher<Real>(sf_2.ll.F_LL, prec));
-	CHECK_THAT(sf_1.ll.F_LL_cos_phih, RelMatcher<Real>(sf_2.ll.F_LL_cos_phih, prec));
-	CHECK_THAT(sf_1.lt.F_LT_cos_phih_m_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_phih_m_phis, prec));
-	CHECK_THAT(sf_1.lt.F_LT_cos_2phih_m_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_2phih_m_phis, prec));
-	CHECK_THAT(sf_1.lt.F_LT_cos_phis, RelMatcher<Real>(sf_2.lt.F_LT_cos_phis, prec));
+	Real prec = 1e2*std::numeric_limits<Real>::epsilon();
+	CHECK_THAT(sf_1.uu.F_UUT, RelMatcher<Real>(sf_3.uu.F_UUT, prec));
+	CHECK_THAT(sf_1.uu.F_UU_cos_phih, RelMatcher<Real>(sf_3.uu.F_UU_cos_phih, prec));
+	CHECK_THAT(sf_1.uu.F_UU_cos_2phih, RelMatcher<Real>(sf_3.uu.F_UU_cos_2phih, prec));
+	CHECK_THAT(sf_1.ul.F_UL_sin_phih, RelMatcher<Real>(sf_3.ul.F_UL_sin_phih, prec));
+	CHECK_THAT(sf_1.ul.F_UL_sin_2phih, RelMatcher<Real>(sf_3.ul.F_UL_sin_2phih, prec));
+	CHECK_THAT(sf_1.ut.F_UTT_sin_phih_m_phis, RelMatcher<Real>(sf_3.ut.F_UTT_sin_phih_m_phis, prec));
+	//CHECK_THAT(sf_1.ut.F_UT_sin_2phih_m_phis, RelMatcher<Real>(sf_3.ut.F_UT_sin_2phih_m_phis, prec));
+	CHECK_THAT(sf_1.ut.F_UT_sin_3phih_m_phis, RelMatcher<Real>(sf_3.ut.F_UT_sin_3phih_m_phis, prec));
+	//CHECK_THAT(sf_1.ut.F_UT_sin_phis, RelMatcher<Real>(sf_3.ut.F_UT_sin_phis, prec));
+	CHECK_THAT(sf_1.ut.F_UT_sin_phih_p_phis, RelMatcher<Real>(sf_3.ut.F_UT_sin_phih_p_phis, prec));
+	CHECK_THAT(sf_1.ll.F_LL, RelMatcher<Real>(sf_3.ll.F_LL, prec));
+	CHECK_THAT(sf_1.ll.F_LL_cos_phih, RelMatcher<Real>(sf_3.ll.F_LL_cos_phih, prec));
+	CHECK_THAT(sf_1.lt.F_LT_cos_phih_m_phis, RelMatcher<Real>(sf_3.lt.F_LT_cos_phih_m_phis, prec));
+	CHECK_THAT(sf_1.lt.F_LT_cos_2phih_m_phis, RelMatcher<Real>(sf_3.lt.F_LT_cos_2phih_m_phis, prec));
+	CHECK_THAT(sf_1.lt.F_LT_cos_phis, RelMatcher<Real>(sf_3.lt.F_LT_cos_phis, prec));
 }
 
 TEST_CASE(
