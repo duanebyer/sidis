@@ -68,6 +68,7 @@ add_library(
 	transform.cpp
 	vector.cpp
 	sf_set/prokudin.cpp
+	sf_set/test.cpp
 	${HEADER_LIST_SOURCE})
 target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature GSL::gsl)
 target_include_directories(

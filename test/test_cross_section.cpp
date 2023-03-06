@@ -221,12 +221,12 @@ TEST_CASE(
 	if (input.sf_set_idx == 0) {
 		sf.reset(new sf::set::ProkudinSfSet());
 	} else if (input.sf_set_idx == 1) {
-		sf.reset(new sf::set::TestSfSet(part::Nucleus::P));
+		sf.reset(new sf::set::TestSfSet());
 	} else {
 		bool mask[sf::set::NUM_SF] = { false };
 		mask[-input.sf_set_idx - 1] = true;
 		sf.reset(new sf::set::MaskSfSet(
-			mask, new sf::set::TestSfSet(part::Nucleus::P)));
+			mask, new sf::set::TestSfSet()));
 	}
 
 	// Set up the input to the cross-section calculation.
@@ -296,12 +296,12 @@ TEST_CASE(
 	if (input.sf_set_idx == 0) {
 		sf.reset(new sf::set::ProkudinSfSet());
 	} else if (input.sf_set_idx == 1) {
-		sf.reset(new sf::set::TestSfSet(part::Nucleus::P));
+		sf.reset(new sf::set::TestSfSet());
 	} else {
 		bool mask[sf::set::NUM_SF] = { false };
 		mask[-input.sf_set_idx - 1] = true;
 		sf.reset(new sf::set::MaskSfSet(
-			mask, new sf::set::TestSfSet(part::Nucleus::P)));
+			mask, new sf::set::TestSfSet()));
 	}
 
 	// Set up the input to the cross-section calculation.

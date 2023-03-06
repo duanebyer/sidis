@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
 			bool mask[sf::set::NUM_SF] = { false };
 			mask[-set_idx - 1] = true;
 			sf.reset(new sf::set::MaskSfSet(
-				mask, new sf::set::TestSfSet(target)));
+				mask, new sf::set::TestSfSet()));
 		} else {
 			throw std::out_of_range(
 				"SF set index must be Prokudin (0), STF (1), or Test ("
