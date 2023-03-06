@@ -8,10 +8,10 @@
 using namespace sidis;
 using namespace sidis::sf;
 
-TmdSet::TmdSet(unsigned flavor_count, FlavorVec const& charges, part::Nucleus target) :
+TmdSet::TmdSet(part::Nucleus target, unsigned flavor_count, FlavorVec const& charges) :
+		target(target),
 		flavor_count(flavor_count),
-		charges(charges),
-		target(target) {
+		charges(charges) {
 	if (!(flavor_count < MAX_FLAVOR_VEC_SIZE)) {
 		throw FlavorOutOfRange(flavor_count);
 	}
@@ -197,11 +197,11 @@ GaussianTmdVars fill_vars(unsigned flavor_count, GaussianTmdVars vars) {
 
 // Gaussian approximation.
 GaussianTmdSet::GaussianTmdSet(
+		part::Nucleus target,
 		unsigned flavor_count,
 		FlavorVec const& charges,
-		part::Nucleus target,
 		GaussianTmdVars const& vars) :
-		TmdSet(flavor_count, charges, target),
+		TmdSet(target, flavor_count, charges),
 		vars(fill_vars(flavor_count, vars)) { }
 
 FlavorVec GaussianTmdSet::xf1(Real, Real) const {
@@ -506,11 +506,11 @@ FlavorVec WwTmdSet::E_tilde(part::Hadron, Real, Real, Real) const {
 
 // Gaussian and WW-type approximation combined.
 GaussianWwTmdSet::GaussianWwTmdSet(
+	part::Nucleus target,
 	unsigned flavor_count,
 	FlavorVec const& charges,
-	part::Nucleus target,
 	GaussianWwTmdVars const& vars) :
-	GaussianTmdSet(flavor_count, charges, target, GaussianTmdVars(vars)) { }
+	GaussianTmdSet(target, flavor_count, charges, GaussianTmdVars(vars)) { }
 
 FlavorVec GaussianWwTmdSet::xf1(Real, Real) const {
 	return FlavorVec(flavor_count);

@@ -25,16 +25,16 @@ namespace sf {
  */
 class TmdSet {
 public:
+	/// What type of part::Nucleus the TMDs are valid for.
+	part::Nucleus const target;
 	/// The number of flavors supported by the TmdSet.
 	unsigned const flavor_count;
 	/// The charges of each flavor.
 	FlavorVec const charges;
-	/// What type of part::Nucleus the TMDs are valid for.
-	part::Nucleus const target;
 
 	/// Initialize a TMDSet with \p flavor_count number of flavors and for the
 	/// specified target.
-	TmdSet(unsigned flavor_count, FlavorVec const& charges, part::Nucleus target);
+	TmdSet(part::Nucleus target, unsigned flavor_count, FlavorVec const& charges);
 	TmdSet(TmdSet const&) = delete;
 	TmdSet(TmdSet&&) = delete;
 	TmdSet& operator=(TmdSet const&) = delete;
@@ -152,9 +152,9 @@ public:
 	/// Initialize a GaussianTmdSet with the provided Gaussian variances
 	/// \p vars.
 	GaussianTmdSet(
+		part::Nucleus target,
 		unsigned flavor_count,
 		FlavorVec const& charges,
-		part::Nucleus target,
 		GaussianTmdVars const& vars);
 	virtual ~GaussianTmdSet() = default;
 
@@ -253,7 +253,7 @@ public:
 		unsigned flavor_count,
 		FlavorVec const& charges,
 		part::Nucleus target) :
-		TmdSet(flavor_count, charges, target) { }
+		TmdSet(target, flavor_count, charges) { }
 	virtual ~WwTmdSet() = default;
 
 	/// \name Base set of transverse momentum distributions
@@ -366,9 +366,9 @@ class GaussianWwTmdSet : public GaussianTmdSet {
 public:
 	/// Initialize a GaussianWwTmdSet with the provided Gaussian variances.
 	GaussianWwTmdSet(
+		part::Nucleus target,
 		unsigned flavor_count,
 		FlavorVec const& charges,
-		part::Nucleus target,
 		GaussianWwTmdVars const& vars);
 	virtual ~GaussianWwTmdSet() = default;
 

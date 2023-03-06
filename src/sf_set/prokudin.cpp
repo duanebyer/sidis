@@ -304,14 +304,14 @@ struct ProkudinTmdSet::Impl {
 };
 
 ProkudinTmdSet::ProkudinTmdSet() :
-	GaussianWwTmdSet(NUM_FLAVORS, CHARGES, part::Nucleus::P, TMD_VARS),
+	GaussianWwTmdSet(part::Nucleus::P, NUM_FLAVORS, CHARGES, TMD_VARS),
 	_impl(new Impl()) { }
 
 ProkudinTmdSet::ProkudinTmdSet(ProkudinTmdSet&& other) noexcept :
 		// TODO: This should be removed when copy constructors are put back into
 		// `GaussianWwTmdSet`. For now, we are taking advantage of the fact that
 		// all `ProkudinTmdSet`s are constructed in the same way.
-		GaussianWwTmdSet(NUM_FLAVORS, CHARGES, part::Nucleus::P, TMD_VARS),
+		GaussianWwTmdSet(part::Nucleus::P, NUM_FLAVORS, CHARGES, TMD_VARS),
 		_impl(nullptr) {
 	std::swap(_impl, other._impl);
 }
