@@ -2,6 +2,7 @@
 #define SIDIS_SF_SET_TEST_HPP
 
 #include "sidis/structure_function.hpp"
+#include "sidis/tmd.hpp"
 
 namespace sidis {
 namespace sf {
@@ -146,6 +147,134 @@ public:
 	Real F_LT_cos_phis(part::Hadron, Real x, Real z, Real Q_sq, Real ph_t_sq) const override {
 		return _params.F_LT_cos_phis(x, z, Q_sq, ph_t_sq);
 	}
+};
+
+struct TestGaussianTmdSetParams {
+	struct Params {
+		Real q;
+		FlavorVec N;
+		FlavorVec alpha;
+		FlavorVec beta;
+
+		FlavorVec operator()(Real x, Real Q_sq) const;
+	};
+
+	Params xf1;
+	Params xf1Tperp;
+	Params xfT;
+	Params xfperp;
+	Params xfLperp;
+	Params xfTperp;
+	Params xg1;
+	Params xg1Tperp;
+	Params xgT;
+	Params xgperp;
+	Params xgLperp;
+	Params xgTperp;
+	Params xh1;
+	Params xh1perp;
+	Params xh1Lperp;
+	Params xh1Tperp;
+	Params xh;
+	Params xhL;
+	Params xhT;
+	Params xhTperp;
+	Params xe;
+	Params xeL;
+	Params xeT;
+	Params xeTperp;
+
+	Params D1;
+	Params H1perp;
+	Params Dperp_tilde;
+	Params H_tilde;
+	Params Gperp_tilde;
+	Params E_tilde;
+};
+
+class TestGaussianTmdSet : public GaussianTmdSet {
+	TestGaussianTmdSetParams _params;
+public:
+	TestGaussianTmdSet(TestGaussianTmdSetParams params=TestGaussianTmdSetParams());
+	TestGaussianTmdSet(TestGaussianTmdSet const& other) : TestGaussianTmdSet(other._params) { }
+	TestGaussianTmdSet& operator=(TestGaussianTmdSet const& other) = delete;
+	virtual ~TestGaussianTmdSet() = default;
+
+	FlavorVec xf1(Real x, Real Q_sq) const override;
+	FlavorVec xf1Tperp(Real x, Real Q_sq) const override;
+	FlavorVec xfT(Real x, Real Q_sq) const override;
+	FlavorVec xfperp(Real x, Real Q_sq) const override;
+	FlavorVec xfLperp(Real x, Real Q_sq) const override;
+	FlavorVec xfTperp(Real x, Real Q_sq) const override;
+	FlavorVec xg1(Real x, Real Q_sq) const override;
+	FlavorVec xg1Tperp(Real x, Real Q_sq) const override;
+	FlavorVec xgT(Real x, Real Q_sq) const override;
+	FlavorVec xgperp(Real x, Real Q_sq) const override;
+	FlavorVec xgLperp(Real x, Real Q_sq) const override;
+	FlavorVec xgTperp(Real x, Real Q_sq) const override;
+	FlavorVec xh1(Real x, Real Q_sq) const override;
+	FlavorVec xh1perp(Real x, Real Q_sq) const override;
+	FlavorVec xh1Lperp(Real x, Real Q_sq) const override;
+	FlavorVec xh1Tperp(Real x, Real Q_sq) const override;
+	FlavorVec xh(Real x, Real Q_sq) const override;
+	FlavorVec xhL(Real x, Real Q_sq) const override;
+	FlavorVec xhT(Real x, Real Q_sq) const override;
+	FlavorVec xhTperp(Real x, Real Q_sq) const override;
+	FlavorVec xe(Real x, Real Q_sq) const override;
+	FlavorVec xeL(Real x, Real Q_sq) const override;
+	FlavorVec xeT(Real x, Real Q_sq) const override;
+	FlavorVec xeTperp(Real x, Real Q_sq) const override;
+
+	FlavorVec D1(part::Hadron h, Real z, Real Q_sq) const override;
+	FlavorVec H1perp(part::Hadron h, Real z, Real Q_sq) const override;
+	FlavorVec Dperp_tilde(part::Hadron h, Real z, Real Q_sq) const override;
+	FlavorVec H_tilde(part::Hadron h, Real z, Real Q_sq) const override;
+	FlavorVec Gperp_tilde(part::Hadron h, Real z, Real Q_sq) const override;
+	FlavorVec E_tilde(part::Hadron h, Real z, Real Q_sq) const override;
+};
+
+struct TestGaussianWwTmdSetParams {
+	struct Params {
+		Real q;
+		FlavorVec N;
+		FlavorVec alpha;
+		FlavorVec beta;
+
+		FlavorVec operator()(Real x, Real Q_sq) const;
+	};
+
+	Params xf1;
+	Params xf1Tperp;
+	Params xg1;
+	Params xg1Tperp;
+	Params xh1;
+	Params xh1perp;
+	Params xh1Lperp;
+	Params xh1Tperp;
+
+	Params D1;
+	Params H1perp;
+};
+
+class TestGaussianWwTmdSet : public GaussianWwTmdSet {
+	TestGaussianWwTmdSetParams _params;
+public:
+	TestGaussianWwTmdSet(TestGaussianWwTmdSetParams params=TestGaussianWwTmdSetParams());
+	TestGaussianWwTmdSet(TestGaussianWwTmdSet const& other) : TestGaussianWwTmdSet(other._params) { }
+	TestGaussianWwTmdSet& operator=(TestGaussianWwTmdSet const&) = delete;
+	virtual ~TestGaussianWwTmdSet() = default;
+
+	FlavorVec xf1(Real x, Real Q_sq) const override;
+	FlavorVec xf1Tperp(Real x, Real Q_sq) const override;
+	FlavorVec xg1(Real x, Real Q_sq) const override;
+	FlavorVec xg1Tperp(Real x, Real Q_sq) const override;
+	FlavorVec xh1(Real x, Real Q_sq) const override;
+	FlavorVec xh1perp(Real x, Real Q_sq) const override;
+	FlavorVec xh1Lperp(Real x, Real Q_sq) const override;
+	FlavorVec xh1Tperp(Real x, Real Q_sq) const override;
+
+	FlavorVec D1(part::Hadron h, Real z, Real Q_sq) const override;
+	FlavorVec H1perp(part::Hadron h, Real z, Real Q_sq) const override;
 };
 
 }
