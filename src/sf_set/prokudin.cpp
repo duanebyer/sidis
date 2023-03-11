@@ -299,41 +299,24 @@ FlavorVec eval_interp_arr(const CubicView<Real, 2> (&interp)[6], Real x, Real Q_
 
 }
 
-struct ProkudinTmdSet::Impl {
-	ProkudinImpl impl;
-};
+// Can't use typedefs here, so use inheritance to make the implementations the
+// same for both `ProkudinTmdSet` and `ProkudinSfSet`.
+struct ProkudinTmdSet::Impl : public ProkudinImpl { };
+struct ProkudinSfSet::Impl : public ProkudinImpl { };
 
 ProkudinTmdSet::ProkudinTmdSet() :
 	GaussianWwTmdSet(part::Nucleus::P, NUM_FLAVORS, CHARGES, TMD_VARS),
-	_impl(new Impl()) { }
-
-ProkudinTmdSet::ProkudinTmdSet(ProkudinTmdSet&& other) noexcept :
-		// TODO: This should be removed when copy constructors are put back into
-		// `GaussianWwTmdSet`. For now, we are taking advantage of the fact that
-		// all `ProkudinTmdSet`s are constructed in the same way.
-		GaussianWwTmdSet(part::Nucleus::P, NUM_FLAVORS, CHARGES, TMD_VARS),
-		_impl(nullptr) {
-	std::swap(_impl, other._impl);
-}
-ProkudinTmdSet& ProkudinTmdSet::operator=(ProkudinTmdSet&& other) noexcept {
-	std::swap(_impl, other._impl);
-	return *this;
-}
-ProkudinTmdSet::~ProkudinTmdSet() {
-	if (_impl != nullptr) {
-		delete _impl;
-	}
-}
+	_impl(pimpl::make_pimpl<Impl>()) { }
 
 FlavorVec ProkudinTmdSet::xf1(Real x, Real Q_sq) const {
 	Real Q = std::sqrt(Q_sq);
 	return FlavorVec {
-		_impl->impl.pdf.parton(8, x, Q) + _impl->impl.pdf.parton(-2, x, Q),
-		_impl->impl.pdf.parton(7, x, Q) + _impl->impl.pdf.parton(-1, x, Q),
-		_impl->impl.pdf.parton(3, x, Q),
-		_impl->impl.pdf.parton(-2, x, Q),
-		_impl->impl.pdf.parton(-1, x, Q),
-		_impl->impl.pdf.parton(-3, x, Q),
+		_impl->pdf.parton(8, x, Q) + _impl->pdf.parton(-2, x, Q),
+		_impl->pdf.parton(7, x, Q) + _impl->pdf.parton(-1, x, Q),
+		_impl->pdf.parton(3, x, Q),
+		_impl->pdf.parton(-2, x, Q),
+		_impl->pdf.parton(-1, x, Q),
+		_impl->pdf.parton(-3, x, Q),
 	};
 }
 
@@ -350,14 +333,14 @@ FlavorVec ProkudinTmdSet::xf1Tperp(Real x, Real Q_sq) const {
 }
 
 FlavorVec ProkudinTmdSet::xg1(Real x, Real Q_sq) const {
-	return x*eval_interp_arr(_impl->impl.interp_g1, x, Q_sq);
+	return x*eval_interp_arr(_impl->interp_g1, x, Q_sq);
 }
 
 FlavorVec ProkudinTmdSet::xg1Tperp(Real x, Real Q_sq) const {
 	// We only have a grid for `gT`, so use the reverse WW-type approximation to
 	// get `g1Tperp`.
 	return (2.*M*M/G1_MEAN_K_PERP_SQ)*x
-		*eval_interp_arr(_impl->impl.interp_xgT, x, Q_sq);
+		*eval_interp_arr(_impl->interp_xgT, x, Q_sq);
 }
 
 FlavorVec ProkudinTmdSet::xh1(Real x, Real Q_sq) const {
@@ -368,7 +351,7 @@ FlavorVec ProkudinTmdSet::xh1(Real x, Real Q_sq) const {
 		*std::pow(H1_ALPHA + H1_BETA, H1_ALPHA + H1_BETA)
 		*std::pow(H1_ALPHA, -H1_ALPHA)
 		*std::pow(H1_BETA, -H1_BETA)
-		*eval_interp_arr(_impl->impl.interp_sb, x, Q_sq);
+		*eval_interp_arr(_impl->interp_sb, x, Q_sq);
 }
 
 FlavorVec ProkudinTmdSet::xh1perp(Real x, Real Q_sq) const {
@@ -385,8 +368,8 @@ FlavorVec ProkudinTmdSet::xh1perp(Real x, Real Q_sq) const {
 
 FlavorVec ProkudinTmdSet::xh1Lperp(Real x, Real Q_sq) const {
 	return FlavorVec {
-		2.*sq(M)/H1_MEAN_K_PERP_SQ*_impl->impl.interp_xh1LperpM1[0]({ x, Q_sq }),
-		2.*sq(M)/H1_MEAN_K_PERP_SQ*_impl->impl.interp_xh1LperpM1[1]({ x, Q_sq }),
+		2.*sq(M)/H1_MEAN_K_PERP_SQ*_impl->interp_xh1LperpM1[0]({ x, Q_sq }),
+		2.*sq(M)/H1_MEAN_K_PERP_SQ*_impl->interp_xh1LperpM1[1]({ x, Q_sq }),
 		0., 0., 0., 0.,
 	};
 }
@@ -406,9 +389,9 @@ FlavorVec ProkudinTmdSet::xh1Tperp(Real x, Real Q_sq) const {
 FlavorVec ProkudinTmdSet::D1(part::Hadron h, Real z, Real Q_sq) const {
 	switch (h) {
 	case part::Hadron::PI_P:
-		return eval_interp_arr(_impl->impl.interp_D1_pi_plus, z, Q_sq);
+		return eval_interp_arr(_impl->interp_D1_pi_plus, z, Q_sq);
 	case part::Hadron::PI_M:
-		return eval_interp_arr(_impl->impl.interp_D1_pi_minus, z, Q_sq);
+		return eval_interp_arr(_impl->interp_D1_pi_minus, z, Q_sq);
 	default:
 		throw HadronOutOfRange(h);
 	}
@@ -446,29 +429,9 @@ FlavorVec ProkudinTmdSet::H1perp(part::Hadron h, Real z, Real Q_sq) const {
 		*D1(h, z, Q_sq);
 }
 
-struct ProkudinSfSet::Impl {
-	ProkudinImpl impl;
-};
-
-ProkudinSfSet::ProkudinSfSet(ProkudinSfSet&& other) noexcept :
-		SfSet(part::Nucleus::P),
-		_impl(nullptr) {
-	std::swap(_impl, other._impl);
-}
-ProkudinSfSet& ProkudinSfSet::operator=(ProkudinSfSet&& other) noexcept {
-	std::swap(_impl, other._impl);
-	return *this;
-}
-
-ProkudinSfSet::ProkudinSfSet() : SfSet(part::Nucleus::P) {
-	_impl = new Impl();
-}
-
-ProkudinSfSet::~ProkudinSfSet() {
-	if (_impl != nullptr) {
-		delete _impl;
-	}
-}
+ProkudinSfSet::ProkudinSfSet() :
+	SfSet(part::Nucleus::P),
+	_impl(pimpl::make_pimpl<Impl>()) { }
 
 Real ProkudinSfSet::F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.1a].
@@ -613,9 +576,9 @@ Real ProkudinSfSet::F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 FlavorVec ProkudinSfSet::D1(part::Hadron h, Real z, Real Q_sq) const {
 	switch (h) {
 	case part::Hadron::PI_P:
-		return eval_interp_arr(_impl->impl.interp_D1_pi_plus, z, Q_sq);
+		return eval_interp_arr(_impl->interp_D1_pi_plus, z, Q_sq);
 	case part::Hadron::PI_M:
-		return eval_interp_arr(_impl->impl.interp_D1_pi_minus, z, Q_sq);
+		return eval_interp_arr(_impl->interp_D1_pi_minus, z, Q_sq);
 	default:
 		throw HadronOutOfRange(h);
 	}
@@ -653,12 +616,12 @@ FlavorVec ProkudinSfSet::H1perpM1(part::Hadron h, Real z, Real Q_sq) const {
 FlavorVec ProkudinSfSet::xf1(Real x, Real Q_sq) const {
 	Real Q = std::sqrt(Q_sq);
 	return FlavorVec {
-		_impl->impl.pdf.parton(8, x, Q) + _impl->impl.pdf.parton(-2, x, Q),
-		_impl->impl.pdf.parton(7, x, Q) + _impl->impl.pdf.parton(-1, x, Q),
-		_impl->impl.pdf.parton(3, x, Q),
-		_impl->impl.pdf.parton(-2, x, Q),
-		_impl->impl.pdf.parton(-1, x, Q),
-		_impl->impl.pdf.parton(-3, x, Q),
+		_impl->pdf.parton(8, x, Q) + _impl->pdf.parton(-2, x, Q),
+		_impl->pdf.parton(7, x, Q) + _impl->pdf.parton(-1, x, Q),
+		_impl->pdf.parton(3, x, Q),
+		_impl->pdf.parton(-2, x, Q),
+		_impl->pdf.parton(-1, x, Q),
+		_impl->pdf.parton(-3, x, Q),
 	};
 }
 
@@ -675,10 +638,10 @@ FlavorVec ProkudinSfSet::xf1TperpM1(Real x, Real Q_sq) const {
 		*xf1(x, Q_sq);
 }
 FlavorVec ProkudinSfSet::xg1(Real x, Real Q_sq) const {
-	return x*eval_interp_arr(_impl->impl.interp_g1, x, Q_sq);
+	return x*eval_interp_arr(_impl->interp_g1, x, Q_sq);
 }
 FlavorVec ProkudinSfSet::xgT(Real x, Real Q_sq) const {
-	return eval_interp_arr(_impl->impl.interp_xgT, x, Q_sq);
+	return eval_interp_arr(_impl->interp_xgT, x, Q_sq);
 }
 FlavorVec ProkudinSfSet::xh1(Real x, Real Q_sq) const {
 	// Use the Soffer bound to get an upper limit on transversity (Equation
@@ -688,7 +651,7 @@ FlavorVec ProkudinSfSet::xh1(Real x, Real Q_sq) const {
 		*std::pow(H1_ALPHA + H1_BETA, H1_ALPHA + H1_BETA)
 		*std::pow(H1_ALPHA, -H1_ALPHA)
 		*std::pow(H1_BETA, -H1_BETA)
-		*eval_interp_arr(_impl->impl.interp_sb, x, Q_sq);
+		*eval_interp_arr(_impl->interp_sb, x, Q_sq);
 }
 FlavorVec ProkudinSfSet::xh1M1(Real x, Real Q_sq) const {
 	return H1_MEAN_K_PERP_SQ/(2.*sq(M))*xh1(x, Q_sq);
@@ -696,8 +659,8 @@ FlavorVec ProkudinSfSet::xh1M1(Real x, Real Q_sq) const {
 FlavorVec ProkudinSfSet::xh1LperpM1(Real x, Real Q_sq) const {
 	// Data only exists for up and down quarks.
 	return FlavorVec {
-		_impl->impl.interp_xh1LperpM1[0]({ x, Q_sq }),
-		_impl->impl.interp_xh1LperpM1[1]({ x, Q_sq }),
+		_impl->interp_xh1LperpM1[0]({ x, Q_sq }),
+		_impl->interp_xh1LperpM1[1]({ x, Q_sq }),
 		0., 0., 0., 0.,
 	};
 }

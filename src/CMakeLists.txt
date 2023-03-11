@@ -14,6 +14,7 @@ set(
 	"sidis/leptonic_coeff.hpp"
 	"sidis/particle.hpp"
 	"sidis/phenom.hpp"
+	"sidis/pimpl.hpp"
 	"sidis/structure_function.hpp"
 	"sidis/tmd.hpp"
 	"sidis/transform.hpp"
