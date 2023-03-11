@@ -72,6 +72,10 @@ add_library(
 	sf_set/test.cpp
 	${HEADER_LIST_SOURCE})
 target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature GSL::gsl)
+if(Sidis_ENABLE_LHAPDF)
+	find_package(LHAPDF REQUIRED)
+	target_link_libraries(sidis PRIVATE LHAPDF)
+endif()
 target_include_directories(
 	sidis PUBLIC
 	"${Sidis_SOURCE_DIR}/include"
