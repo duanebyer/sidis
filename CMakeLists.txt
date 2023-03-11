@@ -90,17 +90,17 @@ endif()
 set(
 	Sidis_ENABLE_IPO ${IPO_SUPPORTED}
 	CACHE BOOL
-	"should interprocedural optimization support be enabled")
+	"should support for interprocedural optimization be enabled")
 
 # OpenMP multithreading support.
 set(OPENMP_SUPPORTED ${OPENMP_FOUND})
 if(NOT OpenMP_FOUND)
-	message(WARNING "OpenMP not found, multi-threading support disabled")
+	message(WARNING "OpenMP not found, support for multi-threading disabled")
 endif()
 set(
-	Sidis_OPENMP_ENABLED ${OPENMP_SUPPORTED}
+	Sidis_ENABLE_OPENMP ${OPENMP_SUPPORTED}
 	CACHE BOOL
-	"should OpenMP multithreading support be enabled")
+	"should support for OpenMP multithreading be enabled")
 
 # LHAPDF grids support.
 set(LHAPDF_SUPPORTED ${LHAPDF_FOUND})

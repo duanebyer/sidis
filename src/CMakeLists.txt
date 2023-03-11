@@ -47,8 +47,6 @@ foreach(HEADER ${HEADER_LIST_GENERATE})
 	list(APPEND HEADER_LIST_DIST "${Sidis_BINARY_DIR}/include/${HEADER}")
 endforeach(HEADER)
 
-find_package(GSL REQUIRED)
-
 add_library(
 	sidis
 	asymmetry.cpp
@@ -72,6 +70,7 @@ add_library(
 	sf_set/test.cpp
 	${HEADER_LIST_SOURCE})
 target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature GSL::gsl)
+find_package(GSL REQUIRED)
 if(Sidis_ENABLE_LHAPDF)
 	find_package(LHAPDF REQUIRED)
 	target_link_libraries(sidis PRIVATE LHAPDF)

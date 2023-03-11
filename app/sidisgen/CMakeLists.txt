@@ -11,7 +11,7 @@ target_link_libraries(sidisgen PRIVATE
 	sidis
 	Bubble::bubble
 	ROOT::Core ROOT::Physics ROOT::Tree)
-if(Sidis_OPENMP_ENABLED)
+if(Sidis_ENABLE_OPENMP)
 	if(CMAKE_VERSION VERSION_LESS 3.10)
 		find_package(OpenMP 3.0 REQUIRED)
 	else()

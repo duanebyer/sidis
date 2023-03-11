@@ -119,6 +119,8 @@ The following CMake configuration options may be of use:
 * `Sidis_BUILD_DOXYGEN`: Whether to build the Doxygen documentation.
 * `Sidis_BUILD_APPS`: Whether to build the `sidisgen` binary.
 * `Sidis_ENABLE_IPO`: Whether to build with interprocedural optimization.
+* `Sidis_ENABLE_OPENMP`: Whether to build with OpenMP multi-threading.
+* `Sidis_ENABLE_LHAPDF`: Whether to build with support for LHAPDF sets.
 
 ## Acknowledgements
 
