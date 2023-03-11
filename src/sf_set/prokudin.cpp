@@ -230,10 +230,8 @@ struct ProkudinImpl {
 	ProkudinImpl() :
 			file_pdf(),
 			pdf(find_file(file_pdf, "mstw2008lo.00.dat"), false, true),
-			data_D1_pi_plus(
-				load_grids<Real, 2, 6>("fragmentationpiplus.dat")),
-			data_D1_pi_minus(
-				load_grids<Real, 2, 6>("fragmentationpiminus.dat")),
+			data_D1_pi_plus(load_grids<Real, 2, 6>("fragmentationpiplus.dat")),
+			data_D1_pi_minus(load_grids<Real, 2, 6>("fragmentationpiminus.dat")),
 			data_g1(load_grids<Real, 2, 6>("g1.dat")),
 			data_xgT(load_grids<Real, 2, 6>("gT_u_d_ubar_dbar_s_sbar.dat")),
 			data_xh1LperpM1(load_grids<Real, 2, 2>("xh1Lperp_u_d.dat")),
