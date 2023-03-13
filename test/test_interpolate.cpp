@@ -95,6 +95,66 @@ TEST_CASE(
 }
 
 TEST_CASE(
+		"Grid reading from log spacing test",
+		"[interp]") {
+	std::ifstream data_file("data/grid_4_vals.dat");
+	std::vector<double> data;
+	data_file >> data;
+	std::vector<interp::Grid<double, 3> > grids = interp::read_grids<double, 3>(data, 2);
+	interp::Grid<double, 3> grid_1 = grids[0];
+	interp::Grid<double, 3> grid_2 = grids[1];
+
+	// Check sizes of the grids.
+	CHECK(grid_1.count() == std::array<std::size_t, 3>{ 3, 4, 2 });
+	CHECK(grid_2.count() == std::array<std::size_t, 3>{ 3, 4, 2 });
+	CHECK(grid_1.count_total() == 24);
+	CHECK(grid_2.count_total() == 24);
+
+	// Check bounds of the grids.
+	CHECK(grid_1.lower() == std::array<double, 3>{  0.1, 0., 0. });
+	CHECK(grid_1.upper() == std::array<double, 3>{ 10.0, 3., 1. });
+	CHECK(grid_2.lower() == std::array<double, 3>{  0.1, 0., 0. });
+	CHECK(grid_2.upper() == std::array<double, 3>{ 10.0, 3., 1. });
+
+	// Check all eight corners of the grids.
+	CHECK(grid_1[{ 0, 0, 0 }] == 2.3);
+	CHECK(grid_1[{ 2, 0, 0 }] == -0.2);
+	CHECK(grid_1[{ 0, 3, 0 }] == -0.4);
+	CHECK(grid_1[{ 0, 0, 1 }] == -1.3);
+	CHECK(grid_1[{ 0, 3, 1 }] == -0.3);
+	CHECK(grid_1[{ 2, 0, 1 }] == -0.7);
+	CHECK(grid_1[{ 2, 3, 0 }] == 1.6);
+	CHECK(grid_1[{ 2, 3, 1 }] == 2.1);
+
+	CHECK(grid_2[{ 0, 0, 0 }] == -0.3);
+	CHECK(grid_2[{ 2, 0, 0 }] == 1.3);
+	CHECK(grid_2[{ 0, 3, 0 }] == -0.6);
+	CHECK(grid_2[{ 0, 0, 1 }] == 0.3);
+	CHECK(grid_2[{ 0, 3, 1 }] == -1.4);
+	CHECK(grid_2[{ 2, 0, 1 }] == 0.4);
+	CHECK(grid_2[{ 2, 3, 0 }] == -1.6);
+	CHECK(grid_2[{ 2, 3, 1 }] == -0.2);
+
+	// Check some random points inside the grids.
+	CHECK(grid_1[{ 1, 1, 1 }] == -0.1);
+	CHECK(grid_1[{ 2, 1, 0 }] == 0.2);
+	CHECK(grid_1[{ 1, 2, 1 }] == -0.2);
+
+	CHECK(grid_2[{ 1, 1, 1 }] == 1.3);
+	CHECK(grid_2[{ 2, 1, 0 }] == -2.1);
+	CHECK(grid_2[{ 1, 2, 1 }] == 0.5);
+
+	// Check reading using subgrids.
+	CHECK(grid_1[1][1][1] == -0.1);
+	CHECK(grid_1[2][1][0] == 0.2);
+	CHECK(grid_1[1][2][1] == -0.2);
+
+	CHECK(grid_2[1][1][1] == 1.3);
+	CHECK(grid_2[2][1][0] == -2.1);
+	CHECK(grid_2[1][2][1] == 0.5);
+}
+
+TEST_CASE(
 		"Grid reading from single cell test",
 		"[interp]") {
 	std::ifstream data_file("data/grid_2_vals.dat");
