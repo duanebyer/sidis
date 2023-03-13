@@ -1,6 +1,5 @@
 #include "sidis/sf_set/prokudin.hpp"
 
-#include <array>
 #include <cmath>
 #include <fstream>
 #include <sstream>
@@ -181,25 +180,25 @@ std::istream& find_file(std::ifstream& fin, char const* file_name) {
 
 // Convenience method for loading grid data from a file. Automatically searches
 // in several possible directories for the file.
-template<typename T, std::size_t N, std::size_t K>
-std::array<Grid<T, N>, K> load_grids(char const* file_name) {
+template<typename T, std::size_t N>
+std::vector<Grid<T, N> > load_grids(char const* file_name, std::size_t grid_count=1) {
 	std::ifstream in;
 	find_file(in, file_name);
-	std::vector<std::array<T, N + K> > data;
+	std::vector<T> data;
 	std::string line;
 	while (std::getline(in, line)) {
 		std::stringstream line_in(line);
-		std::array<T, N + K> next;
-		for (std::size_t idx = 0; idx < N + K; ++idx) {
-			line_in >> next[idx];
+		for (std::size_t idx = 0; idx < N + grid_count; ++idx) {
+			Real next;
+			line_in >> next;
+			data.push_back(next);
 		}
-		data.push_back(next);
 		if (!line_in) {
 			throw DataFileParseError(file_name);
 		}
 	}
 	// By default, assume the grids are only accurate to single precision.
-	return read_grids<T, N, K>(data, 0.000001);
+	return read_grids<T, N>(data, grid_count, 0.000001);
 }
 
 // Shared implementation between `ProkudinTmdSet` and `ProkudinSfSet`.
@@ -209,13 +208,13 @@ struct ProkudinImpl {
 	mstw::c_mstwpdf pdf;
 
 	// Load data files from WWSIDIS repository for the TMDs and FFs.
-	std::array<Grid<Real, 2>, 6> data_D1_pi_plus;
-	std::array<Grid<Real, 2>, 6> data_D1_pi_minus;
-	std::array<Grid<Real, 2>, 6> data_g1;
-	std::array<Grid<Real, 2>, 6> data_xgT;
-	std::array<Grid<Real, 2>, 2> data_xh1LperpM1;
+	std::vector<Grid<Real, 2> > data_D1_pi_plus;
+	std::vector<Grid<Real, 2> > data_D1_pi_minus;
+	std::vector<Grid<Real, 2> > data_g1;
+	std::vector<Grid<Real, 2> > data_xgT;
+	std::vector<Grid<Real, 2> > data_xh1LperpM1;
 	// Soffer bound.
-	std::array<Grid<Real, 2>, 6> data_sb;
+	std::vector<Grid<Real, 2> > data_sb;
 
 	// Fragmentation functions.
 	CubicView<Real, 2> interp_D1_pi_plus[6];
@@ -230,12 +229,12 @@ struct ProkudinImpl {
 	ProkudinImpl() :
 			file_pdf(),
 			pdf(find_file(file_pdf, "mstw2008lo.00.dat"), false, true),
-			data_D1_pi_plus(load_grids<Real, 2, 6>("fragmentationpiplus.dat")),
-			data_D1_pi_minus(load_grids<Real, 2, 6>("fragmentationpiminus.dat")),
-			data_g1(load_grids<Real, 2, 6>("g1.dat")),
-			data_xgT(load_grids<Real, 2, 6>("gT_u_d_ubar_dbar_s_sbar.dat")),
-			data_xh1LperpM1(load_grids<Real, 2, 2>("xh1Lperp_u_d.dat")),
-			data_sb(load_grids<Real, 2, 6>("SofferBound.dat")),
+			data_D1_pi_plus(load_grids<Real, 2>("fragmentationpiplus.dat", 6)),
+			data_D1_pi_minus(load_grids<Real, 2>("fragmentationpiminus.dat", 6)),
+			data_g1(load_grids<Real, 2>("g1.dat", 6)),
+			data_xgT(load_grids<Real, 2>("gT_u_d_ubar_dbar_s_sbar.dat", 6)),
+			data_xh1LperpM1(load_grids<Real, 2>("xh1Lperp_u_d.dat", 2)),
+			data_sb(load_grids<Real, 2>("SofferBound.dat", 6)),
 			interp_D1_pi_plus{
 				CubicView<Real, 2>(data_D1_pi_plus[0]),
 				CubicView<Real, 2>(data_D1_pi_plus[1]),

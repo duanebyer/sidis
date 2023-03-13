@@ -153,18 +153,24 @@ T CubicView<T, N>::operator()(typename GridView<T, N>::Point x) const {
 }
 
 
-template<typename T, std::size_t N, std::size_t K>
-inline std::array<Grid<T, N>, K> read_grids(
-		std::vector<std::array<T, N + K> > const& raw_data,
+template<typename T, std::size_t N>
+inline std::vector<Grid<T, N> > read_grids(
+		std::vector<T> const& raw_data,
+		std::size_t col_count,
 		T tolerance) {
-	std::vector<typename GridView<T, N>::Point> grid_points(raw_data.size());
-	std::vector<std::array<T, K> > data(raw_data.size());
-	for (std::size_t row_idx = 0; row_idx < raw_data.size(); ++row_idx) {
+	std::size_t stride = N + col_count;
+	if (raw_data.size() % stride != 0) {
+		throw NotDivisibleByStrideError(raw_data.size(), stride);
+	}
+	std::size_t row_count = raw_data.size() / stride;
+	std::vector<typename GridView<T, N>::Point> grid_points(row_count);
+	std::vector<T> data(col_count * row_count);
+	for (std::size_t row_idx = 0; row_idx < row_count; ++row_idx) {
 		for (std::size_t dim_idx = 0; dim_idx < N; ++dim_idx) {
-			grid_points[row_idx][dim_idx] = raw_data[row_idx][dim_idx];
+			grid_points[row_idx][dim_idx] = raw_data[row_idx * stride + dim_idx];
 		}
-		for (std::size_t col_idx = 0; col_idx < K; ++col_idx) {
-			data[row_idx][col_idx] = raw_data[row_idx][N + col_idx];
+		for (std::size_t col_idx = 0; col_idx < col_count; ++col_idx) {
+			data[row_idx * col_count + col_idx] = raw_data[row_idx * stride + N + col_idx];
 		}
 	}
 
@@ -289,15 +295,15 @@ inline std::array<Grid<T, N>, K> read_grids(
 	}
 
 	// Use the grid information to reorder the data.
-	std::array<std::vector<T>, K> data_transposed;
+	std::vector<std::vector<T> > data_transposed(col_count);
 	std::array<std::size_t, N> count_totals = { count_total / counts[0] };
 	for (std::size_t dim_idx = 1; dim_idx < N; ++dim_idx) {
 		count_totals[dim_idx] = count_totals[dim_idx - 1] / counts[dim_idx];
 	}
-	for (std::size_t col_idx = 0; col_idx < K; ++col_idx) {
-		data_transposed[col_idx].resize(data.size());
+	for (std::size_t col_idx = 0; col_idx < col_count; ++col_idx) {
+		data_transposed[col_idx].resize(row_count);
 	}
-	for (std::size_t row_idx = 0; row_idx < data.size(); ++row_idx) {
+	for (std::size_t row_idx = 0; row_idx < row_count; ++row_idx) {
 		std::size_t new_row_idx = 0;
 		std::size_t new_count = 1;
 		for (std::size_t dim_idx = 0; dim_idx < N; ++dim_idx) {
@@ -307,13 +313,13 @@ inline std::array<Grid<T, N>, K> read_grids(
 			new_row_idx += rel_idx * old_count;
 			new_count *= counts[new_dim_idx];
 		}
-		for (std::size_t col_idx = 0; col_idx < K; ++col_idx) {
-			data_transposed[col_idx][new_row_idx] = data[row_idx][col_idx];
+		for (std::size_t col_idx = 0; col_idx < col_count; ++col_idx) {
+			data_transposed[col_idx][new_row_idx] = data[row_idx * col_count + col_idx];
 		}
 	}
 
-	std::array<Grid<T, N>, K> grids;
-	for (std::size_t col_idx = 0; col_idx < K; ++col_idx) {
+	std::vector<Grid<T, N> > grids(col_count);
+	for (std::size_t col_idx = 0; col_idx < col_count; ++col_idx) {
 		grids[col_idx] = Grid<T, N>(
 			data_transposed[col_idx].data(),
 			counts, lower, upper, scale);

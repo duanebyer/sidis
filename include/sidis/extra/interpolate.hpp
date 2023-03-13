@@ -340,12 +340,13 @@ public:
 
 /// Loads grids from an array of tuples. The provided data points must be
 /// provided either in row-major order or column-major order. For each data
-/// point, the first \p N numbers give the coordinates, and the next \p K
-/// numbers give the Grid values at those coordinates. \p K different Grid%s are
-/// returned.
-template<typename T, std::size_t N, std::size_t K = 1>
-std::array<Grid<T, N>, K> read_grids(
-	std::vector<std::array<T, N + K> > const& raw_data,
+/// point, the first \p N numbers give the coordinates, and the next
+/// \p col_count numbers give the Grid values at those coordinates. \p col_count
+/// different Grid%s are returned in a vector.
+template<typename T, std::size_t N>
+std::vector<Grid<T, N> > read_grids(
+	std::vector<T> const& raw_data,
+	std::size_t col_count = 1,
 	T tolerance = 1.e2 * std::numeric_limits<T>::epsilon());
 
 /// The data given was not divisible by the stride (row size).
