@@ -8,6 +8,7 @@ set(
 	"sidis/cut.hpp"
 	"sidis/flavor_vec.hpp"
 	"sidis/frame.hpp"
+	"sidis/grid.hpp"
 	"sidis/hadronic_coeff.hpp"
 	"sidis/integ_params.hpp"
 	"sidis/kinematics.hpp"
@@ -57,6 +58,7 @@ add_library(
 	exception.cpp
 	flavor_vec.cpp
 	frame.cpp
+	grid.cpp
 	hadronic_coeff.cpp
 	kinematics.cpp
 	leptonic_coeff.cpp

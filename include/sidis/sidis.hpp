@@ -8,6 +8,7 @@
 #include "sidis/cut.hpp"
 #include "sidis/flavor_vec.hpp"
 #include "sidis/frame.hpp"
+#include "sidis/grid.hpp"
 #include "sidis/hadronic_coeff.hpp"
 #include "sidis/integ_params.hpp"
 #include "sidis/kinematics.hpp"
