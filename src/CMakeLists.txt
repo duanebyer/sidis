@@ -18,6 +18,7 @@ set(
 	"sidis/structure_function.hpp"
 	"sidis/tmd.hpp"
 	"sidis/transform.hpp"
+	"sidis/utility.hpp"
 	"sidis/vector.hpp"
 	"sidis/sf_set/mask.hpp"
 	"sidis/sf_set/prokudin.hpp"

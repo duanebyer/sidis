@@ -19,7 +19,7 @@
 #elif defined(_MSC_VER)
 #define UNREACHABLE() __assume(0)
 #else
-#define UNREACHABLE() exit(128)
+#define UNREACHABLE() exit(1)
 #endif
 
 // Numeric data types. We want to ensure that integers have 32 bits and longs
