@@ -123,22 +123,22 @@ Real lambda(Real z, Real mean_kperp_sq, Real mean_pperp_sq) {
 // Struct summarizing the TMD Gaussian variances.
 GaussianWwTmdVars const TMD_VARS = []() {
 	GaussianWwTmdVars vars{};
-	vars.f1 = FlavorVec(F1_MEAN_K_PERP_SQ);
-	vars.f1Tperp = FlavorVec(SIVERS_MEAN_K_PERP_SQ);
+	vars.f1 =      { F1_MEAN_K_PERP_SQ };
+	vars.f1Tperp = { SIVERS_MEAN_K_PERP_SQ };
 	// vars.fT
-	vars.g1 = FlavorVec(G1_MEAN_K_PERP_SQ);
-	vars.g1Tperp = FlavorVec(G1_MEAN_K_PERP_SQ);
-	vars.gT = FlavorVec(G1_MEAN_K_PERP_SQ);
-	vars.h1 = FlavorVec(H1_MEAN_K_PERP_SQ);
-	vars.h1perp = FlavorVec(BM_MEAN_K_PERP_SQ);
-	vars.h1Lperp = FlavorVec(H1_MEAN_K_PERP_SQ);
-	vars.h1Tperp = FlavorVec(PRETZ_MEAN_K_PERP_SQ);
+	vars.g1 =      { G1_MEAN_K_PERP_SQ };
+	vars.g1Tperp = { G1_MEAN_K_PERP_SQ };
+	vars.gT =      { G1_MEAN_K_PERP_SQ };
+	vars.h1 =      { H1_MEAN_K_PERP_SQ };
+	vars.h1perp =  { BM_MEAN_K_PERP_SQ };
+	vars.h1Lperp = { H1_MEAN_K_PERP_SQ };
+	vars.h1Tperp = { PRETZ_MEAN_K_PERP_SQ };
 	// vars.h
-	vars.hL = FlavorVec(H1_MEAN_K_PERP_SQ);
-	vars.hT = FlavorVec(HT_MEAN_K_PERP_SQ);
-	vars.hTperp = FlavorVec(HT_MEAN_K_PERP_SQ);
-	vars.D1 = FlavorVec(D1_MEAN_P_PERP_SQ);
-	vars.H1perp = FlavorVec(COLLINS_MEAN_P_PERP_SQ);
+	vars.hL =      { H1_MEAN_K_PERP_SQ };
+	vars.hT =      { HT_MEAN_K_PERP_SQ };
+	vars.hTperp =  { HT_MEAN_K_PERP_SQ };
+	vars.D1 =      { D1_MEAN_P_PERP_SQ };
+	vars.H1perp =  { COLLINS_MEAN_P_PERP_SQ };
 	// `fT` and `h` are neglected because of a lack of information about the
 	// `fT` TMD (see the discussion in section 7.6 of [2]).
 	return vars;

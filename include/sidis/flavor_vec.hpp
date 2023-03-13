@@ -61,8 +61,6 @@ public:
 			++_size;
 		}
 	}
-	/// Initialize a FlavorVec from a single number.
-	explicit FlavorVec(Real val) : _arr{val}, _size(1) { }
 	/// Initialize a FlavorVec from an initializer list.
 	FlavorVec(std::initializer_list<Real> list);
 
