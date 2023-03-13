@@ -18,6 +18,7 @@
 #include "sidis/structure_function.hpp"
 #include "sidis/tmd.hpp"
 #include "sidis/transform.hpp"
+#include "sidis/utility.hpp"
 #include "sidis/vector.hpp"
 #include "sidis/version.hpp"
 
