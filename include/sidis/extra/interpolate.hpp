@@ -93,11 +93,11 @@ public:
 	/// is determined by the \p count array.
 	GridView(T const* data, CellIndex count, Point lower, Point upper, ScaleVec scale={});
 
-	/// Number of data points in dimension \p idx.
+	/// Number of data points in each dimension.
 	std::size_t count(std::size_t idx) const {
 		return _count[idx];
 	}
-	/// Number of data points in each dimension.
+	/// \copydoc GridView::count()
 	CellIndex count() const {
 		return _count;
 	}
