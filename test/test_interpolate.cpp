@@ -16,16 +16,14 @@ using namespace sidis;
 
 namespace {
 
-template<typename T, std::size_t N>
+template<typename T>
 std::istream& operator>>(
 		std::istream& in,
-		std::vector<std::array<T, N> >& data) {
+		std::vector<T>& data) {
 	data.clear();
 	while (in) {
-		std::array<T, N> next;
-		for (std::size_t idx = 0; idx < N; ++idx) {
-			in >> next[idx];
-		}
+		T next;
+		in >> next;
 		if (in) {
 			data.push_back(next);
 		}
@@ -39,10 +37,10 @@ TEST_CASE(
 		"Grid reading from array test",
 		"[interp]") {
 	std::ifstream data_file("data/grid_1_vals.dat");
-	std::vector<std::array<double, 3 + 2> > data;
+	std::vector<double> data;
 	data_file >> data;
-	std::array<interp::Grid<double, 3>, 2> grids
-		= interp::read_grids<double, 3, 2>(data);
+	std::vector<interp::Grid<double, 3> > grids
+		= interp::read_grids<double, 3>(data, 2);
 	interp::Grid<double, 3> grid_1 = grids[0];
 	interp::Grid<double, 3> grid_2 = grids[1];
 
@@ -100,9 +98,9 @@ TEST_CASE(
 		"Grid reading from single cell test",
 		"[interp]") {
 	std::ifstream data_file("data/grid_2_vals.dat");
-	std::vector<std::array<double, 3 + 1> > data;
+	std::vector<double> data;
 	data_file >> data;
-	interp::Grid<double, 3> grid = interp::read_grids<double, 3, 1>(data)[0];
+	interp::Grid<double, 3> grid = interp::read_grids<double, 3>(data, 1)[0];
 
 	// Check sizes.
 	CHECK(grid.count() == std::array<std::size_t, 3>{ 2, 2, 2 });
@@ -128,26 +126,26 @@ TEST_CASE(
 	std::ifstream data_bad_2_file("data/grid_bad_2_vals.dat");
 	std::ifstream data_bad_3_file("data/grid_bad_3_vals.dat");
 	std::ifstream data_bad_4_file("data/grid_bad_4_vals.dat");
-	std::vector<std::array<double, 3> > data_bad_1;
-	std::vector<std::array<double, 3> > data_bad_2;
-	std::vector<std::array<double, 3> > data_bad_3;
-	std::vector<std::array<double, 3> > data_bad_4;
+	std::vector<double> data_bad_1;
+	std::vector<double> data_bad_2;
+	std::vector<double> data_bad_3;
+	std::vector<double> data_bad_4;
 	data_bad_1_file >> data_bad_1;
 	data_bad_2_file >> data_bad_2;
 	data_bad_3_file >> data_bad_3;
 	data_bad_4_file >> data_bad_4;
 
 	CHECK_THROWS_AS(
-		(interp::read_grids<double, 3, 0>)(data_bad_1),
+		(interp::read_grids<double, 3>)(data_bad_1, 0),
 		interp::NotEnoughPointsError);
 	CHECK_THROWS_AS(
-		(interp::read_grids<double, 3, 0>)(data_bad_2),
+		(interp::read_grids<double, 3>)(data_bad_2, 0),
 		interp::InvalidSpacingError);
 	CHECK_THROWS_AS(
-		(interp::read_grids<double, 3, 0>)(data_bad_3),
+		(interp::read_grids<double, 3>)(data_bad_3, 0),
 		interp::UnexpectedGridPointError);
 	CHECK_THROWS_AS(
-		(interp::read_grids<double, 3, 0>)(data_bad_4),
+		(interp::read_grids<double, 3>)(data_bad_4, 0),
 		interp::UnexpectedGridPointError);
 }
 
@@ -155,10 +153,10 @@ TEST_CASE(
 		"Linear interpolation on grids tests",
 		"[interp]") {
 	std::ifstream data_file("data/grid_3_vals.dat");
-	std::vector<std::array<double, 3 + 2> > data;
+	std::vector<double> data;
 	data_file >> data;
-	std::array<interp::Grid<double, 3>, 2> grids
-		= interp::read_grids<double, 3, 2>(data);
+	std::vector<interp::Grid<double, 3> > grids
+		= interp::read_grids<double, 3>(data, 2);
 	interp::LinearView<double, 3> linear(grids[0]);
 	interp::LinearView<double, 3> linear_const(grids[1]);
 
@@ -186,10 +184,10 @@ TEST_CASE(
 		"Cubic interpolation on grids tests",
 		"[interp]") {
 	std::ifstream data_file("data/grid_3_vals.dat");
-	std::vector<std::array<double, 3 + 2> > data;
+	std::vector<double> data;
 	data_file >> data;
-	std::array<interp::Grid<double, 3>, 2> grids
-		= interp::read_grids<double, 3, 2>(data);
+	std::vector<interp::Grid<double, 3> > grids
+		= interp::read_grids<double, 3>(data, 2);
 	interp::CubicView<double, 3> cubic(grids[0]);
 	interp::CubicView<double, 3> cubic_const(grids[1]);
 
