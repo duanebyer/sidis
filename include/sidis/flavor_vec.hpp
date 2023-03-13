@@ -9,7 +9,7 @@ namespace sidis {
 namespace sf {
 
 /// Maximum number of TMD flavors supported in user-defined TMDs.
-unsigned const MAX_FLAVOR_VEC_SIZE = 8;
+unsigned const MAX_FLAVOR_VEC_SIZE = 15;
 
 /**
  * An aggregate of results from a TMD or FF calculation (from TmdSet), one entry
@@ -143,6 +143,12 @@ public:
 	}
 	Real& operator[](unsigned fl) {
 		return _arr[fl];
+	}
+	Real* data() {
+		return _arr;
+	}
+	Real const* data() const {
+		return _arr;
 	}
 	/// \}
 
