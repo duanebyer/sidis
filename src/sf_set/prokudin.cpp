@@ -144,7 +144,7 @@ GaussianWwTmdVars const TMD_VARS = []() {
 	return vars;
 }();
 
-FlavorVec const CHARGES = {
+FlavorVec const CHARGE = {
 	+2./3., // Up.
 	-1./3., // Down.
 	-1./3., // Strange.
@@ -286,12 +286,12 @@ struct ProkudinImpl {
 
 FlavorVec eval_interp_arr(const CubicView<Real, 2> (&interp)[6], Real x, Real Q_sq) {
 	return FlavorVec {
-		interp[0]({ (x), (Q_sq) }),
-		interp[1]({ (x), (Q_sq) }),
-		interp[2]({ (x), (Q_sq) }),
-		interp[3]({ (x), (Q_sq) }),
-		interp[4]({ (x), (Q_sq) }),
-		interp[5]({ (x), (Q_sq) }),
+		interp[0]({ x, Q_sq }),
+		interp[1]({ x, Q_sq }),
+		interp[2]({ x, Q_sq }),
+		interp[3]({ x, Q_sq }),
+		interp[4]({ x, Q_sq }),
+		interp[5]({ x, Q_sq }),
 	};
 }
 
@@ -303,7 +303,7 @@ struct ProkudinTmdSet::Impl : public ProkudinImpl { };
 struct ProkudinSfSet::Impl : public ProkudinImpl { };
 
 ProkudinTmdSet::ProkudinTmdSet() :
-	GaussianWwTmdSet(part::Nucleus::P, NUM_FLAVORS, CHARGES, TMD_VARS),
+	GaussianWwTmdSet(part::Nucleus::P, NUM_FLAVORS, CHARGE, TMD_VARS),
 	_impl(pimpl::make_pimpl<Impl>()) { }
 
 FlavorVec ProkudinTmdSet::xf1(Real x, Real Q_sq) const {
@@ -433,7 +433,7 @@ ProkudinSfSet::ProkudinSfSet() :
 
 Real ProkudinSfSet::F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.1a].
-	Real result = (sq_vec(CHARGES)*xf1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xf1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	Real l = lambda(z, F1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return G(ph_t_sq, l)*result;
 }
@@ -442,14 +442,14 @@ Real ProkudinSfSet::F_UU_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	// Uses a WW-type approximation to rewrite in terms of `xf1`.
-	Real result = (sq_vec(CHARGES)*xf1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xf1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	Real l = lambda(z, F1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2.*F1_MEAN_K_PERP_SQ/Q*ph_t*(z/l)*G(ph_t_sq, l)*result;
 }
 Real ProkudinSfSet::F_UU_cos_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.9a].
 	Real mh = mass(h);
-	Real result = (sq_vec(CHARGES)*xh1perpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1perpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	Real l = lambda(z, BM_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 4.*M*mh*ph_t_sq*sq(z/l)*G(ph_t_sq, l)*result;
 }
@@ -460,7 +460,7 @@ Real ProkudinSfSet::F_UL_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	// Use WW-type approximation to rewrite in terms of `xh1LperpM1`.
-	Real result = (sq_vec(CHARGES)*xh1LperpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1LperpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	// Approximate width with `H1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return -8.*M*mh*z*ph_t/(Q*l)*G(ph_t_sq, l)*result;
@@ -468,7 +468,7 @@ Real ProkudinSfSet::F_UL_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 Real ProkudinSfSet::F_UL_sin_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.6.2a].
 	Real mh = mass(h);
-	Real result = (sq_vec(CHARGES)*xh1LperpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1LperpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	// Approximate width with `H1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 4.*M*mh*ph_t_sq*sq(z/l)*G(ph_t_sq, l)*result;
@@ -477,7 +477,7 @@ Real ProkudinSfSet::F_UL_sin_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Re
 Real ProkudinSfSet::F_UTT_sin_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.7a].
 	Real ph_t = std::sqrt(ph_t_sq);
-	Real result = (sq_vec(CHARGES)*xf1TperpM1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xf1TperpM1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	Real l = lambda(z, SIVERS_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2.*M*z*ph_t/l*G(ph_t_sq, l)*result;
 }
@@ -486,9 +486,9 @@ Real ProkudinSfSet::F_UT_sin_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q
 	Real mh = mass(h);
 	Real Q = std::sqrt(Q_sq);
 	// Use WW-type approximation to rewrite in terms of `xf1TperpM1`.
-	Real result_1 = (sq_vec(CHARGES)*xf1TperpM1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result_1 = (sq_vec(CHARGE)*xf1TperpM1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	// Use WW-type approximation to rewrite in terms of `h1TperpM2`.
-	Real result_2 = (sq_vec(CHARGES)*xh1TperpM2(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result_2 = (sq_vec(CHARGE)*xh1TperpM2(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	// Approximate width with `SIVERS_MEAN_K_PERP_SQ`.
 	Real l_1 = lambda(z, SIVERS_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	// Approximate width with `PRETZ_MEAN_K_PERP_SQ`.
@@ -504,7 +504,7 @@ Real ProkudinSfSet::F_UT_sin_3phih_m_phis(part::Hadron h, Real x, Real z, Real Q
 	// Equation [2.5.10a].
 	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
-	Real result = (sq_vec(CHARGES)*xh1TperpM2(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1TperpM2(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	Real l = lambda(z, PRETZ_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 2.*sq(M)*mh*std::pow(z*ph_t/l, 3)*G(ph_t_sq, l)*result;
 }
@@ -513,7 +513,7 @@ Real ProkudinSfSet::F_UT_sin_phis(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 	Real mh = mass(h);
 	Real Q = std::sqrt(Q_sq);
 	// WW-type approximation used here (see [2] for details).
-	Real result = (sq_vec(CHARGES)*xh1M1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1M1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	Real l = lambda(z, PRETZ_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 8.*sq(M)*mh*sq(z)/(Q*l)*(1. - ph_t_sq/l)*G(ph_t_sq, l)*result;
 }
@@ -521,14 +521,14 @@ Real ProkudinSfSet::F_UT_sin_phih_p_phis(part::Hadron h, Real x, Real z, Real Q_
 	// Equation [2.5.8a].
 	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
-	Real result = (sq_vec(CHARGES)*xh1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 2.*mh*z*ph_t/l*G(ph_t_sq, l)*result;
 }
 
 Real ProkudinSfSet::F_LL(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.5a].
-	Real result = (sq_vec(CHARGES)*xg1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xg1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return G(ph_t_sq, l)*result;
 }
@@ -537,7 +537,7 @@ Real ProkudinSfSet::F_LL_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	// Uses a WW-type approximation to rewrite in terms of `xg1`.
-	Real result = (sq_vec(CHARGES)*xg1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xg1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2.*G1_MEAN_K_PERP_SQ*z*ph_t/(Q*l)*G(ph_t_sq, l)*result;
@@ -547,7 +547,7 @@ Real ProkudinSfSet::F_LT_cos_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_
 	// Equation [2.6.1a].
 	Real ph_t = std::sqrt(ph_t_sq);
 	// Uses a WW-type approximation to rewrite in terms of `xgT`.
-	Real result = (sq_vec(CHARGES)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return 2.*M*x*z*ph_t/l*G(ph_t_sq, l)*result;
@@ -556,7 +556,7 @@ Real ProkudinSfSet::F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q
 	// Equation [2.7.4a].
 	Real Q = std::sqrt(Q_sq);
 	// Uses a WW-type approximation to rewrite in terms of `xgT`.
-	Real result = (sq_vec(CHARGES)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2.*G1_MEAN_K_PERP_SQ*M*x*ph_t_sq*sq(z/l)/Q*G(ph_t_sq, l)*result;
@@ -564,7 +564,7 @@ Real ProkudinSfSet::F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q
 Real ProkudinSfSet::F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.2a].
 	Real Q = std::sqrt(Q_sq);
-	Real result = (sq_vec(CHARGES)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2.*M*x/Q*G(ph_t_sq, l)*result;
