@@ -19,6 +19,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # determines defaults for some options.
 find_package(Doxygen)
 find_package(LATEX)
+find_package(LHAPDF)
 find_package(OpenMP 3.0)
 
 # Project-specific cache variable for shared library.
@@ -89,17 +90,27 @@ endif()
 set(
 	Sidis_ENABLE_IPO ${IPO_SUPPORTED}
 	CACHE BOOL
-	"should interprocedural optimization support be enabled")
+	"should support for interprocedural optimization be enabled")
 
 # OpenMP multithreading support.
 set(OPENMP_SUPPORTED ${OPENMP_FOUND})
 if(NOT OpenMP_FOUND)
-	message(WARNING "OpenMP not found, multi-threading support disabled")
+	message(WARNING "OpenMP not found, support for multi-threading disabled")
 endif()
 set(
-	Sidis_OPENMP_ENABLED ${OPENMP_SUPPORTED}
+	Sidis_ENABLE_OPENMP ${OPENMP_SUPPORTED}
 	CACHE BOOL
-	"should OpenMP multithreading support be enabled")
+	"should support for OpenMP multithreading be enabled")
+
+# LHAPDF grids support.
+set(LHAPDF_SUPPORTED ${LHAPDF_FOUND})
+if(NOT LHAPDF_FOUND)
+	message(WARNING "LHAPDF not found, support for LHAPDF grids disabled")
+endif()
+set(
+	Sidis_ENABLE_LHAPDF ${LHAPDF_SUPPORTED}
+	CACHE BOOL
+	"should support for LHAPDF grids be enabled")
 
 # Set up warnings.
 set(

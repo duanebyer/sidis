@@ -9,7 +9,7 @@ namespace sidis {
 namespace sf {
 
 /// Maximum number of TMD flavors supported in user-defined TMDs.
-unsigned const MAX_FLAVOR_VEC_SIZE = 8;
+unsigned const MAX_FLAVOR_VEC_SIZE = 15;
 
 /**
  * An aggregate of results from a TMD or FF calculation (from TmdSet), one entry
@@ -61,8 +61,6 @@ public:
 			++_size;
 		}
 	}
-	/// Initialize a FlavorVec from a single number.
-	explicit FlavorVec(Real val) : _arr{val}, _size(1) { }
 	/// Initialize a FlavorVec from an initializer list.
 	FlavorVec(std::initializer_list<Real> list);
 
@@ -145,6 +143,12 @@ public:
 	}
 	Real& operator[](unsigned fl) {
 		return _arr[fl];
+	}
+	Real* data() {
+		return _arr;
+	}
+	Real const* data() const {
+		return _arr;
 	}
 	/// \}
 

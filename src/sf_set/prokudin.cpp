@@ -1,6 +1,5 @@
 #include "sidis/sf_set/prokudin.hpp"
 
-#include <array>
 #include <cmath>
 #include <fstream>
 #include <sstream>
@@ -123,28 +122,28 @@ Real lambda(Real z, Real mean_kperp_sq, Real mean_pperp_sq) {
 // Struct summarizing the TMD Gaussian variances.
 GaussianWwTmdVars const TMD_VARS = []() {
 	GaussianWwTmdVars vars{};
-	vars.f1 = FlavorVec(F1_MEAN_K_PERP_SQ);
-	vars.f1Tperp = FlavorVec(SIVERS_MEAN_K_PERP_SQ);
+	vars.f1 =      { F1_MEAN_K_PERP_SQ };
+	vars.f1Tperp = { SIVERS_MEAN_K_PERP_SQ };
 	// vars.fT
-	vars.g1 = FlavorVec(G1_MEAN_K_PERP_SQ);
-	vars.g1Tperp = FlavorVec(G1_MEAN_K_PERP_SQ);
-	vars.gT = FlavorVec(G1_MEAN_K_PERP_SQ);
-	vars.h1 = FlavorVec(H1_MEAN_K_PERP_SQ);
-	vars.h1perp = FlavorVec(BM_MEAN_K_PERP_SQ);
-	vars.h1Lperp = FlavorVec(H1_MEAN_K_PERP_SQ);
-	vars.h1Tperp = FlavorVec(PRETZ_MEAN_K_PERP_SQ);
+	vars.g1 =      { G1_MEAN_K_PERP_SQ };
+	vars.g1Tperp = { G1_MEAN_K_PERP_SQ };
+	vars.gT =      { G1_MEAN_K_PERP_SQ };
+	vars.h1 =      { H1_MEAN_K_PERP_SQ };
+	vars.h1perp =  { BM_MEAN_K_PERP_SQ };
+	vars.h1Lperp = { H1_MEAN_K_PERP_SQ };
+	vars.h1Tperp = { PRETZ_MEAN_K_PERP_SQ };
 	// vars.h
-	vars.hL = FlavorVec(H1_MEAN_K_PERP_SQ);
-	vars.hT = FlavorVec(HT_MEAN_K_PERP_SQ);
-	vars.hTperp = FlavorVec(HT_MEAN_K_PERP_SQ);
-	vars.D1 = FlavorVec(D1_MEAN_P_PERP_SQ);
-	vars.H1perp = FlavorVec(COLLINS_MEAN_P_PERP_SQ);
+	vars.hL =      { H1_MEAN_K_PERP_SQ };
+	vars.hT =      { HT_MEAN_K_PERP_SQ };
+	vars.hTperp =  { HT_MEAN_K_PERP_SQ };
+	vars.D1 =      { D1_MEAN_P_PERP_SQ };
+	vars.H1perp =  { COLLINS_MEAN_P_PERP_SQ };
 	// `fT` and `h` are neglected because of a lack of information about the
 	// `fT` TMD (see the discussion in section 7.6 of [2]).
 	return vars;
 }();
 
-FlavorVec const CHARGES = {
+FlavorVec const CHARGE = {
 	+2./3., // Up.
 	-1./3., // Down.
 	-1./3., // Strange.
@@ -181,25 +180,25 @@ std::istream& find_file(std::ifstream& fin, char const* file_name) {
 
 // Convenience method for loading grid data from a file. Automatically searches
 // in several possible directories for the file.
-template<typename T, std::size_t N, std::size_t K>
-std::array<Grid<T, N>, K> load_grids(char const* file_name) {
+template<typename T, std::size_t N>
+std::vector<Grid<T, N> > load_grids(char const* file_name, std::size_t grid_count=1) {
 	std::ifstream in;
 	find_file(in, file_name);
-	std::vector<std::array<T, N + K> > data;
+	std::vector<T> data;
 	std::string line;
 	while (std::getline(in, line)) {
 		std::stringstream line_in(line);
-		std::array<T, N + K> next;
-		for (std::size_t idx = 0; idx < N + K; ++idx) {
-			line_in >> next[idx];
+		for (std::size_t idx = 0; idx < N + grid_count; ++idx) {
+			Real next;
+			line_in >> next;
+			data.push_back(next);
 		}
-		data.push_back(next);
 		if (!line_in) {
 			throw DataFileParseError(file_name);
 		}
 	}
 	// By default, assume the grids are only accurate to single precision.
-	return read_grids<T, N, K>(data, 0.000001);
+	return read_grids<T, N>(data, grid_count, 0.000001);
 }
 
 // Shared implementation between `ProkudinTmdSet` and `ProkudinSfSet`.
@@ -209,13 +208,13 @@ struct ProkudinImpl {
 	mstw::c_mstwpdf pdf;
 
 	// Load data files from WWSIDIS repository for the TMDs and FFs.
-	std::array<Grid<Real, 2>, 6> data_D1_pi_plus;
-	std::array<Grid<Real, 2>, 6> data_D1_pi_minus;
-	std::array<Grid<Real, 2>, 6> data_g1;
-	std::array<Grid<Real, 2>, 6> data_xgT;
-	std::array<Grid<Real, 2>, 2> data_xh1LperpM1;
+	std::vector<Grid<Real, 2> > data_D1_pi_plus;
+	std::vector<Grid<Real, 2> > data_D1_pi_minus;
+	std::vector<Grid<Real, 2> > data_g1;
+	std::vector<Grid<Real, 2> > data_xgT;
+	std::vector<Grid<Real, 2> > data_xh1LperpM1;
 	// Soffer bound.
-	std::array<Grid<Real, 2>, 6> data_sb;
+	std::vector<Grid<Real, 2> > data_sb;
 
 	// Fragmentation functions.
 	CubicView<Real, 2> interp_D1_pi_plus[6];
@@ -230,14 +229,12 @@ struct ProkudinImpl {
 	ProkudinImpl() :
 			file_pdf(),
 			pdf(find_file(file_pdf, "mstw2008lo.00.dat"), false, true),
-			data_D1_pi_plus(
-				load_grids<Real, 2, 6>("fragmentationpiplus.dat")),
-			data_D1_pi_minus(
-				load_grids<Real, 2, 6>("fragmentationpiminus.dat")),
-			data_g1(load_grids<Real, 2, 6>("g1.dat")),
-			data_xgT(load_grids<Real, 2, 6>("gT_u_d_ubar_dbar_s_sbar.dat")),
-			data_xh1LperpM1(load_grids<Real, 2, 2>("xh1Lperp_u_d.dat")),
-			data_sb(load_grids<Real, 2, 6>("SofferBound.dat")),
+			data_D1_pi_plus(load_grids<Real, 2>("fragmentationpiplus.dat", 6)),
+			data_D1_pi_minus(load_grids<Real, 2>("fragmentationpiminus.dat", 6)),
+			data_g1(load_grids<Real, 2>("g1.dat", 6)),
+			data_xgT(load_grids<Real, 2>("gT_u_d_ubar_dbar_s_sbar.dat", 6)),
+			data_xh1LperpM1(load_grids<Real, 2>("xh1Lperp_u_d.dat", 2)),
+			data_sb(load_grids<Real, 2>("SofferBound.dat", 6)),
 			interp_D1_pi_plus{
 				CubicView<Real, 2>(data_D1_pi_plus[0]),
 				CubicView<Real, 2>(data_D1_pi_plus[1]),
@@ -288,52 +285,35 @@ struct ProkudinImpl {
 
 FlavorVec eval_interp_arr(const CubicView<Real, 2> (&interp)[6], Real x, Real Q_sq) {
 	return FlavorVec {
-		interp[0]({ (x), (Q_sq) }),
-		interp[1]({ (x), (Q_sq) }),
-		interp[2]({ (x), (Q_sq) }),
-		interp[3]({ (x), (Q_sq) }),
-		interp[4]({ (x), (Q_sq) }),
-		interp[5]({ (x), (Q_sq) }),
+		interp[0]({ x, Q_sq }),
+		interp[1]({ x, Q_sq }),
+		interp[2]({ x, Q_sq }),
+		interp[3]({ x, Q_sq }),
+		interp[4]({ x, Q_sq }),
+		interp[5]({ x, Q_sq }),
 	};
 }
 
 }
 
-struct ProkudinTmdSet::Impl {
-	ProkudinImpl impl;
-};
+// Can't use typedefs here, so use inheritance to make the implementations the
+// same for both `ProkudinTmdSet` and `ProkudinSfSet`.
+struct ProkudinTmdSet::Impl : public ProkudinImpl { };
+struct ProkudinSfSet::Impl : public ProkudinImpl { };
 
 ProkudinTmdSet::ProkudinTmdSet() :
-	GaussianWwTmdSet(part::Nucleus::P, NUM_FLAVORS, CHARGES, TMD_VARS),
-	_impl(new Impl()) { }
-
-ProkudinTmdSet::ProkudinTmdSet(ProkudinTmdSet&& other) noexcept :
-		// TODO: This should be removed when copy constructors are put back into
-		// `GaussianWwTmdSet`. For now, we are taking advantage of the fact that
-		// all `ProkudinTmdSet`s are constructed in the same way.
-		GaussianWwTmdSet(part::Nucleus::P, NUM_FLAVORS, CHARGES, TMD_VARS),
-		_impl(nullptr) {
-	std::swap(_impl, other._impl);
-}
-ProkudinTmdSet& ProkudinTmdSet::operator=(ProkudinTmdSet&& other) noexcept {
-	std::swap(_impl, other._impl);
-	return *this;
-}
-ProkudinTmdSet::~ProkudinTmdSet() {
-	if (_impl != nullptr) {
-		delete _impl;
-	}
-}
+	GaussianWwTmdSet(part::Nucleus::P, NUM_FLAVORS, CHARGE, TMD_VARS),
+	_impl(pimpl::make_pimpl<Impl>()) { }
 
 FlavorVec ProkudinTmdSet::xf1(Real x, Real Q_sq) const {
 	Real Q = std::sqrt(Q_sq);
 	return FlavorVec {
-		_impl->impl.pdf.parton(8, x, Q) + _impl->impl.pdf.parton(-2, x, Q),
-		_impl->impl.pdf.parton(7, x, Q) + _impl->impl.pdf.parton(-1, x, Q),
-		_impl->impl.pdf.parton(3, x, Q),
-		_impl->impl.pdf.parton(-2, x, Q),
-		_impl->impl.pdf.parton(-1, x, Q),
-		_impl->impl.pdf.parton(-3, x, Q),
+		_impl->pdf.parton(8, x, Q) + _impl->pdf.parton(-2, x, Q),
+		_impl->pdf.parton(7, x, Q) + _impl->pdf.parton(-1, x, Q),
+		_impl->pdf.parton(3, x, Q),
+		_impl->pdf.parton(-2, x, Q),
+		_impl->pdf.parton(-1, x, Q),
+		_impl->pdf.parton(-3, x, Q),
 	};
 }
 
@@ -350,14 +330,14 @@ FlavorVec ProkudinTmdSet::xf1Tperp(Real x, Real Q_sq) const {
 }
 
 FlavorVec ProkudinTmdSet::xg1(Real x, Real Q_sq) const {
-	return x*eval_interp_arr(_impl->impl.interp_g1, x, Q_sq);
+	return x*eval_interp_arr(_impl->interp_g1, x, Q_sq);
 }
 
 FlavorVec ProkudinTmdSet::xg1Tperp(Real x, Real Q_sq) const {
 	// We only have a grid for `gT`, so use the reverse WW-type approximation to
 	// get `g1Tperp`.
 	return (2.*M*M/G1_MEAN_K_PERP_SQ)*x
-		*eval_interp_arr(_impl->impl.interp_xgT, x, Q_sq);
+		*eval_interp_arr(_impl->interp_xgT, x, Q_sq);
 }
 
 FlavorVec ProkudinTmdSet::xh1(Real x, Real Q_sq) const {
@@ -368,7 +348,7 @@ FlavorVec ProkudinTmdSet::xh1(Real x, Real Q_sq) const {
 		*std::pow(H1_ALPHA + H1_BETA, H1_ALPHA + H1_BETA)
 		*std::pow(H1_ALPHA, -H1_ALPHA)
 		*std::pow(H1_BETA, -H1_BETA)
-		*eval_interp_arr(_impl->impl.interp_sb, x, Q_sq);
+		*eval_interp_arr(_impl->interp_sb, x, Q_sq);
 }
 
 FlavorVec ProkudinTmdSet::xh1perp(Real x, Real Q_sq) const {
@@ -385,8 +365,8 @@ FlavorVec ProkudinTmdSet::xh1perp(Real x, Real Q_sq) const {
 
 FlavorVec ProkudinTmdSet::xh1Lperp(Real x, Real Q_sq) const {
 	return FlavorVec {
-		2.*sq(M)/H1_MEAN_K_PERP_SQ*_impl->impl.interp_xh1LperpM1[0]({ x, Q_sq }),
-		2.*sq(M)/H1_MEAN_K_PERP_SQ*_impl->impl.interp_xh1LperpM1[1]({ x, Q_sq }),
+		2.*sq(M)/H1_MEAN_K_PERP_SQ*_impl->interp_xh1LperpM1[0]({ x, Q_sq }),
+		2.*sq(M)/H1_MEAN_K_PERP_SQ*_impl->interp_xh1LperpM1[1]({ x, Q_sq }),
 		0., 0., 0., 0.,
 	};
 }
@@ -406,9 +386,9 @@ FlavorVec ProkudinTmdSet::xh1Tperp(Real x, Real Q_sq) const {
 FlavorVec ProkudinTmdSet::D1(part::Hadron h, Real z, Real Q_sq) const {
 	switch (h) {
 	case part::Hadron::PI_P:
-		return eval_interp_arr(_impl->impl.interp_D1_pi_plus, z, Q_sq);
+		return eval_interp_arr(_impl->interp_D1_pi_plus, z, Q_sq);
 	case part::Hadron::PI_M:
-		return eval_interp_arr(_impl->impl.interp_D1_pi_minus, z, Q_sq);
+		return eval_interp_arr(_impl->interp_D1_pi_minus, z, Q_sq);
 	default:
 		throw HadronOutOfRange(h);
 	}
@@ -446,33 +426,13 @@ FlavorVec ProkudinTmdSet::H1perp(part::Hadron h, Real z, Real Q_sq) const {
 		*D1(h, z, Q_sq);
 }
 
-struct ProkudinSfSet::Impl {
-	ProkudinImpl impl;
-};
-
-ProkudinSfSet::ProkudinSfSet(ProkudinSfSet&& other) noexcept :
-		SfSet(part::Nucleus::P),
-		_impl(nullptr) {
-	std::swap(_impl, other._impl);
-}
-ProkudinSfSet& ProkudinSfSet::operator=(ProkudinSfSet&& other) noexcept {
-	std::swap(_impl, other._impl);
-	return *this;
-}
-
-ProkudinSfSet::ProkudinSfSet() : SfSet(part::Nucleus::P) {
-	_impl = new Impl();
-}
-
-ProkudinSfSet::~ProkudinSfSet() {
-	if (_impl != nullptr) {
-		delete _impl;
-	}
-}
+ProkudinSfSet::ProkudinSfSet() :
+	SfSet(part::Nucleus::P),
+	_impl(pimpl::make_pimpl<Impl>()) { }
 
 Real ProkudinSfSet::F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.1a].
-	Real result = (sq_vec(CHARGES)*xf1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xf1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	Real l = lambda(z, F1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return G(ph_t_sq, l)*result;
 }
@@ -481,14 +441,14 @@ Real ProkudinSfSet::F_UU_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	// Uses a WW-type approximation to rewrite in terms of `xf1`.
-	Real result = (sq_vec(CHARGES)*xf1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xf1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	Real l = lambda(z, F1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2.*F1_MEAN_K_PERP_SQ/Q*ph_t*(z/l)*G(ph_t_sq, l)*result;
 }
 Real ProkudinSfSet::F_UU_cos_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.9a].
 	Real mh = mass(h);
-	Real result = (sq_vec(CHARGES)*xh1perpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1perpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	Real l = lambda(z, BM_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 4.*M*mh*ph_t_sq*sq(z/l)*G(ph_t_sq, l)*result;
 }
@@ -499,7 +459,7 @@ Real ProkudinSfSet::F_UL_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	// Use WW-type approximation to rewrite in terms of `xh1LperpM1`.
-	Real result = (sq_vec(CHARGES)*xh1LperpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1LperpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	// Approximate width with `H1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return -8.*M*mh*z*ph_t/(Q*l)*G(ph_t_sq, l)*result;
@@ -507,7 +467,7 @@ Real ProkudinSfSet::F_UL_sin_phih(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 Real ProkudinSfSet::F_UL_sin_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.6.2a].
 	Real mh = mass(h);
-	Real result = (sq_vec(CHARGES)*xh1LperpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1LperpM1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	// Approximate width with `H1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 4.*M*mh*ph_t_sq*sq(z/l)*G(ph_t_sq, l)*result;
@@ -516,7 +476,7 @@ Real ProkudinSfSet::F_UL_sin_2phih(part::Hadron h, Real x, Real z, Real Q_sq, Re
 Real ProkudinSfSet::F_UTT_sin_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.7a].
 	Real ph_t = std::sqrt(ph_t_sq);
-	Real result = (sq_vec(CHARGES)*xf1TperpM1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xf1TperpM1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	Real l = lambda(z, SIVERS_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2.*M*z*ph_t/l*G(ph_t_sq, l)*result;
 }
@@ -525,9 +485,9 @@ Real ProkudinSfSet::F_UT_sin_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q
 	Real mh = mass(h);
 	Real Q = std::sqrt(Q_sq);
 	// Use WW-type approximation to rewrite in terms of `xf1TperpM1`.
-	Real result_1 = (sq_vec(CHARGES)*xf1TperpM1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result_1 = (sq_vec(CHARGE)*xf1TperpM1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	// Use WW-type approximation to rewrite in terms of `h1TperpM2`.
-	Real result_2 = (sq_vec(CHARGES)*xh1TperpM2(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result_2 = (sq_vec(CHARGE)*xh1TperpM2(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	// Approximate width with `SIVERS_MEAN_K_PERP_SQ`.
 	Real l_1 = lambda(z, SIVERS_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	// Approximate width with `PRETZ_MEAN_K_PERP_SQ`.
@@ -543,7 +503,7 @@ Real ProkudinSfSet::F_UT_sin_3phih_m_phis(part::Hadron h, Real x, Real z, Real Q
 	// Equation [2.5.10a].
 	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
-	Real result = (sq_vec(CHARGES)*xh1TperpM2(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1TperpM2(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	Real l = lambda(z, PRETZ_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 2.*sq(M)*mh*std::pow(z*ph_t/l, 3)*G(ph_t_sq, l)*result;
 }
@@ -552,7 +512,7 @@ Real ProkudinSfSet::F_UT_sin_phis(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 	Real mh = mass(h);
 	Real Q = std::sqrt(Q_sq);
 	// WW-type approximation used here (see [2] for details).
-	Real result = (sq_vec(CHARGES)*xh1M1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1M1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	Real l = lambda(z, PRETZ_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 8.*sq(M)*mh*sq(z)/(Q*l)*(1. - ph_t_sq/l)*G(ph_t_sq, l)*result;
 }
@@ -560,14 +520,14 @@ Real ProkudinSfSet::F_UT_sin_phih_p_phis(part::Hadron h, Real x, Real z, Real Q_
 	// Equation [2.5.8a].
 	Real mh = mass(h);
 	Real ph_t = std::sqrt(ph_t_sq);
-	Real result = (sq_vec(CHARGES)*xh1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xh1(x, Q_sq)*H1perpM1(h, z, Q_sq)).sum();
 	Real l = lambda(z, H1_MEAN_K_PERP_SQ, COLLINS_MEAN_P_PERP_SQ);
 	return 2.*mh*z*ph_t/l*G(ph_t_sq, l)*result;
 }
 
 Real ProkudinSfSet::F_LL(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.5.5a].
-	Real result = (sq_vec(CHARGES)*xg1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xg1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return G(ph_t_sq, l)*result;
 }
@@ -576,7 +536,7 @@ Real ProkudinSfSet::F_LL_cos_phih(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 	Real Q = std::sqrt(Q_sq);
 	Real ph_t = std::sqrt(ph_t_sq);
 	// Uses a WW-type approximation to rewrite in terms of `xg1`.
-	Real result = (sq_vec(CHARGES)*xg1(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xg1(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2.*G1_MEAN_K_PERP_SQ*z*ph_t/(Q*l)*G(ph_t_sq, l)*result;
@@ -586,7 +546,7 @@ Real ProkudinSfSet::F_LT_cos_phih_m_phis(part::Hadron h, Real x, Real z, Real Q_
 	// Equation [2.6.1a].
 	Real ph_t = std::sqrt(ph_t_sq);
 	// Uses a WW-type approximation to rewrite in terms of `xgT`.
-	Real result = (sq_vec(CHARGES)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return 2.*M*x*z*ph_t/l*G(ph_t_sq, l)*result;
@@ -595,7 +555,7 @@ Real ProkudinSfSet::F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q
 	// Equation [2.7.4a].
 	Real Q = std::sqrt(Q_sq);
 	// Uses a WW-type approximation to rewrite in terms of `xgT`.
-	Real result = (sq_vec(CHARGES)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2.*G1_MEAN_K_PERP_SQ*M*x*ph_t_sq*sq(z/l)/Q*G(ph_t_sq, l)*result;
@@ -603,7 +563,7 @@ Real ProkudinSfSet::F_LT_cos_2phih_m_phis(part::Hadron h, Real x, Real z, Real Q
 Real ProkudinSfSet::F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const {
 	// Equation [2.7.2a].
 	Real Q = std::sqrt(Q_sq);
-	Real result = (sq_vec(CHARGES)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
+	Real result = (sq_vec(CHARGE)*xgT(x, Q_sq)*D1(h, z, Q_sq)).sum();
 	// Approximate width with `G1_MEAN_K_PERP_SQ`.
 	Real l = lambda(z, G1_MEAN_K_PERP_SQ, D1_MEAN_P_PERP_SQ);
 	return -2.*M*x/Q*G(ph_t_sq, l)*result;
@@ -613,9 +573,9 @@ Real ProkudinSfSet::F_LT_cos_phis(part::Hadron h, Real x, Real z, Real Q_sq, Rea
 FlavorVec ProkudinSfSet::D1(part::Hadron h, Real z, Real Q_sq) const {
 	switch (h) {
 	case part::Hadron::PI_P:
-		return eval_interp_arr(_impl->impl.interp_D1_pi_plus, z, Q_sq);
+		return eval_interp_arr(_impl->interp_D1_pi_plus, z, Q_sq);
 	case part::Hadron::PI_M:
-		return eval_interp_arr(_impl->impl.interp_D1_pi_minus, z, Q_sq);
+		return eval_interp_arr(_impl->interp_D1_pi_minus, z, Q_sq);
 	default:
 		throw HadronOutOfRange(h);
 	}
@@ -653,12 +613,12 @@ FlavorVec ProkudinSfSet::H1perpM1(part::Hadron h, Real z, Real Q_sq) const {
 FlavorVec ProkudinSfSet::xf1(Real x, Real Q_sq) const {
 	Real Q = std::sqrt(Q_sq);
 	return FlavorVec {
-		_impl->impl.pdf.parton(8, x, Q) + _impl->impl.pdf.parton(-2, x, Q),
-		_impl->impl.pdf.parton(7, x, Q) + _impl->impl.pdf.parton(-1, x, Q),
-		_impl->impl.pdf.parton(3, x, Q),
-		_impl->impl.pdf.parton(-2, x, Q),
-		_impl->impl.pdf.parton(-1, x, Q),
-		_impl->impl.pdf.parton(-3, x, Q),
+		_impl->pdf.parton(8, x, Q) + _impl->pdf.parton(-2, x, Q),
+		_impl->pdf.parton(7, x, Q) + _impl->pdf.parton(-1, x, Q),
+		_impl->pdf.parton(3, x, Q),
+		_impl->pdf.parton(-2, x, Q),
+		_impl->pdf.parton(-1, x, Q),
+		_impl->pdf.parton(-3, x, Q),
 	};
 }
 
@@ -675,10 +635,10 @@ FlavorVec ProkudinSfSet::xf1TperpM1(Real x, Real Q_sq) const {
 		*xf1(x, Q_sq);
 }
 FlavorVec ProkudinSfSet::xg1(Real x, Real Q_sq) const {
-	return x*eval_interp_arr(_impl->impl.interp_g1, x, Q_sq);
+	return x*eval_interp_arr(_impl->interp_g1, x, Q_sq);
 }
 FlavorVec ProkudinSfSet::xgT(Real x, Real Q_sq) const {
-	return eval_interp_arr(_impl->impl.interp_xgT, x, Q_sq);
+	return eval_interp_arr(_impl->interp_xgT, x, Q_sq);
 }
 FlavorVec ProkudinSfSet::xh1(Real x, Real Q_sq) const {
 	// Use the Soffer bound to get an upper limit on transversity (Equation
@@ -688,7 +648,7 @@ FlavorVec ProkudinSfSet::xh1(Real x, Real Q_sq) const {
 		*std::pow(H1_ALPHA + H1_BETA, H1_ALPHA + H1_BETA)
 		*std::pow(H1_ALPHA, -H1_ALPHA)
 		*std::pow(H1_BETA, -H1_BETA)
-		*eval_interp_arr(_impl->impl.interp_sb, x, Q_sq);
+		*eval_interp_arr(_impl->interp_sb, x, Q_sq);
 }
 FlavorVec ProkudinSfSet::xh1M1(Real x, Real Q_sq) const {
 	return H1_MEAN_K_PERP_SQ/(2.*sq(M))*xh1(x, Q_sq);
@@ -696,8 +656,8 @@ FlavorVec ProkudinSfSet::xh1M1(Real x, Real Q_sq) const {
 FlavorVec ProkudinSfSet::xh1LperpM1(Real x, Real Q_sq) const {
 	// Data only exists for up and down quarks.
 	return FlavorVec {
-		_impl->impl.interp_xh1LperpM1[0]({ x, Q_sq }),
-		_impl->impl.interp_xh1LperpM1[1]({ x, Q_sq }),
+		_impl->interp_xh1LperpM1[0]({ x, Q_sq }),
+		_impl->interp_xh1LperpM1[1]({ x, Q_sq }),
 		0., 0., 0., 0.,
 	};
 }

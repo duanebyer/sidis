@@ -117,6 +117,21 @@ public:
 };
 
 /**
+ * Provided CSV file format had an error in it.
+ */
+class CsvFormatMalformed final : public std::exception {
+	std::string _what;
+
+public:
+	std::string file_name;
+
+	CsvFormatMalformed(char const* file_name);
+	char const* what() const noexcept override {
+		return _what.c_str();
+	}
+};
+
+/**
  * Data file not able to be opened.
  */
 class DataFileNotFound final : public std::exception {

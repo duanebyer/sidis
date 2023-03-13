@@ -2,6 +2,7 @@
 #define SIDIS_PARTICLE_HPP
 
 #include "sidis/constant.hpp"
+#include "sidis/utility.hpp"
 
 namespace sidis {
 namespace part {
@@ -80,8 +81,9 @@ inline Real mass(Lepton lepton) {
 		return MASS_TAU;
 	case Lepton::MASSLESS_E:
 		return 0.;
+	default:
+		SIDIS_UNREACHABLE();
 	}
-	return 0.;
 }
 inline Real mass(Nucleus nucleus) {
 	switch (nucleus) {
@@ -91,8 +93,9 @@ inline Real mass(Nucleus nucleus) {
 		return MASS_N;
 	case Nucleus::D:
 		return MASS_D;
+	default:
+		SIDIS_UNREACHABLE();
 	}
-	return 0.;
 }
 inline Real mass(Hadron hadron) {
 	switch (hadron) {
@@ -110,8 +113,9 @@ inline Real mass(Hadron hadron) {
 		return MASS_PHI;
 	case Hadron::J_PSI:
 		return MASS_J_PSI;
+	default:
+		SIDIS_UNREACHABLE();
 	}
-	return 0.;
 }
 /// \}
 
@@ -126,8 +130,9 @@ inline Real charge(Lepton lepton) {
 	case Lepton::TAU:
 	case Lepton::MASSLESS_E:
 		return -1.;
+	default:
+		SIDIS_UNREACHABLE();
 	}
-	return 0.;
 }
 inline Real charge(Nucleus nucleus) {
 	switch (nucleus) {
@@ -136,8 +141,9 @@ inline Real charge(Nucleus nucleus) {
 		return +1.;
 	case Nucleus::N:
 		return 0.;
+	default:
+		SIDIS_UNREACHABLE();
 	}
-	return 0.;
 }
 inline Real charge(Hadron hadron) {
 	switch (hadron) {
@@ -152,8 +158,9 @@ inline Real charge(Hadron hadron) {
 	case Hadron::PI_M:
 	case Hadron::K_M:
 		return -1.;
+	default:
+		SIDIS_UNREACHABLE();
 	}
-	return 0.;
 }
 /// \}
 
@@ -171,8 +178,9 @@ inline char const* name(Lepton lepton) {
 		return "τ";
 	case Lepton::MASSLESS_E:
 		return "e";
+	default:
+		SIDIS_UNREACHABLE();
 	}
-	return "<error>";
 }
 
 inline char const* name(Nucleus nucleus) {
@@ -183,8 +191,9 @@ inline char const* name(Nucleus nucleus) {
 		return "n";
 	case Nucleus::D:
 		return "d";
+	default:
+		SIDIS_UNREACHABLE();
 	}
-	return "<error>";
 }
 
 inline char const* name(Hadron hadron) {
@@ -205,8 +214,9 @@ inline char const* name(Hadron hadron) {
 		return "φ";
 	case Hadron::J_PSI:
 		return "J/ψ";
+	default:
+		SIDIS_UNREACHABLE();
 	}
-	return "<error>";
 }
 /// \}
 

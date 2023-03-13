@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <deque>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -18,19 +19,23 @@ GridView<T, N>::GridView(
 		T const* data,
 		CellIndex count,
 		Point lower,
-		Point upper) :
+		Point upper,
+		ScaleVec scale) :
 		_data(data),
 		_count(count),
 		_lower(lower),
-		_upper(upper) {
+		_upper(upper),
+		_scale(scale) {
 	_count_total = 1;
+	Point scale_lower = apply_scale<T, N>(_scale, _lower);
+	Point scale_upper = apply_scale<T, N>(_scale, _upper);
 	for (std::size_t idx = 0; idx < N; ++idx) {
 		_count_total *= _count[idx];
-		if (!std::isfinite(lower[idx]) || !std::isfinite(upper[idx])) {
-			throw InvalidBoundsError();
+		if (!std::isfinite(scale_lower[idx]) || !std::isfinite(scale_upper[idx])) {
+			throw InvalidBoundsError(idx);
 		}
-		if (lower[idx] > upper[idx]) {
-			throw InvalidBoundsError();
+		if (scale_lower[idx] > scale_upper[idx]) {
+			throw InvalidBoundsError(idx);
 		}
 		if (_count[idx] <= 1) {
 			throw SingularDimensionError(idx);
@@ -44,16 +49,19 @@ GridView<T, N - 1> GridView<T, N>::operator[](std::size_t idx) const {
 	typename GridView<T, N - 1>::CellIndex next_count;
 	typename GridView<T, N - 1>::Point next_lower;
 	typename GridView<T, N - 1>::Point next_upper;
+	typename GridView<T, N - 1>::ScaleVec next_scale;
 	for (std::size_t idx = 1; idx < N; ++idx) {
 		next_count[idx - 1] = _count[idx];
 		next_lower[idx - 1] = _lower[idx];
 		next_upper[idx - 1] = _upper[idx];
+		next_scale[idx - 1] = _scale[idx];
 	}
 	return GridView<T, N - 1>(
 		_data + idx * width,
 		next_count,
 		next_lower,
-		next_upper);
+		next_upper,
+		next_scale);
 }
 
 template<typename T, std::size_t N>
@@ -66,18 +74,26 @@ T const& GridView<T, N>::operator[](CellIndex cell_idx) const {
 }
 
 template<typename T, std::size_t N>
-Grid<T, N>::Grid(T const* data, CellIndex count, Point lower, Point upper) :
+Grid<T, N>::Grid(
+		T const* data,
+		CellIndex count,
+		Point lower,
+		Point upper,
+		ScaleVec scale) :
 		_count(count),
 		_lower(lower),
-		_upper(upper) {
+		_upper(upper),
+		_scale(scale) {
 	_count_total = 1;
+	Point scale_lower = apply_scale<T, N>(_scale, _lower);
+	Point scale_upper = apply_scale<T, N>(_scale, _upper);
 	for (std::size_t idx = 0; idx < N; ++idx) {
 		_count_total *= _count[idx];
-		if (!std::isfinite(lower[idx]) || !std::isfinite(upper[idx])) {
-			throw InvalidBoundsError();
+		if (!std::isfinite(scale_lower[idx]) || !std::isfinite(scale_upper[idx])) {
+			throw InvalidBoundsError(idx);
 		}
-		if (lower[idx] > upper[idx]) {
-			throw InvalidBoundsError();
+		if (scale_lower[idx] > scale_upper[idx]) {
+			throw InvalidBoundsError(idx);
 		}
 		if (_count[idx] <= 1) {
 			throw SingularDimensionError(idx);
@@ -88,8 +104,10 @@ Grid<T, N>::Grid(T const* data, CellIndex count, Point lower, Point upper) :
 
 template<typename T, std::size_t N>
 T LinearView<T, N>::operator()(typename GridView<T, N>::Point x) const {
-	T x_diff = x[0] - _grid.lower(0);
-	T width = _grid.upper(0) - _grid.lower(0);
+	T x_diff = apply_scale<T>(_grid.scale(0), x[0])
+		- apply_scale<T>(_grid.scale(0), _grid.lower(0));
+	T width = apply_scale<T>(_grid.scale(0), _grid.upper(0))
+		- apply_scale<T>(_grid.scale(0), _grid.lower(0));
 	if (std::isnan(x_diff)) {
 		return x_diff;
 	} else if (x_diff < 0. || x_diff >= width) {
@@ -109,8 +127,10 @@ T LinearView<T, N>::operator()(typename GridView<T, N>::Point x) const {
 
 template<typename T, std::size_t N>
 T CubicView<T, N>::operator()(typename GridView<T, N>::Point x) const {
-	T x_diff = x[0] - _grid.lower(0);
-	T width = _grid.upper(0) - _grid.lower(0);
+	T x_diff = apply_scale<T>(_grid.scale(0), x[0])
+		- apply_scale<T>(_grid.scale(0), _grid.lower(0));
+	T width = apply_scale<T>(_grid.scale(0), _grid.upper(0))
+		- apply_scale<T>(_grid.scale(0), _grid.lower(0));
 	if (std::isnan(x_diff)) {
 		return x_diff;
 	} else if (x_diff < 0. || x_diff >= width) {
@@ -133,18 +153,24 @@ T CubicView<T, N>::operator()(typename GridView<T, N>::Point x) const {
 }
 
 
-template<typename T, std::size_t N, std::size_t K>
-inline std::array<Grid<T, N>, K> read_grids(
-		std::vector<std::array<T, N + K> > const& raw_data,
+template<typename T, std::size_t N>
+inline std::vector<Grid<T, N> > read_grids(
+		std::vector<T> const& raw_data,
+		std::size_t col_count,
 		T tolerance) {
-	std::vector<typename GridView<T, N>::Point> grid_points(raw_data.size());
-	std::vector<std::array<T, K> > data(raw_data.size());
-	for (std::size_t row_idx = 0; row_idx < raw_data.size(); ++row_idx) {
+	std::size_t stride = N + col_count;
+	if (raw_data.size() % stride != 0) {
+		throw NotDivisibleByStrideError(raw_data.size(), stride);
+	}
+	std::size_t row_count = raw_data.size() / stride;
+	std::vector<typename GridView<T, N>::Point> grid_points(row_count);
+	std::vector<T> data(col_count * row_count);
+	for (std::size_t row_idx = 0; row_idx < row_count; ++row_idx) {
 		for (std::size_t dim_idx = 0; dim_idx < N; ++dim_idx) {
-			grid_points[row_idx][dim_idx] = raw_data[row_idx][dim_idx];
+			grid_points[row_idx][dim_idx] = raw_data[row_idx * stride + dim_idx];
 		}
-		for (std::size_t col_idx = 0; col_idx < K; ++col_idx) {
-			data[row_idx][col_idx] = raw_data[row_idx][N + col_idx];
+		for (std::size_t col_idx = 0; col_idx < col_count; ++col_idx) {
+			data[row_idx * col_count + col_idx] = raw_data[row_idx * stride + N + col_idx];
 		}
 	}
 
@@ -159,6 +185,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 	typename GridView<T, N>::CellIndex counts;
 	typename GridView<T, N>::Point lower;
 	typename GridView<T, N>::Point upper;
+	typename GridView<T, N>::ScaleVec scale;
 	for (std::size_t dim_idx = 0; dim_idx < N; ++dim_idx) {
 		std::size_t sub_count = grid_points.size() / count_total;
 		if (sub_count * count_total != grid_points.size()) {
@@ -231,21 +258,36 @@ inline std::array<Grid<T, N>, K> read_grids(
 		lower[step_dim_idx] = next_lower;
 		upper[step_dim_idx] = next_upper;
 		if (!std::isfinite(next_lower) || !std::isfinite(next_upper)) {
-			throw InvalidBoundsError();
+			throw InvalidBoundsError(dim_idx);
 		}
 		if (next_lower >= next_upper) {
-			throw InvalidBoundsError();
+			throw InvalidBoundsError(dim_idx);
 		}
 
-		// Check that the grids are spaced approximately evenly.
-		T spacing = (next_upper - next_lower) / (next_count - 1);
-		for (std::size_t pl_idx = 0; pl_idx < next_count; ++pl_idx) {
-			T plane = grid_planes[pl_idx];
-			T uniform_plane = next_lower + pl_idx * spacing;
-			T rel_tol = tolerance;
-			if (std::abs(plane - uniform_plane) > std::abs(rel_tol * spacing)) {
-				throw InvalidSpacingError();
+		// Check that the grids are spaced approximately evenly. Try several
+		// possible scales, if any of them work, then the grid is fine.
+		bool evenly_spaced = false;
+		std::deque<Scale> test_scales = { Scale::LINEAR, Scale::LOGARITHMIC };
+		while (!evenly_spaced && !test_scales.empty()) {
+			scale[step_dim_idx] = test_scales.front();
+			test_scales.pop_front();
+			T spacing = (
+				apply_scale<T>(scale[step_dim_idx], next_upper)
+				- apply_scale<T>(scale[step_dim_idx], next_lower)) / (next_count - 1);
+			evenly_spaced = true;
+			for (std::size_t pl_idx = 0; pl_idx < next_count; ++pl_idx) {
+				T plane = apply_scale<T>(scale[step_dim_idx], grid_planes[pl_idx]);
+				T uniform_plane = apply_scale<T>(scale[step_dim_idx], next_lower)
+					+ pl_idx * spacing;
+				T rel_tol = tolerance;
+				if (!(std::abs(plane - uniform_plane) <= std::abs(rel_tol * spacing))) {
+					evenly_spaced = false;
+					break;
+				}
 			}
+		}
+		if (!evenly_spaced) {
+			throw InvalidSpacingError(dim_idx);
 		}
 
 		// Increase count for next round.
@@ -253,15 +295,15 @@ inline std::array<Grid<T, N>, K> read_grids(
 	}
 
 	// Use the grid information to reorder the data.
-	std::array<std::vector<T>, K> data_transposed;
+	std::vector<std::vector<T> > data_transposed(col_count);
 	std::array<std::size_t, N> count_totals = { count_total / counts[0] };
 	for (std::size_t dim_idx = 1; dim_idx < N; ++dim_idx) {
 		count_totals[dim_idx] = count_totals[dim_idx - 1] / counts[dim_idx];
 	}
-	for (std::size_t col_idx = 0; col_idx < K; ++col_idx) {
-		data_transposed[col_idx].resize(data.size());
+	for (std::size_t col_idx = 0; col_idx < col_count; ++col_idx) {
+		data_transposed[col_idx].resize(row_count);
 	}
-	for (std::size_t row_idx = 0; row_idx < data.size(); ++row_idx) {
+	for (std::size_t row_idx = 0; row_idx < row_count; ++row_idx) {
 		std::size_t new_row_idx = 0;
 		std::size_t new_count = 1;
 		for (std::size_t dim_idx = 0; dim_idx < N; ++dim_idx) {
@@ -271,20 +313,30 @@ inline std::array<Grid<T, N>, K> read_grids(
 			new_row_idx += rel_idx * old_count;
 			new_count *= counts[new_dim_idx];
 		}
-		for (std::size_t col_idx = 0; col_idx < K; ++col_idx) {
-			data_transposed[col_idx][new_row_idx] = data[row_idx][col_idx];
+		for (std::size_t col_idx = 0; col_idx < col_count; ++col_idx) {
+			data_transposed[col_idx][new_row_idx] = data[row_idx * col_count + col_idx];
 		}
 	}
 
-	std::array<Grid<T, N>, K> grids;
-	for (std::size_t col_idx = 0; col_idx < K; ++col_idx) {
+	std::vector<Grid<T, N> > grids(col_count);
+	for (std::size_t col_idx = 0; col_idx < col_count; ++col_idx) {
 		grids[col_idx] = Grid<T, N>(
 			data_transposed[col_idx].data(),
-			counts, lower, upper);
+			counts, lower, upper, scale);
 	}
 
 	return grids;
 }
+
+inline NotDivisibleByStrideError::NotDivisibleByStrideError(
+	std::size_t data_size,
+	std::size_t stride) :
+	std::runtime_error(
+		"Data of length "
+		+ std::to_string(data_size) + " is not divisible by the stride "
+		+ std::to_string(stride)),
+	data_size(data_size),
+	stride(stride) { }
 
 inline NotEnoughPointsError::NotEnoughPointsError(
 	std::size_t points,
@@ -300,11 +352,18 @@ inline SingularDimensionError::SingularDimensionError(std::size_t dim) :
 	std::runtime_error("Grid is singular in dimension " + std::to_string(dim)),
 	dim(dim) { }
 
-inline InvalidBoundsError::InvalidBoundsError() :
-	std::runtime_error("Lower grid bound must be smaller than upper bound") { }
+inline InvalidBoundsError::InvalidBoundsError(std::size_t dim) :
+	std::runtime_error(
+		"Lower grid bound must be smaller than upper bound in dimension "
+		+ std::to_string(dim)),
+	dim(dim) { }
 
-inline InvalidSpacingError::InvalidSpacingError() :
-	std::runtime_error("Grid must be spaced uniformly") { }
+inline InvalidSpacingError::InvalidSpacingError(
+	std::size_t dim) :
+	std::runtime_error(
+		"Grid must be spaced uniformly (non-linear spacing in dimension "
+		+ std::to_string(dim) + ")"),
+	dim(dim) { }
 
 inline UnexpectedGridPointError::UnexpectedGridPointError(
 	std::size_t line_number) :

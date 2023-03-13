@@ -114,6 +114,7 @@ math::IntegParams const DEFAULT_INTEG_PARAMS {
  * parts, such as \f$\sigma^{UT_1}\f$, use the
  * \ref XsBornGroup "base Born cross-section functions".
  */
+/// \{
 
 /**
  * \defgroup GeneralXsGroup General cross-section functions
@@ -294,6 +295,7 @@ Real rad_f_base_uu(Rad const& b, lep::LepRadBaseUU const& lep, had::HadRadFBaseU
 math::Vec3 rad_f_base_up(Rad const& b, lep::LepRadBaseUU const& lep_uu, lep::LepRadBaseUP const& lep_up, had::HadRadFBaseUP const& had);
 Real rad_f_base_lu(Rad const& b, lep::LepRadBaseLU const& lep, had::HadRadFBaseLU const& had);
 math::Vec3 rad_f_base_lp(Rad const& b, lep::LepRadBaseLU const& lep_lu, lep::LepRadBaseLP const& lep_lp, had::HadRadFBaseLP const& had);
+/// \}
 /// \}
 
 }

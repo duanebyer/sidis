@@ -56,6 +56,12 @@ HadronOutOfRange::HadronOutOfRange(part::Hadron hadron) :
 		+ "' is not supported by FF"),
 	hadron(hadron) { }
 
+CsvFormatMalformed::CsvFormatMalformed(char const* file_name) :
+	_what(
+		std::string("Malformed CSV format describing data file '") + file_name
+		+ "'"),
+	file_name(file_name) { }
+
 DataFileNotFound::DataFileNotFound(char const* file_name) :
 	_what(
 		std::string("Could not open data file '") + file_name + "'"),

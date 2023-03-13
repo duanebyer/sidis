@@ -1,6 +1,7 @@
 #ifndef SIDIS_SF_SET_PROKUDIN_HPP
 #define SIDIS_SF_SET_PROKUDIN_HPP
 
+#include "sidis/pimpl.hpp"
 #include "sidis/structure_function.hpp"
 #include "sidis/tmd.hpp"
 
@@ -19,15 +20,10 @@ namespace set {
 class ProkudinTmdSet final : public GaussianWwTmdSet {
 private:
 	struct Impl;
-	Impl* _impl;
+	pimpl::Pimpl<Impl> _impl;
 
 public:
 	ProkudinTmdSet();
-	ProkudinTmdSet(ProkudinTmdSet const&) = delete;
-	ProkudinTmdSet(ProkudinTmdSet&&) noexcept;
-	ProkudinTmdSet& operator=(ProkudinTmdSet const&) = delete;
-	ProkudinTmdSet& operator=(ProkudinTmdSet&& other) noexcept;
-	virtual ~ProkudinTmdSet();
 
 	FlavorVec xf1(Real x, Real Q_sq) const override;
 	FlavorVec xf1Tperp(Real x, Real Q_sq) const override;
@@ -47,7 +43,7 @@ public:
  */
 class ProkudinSfSet final : public SfSet {
 	struct Impl;
-	Impl* _impl;
+	pimpl::Pimpl<Impl> _impl;
 
 	// Fragmentation functions.
 	FlavorVec D1(part::Hadron h, Real z, Real Q_sq) const;
@@ -66,11 +62,6 @@ class ProkudinSfSet final : public SfSet {
 
 public:
 	ProkudinSfSet();
-	ProkudinSfSet(ProkudinSfSet const& other) = delete;
-	ProkudinSfSet(ProkudinSfSet&& other) noexcept;
-	ProkudinSfSet& operator=(ProkudinSfSet const& other) = delete;
-	ProkudinSfSet& operator=(ProkudinSfSet&& other) noexcept;
-	virtual ~ProkudinSfSet();
 
 	// Structure functions.
 	Real F_UUT(part::Hadron h, Real x, Real z, Real Q_sq, Real ph_t_sq) const override;

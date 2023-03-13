@@ -2,10 +2,13 @@
 #define SIDIS_INTERPOLATE_HPP
 
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <limits>
 #include <stdexcept>
 #include <vector>
+
+#include "sidis/utility.hpp"
 
 namespace sidis {
 namespace interp {
@@ -33,6 +36,34 @@ inline T cubic(T f1, T f2, T f3, T f4, T x) {
 		- 0.5 * x * x * (1. - x) * (f4 - f2);
 }
 
+/**
+ * The type of scaling for an axis.
+ */
+enum class Scale {
+	LINEAR = 0,
+	LOGARITHMIC,
+};
+
+template<typename T>
+Real apply_scale(Scale scale, Real x) {
+	switch (scale) {
+	case Scale::LINEAR:
+		return x;
+	case Scale::LOGARITHMIC:
+		return std::log(x);
+	default:
+		SIDIS_UNREACHABLE();
+	}
+}
+
+template<typename T, std::size_t N>
+std::array<Real, N> apply_scale(std::array<Scale, N> scale, std::array<Real, N> x) {
+	for (std::size_t idx = 0; idx < N; ++idx) {
+		x[idx] = apply_scale<T>(scale[idx], x[idx]);
+	}
+	return x;
+}
+
 template<typename T, std::size_t N>
 class Grid;
 
@@ -46,6 +77,7 @@ class GridView final {
 public:
 	using CellIndex = std::array<std::size_t, N>;
 	using Point = std::array<T, N>;
+	using ScaleVec = std::array<Scale, N>;
 
 private:
 	T const* _data;
@@ -53,18 +85,19 @@ private:
 	std::size_t _count_total;
 	Point _lower;
 	Point _upper;
+	ScaleVec _scale;
 
 public:
 	/// Construct a GridView out of \p data. The GridView spans the hyper-cube
 	/// from \p lower to \p upper. The number of data points in each dimension
 	/// is determined by the \p count array.
-	GridView(T const* data, CellIndex count, Point lower, Point upper);
+	GridView(T const* data, CellIndex count, Point lower, Point upper, ScaleVec scale={});
 
-	/// Number of data points in dimension \p idx.
+	/// Number of data points in each dimension.
 	std::size_t count(std::size_t idx) const {
 		return _count[idx];
 	}
-	/// Number of data points in each dimension.
+	/// \copydoc GridView::count()
 	CellIndex count() const {
 		return _count;
 	}
@@ -88,6 +121,14 @@ public:
 	Point upper() const {
 		return _upper;
 	}
+	/// Scaling used by each axis.
+	Scale scale(std::size_t idx) const {
+		return _scale[idx];
+	}
+	/// \copydoc GridView::scale()
+	ScaleVec scale() const {
+		return _scale;
+	}
 	/// Access to the contigious underlying data.
 	T const* data() const {
 		return _data;
@@ -105,17 +146,19 @@ class GridView<T, 0> {
 public:
 	using CellIndex = std::array<std::size_t, 0>;
 	using Point = std::array<T, 0>;
+	using ScaleVec = std::array<Scale, 0>;
 
 private:
 	T const* _data;
 
 public:
 	explicit GridView(T const* data) : _data(data) { }
-	GridView(T const* data, CellIndex count, Point lower, Point upper) :
+	GridView(T const* data, CellIndex count, Point lower, Point upper, ScaleVec scale={}) :
 			_data(data) {
 		static_cast<void>(count);
 		static_cast<void>(lower);
 		static_cast<void>(upper);
+		static_cast<void>(scale);
 	}
 
 	CellIndex count() const {
@@ -129,6 +172,9 @@ public:
 	}
 	Point upper() const {
 		return Point();
+	}
+	ScaleVec scale() const {
+		return ScaleVec();
 	}
 	T const* data() const {
 		return _data;
@@ -154,6 +200,7 @@ class Grid final {
 public:
 	using CellIndex = typename GridView<T, N>::CellIndex;
 	using Point = typename GridView<T, N>::Point;
+	using ScaleVec = std::array<Scale, N>;
 
 private:
 	std::vector<T> _data;
@@ -161,12 +208,13 @@ private:
 	std::size_t _count_total;
 	Point _lower;
 	Point _upper;
+	ScaleVec _scale;
 
 public:
-	Grid() : _data(), _count(), _count_total(0), _lower(), _upper() { }
-	Grid(T const* data, CellIndex count, Point lower, Point upper);
+	Grid() : _data(), _count(), _count_total(0), _lower(), _upper(), _scale() { }
+	Grid(T const* data, CellIndex count, Point lower, Point upper, ScaleVec scale={});
 	operator GridView<T, N>() const {
-		return GridView<T, N>(_data.data(), _count, _lower, _upper);
+		return GridView<T, N>(_data.data(), _count, _lower, _upper, _scale);
 	}
 
 	/// \copydoc GridView::count()
@@ -196,6 +244,14 @@ public:
 	/// \copydoc GridView::upper()
 	Point upper() const {
 		return _upper;
+	}
+	/// \copydoc GridView::scale()
+	Scale scale(std::size_t idx) const {
+		return _scale[idx];
+	}
+	/// \copydoc GridView::scale()
+	ScaleVec scale() const {
+		return _scale;
 	}
 	/// \copydoc GridView::data()
 	T const* data() const {
@@ -284,13 +340,21 @@ public:
 
 /// Loads grids from an array of tuples. The provided data points must be
 /// provided either in row-major order or column-major order. For each data
-/// point, the first \p N numbers give the coordinates, and the next \p K
-/// numbers give the Grid values at those coordinates. \p K different Grid%s are
-/// returned.
-template<typename T, std::size_t N, std::size_t K = 1>
-std::array<Grid<T, N>, K> read_grids(
-	std::vector<std::array<T, N + K> > const& raw_data,
+/// point, the first \p N numbers give the coordinates, and the next
+/// \p col_count numbers give the Grid values at those coordinates. \p col_count
+/// different Grid%s are returned in a vector.
+template<typename T, std::size_t N>
+std::vector<Grid<T, N> > read_grids(
+	std::vector<T> const& raw_data,
+	std::size_t col_count = 1,
 	T tolerance = 1.e2 * std::numeric_limits<T>::epsilon());
+
+/// The data given was not divisible by the stride (row size).
+struct NotDivisibleByStrideError : public std::runtime_error {
+	std::size_t data_size;
+	std::size_t stride;
+	NotDivisibleByStrideError(std::size_t data_size, std::size_t stride);
+};
 
 /// Not enough points were provided to form a Grid without ragged edges.
 struct NotEnoughPointsError : public std::runtime_error {
@@ -308,12 +372,14 @@ struct SingularDimensionError : public std::runtime_error {
 /// The hyper-cube bounds on a Grid invalid, most likely because the hyper-cube
 /// has negative volume.
 struct InvalidBoundsError : public std::runtime_error {
-	InvalidBoundsError();
+	std::size_t dim;
+	InvalidBoundsError(std::size_t dim);
 };
 
 /// Data points used to construct a Grid are not spaced evenly.
 struct InvalidSpacingError : public std::runtime_error {
-	InvalidSpacingError();
+	std::size_t dim;
+	InvalidSpacingError(std::size_t dim);
 };
 
 /// Data points used to construct a Grid are provided in an unexpected order.

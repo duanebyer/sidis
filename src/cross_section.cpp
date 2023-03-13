@@ -13,6 +13,7 @@
 #include "sidis/leptonic_coeff.hpp"
 #include "sidis/phenom.hpp"
 #include "sidis/structure_function.hpp"
+#include "sidis/utility.hpp"
 #include "sidis/vector.hpp"
 #include "sidis/extra/integrate.hpp"
 #include "sidis/extra/math.hpp"
@@ -197,6 +198,8 @@ using namespace sidis::xs;
 			lp.z = name##_base_ll((b), lep.lp, had.ll); \
 		} \
 		break; \
+	default: \
+		SIDIS_UNREACHABLE(); \
 	} \
 	return uu + dot(up, (eta)) + (lambda_e)*(lu + dot(lp, (eta))); \
 }())
@@ -245,6 +248,8 @@ using namespace sidis::xs;
 			lp = name##_base_lp((b), lep.lu, lep.lp, had.lp); \
 		} \
 		break; \
+	default: \
+		SIDIS_UNREACHABLE(); \
 	} \
 	return uu + dot(up, (eta)) + (lambda_e)*(lu + dot(lp, (eta))); \
 }())
@@ -302,6 +307,8 @@ using namespace sidis::xs;
 			lp = name##_base_lp((b), lep.lu, lep.lp, had.lp); \
 		} \
 		break; \
+	default: \
+		SIDIS_UNREACHABLE(); \
 	} \
 	return uu + dot(up, (eta)) + (lambda_e)*(lu + dot(lp, (eta))); \
 }())

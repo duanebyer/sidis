@@ -8,15 +8,18 @@ set(
 	"sidis/cut.hpp"
 	"sidis/flavor_vec.hpp"
 	"sidis/frame.hpp"
+	"sidis/grid.hpp"
 	"sidis/hadronic_coeff.hpp"
 	"sidis/integ_params.hpp"
 	"sidis/kinematics.hpp"
 	"sidis/leptonic_coeff.hpp"
 	"sidis/particle.hpp"
 	"sidis/phenom.hpp"
+	"sidis/pimpl.hpp"
 	"sidis/structure_function.hpp"
 	"sidis/tmd.hpp"
 	"sidis/transform.hpp"
+	"sidis/utility.hpp"
 	"sidis/vector.hpp"
 	"sidis/sf_set/mask.hpp"
 	"sidis/sf_set/prokudin.hpp"
@@ -46,8 +49,6 @@ foreach(HEADER ${HEADER_LIST_GENERATE})
 	list(APPEND HEADER_LIST_DIST "${Sidis_BINARY_DIR}/include/${HEADER}")
 endforeach(HEADER)
 
-find_package(GSL REQUIRED)
-
 add_library(
 	sidis
 	asymmetry.cpp
@@ -57,6 +58,7 @@ add_library(
 	exception.cpp
 	flavor_vec.cpp
 	frame.cpp
+	grid.cpp
 	hadronic_coeff.cpp
 	kinematics.cpp
 	leptonic_coeff.cpp
@@ -71,6 +73,11 @@ add_library(
 	sf_set/test.cpp
 	${HEADER_LIST_SOURCE})
 target_link_libraries(sidis PRIVATE MSTWPDF::mstwpdf Cubature::cubature GSL::gsl)
+find_package(GSL REQUIRED)
+if(Sidis_ENABLE_LHAPDF)
+	find_package(LHAPDF REQUIRED)
+	target_link_libraries(sidis PRIVATE LHAPDF)
+endif()
 target_include_directories(
 	sidis PUBLIC
 	"${Sidis_SOURCE_DIR}/include"
