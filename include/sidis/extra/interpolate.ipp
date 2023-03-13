@@ -316,7 +316,7 @@ inline std::array<Grid<T, N>, K> read_grids(
 	for (std::size_t col_idx = 0; col_idx < K; ++col_idx) {
 		grids[col_idx] = Grid<T, N>(
 			data_transposed[col_idx].data(),
-			counts, lower, upper);
+			counts, lower, upper, scale);
 	}
 
 	return grids;
