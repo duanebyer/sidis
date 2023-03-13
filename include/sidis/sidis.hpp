@@ -15,6 +15,7 @@
 #include "sidis/numeric.hpp"
 #include "sidis/particle.hpp"
 #include "sidis/phenom.hpp"
+#include "sidis/pimpl.hpp"
 #include "sidis/structure_function.hpp"
 #include "sidis/tmd.hpp"
 #include "sidis/transform.hpp"
