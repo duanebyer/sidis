@@ -348,6 +348,13 @@ std::array<Grid<T, N>, K> read_grids(
 	std::vector<std::array<T, N + K> > const& raw_data,
 	T tolerance = 1.e2 * std::numeric_limits<T>::epsilon());
 
+/// The data given was not divisible by the stride (row size).
+struct NotDivisibleByStrideError : public std::runtime_error {
+	std::size_t data_size;
+	std::size_t stride;
+	NotDivisibleByStrideError(std::size_t data_size, std::size_t stride);
+};
+
 /// Not enough points were provided to form a Grid without ragged edges.
 struct NotEnoughPointsError : public std::runtime_error {
 	std::size_t points;
@@ -364,12 +371,14 @@ struct SingularDimensionError : public std::runtime_error {
 /// The hyper-cube bounds on a Grid invalid, most likely because the hyper-cube
 /// has negative volume.
 struct InvalidBoundsError : public std::runtime_error {
-	InvalidBoundsError();
+	std::size_t dim;
+	InvalidBoundsError(std::size_t dim);
 };
 
 /// Data points used to construct a Grid are not spaced evenly.
 struct InvalidSpacingError : public std::runtime_error {
-	InvalidSpacingError();
+	std::size_t dim;
+	InvalidSpacingError(std::size_t dim);
 };
 
 /// Data points used to construct a Grid are provided in an unexpected order.

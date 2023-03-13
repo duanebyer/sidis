@@ -252,10 +252,10 @@ inline std::array<Grid<T, N>, K> read_grids(
 		lower[step_dim_idx] = next_lower;
 		upper[step_dim_idx] = next_upper;
 		if (!std::isfinite(next_lower) || !std::isfinite(next_upper)) {
-			throw InvalidBoundsError();
+			throw InvalidBoundsError(dim_idx);
 		}
 		if (next_lower >= next_upper) {
-			throw InvalidBoundsError();
+			throw InvalidBoundsError(dim_idx);
 		}
 
 		// Check that the grids are spaced approximately evenly. Try several
@@ -322,6 +322,16 @@ inline std::array<Grid<T, N>, K> read_grids(
 	return grids;
 }
 
+inline NotDivisibleByStrideError::NotDivisibleByStrideError(
+	std::size_t data_size,
+	std::size_t stride) :
+	std::runtime_error(
+		"Data of length "
+		+ std::to_string(data_size) + " is not divisible by the stride "
+		+ std::to_string(stride)),
+	data_size(data_size),
+	stride(stride) { }
+
 inline NotEnoughPointsError::NotEnoughPointsError(
 	std::size_t points,
 	std::size_t expected_points) :
@@ -336,11 +346,18 @@ inline SingularDimensionError::SingularDimensionError(std::size_t dim) :
 	std::runtime_error("Grid is singular in dimension " + std::to_string(dim)),
 	dim(dim) { }
 
-inline InvalidBoundsError::InvalidBoundsError() :
-	std::runtime_error("Lower grid bound must be smaller than upper bound") { }
+inline InvalidBoundsError::InvalidBoundsError(std::size_t dim) :
+	std::runtime_error(
+		"Lower grid bound must be smaller than upper bound in dimension "
+		+ std::to_string(dim)),
+	dim(dim) { }
 
-inline InvalidSpacingError::InvalidSpacingError() :
-	std::runtime_error("Grid must be spaced uniformly") { }
+inline InvalidSpacingError::InvalidSpacingError(
+	std::size_t dim) :
+	std::runtime_error(
+		"Grid must be spaced uniformly (non-linear spacing in dimension "
+		+ std::to_string(dim) + ")"),
+	dim(dim) { }
 
 inline UnexpectedGridPointError::UnexpectedGridPointError(
 	std::size_t line_number) :
